@@ -40,7 +40,6 @@ export default {
             lg: '1024px',
             larger: '1232px',
             xl: '1410px',
-            '2xl': '1536px',
         },
     },
 

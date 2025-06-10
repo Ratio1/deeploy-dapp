@@ -1,0 +1,3 @@
+# Ensure all text files use LF
+* text eol=lf
+*.png binary
