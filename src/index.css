@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&family=Roboto+Mono:wght@500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    @apply font-mona text-body h-screen w-screen overflow-x-hidden;
+}
+
+/* Utilities */
+.row {
+    @apply flex items-center;
+}
+
+.col {
+    @apply flex flex-col;
+}
+
+.center-all {
+    @apply row justify-center;
+}
+
+.web-only-block {
+    @apply hidden md:block;
+}
+
+.mobile-only-block {
+    @apply block md:hidden;
+}
+
+.web-only-flex {
+    @apply hidden md:flex;
+}
+
+.mobile-only-flex {
+    @apply flex md:hidden;
+}
+
+.web-only-xl-flex {
+    @apply hidden xl:flex;
+}
+
+.mobile-only-xl-flex {
+    @apply flex xl:hidden;
+}
+
+.active {
+    @apply text-primary;
+}
+
+/* Safe padding for mobile devices */
+.nav-safe-padding {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Scrollbar */
+*::-webkit-scrollbar {
+    width: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: white;
+    background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: #f5f7fe;
+    border-radius: 0px;
+    border: 0;
+}
+
+/* Number input */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type='number'] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+/* Primitives */
+button {
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
+}
+
+ul {
+    list-style: inside;
+}
