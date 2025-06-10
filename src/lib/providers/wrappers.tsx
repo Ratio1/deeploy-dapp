@@ -1,4 +1,4 @@
-import ScrollToTop from '@components/ScrollToTop';
+import ScrollToTop from '@components/layout/ScrollToTop';
 import { HeroUIProvider } from '@heroui/system';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';

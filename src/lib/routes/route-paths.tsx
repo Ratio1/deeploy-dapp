@@ -1,5 +1,5 @@
 export const routePath = {
-    home: '/',
+    root: '/',
     deeploys: '/deeploys',
     // Children of /deeploys
     dashboard: '/dashboard',
@@ -11,4 +11,5 @@ export const routePath = {
     //
     termsAndConditions: '/terms-and-conditions',
     privacyPolicy: '/privacy-policy',
+    notFound: '/404',
 };

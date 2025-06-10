@@ -11,7 +11,7 @@ export type AppRoute = {
 };
 
 export const mainRoutesInfo = {
-    [routePath.home]: {
+    [routePath.root]: {
         title: 'Home',
     },
     [routePath.deeploys]: {
@@ -30,12 +30,23 @@ export const mainRoutesInfo = {
         title: 'Support',
         description: 'Get help and contact support',
     },
+    [routePath.termsAndConditions]: {
+        title: 'Terms & Conditions',
+        description: 'Terms governing your use of our services',
+    },
+    [routePath.privacyPolicy]: {
+        title: 'Privacy Policy',
+        description: 'Understand how we handle and protect your personal data',
+    },
+    [routePath.notFound]: {
+        title: 'Not Found',
+    },
 };
 
 // Routes with icons are displayed in the main navigation
 export const routes: AppRoute[] = [
     {
-        path: routePath.home,
+        path: routePath.root,
         page: Home,
         icon: <RiHomeLine />,
     },
