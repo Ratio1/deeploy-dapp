@@ -8,7 +8,7 @@ export default function AppCard({ app }: { app: DeeployApp }) {
         <BorderedCard isHoverable>
             <div className="row justify-between gap-3 lg:gap-6">
                 <div className="min-w-[212px]">
-                    <CardItem label="Version" value={<>{app.alias}</>} />
+                    <CardItem label="Version" value={<>{app.alias}</>} isBold />
                 </div>
 
                 <div className="min-w-[212px]">

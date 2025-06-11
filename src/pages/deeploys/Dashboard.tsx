@@ -29,26 +29,74 @@ const array: DeeployApp[] = [
     },
 ];
 
+const drafts: DeeployApp[] = [
+    {
+        alias: 'xrunner_02',
+        pluginSignature: 'COMPUTER_PLUGIN_05',
+        nodes: 1,
+        processor: 'CPU',
+        runningNodes: '0',
+        deadline: '2026-05-01',
+    },
+    {
+        alias: 'xrunner_01',
+        pluginSignature: 'COMPUTER_PLUGIN_05',
+        nodes: 1,
+        processor: 'CPU',
+        runningNodes: '0',
+        deadline: '2026-07-08',
+    },
+];
+
 function Dashboard() {
     return (
-        <div className="w-full flex-1">
-            <div className="list-wrapper">
-                <div className="list">
-                    <ListHeader>
-                        <div className="min-w-[212px]">Alias</div>
-                        <div className="min-w-[212px]">Plugin Signature</div>
-                        <div className="min-w-[64px]">Nodes</div>
-                        <div className="min-w-[82px]">GPU/CPU</div>
-                        <div className="min-w-[112px]">Running Nodes</div>
-                        <div className="min-w-[112px]">Deadline</div>
-                    </ListHeader>
-
-                    {array.map((app, index) => (
-                        <div key={index}>
-                            <AppCard app={app} />
+        <div className="col w-full flex-1 gap-10">
+            <div className="list">
+                <ListHeader
+                    label={
+                        <div className="row gap-2">
+                            <div className="h-2.5 w-2.5 rounded-full bg-green-500"></div>
+                            <div className="text-lg font-semibold text-body">Running</div>
                         </div>
-                    ))}
-                </div>
+                    }
+                >
+                    <div className="min-w-[212px]">Alias</div>
+                    <div className="min-w-[212px]">Plugin Signature</div>
+                    <div className="min-w-[64px]">Nodes</div>
+                    <div className="min-w-[82px]">GPU/CPU</div>
+                    <div className="min-w-[112px]">Running Nodes</div>
+                    <div className="min-w-[112px]">Deadline</div>
+                </ListHeader>
+
+                {array.map((app, index) => (
+                    <div key={index}>
+                        <AppCard app={app} />
+                    </div>
+                ))}
+            </div>
+
+            <div className="list">
+                <ListHeader
+                    label={
+                        <div className="row gap-2">
+                            <div className="h-2.5 w-2.5 rounded-full bg-slate-400"></div>
+                            <div className="text-lg font-semibold text-body">Drafts</div>
+                        </div>
+                    }
+                >
+                    <div className="min-w-[212px]">Alias</div>
+                    <div className="min-w-[212px]">Plugin Signature</div>
+                    <div className="min-w-[64px]">Nodes</div>
+                    <div className="min-w-[82px]">GPU/CPU</div>
+                    <div className="min-w-[112px]">Running Nodes</div>
+                    <div className="min-w-[112px]">Deadline</div>
+                </ListHeader>
+
+                {drafts.map((app, index) => (
+                    <div key={index}>
+                        <AppCard app={app} />
+                    </div>
+                ))}
             </div>
         </div>
     );
