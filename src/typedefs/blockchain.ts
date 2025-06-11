@@ -3,58 +3,6 @@ import { KycStatus } from './profile';
 type R1Address = `0xai${string}`;
 type EthAddress = `0x${string}`;
 
-type BaseLicense = {
-    readonly licenseId: bigint;
-    nodeAddress: EthAddress;
-    totalClaimedAmount: bigint;
-    remainingAmount: bigint;
-    lastClaimEpoch: bigint;
-    claimableEpochs: bigint;
-    assignTimestamp: bigint;
-    lastClaimOracle: EthAddress;
-    totalAssignedAmount: bigint;
-    isClaimingRewards?: boolean;
-} & (
-    | {
-          isLinked: true;
-          alias: Promise<string | undefined>;
-          rewards: Promise<bigint>;
-          isOnline: Promise<boolean>;
-          epochs: Promise<number[]>;
-          epochsAvailabilities: Promise<number[]>;
-          ethSignatures: Promise<EthAddress[]>;
-      }
-    | {
-          isLinked: false;
-      }
-);
-
-type NDLicense = BaseLicense & {
-    type: 'ND';
-    isBanned: boolean;
-};
-
-type MNDLicense = BaseLicense & {
-    type: 'MND';
-    isBanned: false;
-    firstMiningEpoch: bigint;
-};
-
-type GNDLicense = BaseLicense & {
-    type: 'GND';
-    isBanned: false;
-    firstMiningEpoch: bigint;
-};
-
-type License = NDLicense | MNDLicense | GNDLicense;
-
-type ComputeParam = {
-    licenseId: bigint;
-    nodeAddress: `0x${string}`;
-    epochs: bigint[];
-    availabilies: number[];
-};
-
 type OraclesAvailabilityResult = {
     node: string;
     node_alias: string;
@@ -103,34 +51,4 @@ type ApiAccount = {
     viesRegistered: boolean;
 };
 
-type PriceTier = {
-    index: number;
-    usdPrice: number;
-    totalUnits: number;
-    soldUnits: number;
-};
-
-type SwapTokenDetails = {
-    name: string;
-    address?: EthAddress;
-    decimals: number;
-    displayDecimals: number;
-    fromAmount: string;
-    logo: string;
-    swapPath: EthAddress[];
-};
-
-export type {
-    ApiAccount,
-    ComputeParam,
-    EthAddress,
-    GNDLicense,
-    License,
-    MNDLicense,
-    NDLicense,
-    OraclesAvailabilityResult,
-    OraclesDefaultResult,
-    PriceTier,
-    R1Address,
-    SwapTokenDetails,
-};
+export type { ApiAccount, EthAddress, OraclesAvailabilityResult, OraclesDefaultResult, R1Address };

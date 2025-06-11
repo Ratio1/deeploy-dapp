@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 body {
-    @apply font-mona text-body h-screen w-screen overflow-x-hidden;
+    @apply h-screen w-screen overflow-x-hidden font-mona text-body;
 }
 
 /* Utilities */
@@ -47,6 +47,14 @@ body {
 
 .active {
     @apply text-primary;
+}
+
+.list-wrapper {
+    @apply col flex-1 justify-between gap-8;
+}
+
+.list {
+    @apply col w-full gap-3 overflow-x-auto;
 }
 
 /* Safe padding for mobile devices */

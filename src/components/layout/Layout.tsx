@@ -3,7 +3,7 @@ import Sider from './Sider';
 
 function Layout() {
     return (
-        <div className="flex min-h-dvh items-stretch bg-[#fcfcfd]">
+        <div className="flex min-h-dvh items-stretch bg-light">
             <div className="hidden layoutBreak:block">
                 <Sider />
             </div>
