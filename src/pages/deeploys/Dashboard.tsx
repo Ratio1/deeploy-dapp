@@ -1,8 +1,9 @@
 import AppCard from '@shared/cards/AppCard';
+import CustomTabsBordered from '@shared/CustomTabsBordered';
 import ListHeader from '@shared/ListHeader';
 import { DeeployApp } from '@typedefs/general';
 
-const array: DeeployApp[] = [
+const running: DeeployApp[] = [
     {
         alias: 'wen_lambo_1',
         pluginSignature: 'CONTAINER_APP_RUNNER',
@@ -50,16 +51,12 @@ const drafts: DeeployApp[] = [
 
 function Dashboard() {
     return (
-        <div className="col w-full flex-1 gap-10">
+        <div className="col w-full flex-1 gap-5">
+            {/* <CustomTabs /> */}
+            <CustomTabsBordered />
+
             <div className="list">
-                <ListHeader
-                    label={
-                        <div className="row gap-2">
-                            <div className="h-2.5 w-2.5 rounded-full bg-green-500"></div>
-                            <div className="text-lg font-semibold text-body">Running</div>
-                        </div>
-                    }
-                >
+                <ListHeader>
                     <div className="min-w-[212px]">Alias</div>
                     <div className="min-w-[212px]">Plugin Signature</div>
                     <div className="min-w-[64px]">Nodes</div>
@@ -68,31 +65,7 @@ function Dashboard() {
                     <div className="min-w-[112px]">Deadline</div>
                 </ListHeader>
 
-                {array.map((app, index) => (
-                    <div key={index}>
-                        <AppCard app={app} />
-                    </div>
-                ))}
-            </div>
-
-            <div className="list">
-                <ListHeader
-                    label={
-                        <div className="row gap-2">
-                            <div className="h-2.5 w-2.5 rounded-full bg-slate-400"></div>
-                            <div className="text-lg font-semibold text-body">Drafts</div>
-                        </div>
-                    }
-                >
-                    <div className="min-w-[212px]">Alias</div>
-                    <div className="min-w-[212px]">Plugin Signature</div>
-                    <div className="min-w-[64px]">Nodes</div>
-                    <div className="min-w-[82px]">GPU/CPU</div>
-                    <div className="min-w-[112px]">Running Nodes</div>
-                    <div className="min-w-[112px]">Deadline</div>
-                </ListHeader>
-
-                {drafts.map((app, index) => (
+                {running.map((app, index) => (
                     <div key={index}>
                         <AppCard app={app} />
                     </div>
