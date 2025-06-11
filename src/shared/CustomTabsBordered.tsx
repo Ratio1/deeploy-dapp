@@ -1,55 +1,16 @@
 import { Tab, Tabs } from '@heroui/tabs';
-import { DeeployApp } from '@typedefs/general';
 import { RiBox3Line, RiFileTextLine } from 'react-icons/ri';
 import { SmallTag } from './SmallTag';
 
-const running: DeeployApp[] = [
-    {
-        alias: 'wen_lambo_1',
-        pluginSignature: 'CONTAINER_APP_RUNNER',
-        nodes: 3,
-        processor: 'GPU',
-        runningNodes: '2/3',
-        deadline: '2026-12-25',
-    },
-    {
-        alias: 'some_app_name_05',
-        pluginSignature: 'SOME_PLUGIN_01',
-        nodes: 4,
-        processor: 'GPU',
-        runningNodes: '4/4',
-        deadline: '2027-02-14',
-    },
-    {
-        alias: 'service_foopubapi_etc',
-        pluginSignature: 'CONTAINER_APP_RUNNER',
-        nodes: 1,
-        processor: 'CPU',
-        runningNodes: '1/1',
-        deadline: '2026-11-30',
-    },
-];
-
-const drafts: DeeployApp[] = [
-    {
-        alias: 'xrunner_02',
-        pluginSignature: 'COMPUTER_PLUGIN_05',
-        nodes: 1,
-        processor: 'CPU',
-        runningNodes: '0',
-        deadline: '2026-05-01',
-    },
-    {
-        alias: 'xrunner_01',
-        pluginSignature: 'COMPUTER_PLUGIN_05',
-        nodes: 1,
-        processor: 'CPU',
-        runningNodes: '0',
-        deadline: '2026-07-08',
-    },
-];
-
-export default function CustomTabsBordered() {
+export default function CustomTabs({
+    runningLength,
+    draftsLength,
+    onSelectionChange,
+}: {
+    runningLength: number;
+    draftsLength: number;
+    onSelectionChange: (key: 'running' | 'drafts') => void;
+}) {
     return (
         <Tabs
             aria-label="Tabs"
@@ -64,7 +25,7 @@ export default function CustomTabsBordered() {
                 tabContent: 'text-sm group-data-[selected=true]:text-body',
             }}
             onSelectionChange={(key) => {
-                console.log(key);
+                onSelectionChange(key as 'running' | 'drafts');
             }}
         >
             <Tab
@@ -74,7 +35,7 @@ export default function CustomTabsBordered() {
                         <RiBox3Line className="text-lg" />
                         Running
                         <div className="ml-0.5">
-                            <SmallTag>{running.length}</SmallTag>
+                            <SmallTag>{runningLength}</SmallTag>
                         </div>
                     </div>
                 }
@@ -86,7 +47,7 @@ export default function CustomTabsBordered() {
                         <RiFileTextLine className="text-lg" />
                         Drafts
                         <div className="ml-0.5">
-                            <SmallTag>{drafts.length}</SmallTag>
+                            <SmallTag>{draftsLength}</SmallTag>
                         </div>
                     </div>
                 }

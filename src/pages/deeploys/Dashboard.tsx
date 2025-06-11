@@ -1,7 +1,8 @@
 import AppCard from '@shared/cards/AppCard';
-import CustomTabsBordered from '@shared/CustomTabsBordered';
+import CustomTabs from '@shared/CustomTabsBordered';
 import ListHeader from '@shared/ListHeader';
 import { DeeployApp } from '@typedefs/general';
+import { useState } from 'react';
 
 const running: DeeployApp[] = [
     {
@@ -50,10 +51,17 @@ const drafts: DeeployApp[] = [
 ];
 
 function Dashboard() {
+    const [selectedTab, setSelectedTab] = useState<'running' | 'drafts'>('running');
+
     return (
         <div className="col w-full flex-1 gap-5">
-            {/* <CustomTabs /> */}
-            <CustomTabsBordered />
+            <CustomTabs
+                runningLength={running.length}
+                draftsLength={drafts.length}
+                onSelectionChange={(key) => {
+                    setSelectedTab(key);
+                }}
+            />
 
             <div className="list">
                 <ListHeader>
@@ -65,7 +73,7 @@ function Dashboard() {
                     <div className="min-w-[112px]">Deadline</div>
                 </ListHeader>
 
-                {running.map((app, index) => (
+                {(selectedTab === 'running' ? running : drafts).map((app, index) => (
                     <div key={index}>
                         <AppCard app={app} />
                     </div>
