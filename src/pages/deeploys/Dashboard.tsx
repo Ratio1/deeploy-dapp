@@ -1,8 +1,9 @@
 import AppCard from '@shared/cards/AppCard';
-import CustomTabs from '@shared/CustomTabsBordered';
+import CustomTabs from '@shared/CustomTabs';
 import ListHeader from '@shared/ListHeader';
 import { DeeployApp } from '@typedefs/general';
 import { useState } from 'react';
+import { RiBox3Line, RiFileTextLine } from 'react-icons/ri';
 
 const running: DeeployApp[] = [
     {
@@ -56,8 +57,20 @@ function Dashboard() {
     return (
         <div className="col w-full flex-1 gap-5">
             <CustomTabs
-                runningLength={running.length}
-                draftsLength={drafts.length}
+                tabs={[
+                    {
+                        key: 'running',
+                        title: 'Running',
+                        icon: <RiBox3Line />,
+                        count: running.length,
+                    },
+                    {
+                        key: 'drafts',
+                        title: 'Drafts',
+                        icon: <RiFileTextLine />,
+                        count: drafts.length,
+                    },
+                ]}
                 onSelectionChange={(key) => {
                     setSelectedTab(key);
                 }}
