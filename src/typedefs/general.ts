@@ -14,4 +14,13 @@ type Invoice = {
     date: string;
 };
 
-export type { DeeployApp, Invoice };
+type BillingInfo = {
+    companyName: string;
+    billingEmail: string;
+    vatNumber: string;
+    paymentAddress: string;
+    country: string;
+    city: string;
+};
+
+export type { BillingInfo, DeeployApp, Invoice };
