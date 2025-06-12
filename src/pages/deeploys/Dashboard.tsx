@@ -1,4 +1,4 @@
-import AppCard from '@shared/cards/AppCard';
+import ApplicationCard from '@components/deeploys/ApplicationCard';
 import CustomTabs from '@shared/CustomTabs';
 import ListHeader from '@shared/ListHeader';
 import { DeeployApp } from '@typedefs/general';
@@ -88,7 +88,7 @@ function Dashboard() {
 
                 {(selectedTab === 'running' ? running : drafts).map((app, index) => (
                     <div key={index}>
-                        <AppCard app={app} />
+                        <ApplicationCard app={app} />
                     </div>
                 ))}
             </div>

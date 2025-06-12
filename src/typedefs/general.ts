@@ -7,4 +7,11 @@ type DeeployApp = {
     deadline: string;
 };
 
-export type { DeeployApp };
+type Invoice = {
+    id: string;
+    amount: number;
+    status: 'paid' | 'unpaid';
+    date: string;
+};
+
+export type { DeeployApp, Invoice };

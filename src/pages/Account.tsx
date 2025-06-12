@@ -1,3 +1,4 @@
+import Billing from '@components/account/Billing';
 import Overview from '@components/account/Overview';
 import CustomTabs from '@shared/CustomTabs';
 import { useState } from 'react';
@@ -32,6 +33,7 @@ function Account() {
             />
 
             {selectedTab === 'overview' && <Overview />}
+            {selectedTab === 'billing' && <Billing />}
         </div>
     );
 }

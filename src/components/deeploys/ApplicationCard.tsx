@@ -1,9 +1,9 @@
+import { BorderedCard } from '@shared/cards/BorderedCard';
+import { CardItem } from '@shared/cards/CardItem';
 import { SmallTag } from '@shared/SmallTag';
 import { DeeployApp } from '@typedefs/general';
-import { BorderedCard } from './BorderedCard';
-import { CardItem } from './CardItem';
 
-export default function AppCard({ app }: { app: DeeployApp }) {
+export default function ApplicationCard({ app }: { app: DeeployApp }) {
     return (
         <BorderedCard isHoverable>
             <div className="row justify-between gap-3 lg:gap-6">
