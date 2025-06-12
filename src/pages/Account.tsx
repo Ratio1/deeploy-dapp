@@ -1,3 +1,4 @@
+import Overview from '@components/account/Overview';
 import CustomTabs from '@shared/CustomTabs';
 import { useState } from 'react';
 import { RiApps2Line, RiBillLine, RiShieldCheckLine } from 'react-icons/ri';
@@ -29,6 +30,8 @@ function Account() {
                     setSelectedTab(key);
                 }}
             />
+
+            {selectedTab === 'overview' && <Overview />}
         </div>
     );
 }
