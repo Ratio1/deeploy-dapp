@@ -9,10 +9,9 @@ export const ValueWithLabel = ({ label, value, isAproximate, useR1Prefix }: Prop
     return (
         <div className="col">
             <div className="row gap-1.5">
-                {!!useR1Prefix && (
-                    <div className="text-[22px] font-semibold text-slate-400">{`${isAproximate ? '~' : ''}$R1`}</div>
-                )}
-                <div className="text-[22px] font-semibold text-primary">{value}</div>
+                {!!useR1Prefix && <div className="text-xl font-semibold text-slate-400">{`${isAproximate ? '~' : ''}$R1`}</div>}
+
+                <div className="text-xl font-semibold text-primary">{value}</div>
             </div>
 
             <div className="text-sm text-slate-500">{label}</div>

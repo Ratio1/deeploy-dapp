@@ -14,9 +14,7 @@ export const CardWithHeader: FunctionComponent<PropsWithChildren<Props>> = ({ ch
             <div className="bg-slate-100 px-6 py-4 larger:px-8 larger:py-6">
                 <div className="row justify-between">
                     <div className="row gap-2 lg:gap-2.5">
-                        <div
-                            className={cn('rounded-full bg-primary p-1.5 text-[20px] text-white', isDisabled && 'bg-slate-500')}
-                        >
+                        <div className={cn('rounded-full bg-primary p-1.5 text-lg text-white', isDisabled && 'bg-slate-500')}>
                             {icon}
                         </div>
                         <div className={cn('text-base font-semibold leading-6 larger:text-lg', isDisabled && 'text-slate-600')}>

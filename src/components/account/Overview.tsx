@@ -12,7 +12,7 @@ function Overview() {
     return (
         <div className="w-full flex-1">
             <div className="grid w-full grid-cols-3 gap-5">
-                <CardWithHeader icon={<img src={Token} alt="Logo" className="h-[20px]" />} title="Balance">
+                <CardWithHeader icon={<img src={Token} alt="Logo" className="h-[18px]" />} title="Balance">
                     <div className="col h-full w-full gap-4">
                         <ValueWithLabel
                             label="Left to spend"
