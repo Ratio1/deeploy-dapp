@@ -24,7 +24,7 @@ export default function CustomTabs({
             classNames={{
                 cursor: 'group-data-[selected=true]:bg-[#EFF2F6]',
                 tab: 'h-10',
-                tabList: 'p-1 border-[#EFF2F6]',
+                tabList: 'p-1 border-[#EFF2F6] !shadow-none',
                 tabContent: 'text-sm group-data-[selected=true]:text-body',
             }}
             onSelectionChange={(key) => {

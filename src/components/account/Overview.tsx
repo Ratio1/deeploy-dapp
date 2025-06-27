@@ -1,28 +1,32 @@
-import Token from '@assets/token_white.svg';
 import { Button } from '@heroui/button';
+import { config } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { fBI } from '@lib/utils';
 import { CardWithHeader } from '@shared/cards/CardWithHeader';
 import { ValueWithLabel } from '@shared/ValueWithLabel';
-import { RiBox3Line, RiDiscountPercentLine } from 'react-icons/ri';
+import { useEffect, useState } from 'react';
+import { RiBox3Line, RiDiscountPercentLine, RiMoneyDollarCircleLine } from 'react-icons/ri';
 
 function Overview() {
-    const { r1Balance } = useBlockchainContext() as BlockchainContextType;
+    const { fetchErc20Balance } = useBlockchainContext() as BlockchainContextType;
+
+    const [usdcBalance, setUsdcBalance] = useState<bigint>(0n);
+
+    useEffect(() => {
+        fetchErc20Balance(config.usdcContractAddress).then((balance) => {
+            setUsdcBalance(balance);
+        });
+    }, []);
 
     return (
         <div className="w-full flex-1">
             <div className="grid w-full grid-cols-3 gap-5">
-                <CardWithHeader icon={<img src={Token} alt="Logo" className="h-[18px]" />} title="Balance">
+                <CardWithHeader icon={<RiMoneyDollarCircleLine />} title="Balance">
                     <div className="col h-full w-full gap-4">
-                        <ValueWithLabel
-                            label="Left to spend"
-                            value={fBI(r1Balance, 18)}
-                            isAproximate={r1Balance / 10n ** BigInt(18) > 1000n}
-                            useR1Prefix
-                        />
+                        <ValueWithLabel label="Amount in wallet" value={fBI(usdcBalance, 6)} prefix="$USDC" />
 
                         <Button className="mt-1 px-3" variant="bordered">
-                            <div>Get $R1</div>
+                            <div>Get $USDC</div>
                         </Button>
                     </div>
                 </CardWithHeader>

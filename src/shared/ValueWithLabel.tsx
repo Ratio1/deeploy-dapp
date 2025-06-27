@@ -1,20 +1,22 @@
 interface Props {
     label: string;
     value: number | string;
-    useR1Prefix?: boolean;
+    prefix?: string;
     isAproximate?: boolean;
 }
 
-export const ValueWithLabel = ({ label, value, isAproximate, useR1Prefix }: Props) => {
+export const ValueWithLabel = ({ label, value, isAproximate, prefix }: Props) => {
     return (
         <div className="col">
             <div className="row gap-1.5">
-                {!!useR1Prefix && <div className="text-xl font-semibold text-slate-400">{`${isAproximate ? '~' : ''}$R1`}</div>}
+                {!!prefix && (
+                    <div className="text-xl font-semibold text-slate-400">{`${isAproximate ? '~' : ''}${prefix}`}</div>
+                )}
 
                 <div className="text-xl font-semibold text-primary">{value}</div>
             </div>
 
-            <div className="text-sm text-slate-500">{label}</div>
+            <div className="text-[15px] text-slate-500">{label}</div>
         </div>
     );
 };

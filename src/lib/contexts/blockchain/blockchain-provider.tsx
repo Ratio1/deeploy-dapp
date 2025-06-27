@@ -112,6 +112,8 @@ export const BlockchainProvider = ({ children }) => {
                 r1Balance,
                 setR1Balance,
                 fetchR1Balance,
+                // Other
+                fetchErc20Balance,
             }}
         >
             {children}
