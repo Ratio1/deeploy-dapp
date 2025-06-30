@@ -1,55 +1,104 @@
 import { Button } from '@heroui/button';
-import { CardWithHeader } from '@shared/cards/CardWithHeader';
-import { RiBox3Line, RiFileCodeLine } from 'react-icons/ri';
+import { BorderedCard } from '@shared/cards/BorderedCard';
+import { RiBox3Line, RiDatabase2Line, RiTelegram2Line, RiTerminalBoxLine } from 'react-icons/ri';
+import { Link } from 'react-router-dom';
+
+type DeploymentOption = {
+    id: string;
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+    bgColor: string;
+};
+
+const options: DeploymentOption[] = [
+    {
+        id: 'generic',
+        title: 'Generic App',
+        description: 'Deploy standard containerized apps.',
+        icon: <RiBox3Line />,
+        bgColor: 'bg-primary-100',
+    },
+    {
+        id: 'native',
+        title: 'Native App',
+        description: 'Customizable workloads with pipeline/plugin-based apps.',
+        icon: <RiTerminalBoxLine />,
+        bgColor: 'bg-green-200',
+    },
+    {
+        id: 'service',
+        title: 'Service',
+        description: 'Containerized apps based on predefined images/resources.',
+        icon: <RiDatabase2Line />,
+        bgColor: 'bg-purple-200',
+    },
+];
 
 function DeeployApp() {
     return (
         <div className="w-full flex-1">
-            <div className="grid w-full grid-cols-2 gap-5">
-                <CardWithHeader icon={<RiBox3Line />} title="Deploy an App">
-                    <div className="col h-full w-full gap-4">
-                        <div>
-                            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the
-                            industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type
-                            and scrambled it to make a type specimen book.
-                        </div>
-
-                        <div className="col gap-2">
-                            <div className="text-center text-lg font-medium">Choose a template</div>
-
-                            <div className="center-all gap-3">
-                                <Button color="primary" variant="flat" size="sm" onPress={() => {}}>
-                                    <div className="text-sm">Generic</div>
-                                </Button>
-
-                                <Button color="primary" variant="flat" size="sm" onPress={() => {}}>
-                                    <div className="text-sm">Native</div>
-                                </Button>
-
-                                <Button color="primary" variant="flat" size="sm" onPress={() => {}}>
-                                    <div className="text-sm">Service</div>
-                                </Button>
-                            </div>
+            <div className="col gap-12">
+                <div className="col items-center gap-6">
+                    <div className="flex">
+                        <div className="rounded-full bg-primary p-2.5 text-2xl text-white">
+                            <RiBox3Line />
                         </div>
                     </div>
-                </CardWithHeader>
 
-                <CardWithHeader icon={<RiFileCodeLine />} title="Deploy a Template-App" isDisabled>
-                    <div className="col h-full w-full justify-between">
-                        <div className="text-slate-500">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore
-                            et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-                            aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-                            cillum dolore eu fugiat nulla pariatur.
-                        </div>
+                    <div className="col gap-1.5 text-center">
+                        <div className="big-title">Deploy an App</div>
 
-                        <div className="center-all">
-                            <Button color="default" size="sm" isDisabled>
-                                <div className="text-sm">Choose Template</div>
-                            </Button>
+                        <div className="max-w-[340px] text-[15px] text-slate-500">
+                            Deploy containers across the decentralized edge with ease and transparency
                         </div>
                     </div>
-                </CardWithHeader>
+
+                    <div className="col gap-3">
+                        {options.map((option) => (
+                            <BorderedCard key={option.id}>
+                                <div className="row justify-between gap-8 lg:gap-14">
+                                    <div className="row gap-3">
+                                        <div className={`rounded-xl p-3 text-xl ${option.bgColor}`}>{option.icon}</div>
+
+                                        <div className="col">
+                                            <div className="font-medium">{option.title}</div>
+                                            <div className="text-sm text-slate-500">{option.description}</div>
+                                        </div>
+                                    </div>
+
+                                    <Button className="h-9 px-3.5" color="default" variant="flat" size="sm">
+                                        <div className="text-sm">Deploy</div>
+                                    </Button>
+                                </div>
+                            </BorderedCard>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="col items-center gap-5 text-center">
+                    <div className="col gap-2.5">
+                        <div className="font-semibold leading-none">Need Help?</div>
+                        <div className="text-[15px] leading-none text-slate-500">
+                            Connect with our support team for any questions or assistance.
+                        </div>
+                    </div>
+
+                    <Button
+                        className="h-9 px-3.5"
+                        color="default"
+                        variant="flat"
+                        size="sm"
+                        as={Link}
+                        to="https://t.me/Ratio1Protocol"
+                        target="_blank"
+                    >
+                        <div className="row gap-1.5">
+                            <div className="text-sm font-medium">Contact Support</div>
+                            <RiTelegram2Line className="text-xl" />
+                        </div>
+                    </Button>
+                </div>
             </div>
         </div>
     );
