@@ -1,3 +1,4 @@
+import { DeploymentProvider } from '@lib/contexts/deployment';
 import Account from '@pages/Account';
 import PrivacyPolicy from '@pages/compliance/PrivacyPolicy';
 import TermsAndConditions from '@pages/compliance/T&C';
@@ -55,6 +56,7 @@ export const routeInfo = {
     [`${routePath.deeploys}/${routePath.deeployApp}`]: {
         title: 'Deployment',
         description: 'Create and configure a new app for deployment',
+        routeTitle: 'Deeploy App',
     },
     [routePath.account]: {
         title: 'Account',
@@ -101,7 +103,11 @@ export const routes: AppRoute[] = [
             },
             {
                 path: routePath.deeployApp,
-                page: DeeployApp,
+                page: () => (
+                    <DeploymentProvider>
+                        <DeeployApp />
+                    </DeploymentProvider>
+                ),
             },
         ],
     },

@@ -47,7 +47,8 @@ function Route({ route }: { route: AppRoute }) {
                                 },
                             )}
                         >
-                            {routeInfo[`${route.path}/${child.path}`]?.title}
+                            {routeInfo[`${route.path}/${child.path}`]?.routeTitle ||
+                                routeInfo[`${route.path}/${child.path}`]?.title}
                         </Link>
                     ))}
                 </div>

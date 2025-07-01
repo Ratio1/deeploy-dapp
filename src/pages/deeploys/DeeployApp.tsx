@@ -1,105 +1,13 @@
-import { Button } from '@heroui/button';
-import { BorderedCard } from '@shared/cards/BorderedCard';
-import { RiBox3Line, RiDatabase2Line, RiTelegram2Line, RiTerminalBoxLine } from 'react-icons/ri';
-import { Link } from 'react-router-dom';
-
-type DeploymentOption = {
-    id: string;
-    title: string;
-    description: string;
-    icon: React.ReactNode;
-    bgColor: string;
-};
-
-const options: DeploymentOption[] = [
-    {
-        id: 'generic',
-        title: 'Generic App',
-        description: 'Deploy standard containerized apps.',
-        icon: <RiBox3Line />,
-        bgColor: 'bg-primary-100',
-    },
-    {
-        id: 'native',
-        title: 'Native App',
-        description: 'Customizable workloads with pipeline/plugin-based apps.',
-        icon: <RiTerminalBoxLine />,
-        bgColor: 'bg-green-200',
-    },
-    {
-        id: 'service',
-        title: 'Service',
-        description: 'Containerized apps based on predefined images/resources.',
-        icon: <RiDatabase2Line />,
-        bgColor: 'bg-purple-200',
-    },
-];
+import AppTypeSelect from '@components/deeploy-app/AppTypeSelect';
+import DeeployWrapper from '@components/deeploy-app/DeeployWrapper';
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 
 function DeeployApp() {
+    const { appType } = useDeploymentContext() as DeploymentContextType;
+
     return (
         <div className="w-full flex-1">
-            <div className="col gap-12">
-                <div className="col items-center gap-6">
-                    <div className="flex">
-                        <div className="rounded-full bg-primary p-2.5 text-2xl text-white">
-                            <RiBox3Line />
-                        </div>
-                    </div>
-
-                    <div className="col gap-1.5 text-center">
-                        <div className="big-title">Deploy an App</div>
-
-                        <div className="max-w-[340px] text-[15px] text-slate-500">
-                            Deploy containers across the decentralized edge with ease and transparency
-                        </div>
-                    </div>
-
-                    <div className="col gap-3">
-                        {options.map((option) => (
-                            <BorderedCard key={option.id}>
-                                <div className="row justify-between gap-8 lg:gap-14">
-                                    <div className="row gap-3">
-                                        <div className={`rounded-xl p-3 text-xl ${option.bgColor}`}>{option.icon}</div>
-
-                                        <div className="col">
-                                            <div className="font-medium">{option.title}</div>
-                                            <div className="text-sm text-slate-500">{option.description}</div>
-                                        </div>
-                                    </div>
-
-                                    <Button className="h-9 px-3.5" color="default" variant="flat" size="sm">
-                                        <div className="text-sm">Deploy</div>
-                                    </Button>
-                                </div>
-                            </BorderedCard>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="col items-center gap-5 text-center">
-                    <div className="col gap-2.5">
-                        <div className="font-semibold leading-none">Need Help?</div>
-                        <div className="text-[15px] leading-none text-slate-500">
-                            Connect with our support team for any questions or assistance.
-                        </div>
-                    </div>
-
-                    <Button
-                        className="h-9 px-3.5"
-                        color="default"
-                        variant="flat"
-                        size="sm"
-                        as={Link}
-                        to="https://t.me/Ratio1Protocol"
-                        target="_blank"
-                    >
-                        <div className="row gap-1.5">
-                            <div className="text-sm font-medium">Contact Support</div>
-                            <RiTelegram2Line className="text-xl" />
-                        </div>
-                    </Button>
-                </div>
-            </div>
+            <div className="mx-auto max-w-[626px]">{!appType ? <AppTypeSelect /> : <DeeployWrapper />}</div>
         </div>
     );
 }
