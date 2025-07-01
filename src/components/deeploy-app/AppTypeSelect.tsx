@@ -42,7 +42,7 @@ const options: DeploymentOption[] = [
 ];
 
 function AppTypeSelect() {
-    const { setAppType } = useDeploymentContext() as DeploymentContextType;
+    const { setAppType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
         <div className="col gap-12">
@@ -79,7 +79,10 @@ function AppTypeSelect() {
                                     color="default"
                                     variant="flat"
                                     size="sm"
-                                    onPress={() => setAppType(option.appType)}
+                                    onPress={() => {
+                                        setStep(2); // Step 1 is the selection of the app type
+                                        setAppType(option.appType);
+                                    }}
                                 >
                                     <div className="text-sm">Deploy</div>
                                 </Button>

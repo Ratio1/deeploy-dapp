@@ -2,7 +2,11 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { AppType } from '@typedefs/deployment';
 import { RiArrowLeftLine } from 'react-icons/ri';
 
-function Stepper() {
+interface Props {
+    steps: string[];
+}
+
+function Stepper({ steps }: Props) {
     const { appType, setAppType, step, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
@@ -16,15 +20,22 @@ function Stepper() {
                     <div className="relative h-1.5 w-full rounded-full bg-slate-200">
                         <div
                             className="absolute bottom-0 left-0 top-0 rounded-full bg-primary transition-all"
-                            style={{ width: `${(step / 3) * 100}%` }}
+                            style={{ width: `${((step - 1) / steps.length) * 100}%` }}
                         ></div>
                     </div>
 
                     <div className="flex justify-between">
                         <RiArrowLeftLine
-                            className="cursor-pointer text-xl text-slate-500 hover:opacity-50"
-                            onClick={() => console.log('Step back')}
+                            className="-ml-0.5 cursor-pointer text-xl text-slate-500 hover:opacity-50"
+                            onClick={() => {
+                                if (step > 2) {
+                                    setStep(step - 1);
+                                } else {
+                                    setAppType(undefined);
+                                }
+                            }}
                         />
+
                         <div
                             className="cursor-pointer text-sm font-medium text-slate-500 hover:opacity-50"
                             onClick={() => setAppType(undefined)}
@@ -35,9 +46,11 @@ function Stepper() {
                 </div>
             </div>
 
-            <div className="col gap-1.5">
-                <div className="text-sm font-semibold uppercase text-primary">Step {step} of 3</div>
-                <div className="text-[22px] font-medium">Select Specifications</div>
+            <div className="col gap-1">
+                <div className="text-sm font-semibold uppercase text-primary">
+                    Step {step} of {steps.length}
+                </div>
+                <div className="text-[22px] font-medium">{steps[step - 1]}</div>
             </div>
         </div>
     );

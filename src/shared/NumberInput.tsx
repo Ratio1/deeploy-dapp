@@ -8,12 +8,13 @@ const MAX_VALUE = 1000; // TODO: zod
 
 export default function NumberInput({ label }: Props) {
     return (
-        <div className="grid grid-cols-[30%_70%] gap-2">
+        <div className="col w-full gap-2">
             <div className="row">
                 <div className="text-sm font-medium text-slate-500">{label}</div>
             </div>
 
             <Input
+                className="w-[100%]"
                 size="md"
                 classNames={{
                     inputWrapper:
