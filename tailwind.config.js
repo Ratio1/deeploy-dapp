@@ -29,7 +29,7 @@ export default {
                 6: '6px',
             },
             boxShadow: {
-                round: '0 0px 2px 0 rgb(0 0 0 / 0.05)',
+                testing: '0 0 0 3px #e2e8f0',
             },
         },
         screens: {

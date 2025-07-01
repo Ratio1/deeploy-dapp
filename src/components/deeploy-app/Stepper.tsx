@@ -12,7 +12,7 @@ function Stepper() {
                     Deeploy a {appType} {appType === AppType.Service ? '' : 'App'}
                 </div>
 
-                <div className="col gap-2">
+                <div className="col gap-2.5">
                     <div className="relative h-1.5 w-full rounded-full bg-slate-200">
                         <div
                             className="absolute bottom-0 left-0 top-0 rounded-full bg-primary"
@@ -26,7 +26,7 @@ function Stepper() {
                             onClick={() => console.log('Step back')}
                         />
                         <div
-                            className="cursor-pointer text-sm text-slate-500 hover:opacity-50"
+                            className="cursor-pointer text-sm font-medium text-slate-500 hover:opacity-50"
                             onClick={() => setAppType(undefined)}
                         >
                             Cancel
@@ -35,7 +35,7 @@ function Stepper() {
                 </div>
             </div>
 
-            <div className="col gap-1">
+            <div className="col gap-1.5">
                 <div className="text-sm font-semibold uppercase text-primary">Step {step} of 3</div>
                 <div className="text-xl font-medium">Select Specifications</div>
             </div>
