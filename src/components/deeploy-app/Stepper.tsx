@@ -15,7 +15,7 @@ function Stepper() {
                 <div className="col gap-2.5">
                     <div className="relative h-1.5 w-full rounded-full bg-slate-200">
                         <div
-                            className="absolute bottom-0 left-0 top-0 rounded-full bg-primary"
+                            className="absolute bottom-0 left-0 top-0 rounded-full bg-primary transition-all"
                             style={{ width: `${(step / 3) * 100}%` }}
                         ></div>
                     </div>
@@ -37,7 +37,7 @@ function Stepper() {
 
             <div className="col gap-1.5">
                 <div className="text-sm font-semibold uppercase text-primary">Step {step} of 3</div>
-                <div className="text-xl font-medium">Select Specifications</div>
+                <div className="text-[22px] font-medium">Select Specifications</div>
             </div>
         </div>
     );
