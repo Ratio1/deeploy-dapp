@@ -1,6 +1,7 @@
 import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { SlateCard } from '@shared/cards/SlateCard';
+import { ConnectWalletWrapper } from '@shared/ConnectWalletWrapper';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { RiCheckLine } from 'react-icons/ri';
@@ -104,18 +105,20 @@ function Payment() {
                     </div>
 
                     {!isPaymentConfirmed ? (
-                        <Button
-                            className="h-9 px-3.5"
-                            color="primary"
-                            variant="solid"
-                            size="sm"
-                            onPress={handleConfirmTransaction}
-                            isLoading={isLoading || isSigning}
-                        >
-                            <div className="text-sm">
-                                {isLoading || isSigning ? 'Confirm in wallet' : 'Confirm Transaction'}
-                            </div>
-                        </Button>
+                        <ConnectWalletWrapper classNames="h-9 px-3.5 rounded-lg">
+                            <Button
+                                className="h-9 px-3.5"
+                                color="primary"
+                                variant="solid"
+                                size="sm"
+                                onPress={handleConfirmTransaction}
+                                isLoading={isLoading || isSigning}
+                            >
+                                <div className="text-sm">
+                                    {isLoading || isSigning ? 'Confirm in wallet' : 'Confirm Transaction'}
+                                </div>
+                            </Button>
+                        </ConnectWalletWrapper>
                     ) : (
                         <div className="row h-9 rounded-lg bg-[#c8fcda] px-3.5">
                             <div className="row gap-1 text-green-600">
