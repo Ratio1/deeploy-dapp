@@ -6,6 +6,8 @@ export interface DeploymentContextType {
     setAppType: (appType: AppType | undefined) => void;
     step: number;
     setStep: (step: number) => void;
+    isPaymentConfirmed: boolean;
+    setPaymentConfirmed: (isPaymentConfirmed: boolean) => void;
 }
 
 export const DeploymentContext = createContext<DeploymentContextType | null>(null);

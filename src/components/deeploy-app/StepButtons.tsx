@@ -6,7 +6,7 @@ interface Props {
 }
 
 function StepButtons({ steps }: Props) {
-    const { step, setStep, setAppType } = useDeploymentContext() as DeploymentContextType;
+    const { step, setStep, setAppType, isPaymentConfirmed } = useDeploymentContext() as DeploymentContextType;
 
     return (
         <div className="row w-full justify-between pt-2">
@@ -25,7 +25,12 @@ function StepButtons({ steps }: Props) {
                 <div>Go back: {steps[step - 2]}</div>
             </Button>
 
-            <Button color="primary" variant="solid" onPress={() => setStep(step + 1)}>
+            <Button
+                color="primary"
+                variant="solid"
+                onPress={() => setStep(step + 1)}
+                isDisabled={step === 3 && !isPaymentConfirmed}
+            >
                 {step < steps.length ? <div>Next step: {steps[step]}</div> : <div>Deploy</div>}
             </Button>
         </div>

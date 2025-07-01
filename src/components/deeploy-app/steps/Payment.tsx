@@ -1,4 +1,10 @@
+import { Button } from '@heroui/button';
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { SlateCard } from '@shared/cards/SlateCard';
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { RiCheckLine } from 'react-icons/ri';
+import { useAccount, useSignMessage } from 'wagmi';
 
 const SUMMARY_ITEMS = [
     {
@@ -36,9 +42,43 @@ const SUMMARY_ITEMS = [
 ];
 
 function Payment() {
+    const { isPaymentConfirmed, setPaymentConfirmed } = useDeploymentContext() as DeploymentContextType;
+
+    const { address, isConnected } = useAccount();
+    const { signMessage, isPending: isSigning } = useSignMessage({
+        mutation: {
+            onSuccess: (_data) => {
+                toast.success('Transaction confirmed successfully!');
+                setLoading(false);
+                setPaymentConfirmed(true);
+            },
+            onError: (error) => {
+                console.error(error);
+                toast.error('Failed to confirm transaction.');
+                setLoading(false);
+            },
+        },
+    });
+
+    const [isLoading, setLoading] = useState(false);
+
+    const handleConfirmTransaction = async () => {
+        if (!isConnected || !address) {
+            toast.error('Please connect your wallet first');
+            return;
+        }
+
+        setLoading(true);
+
+        const message = `Confirm Deeploy payment transaction for ${address}. Amount: 1250 $USDC. Timestamp: ${Date.now()}.`;
+
+        signMessage({ message });
+    };
+
     return (
-        <div className="grid h-full w-full grid-cols-3 gap-3">
-            {/*
+        <div className="col gap-2">
+            <div className="grid h-full w-full grid-cols-3 gap-2">
+                {/*
                 {item.label === 'Configuration' ? (
                     <div className="col text-center font-semibold">
                         <div className="text-base">{item.value.split(' ')[0]}</div>
@@ -47,14 +87,45 @@ function Payment() {
                 )}
             */}
 
-            {SUMMARY_ITEMS.map((item) => (
-                <SlateCard key={item.label}>
-                    <div className="col justify-center gap-1 py-2 text-center">
-                        <div className="text-lg font-semibold">{item.value}</div>
-                        <div className="text-sm font-medium text-slate-500">{item.label}</div>
+                {SUMMARY_ITEMS.map((item) => (
+                    <SlateCard key={item.label}>
+                        <div className="col justify-center gap-1 py-2 text-center">
+                            <div className="text-lg font-semibold">{item.value}</div>
+                            <div className="text-sm font-medium text-slate-500">{item.label}</div>
+                        </div>
+                    </SlateCard>
+                ))}
+            </div>
+
+            <SlateCard>
+                <div className="row justify-between gap-8 p-2">
+                    <div className="text-[20px] font-semibold text-primary">
+                        <span className="text-slate-400">$USDC</span> 1250
                     </div>
-                </SlateCard>
-            ))}
+
+                    {!isPaymentConfirmed ? (
+                        <Button
+                            className="h-9 px-3.5"
+                            color="primary"
+                            variant="solid"
+                            size="sm"
+                            onPress={handleConfirmTransaction}
+                            isLoading={isLoading || isSigning}
+                        >
+                            <div className="text-sm">
+                                {isLoading || isSigning ? 'Confirm in wallet' : 'Confirm Transaction'}
+                            </div>
+                        </Button>
+                    ) : (
+                        <div className="row h-9 rounded-lg bg-[#c8fcda] px-3.5">
+                            <div className="row gap-1 text-green-600">
+                                <RiCheckLine className="text-xl" />
+                                <div className="text-sm font-medium">Payment Confirmed</div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </SlateCard>
         </div>
     );
 }

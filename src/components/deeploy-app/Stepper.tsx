@@ -46,7 +46,7 @@ function Stepper({ steps }: Props) {
                 </div>
             </div>
 
-            <div className="col gap-1">
+            <div className="col gap-0.5">
                 <div className="text-sm font-semibold uppercase text-primary">
                     Step {step} of {steps.length}
                 </div>
