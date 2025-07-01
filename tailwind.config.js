@@ -31,6 +31,12 @@ export default {
             boxShadow: {
                 testing: '0 0 0 3px #e2e8f0',
             },
+            width: {
+                sider: '270px',
+            },
+            margin: {
+                'sider-with-padding': 'calc(270px + 1rem)',
+            },
         },
         screens: {
             xs: '400px',
