@@ -49,6 +49,7 @@ export default function SelectCustom({ label, options }: Props) {
                     },
                 }}
                 variant="bordered"
+                aria-label="select-custom"
             >
                 {options.map((option) => (
                     <SelectItem key={option} textValue={option}>

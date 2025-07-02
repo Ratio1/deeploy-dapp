@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 body {
-    @apply h-screen w-screen overflow-x-hidden font-mona text-body;
+    @apply h-screen w-screen font-mona text-body;
 }
 
 /* Utilities */

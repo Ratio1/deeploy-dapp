@@ -1,6 +1,7 @@
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import StepButtons from './StepButtons';
 import Stepper from './Stepper';
+import Deployment from './steps/Deployment';
 import Payment from './steps/Payment';
 import Specifications from './steps/Specifications';
 
@@ -15,6 +16,7 @@ function DeeployWrapper() {
 
             {step === 2 && <Specifications />}
             {step === 3 && <Payment />}
+            {step === 4 && <Deployment />}
 
             <StepButtons steps={STEPS} />
         </div>

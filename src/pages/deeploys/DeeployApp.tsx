@@ -1,5 +1,5 @@
-import AppTypeSelect from '@components/deeploy-app/AppTypeSelect';
 import DeeployWrapper from '@components/deeploy-app/DeeployWrapper';
+import AppTypeSelect from '@components/deeploy-app/steps/AppTypeSelect';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 
 function DeeployApp() {
