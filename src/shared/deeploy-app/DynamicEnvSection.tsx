@@ -1,4 +1,4 @@
-import SelectCustom from '@shared/SelectCustom';
+import SelectWithLabel from '@shared/SelectWithLabel';
 import StyledInput from '@shared/StyledInput';
 import { RiAddLine } from 'react-icons/ri';
 
@@ -18,7 +18,7 @@ export default function DynamicEnvSection() {
 
                         <div className="row gap-3">
                             <div className="flex w-full gap-2 pl-7">
-                                <SelectCustom options={['Static', 'Host IP']} />
+                                <SelectWithLabel options={['Static', 'Host IP']} />
                                 <StyledInput placeholder="None" />
                             </div>
 

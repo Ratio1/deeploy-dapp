@@ -22,6 +22,7 @@ export default defineConfig({
             '@services': path.resolve(__dirname, './src/services'),
             '@assets': path.resolve(__dirname, './src/assets'),
             '@shared': path.resolve(__dirname, './src/shared'),
+            '@data': path.resolve(__dirname, './src/data'),
             '@blockchain': path.resolve(__dirname, './src/blockchain'),
             '@typedefs': path.resolve(__dirname, './src/typedefs'),
         },

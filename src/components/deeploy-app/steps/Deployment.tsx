@@ -3,7 +3,7 @@ import DynamicEnvSection from '@shared/deeploy-app/DynamicEnvSection';
 import EnvSection from '@shared/deeploy-app/EnvSection';
 import InputWithLabel from '@shared/deeploy-app/InputWithLabel';
 import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
-import SelectCustom from '@shared/SelectCustom';
+import SelectWithLabel from '@shared/SelectWithLabel';
 
 function Deployment() {
     return (
@@ -57,8 +57,8 @@ function Deployment() {
 
             <SlateCard title="Policies">
                 <div className="flex gap-4">
-                    <SelectCustom label="Restart Policy" options={['Always', 'Manual']} />
-                    <SelectCustom label="Image Pull Policy" options={['Always', 'Manual']} />
+                    <SelectWithLabel label="Restart Policy" options={['Always', 'Manual']} />
+                    <SelectWithLabel label="Image Pull Policy" options={['Always', 'Manual']} />
                 </div>
             </SlateCard>
         </div>

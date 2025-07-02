@@ -11,7 +11,15 @@ function StepButtons({ steps }: Props) {
     const { trigger, getValues } = useFormContext();
 
     const validateStep = async () => {
-        const isValid = await trigger(['targetNodesCount']);
+        const isValid = await trigger([
+            'targetNodesCount',
+            'applicationType',
+            'containerType',
+            'cpu',
+            'memory',
+            'customCpu',
+            'customMemory',
+        ]);
         const data = getValues();
 
         if (isValid) {
@@ -19,6 +27,8 @@ function StepButtons({ steps }: Props) {
         } else {
             console.log('Invalid values in step', data);
         }
+
+        return isValid;
     };
 
     return (
@@ -55,9 +65,14 @@ function StepButtons({ steps }: Props) {
             <Button
                 color="primary"
                 variant="solid"
-                onPress={() => {
-                    validateStep();
-                    setStep(step + 1);
+                onPress={async () => {
+                    const isValid = await validateStep();
+
+                    if (isValid) {
+                        setStep(step + 1);
+                    } else {
+                        console.log('Cannot proceed to next step');
+                    }
                 }}
                 isDisabled={step === 3 && !isPaymentConfirmed}
             >
