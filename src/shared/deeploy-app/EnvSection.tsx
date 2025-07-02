@@ -1,7 +1,7 @@
 import HeroInput from '@shared/HeroInput';
 import { RiAddLine } from 'react-icons/ri';
 
-export default function TargetNodesSection() {
+export default function EnvSection() {
     return (
         <div className="col gap-4">
             <div className="col gap-2">
@@ -9,7 +9,10 @@ export default function TargetNodesSection() {
                     <div className="row gap-3" key={index}>
                         <div className="min-w-4 text-sm font-medium text-slate-500">{index + 1}</div>
 
-                        <HeroInput placeholder="0x_ai" />
+                        <div className="flex w-full gap-2">
+                            <HeroInput placeholder="KEY" />
+                            <HeroInput placeholder="VALUE" />
+                        </div>
 
                         <div className="cursor-pointer text-sm font-medium text-slate-500 hover:opacity-50">Remove</div>
                     </div>
@@ -17,7 +20,7 @@ export default function TargetNodesSection() {
             </div>
 
             <div className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50">
-                <RiAddLine className="text-lg" /> Add Node
+                <RiAddLine className="text-lg" /> Add
             </div>
         </div>
     );

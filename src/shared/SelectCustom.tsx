@@ -3,7 +3,7 @@ import { SharedSelection } from '@heroui/system';
 import { useState } from 'react';
 
 interface Props {
-    label: string;
+    label?: string;
     options: string[];
 }
 
@@ -12,9 +12,11 @@ export default function SelectCustom({ label, options }: Props) {
 
     return (
         <div className="col w-full gap-2">
-            <div className="row">
-                <div className="text-sm font-medium text-slate-500">{label}</div>
-            </div>
+            {label && (
+                <div className="row">
+                    <div className="text-sm font-medium text-slate-500">{label}</div>
+                </div>
+            )}
 
             <Select
                 classNames={{

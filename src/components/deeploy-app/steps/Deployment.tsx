@@ -1,4 +1,6 @@
 import { SlateCard } from '@shared/cards/SlateCard';
+import DynamicEnvSection from '@shared/deeploy-app/DynamicEnvSection';
+import EnvSection from '@shared/deeploy-app/EnvSection';
 import InputWithLabel from '@shared/deeploy-app/InputWithLabel';
 import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
 import NumberInput from '@shared/NumberInput';
@@ -46,12 +48,18 @@ function Deployment() {
                 </div>
             </SlateCard>
 
-            <SlateCard title="Environment Variables">
-                <div className="col gap-4">
-                    <div className="flex gap-4">
-                        <InputWithLabel label="Name" placeholder="None" />
-                        <InputWithLabel label="Value" placeholder="None" />
-                    </div>
+            <SlateCard title="ENV Variables">
+                <EnvSection />
+            </SlateCard>
+
+            <SlateCard title="Dynamic ENV Variables">
+                <DynamicEnvSection />
+            </SlateCard>
+
+            <SlateCard title="Policies">
+                <div className="flex gap-4">
+                    <SelectCustom label="Restart Policy" options={['Always', 'Manual']} />
+                    <SelectCustom label="Image Pull Policy" options={['Always', 'Manual']} />
                 </div>
             </SlateCard>
         </div>
