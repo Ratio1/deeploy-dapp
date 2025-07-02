@@ -1,5 +1,6 @@
 import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { useFormContext } from 'react-hook-form';
 
 interface Props {
     steps: string[];
@@ -7,6 +8,18 @@ interface Props {
 
 function StepButtons({ steps }: Props) {
     const { step, setStep, setAppType, isPaymentConfirmed } = useDeploymentContext() as DeploymentContextType;
+    const { trigger, getValues } = useFormContext();
+
+    const validateStep = async () => {
+        const isValid = await trigger(['targetNodesCount']);
+        const data = getValues();
+
+        if (isValid) {
+            console.log('Validated', data);
+        } else {
+            console.log('Invalid values in step', data);
+        }
+    };
 
     return (
         <div className="row w-full justify-between pt-2">
@@ -42,7 +55,10 @@ function StepButtons({ steps }: Props) {
             <Button
                 color="primary"
                 variant="solid"
-                onPress={() => setStep(step + 1)}
+                onPress={() => {
+                    validateStep();
+                    setStep(step + 1);
+                }}
                 isDisabled={step === 3 && !isPaymentConfirmed}
             >
                 {step < steps.length ? <div>Next step: {steps[step]}</div> : <div>Submit</div>}

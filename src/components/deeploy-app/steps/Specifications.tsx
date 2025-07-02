@@ -18,16 +18,16 @@ function Specifications() {
             <SlateCard>
                 <div className="flex gap-4">
                     <SelectCustom label="Application Type" options={APPLICATION_TYPES} />
-                    <NumberInput label="Target Nodes Count" />
+                    <NumberInput name="targetNodesCount" label="Target Nodes Count" />
                 </div>
             </SlateCard>
 
-            <SlateCard title="Node Resource Requirements">
+            {/* <SlateCard title="Node Resource Requirements">
                 <div className="flex gap-4">
                     <NumberInput label="CPU" />
                     <NumberInput label="Memory (GB)" />
                 </div>
-            </SlateCard>
+            </SlateCard> */}
 
             <SlateCard title="Container Resources">
                 <SelectCustom label="Container Type" options={CONTAINER_TYPES} />
@@ -35,10 +35,10 @@ function Specifications() {
                 {/* TODO: Display only if CUSTOM is selected */}
                 <div className="-mb-2 text-sm font-medium">Custom Values</div>
 
-                <div className="flex gap-4">
+                {/* <div className="flex gap-4">
                     <NumberInput label="CPU" />
                     <NumberInput label="Memory (MB)" />
-                </div>
+                </div> */}
             </SlateCard>
         </div>
     );

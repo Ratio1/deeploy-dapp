@@ -1,5 +1,5 @@
 import { InputProps } from '@heroui/input';
-import HeroInput from '@shared/HeroInput';
+import StyledInput from '@shared/StyledInput';
 
 interface Props extends InputProps {
     label: string;
@@ -13,7 +13,7 @@ export default function InputWithLabel({ label, placeholder, ...props }: Props) 
                 <div className="text-sm font-medium text-slate-500">{label}</div>
             </div>
 
-            <HeroInput placeholder={placeholder} {...props} />
+            <StyledInput placeholder={placeholder} {...props} />
         </div>
     );
 }

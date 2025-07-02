@@ -1,4 +1,4 @@
-import HeroInput from '@shared/HeroInput';
+import StyledInput from '@shared/StyledInput';
 import { RiAddLine } from 'react-icons/ri';
 
 export default function TargetNodesSection() {
@@ -9,7 +9,7 @@ export default function TargetNodesSection() {
                     <div className="row gap-3" key={index}>
                         <div className="min-w-4 text-sm font-medium text-slate-500">{index + 1}</div>
 
-                        <HeroInput placeholder="0x_ai" />
+                        <StyledInput placeholder="0x_ai" />
 
                         <div className="cursor-pointer text-sm font-medium text-slate-500 hover:opacity-50">Remove</div>
                     </div>

@@ -1,4 +1,4 @@
-import HeroInput from './HeroInput';
+import StyledInput from './StyledInput';
 
 interface Props {
     label: string;
@@ -12,7 +12,7 @@ export default function TextInput({ label, placeholder }: Props) {
                 <div className="text-sm font-medium text-slate-500">{label}</div>
             </div>
 
-            <HeroInput placeholder={placeholder} />
+            <StyledInput placeholder={placeholder} />
         </div>
     );
 }

@@ -1,4 +1,4 @@
-import HeroInput from '@shared/HeroInput';
+import StyledInput from '@shared/StyledInput';
 import { RiAddLine } from 'react-icons/ri';
 
 export default function EnvSection() {
@@ -10,8 +10,8 @@ export default function EnvSection() {
                         <div className="min-w-4 text-sm font-medium text-slate-500">{index + 1}</div>
 
                         <div className="flex w-full gap-2">
-                            <HeroInput placeholder="KEY" />
-                            <HeroInput placeholder="VALUE" />
+                            <StyledInput placeholder="KEY" />
+                            <StyledInput placeholder="VALUE" />
                         </div>
 
                         <div className="cursor-pointer text-sm font-medium text-slate-500 hover:opacity-50">Remove</div>

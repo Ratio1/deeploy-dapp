@@ -3,7 +3,6 @@ import DynamicEnvSection from '@shared/deeploy-app/DynamicEnvSection';
 import EnvSection from '@shared/deeploy-app/EnvSection';
 import InputWithLabel from '@shared/deeploy-app/InputWithLabel';
 import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
-import NumberInput from '@shared/NumberInput';
 import SelectCustom from '@shared/SelectCustom';
 
 function Deployment() {
@@ -35,10 +34,10 @@ function Deployment() {
 
             <SlateCard title="App Parameters">
                 <div className="col gap-4">
-                    <div className="flex gap-4">
+                    {/* <div className="flex gap-4">
                         <NumberInput label="Port" />
                         <SelectCustom label="Enable NGROK" options={['True', 'False']} />
-                    </div>
+                    </div> */}
 
                     {/* TODO: Display only if NGROK is enabled */}
                     <div className="flex gap-4">
