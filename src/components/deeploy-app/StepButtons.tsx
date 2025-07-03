@@ -23,7 +23,7 @@ function StepButtons({ steps }: Props) {
         const data = getValues();
 
         if (isValid) {
-            console.log('Validated', data);
+            console.log(`Validated step ${step}`, data);
         } else {
             console.log('Invalid values in step', data);
         }
@@ -69,7 +69,11 @@ function StepButtons({ steps }: Props) {
                     const isValid = await validateStep();
 
                     if (isValid) {
-                        setStep(step + 1);
+                        if (step < steps.length) {
+                            setStep(step + 1);
+                        } else {
+                            console.log('Deploy');
+                        }
                     } else {
                         console.log('Cannot proceed to next step');
                     }

@@ -1,19 +1,43 @@
 import { InputProps } from '@heroui/input';
 import StyledInput from '@shared/StyledInput';
+import { Controller, useFormContext } from 'react-hook-form';
 
 interface Props extends InputProps {
+    name: string;
     label: string;
     placeholder: string;
 }
 
-export default function InputWithLabel({ label, placeholder, ...props }: Props) {
+export default function InputWithLabel({ name, label, placeholder, ...props }: Props) {
+    const { control } = useFormContext();
+
     return (
         <div className="col w-full gap-2">
             <div className="row">
                 <div className="text-sm font-medium text-slate-500">{label}</div>
             </div>
 
-            <StyledInput placeholder={placeholder} {...props} />
+            <Controller
+                name={name}
+                control={control}
+                render={({ field, fieldState }) => {
+                    return (
+                        <StyledInput
+                            placeholder={placeholder}
+                            value={field.value ?? ''}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                const n = value === '' ? undefined : value;
+                                field.onChange(n);
+                            }}
+                            onBlur={field.onBlur}
+                            isInvalid={!!fieldState.error}
+                            errorMessage={fieldState.error?.message}
+                            {...props}
+                        />
+                    );
+                }}
+            />
         </div>
     );
 }

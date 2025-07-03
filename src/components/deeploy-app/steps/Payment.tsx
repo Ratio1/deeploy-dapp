@@ -1,10 +1,12 @@
 import { Button } from '@heroui/button';
+import { config } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { ConnectWalletWrapper } from '@shared/ConnectWalletWrapper';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { RiCheckLine } from 'react-icons/ri';
+import { RiCheckLine, RiExternalLinkLine } from 'react-icons/ri';
+import { Link } from 'react-router-dom';
 import { useAccount, useSignMessage } from 'wagmi';
 
 const SUMMARY_ITEMS = [
@@ -49,9 +51,48 @@ function Payment() {
     const { signMessage, isPending: isSigning } = useSignMessage({
         mutation: {
             onSuccess: (_data) => {
-                toast.success('Transaction confirmed successfully!');
-                setLoading(false);
-                setPaymentConfirmed(true);
+                toast.promise(
+                    new Promise((resolve) => {
+                        setTimeout(() => {
+                            setLoading(false);
+                            setPaymentConfirmed(true);
+                            resolve({ transactionHash: '0x' });
+                        }, 1000);
+                    }),
+                    {
+                        loading: 'Transaction loading...',
+                        success: (receipt) => (
+                            <div className="col">
+                                <div className="font-medium">Transaction confirmed</div>
+                                <div className="row gap-1 text-sm">
+                                    <div className="text-slate-500">View transaction details</div>
+                                    <Link to={`${config.explorerUrl}`} target="_blank" className="text-primary">
+                                        <RiExternalLinkLine className="text-lg" />
+                                    </Link>
+                                </div>
+                            </div>
+                        ),
+                        error: () => {
+                            return (
+                                <div className="col">
+                                    <div className="font-medium text-red-600">Transaction failed</div>
+                                    <div className="row gap-1 text-sm">
+                                        <div className="text-slate-500">View transaction details</div>
+                                        <Link to={`${config.explorerUrl}`} target="_blank" className="text-primary">
+                                            <RiExternalLinkLine className="text-lg" />
+                                        </Link>
+                                    </div>
+                                </div>
+                            );
+                        },
+                    },
+                    {
+                        success: {
+                            duration: 6000,
+                        },
+                        position: 'bottom-right',
+                    },
+                );
             },
             onError: (error) => {
                 console.error(error);

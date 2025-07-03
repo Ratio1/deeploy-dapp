@@ -1,6 +1,7 @@
 import DeeployWrapper from '@components/deeploy-app/DeeployWrapper';
 import AppTypeSelect from '@components/deeploy-app/steps/AppTypeSelect';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
+import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CONTAINER_TYPES } from '@data/containerTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
@@ -17,6 +18,7 @@ function DeeployApp() {
         defaultValues: {
             applicationType: APPLICATION_TYPES[0],
             containerType: CONTAINER_TYPES[0],
+            enableNgrok: BOOLEAN_TYPES[0],
         },
     });
 
