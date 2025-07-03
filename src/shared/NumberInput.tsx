@@ -26,7 +26,7 @@ export default function NumberInput({ name, label }: Props) {
                             value={field.value ?? ''}
                             onChange={(e) => {
                                 const value = e.target.value;
-                                const n = value === '' ? undefined : Number(value);
+                                const n = value === '' ? '' : Number(value);
                                 field.onChange(n);
                             }}
                             onBlur={field.onBlur}

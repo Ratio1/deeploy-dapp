@@ -27,8 +27,7 @@ export default function InputWithLabel({ name, label, placeholder, ...props }: P
                             value={field.value ?? ''}
                             onChange={(e) => {
                                 const value = e.target.value;
-                                const n = value === '' ? undefined : value;
-                                field.onChange(n);
+                                field.onChange(value);
                             }}
                             onBlur={field.onBlur}
                             isInvalid={!!fieldState.error}

@@ -3,8 +3,8 @@ import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CONTAINER_TYPES } from '@data/containerTypes';
 import { z } from 'zod';
 
-const customContainerType = CONTAINER_TYPES[CONTAINER_TYPES.length - 1];
-const enabledType = BOOLEAN_TYPES[0];
+export const customContainerType = CONTAINER_TYPES[CONTAINER_TYPES.length - 1];
+export const enabledBooleanType = BOOLEAN_TYPES[0];
 
 export const deeployAppSchema = z
     .object({
@@ -46,8 +46,7 @@ export const deeployAppSchema = z
             })
             .int('Value must be a whole number')
             .min(1, 'Value must be at least 1')
-            .max(100, 'Value cannot exceed 100')
-            .optional(),
+            .max(100, 'Value cannot exceed 100'),
         customMemory: z
             .number({
                 required_error: 'Value is required',
@@ -55,8 +54,7 @@ export const deeployAppSchema = z
             })
             .int('Value must be a whole number')
             .min(1, 'Value must be at least 1')
-            .max(1000000, 'Value cannot exceed 1000000')
-            .optional(),
+            .max(1000000, 'Value cannot exceed 1000000'),
         // Step 3: Deployment
         appAlias: z
             .string({
@@ -88,8 +86,7 @@ export const deeployAppSchema = z
             .regex(
                 /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
                 'Only letters, numbers, spaces and special characters allowed',
-            )
-            .optional(),
+            ),
         ngrokAuthToken: z
             .string({
                 required_error: 'Value is required',
@@ -99,15 +96,14 @@ export const deeployAppSchema = z
             .regex(
                 /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
                 'Only letters, numbers, spaces and special characters allowed',
-            )
-            .optional(),
+            ),
     })
     .refine(
         (data) => {
-            if (data.containerType === customContainerType) {
-                return data.customCpu !== undefined && data.customMemory !== undefined;
+            if (data.containerType !== customContainerType) {
+                return true; // Allow undefined for non-custom types
             }
-            return true;
+            return data.customCpu !== undefined && data.customMemory !== undefined;
         },
         {
             message: 'Required when using a custom container',
@@ -116,10 +112,10 @@ export const deeployAppSchema = z
     )
     .refine(
         (data) => {
-            if (data.containerType === customContainerType) {
-                return data.customCpu !== undefined && data.customMemory !== undefined;
+            if (data.containerType !== customContainerType) {
+                return true; // Allow undefined for non-custom types
             }
-            return true;
+            return data.customCpu !== undefined && data.customMemory !== undefined;
         },
         {
             message: 'Required when using a custom container',
@@ -128,25 +124,41 @@ export const deeployAppSchema = z
     )
     .refine(
         (data) => {
-            if (data.enableNgrok === enabledType) {
-                return data.ngrokEdgeLabel !== undefined && data.ngrokAuthToken !== undefined;
+            if (data.enableNgrok !== enabledBooleanType) {
+                return true; // Allow undefined when ngrok is not enabled
             }
-            return true;
+            return data.ngrokEdgeLabel !== undefined && data.ngrokAuthToken !== undefined;
         },
         {
-            message: 'Required when using NGROK',
+            message: 'Required when NGROK is enabled',
             path: ['ngrokEdgeLabel'],
         },
     )
     .refine(
         (data) => {
-            if (data.enableNgrok === enabledType) {
-                return data.ngrokEdgeLabel !== undefined && data.ngrokAuthToken !== undefined;
+            if (data.enableNgrok !== enabledBooleanType) {
+                return true; // Allow undefined when ngrok is not enabled
             }
-            return true;
+            return data.ngrokEdgeLabel !== undefined && data.ngrokAuthToken !== undefined;
         },
         {
-            message: 'Required when using NGROK',
+            message: 'Required when NGROK is enabled',
             path: ['ngrokAuthToken'],
         },
-    );
+    )
+    .transform((data) => {
+        // Transform the data to make values optional when necessary
+        const transformed = { ...data } as any;
+
+        if (data.containerType !== customContainerType) {
+            transformed.customCpu = undefined;
+            transformed.customMemory = undefined;
+        }
+
+        if (data.enableNgrok !== enabledBooleanType) {
+            transformed.ngrokEdgeLabel = undefined;
+            transformed.ngrokAuthToken = undefined;
+        }
+
+        return transformed;
+    });

@@ -1,5 +1,6 @@
 import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { customContainerType } from '@typedefs/schemas';
 import { useFormContext } from 'react-hook-form';
 
 interface Props {
@@ -11,16 +12,17 @@ function StepButtons({ steps }: Props) {
     const { trigger, getValues } = useFormContext();
 
     const validateStep = async () => {
+        const data = getValues();
+
+        // TODO: Validate only the inputs in the current step
         const isValid = await trigger([
             'targetNodesCount',
             'applicationType',
             'containerType',
             'cpu',
             'memory',
-            'customCpu',
-            'customMemory',
+            ...(data.containerType === customContainerType ? ['customCpu', 'customMemory'] : []),
         ]);
-        const data = getValues();
 
         if (isValid) {
             console.log(`Validated step ${step}`, data);
