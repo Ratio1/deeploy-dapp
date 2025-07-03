@@ -1,5 +1,6 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
+import DynamicEnvSection from '@shared/deeploy-app/DynamicEnvSection';
 import EnvSection from '@shared/deeploy-app/EnvSection';
 import InputWithLabel from '@shared/deeploy-app/InputWithLabel';
 import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
@@ -67,9 +68,9 @@ function Deployment() {
                 <EnvSection />
             </SlateCard>
 
-            {/* <SlateCard title="Dynamic ENV Variables">
+            <SlateCard title="Dynamic ENV Variables">
                 <DynamicEnvSection />
-            </SlateCard> */}
+            </SlateCard>
 
             <SlateCard title="Policies">
                 <div className="flex gap-4">

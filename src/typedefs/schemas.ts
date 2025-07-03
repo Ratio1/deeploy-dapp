@@ -1,6 +1,7 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CONTAINER_TYPES } from '@data/containerTypes';
+import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { z } from 'zod';
 
@@ -48,6 +49,25 @@ const targetNodeSchema = z.object({
         .string()
         .max(52, 'Value cannot exceed 52 characters')
         .refine((val) => val === '' || /^0xai_[A-Za-z0-9_-]+$/.test(val), 'Must be a valid node address'),
+});
+
+const dynamicEnvPairSchema = z.object({
+    type: z.enum(DYNAMIC_ENV_TYPES),
+    value: z
+        .string()
+        .min(1, 'Value is required')
+        .max(128, 'Value cannot exceed 128 characters')
+        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed'),
+});
+
+// The key + the 3 key-value pairs
+const dynamicEnvEntrySchema = z.object({
+    key: z
+        .string()
+        .min(1, 'Key is required')
+        .max(128, 'Value cannot exceed 128 characters')
+        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed'),
+    values: z.array(dynamicEnvPairSchema).length(3, 'Must have exactly 3 value pairs'),
 });
 
 // Step 2: Specifications Schema
@@ -156,7 +176,6 @@ const deploymentStepBase = z.object({
             'Only letters, numbers, spaces and special characters allowed',
         ),
     targetNodes: z.array(targetNodeSchema).max(10, 'You can define up to 10 target nodes'),
-    envVars: z.array(envVarSchema).max(10, 'Maximum 10 environment variables'),
     containerImage: z
         .string({
             required_error: 'Value is required',
@@ -215,6 +234,8 @@ const deploymentStepBase = z.object({
             /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
             'Only letters, numbers, spaces and special characters allowed',
         ),
+    envVars: z.array(envVarSchema).max(10, 'Maximum 10 environment variables'),
+    dynamicEnvVars: z.array(dynamicEnvEntrySchema).max(10, 'Maximum 10 dynamic environment variables'),
     restartPolicy: z.enum(POLICY_TYPES, {
         required_error: 'Value is required',
     }),

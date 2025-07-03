@@ -3,6 +3,7 @@ import AppTypeSelect from '@components/deeploy-app/steps/AppTypeSelect';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CONTAINER_TYPES } from '@data/containerTypes';
+import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
@@ -23,6 +24,16 @@ function DeeployApp() {
             // Step: Deployment
             targetNodes: [{ address: '' }],
             envVars: [{ key: '', value: '' }],
+            dynamicEnvVars: [
+                {
+                    key: '',
+                    values: [
+                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
+                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
+                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
+                    ],
+                },
+            ],
             enableNgrok: BOOLEAN_TYPES[0],
             restartPolicy: POLICY_TYPES[0],
             imagePullPolicy: POLICY_TYPES[0],
