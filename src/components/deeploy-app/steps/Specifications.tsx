@@ -3,8 +3,12 @@ import { CONTAINER_TYPES } from '@data/containerTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import NumberInput from '@shared/NumberInput';
 import SelectWithLabel from '@shared/SelectWithLabel';
+import { useFormContext } from 'react-hook-form';
 
 function Specifications() {
+    const { watch } = useFormContext();
+    const containerType = watch('containerType');
+
     return (
         <div className="col gap-6">
             <SlateCard>
@@ -24,13 +28,16 @@ function Specifications() {
             <SlateCard title="Container Resources">
                 <SelectWithLabel name="containerType" label="Container Type" options={CONTAINER_TYPES} />
 
-                {/* TODO: Display only if CUSTOM is selected */}
-                <div className="-mb-2 text-sm font-medium">Custom Values</div>
+                {containerType === CONTAINER_TYPES[CONTAINER_TYPES.length - 1] && (
+                    <>
+                        <div className="-mb-2 text-sm font-medium">Custom Values</div>
 
-                <div className="flex gap-4">
-                    <NumberInput name="customCpu" label="CPU" />
-                    <NumberInput name="customMemory" label="Memory (MB)" />
-                </div>
+                        <div className="flex gap-4">
+                            <NumberInput name="customCpu" label="CPU" />
+                            <NumberInput name="customMemory" label="Memory (MB)" />
+                        </div>
+                    </>
+                )}
             </SlateCard>
         </div>
     );
