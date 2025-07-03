@@ -1,6 +1,8 @@
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine } from 'react-icons/ri';
+import VariableSectionIndex from './VariableSectionIndex';
+import VariableSectionRemove from './VariableSectionRemove';
 
 export default function TargetNodesSection() {
     const { control } = useFormContext();
@@ -16,8 +18,9 @@ export default function TargetNodesSection() {
                     <div className="text-sm text-slate-500">No target nodes added yet</div>
                 ) : (
                     fields.map((field, index) => (
-                        <div className="row gap-3" key={field.id}>
-                            <div className="min-w-4 text-sm font-medium text-slate-500">{index + 1}</div>
+                        <div className="flex gap-3" key={field.id}>
+                            <VariableSectionIndex index={index} />
+
                             <Controller
                                 name={`targetNodes.${index}.address`}
                                 control={control}
@@ -32,12 +35,8 @@ export default function TargetNodesSection() {
                                     />
                                 )}
                             />
-                            <div
-                                className="cursor-pointer text-sm font-medium text-slate-500 hover:opacity-50"
-                                onClick={() => remove(index)}
-                            >
-                                Remove
-                            </div>
+
+                            <VariableSectionRemove onClick={() => remove(index)} />
                         </div>
                     ))
                 )}

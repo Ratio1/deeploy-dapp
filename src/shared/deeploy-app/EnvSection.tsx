@@ -1,6 +1,8 @@
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine } from 'react-icons/ri';
+import VariableSectionIndex from './VariableSectionIndex';
+import VariableSectionRemove from './VariableSectionRemove';
 
 export default function EnvSection() {
     const { control } = useFormContext();
@@ -17,8 +19,8 @@ export default function EnvSection() {
                     <div className="text-sm text-slate-500">No environment variables added yet</div>
                 ) : (
                     fields.map((field, index) => (
-                        <div className="row gap-3" key={field.id}>
-                            <div className="min-w-4 text-sm font-medium text-slate-500">{index + 1}</div>
+                        <div className="flex gap-3" key={field.id}>
+                            <VariableSectionIndex index={index} />
 
                             <div className="flex w-full gap-2">
                                 <Controller
@@ -62,12 +64,7 @@ export default function EnvSection() {
                                 />
                             </div>
 
-                            <div
-                                className="cursor-pointer text-sm font-medium text-slate-500 hover:opacity-50"
-                                onClick={() => remove(index)}
-                            >
-                                Remove
-                            </div>
+                            <VariableSectionRemove onClick={() => remove(index)} />
                         </div>
                     ))
                 )}
