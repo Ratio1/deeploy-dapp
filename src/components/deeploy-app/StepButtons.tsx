@@ -1,36 +1,57 @@
 import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { customContainerType } from '@typedefs/schemas';
-import { useFormContext } from 'react-hook-form';
+import { customContainerType, enabledBooleanType } from '@typedefs/schemas';
+import { FieldValues, useFormContext } from 'react-hook-form';
 
 interface Props {
     steps: string[];
 }
+
+const getStepInputs = (step: number, values: FieldValues) => {
+    const stepInputs = {
+        2: [
+            'targetNodesCount',
+            'applicationType',
+            'containerType',
+            'cpu',
+            'memory',
+            ...(values.containerType === customContainerType ? ['customCpu', 'customMemory'] : []),
+        ],
+        4: [
+            'appAlias',
+            'envVars',
+            'containerImage',
+            'containerRegistry',
+            'crUsername',
+            'crPassword',
+            'port',
+            'enableNgrok',
+            'restartPolicy',
+            'imagePullPolicy',
+            ...(values.enableNgrok === enabledBooleanType ? ['ngrokEdgeLabel', 'ngrokAuthToken'] : []),
+        ],
+    };
+
+    return stepInputs[step];
+};
 
 function StepButtons({ steps }: Props) {
     const { step, setStep, setAppType, isPaymentConfirmed } = useDeploymentContext() as DeploymentContextType;
     const { trigger, getValues } = useFormContext();
 
     const validateStep = async () => {
-        const data = getValues();
+        const values = getValues();
+        const isFormValid = await trigger(getStepInputs(step, values));
 
-        // TODO: Validate only the inputs in the current step
-        const isValid = await trigger([
-            'targetNodesCount',
-            'applicationType',
-            'containerType',
-            'cpu',
-            'memory',
-            ...(data.containerType === customContainerType ? ['customCpu', 'customMemory'] : []),
-        ]);
-
-        if (isValid) {
-            console.log(`Validated step ${step}`, data);
+        if (isFormValid) {
+            console.log(`Validated step ${step}`);
         } else {
-            console.log('Invalid values in step', data);
+            console.log('Invalid values in step');
         }
 
-        return isValid;
+        console.log(values);
+
+        return isFormValid;
     };
 
     return (

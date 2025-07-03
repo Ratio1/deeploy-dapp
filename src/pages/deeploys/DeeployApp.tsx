@@ -19,6 +19,7 @@ function DeeployApp() {
         defaultValues: {
             applicationType: APPLICATION_TYPES[0],
             containerType: CONTAINER_TYPES[0],
+            envVars: [{ key: '', value: '' }],
             enableNgrok: BOOLEAN_TYPES[0],
             restartPolicy: POLICY_TYPES[0],
             imagePullPolicy: POLICY_TYPES[0],

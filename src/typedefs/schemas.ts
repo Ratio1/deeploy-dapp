@@ -7,6 +7,42 @@ import { z } from 'zod';
 export const customContainerType = CONTAINER_TYPES[CONTAINER_TYPES.length - 1];
 export const enabledBooleanType = BOOLEAN_TYPES[0];
 
+const envVarSchema = z
+    .object({
+        key: z.string().optional(),
+        value: z.string().optional(),
+    })
+    .refine(
+        (data) => {
+            if (!data.key && !data.value) {
+                return true; // Both empty is valid (empty row)
+            }
+            if (!data.key) {
+                return false; // Key missing
+            }
+            return true; // Key present
+        },
+        {
+            message: 'Key is required',
+            path: ['key'],
+        },
+    )
+    .refine(
+        (data) => {
+            if (!data.key && !data.value) {
+                return true; // Both empty is valid (empty row)
+            }
+            if (!data.value) {
+                return false; // Value missing
+            }
+            return true; // Value present
+        },
+        {
+            message: 'Value is required',
+            path: ['value'],
+        },
+    );
+
 export const deeployAppSchema = z
     .object({
         // Step: Specifications
@@ -67,6 +103,7 @@ export const deeployAppSchema = z
                 /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
                 'Only letters, numbers, spaces and special characters allowed',
             ),
+        envVars: z.array(envVarSchema).max(10, 'Maximum 10 environment variables'),
         containerImage: z
             .string({
                 required_error: 'Value is required',

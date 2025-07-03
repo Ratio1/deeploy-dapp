@@ -1,27 +1,84 @@
 import StyledInput from '@shared/StyledInput';
+import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine } from 'react-icons/ri';
 
 export default function EnvSection() {
+    const { control } = useFormContext();
+
+    const { fields, append, remove } = useFieldArray({
+        control: control,
+        name: 'envVars',
+    });
+
     return (
         <div className="col gap-4">
             <div className="col gap-2">
-                {Array.from({ length: 3 }).map((_, index) => (
-                    <div className="row gap-3" key={index}>
+                {fields.map((field, index) => (
+                    <div className="row gap-3" key={field.id}>
                         <div className="min-w-4 text-sm font-medium text-slate-500">{index + 1}</div>
 
                         <div className="flex w-full gap-2">
-                            <StyledInput placeholder="KEY" />
-                            <StyledInput placeholder="VALUE" />
+                            <Controller
+                                name={`envVars.${index}.key`}
+                                control={control}
+                                render={({ field, fieldState }) => {
+                                    return (
+                                        <StyledInput
+                                            // {...field}
+                                            placeholder="KEY"
+                                            value={field.value ?? ''}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                field.onChange(value);
+                                            }}
+                                            onBlur={field.onBlur}
+                                            isInvalid={!!fieldState.error}
+                                            errorMessage={fieldState.error?.message}
+                                        />
+                                    );
+                                }}
+                            />
+
+                            <Controller
+                                name={`envVars.${index}.value`}
+                                control={control}
+                                render={({ field, fieldState }) => {
+                                    return (
+                                        <StyledInput
+                                            // {...field}
+                                            placeholder="VALUE"
+                                            value={field.value ?? ''}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                field.onChange(value);
+                                            }}
+                                            onBlur={field.onBlur}
+                                            isInvalid={!!fieldState.error}
+                                            errorMessage={fieldState.error?.message}
+                                        />
+                                    );
+                                }}
+                            />
                         </div>
 
-                        <div className="cursor-pointer text-sm font-medium text-slate-500 hover:opacity-50">Remove</div>
+                        <div
+                            className="cursor-pointer text-sm font-medium text-slate-500 hover:opacity-50"
+                            onClick={() => remove(index)}
+                        >
+                            Remove
+                        </div>
                     </div>
                 ))}
             </div>
 
-            <div className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50">
-                <RiAddLine className="text-lg" /> Add
-            </div>
+            {fields.length < 10 && (
+                <div
+                    className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50"
+                    onClick={() => append({ key: '', value: '' })}
+                >
+                    <RiAddLine className="text-lg" /> Add
+                </div>
+            )}
         </div>
     );
 }

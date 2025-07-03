@@ -80,7 +80,8 @@ function AppTypeSelect() {
                                     variant="flat"
                                     size="sm"
                                     onPress={() => {
-                                        setStep(2); // Step 1 is the selection of the app type
+                                        // Step 1 is the selection of the app type
+                                        setStep(4); // TODO: change to 2
                                         setAppType(option.appType);
                                     }}
                                 >

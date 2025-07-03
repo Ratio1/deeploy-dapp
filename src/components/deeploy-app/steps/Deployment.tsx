@@ -1,6 +1,8 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
+import EnvSection from '@shared/deeploy-app/EnvSection';
 import InputWithLabel from '@shared/deeploy-app/InputWithLabel';
+import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
 import NumberInput from '@shared/NumberInput';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
@@ -17,9 +19,9 @@ function Deployment() {
                 </div>
             </SlateCard>
 
-            {/* <SlateCard title="Target Nodes">
+            <SlateCard title="Target Nodes">
                 <TargetNodesSection />
-            </SlateCard> */}
+            </SlateCard>
 
             <SlateCard title="Container">
                 <div className="col gap-4">
@@ -51,11 +53,11 @@ function Deployment() {
                 </div>
             </SlateCard>
 
-            {/* <SlateCard title="ENV Variables">
+            <SlateCard title="ENV Variables">
                 <EnvSection />
             </SlateCard>
 
-            <SlateCard title="Dynamic ENV Variables">
+            {/* <SlateCard title="Dynamic ENV Variables">
                 <DynamicEnvSection />
             </SlateCard> */}
 
