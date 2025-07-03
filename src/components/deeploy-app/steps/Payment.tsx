@@ -3,49 +3,18 @@ import { config } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { ConnectWalletWrapper } from '@shared/ConnectWalletWrapper';
+import { addYears } from 'date-fns';
 import { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { RiCheckLine, RiExternalLinkLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
 import { useAccount, useSignMessage } from 'wagmi';
 
-const SUMMARY_ITEMS = [
-    {
-        label: 'Application Type',
-        value: 'Web App',
-    },
-    {
-        label: 'Nodes',
-        value: '12',
-    },
-    {
-        label: 'GPU/CPU',
-        value: 'CPU',
-    },
-    // {
-    //     label: 'Configuration',
-    //     value: 'ENTRY (1 core, 2 GB)',
-    // },
-    {
-        label: 'Container Type',
-        value: 'ENTRY',
-    },
-    {
-        label: 'Configuration',
-        value: '1 core, 2 GB',
-    },
-    {
-        label: 'Expiration Date',
-        value: new Date('2027-07-01').toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        }),
-    },
-];
-
 function Payment() {
     const { isPaymentConfirmed, setPaymentConfirmed } = useDeploymentContext() as DeploymentContextType;
+    const { watch } = useFormContext();
+    const formValues = watch();
 
     const { address, isConnected } = useAccount();
     const { signMessage, isPending: isSigning } = useSignMessage({
@@ -117,19 +86,42 @@ function Payment() {
         signMessage({ message });
     };
 
+    // Calculate summary items from form values
+    const summaryItems = [
+        {
+            label: 'Application Type',
+            value: formValues.applicationType,
+        },
+        {
+            label: 'Target Nodes',
+            value: formValues.targetNodesCount ? formValues.targetNodesCount.toString() : 'N/A',
+        },
+        {
+            label: 'GPU/CPU',
+            value: 'CPU',
+        },
+        {
+            label: 'Container Type',
+            value: formValues.containerType.split(' ')[0],
+        },
+        {
+            label: 'Configuration',
+            value: formValues.containerType.split('(')[1]?.split(')')[0],
+        },
+        {
+            label: 'Expiration Date',
+            value: addYears(new Date(), 2).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            }),
+        },
+    ];
+
     return (
         <div className="col gap-2">
             <div className="grid h-full w-full grid-cols-3 gap-2">
-                {/*
-                {item.label === 'Configuration' ? (
-                    <div className="col text-center font-semibold">
-                        <div className="text-base">{item.value.split(' ')[0]}</div>
-                        <div className="text-base">{item.value.slice(item.value.split(' ')[0].length)}</div>
-                    </div>
-                )}
-            */}
-
-                {SUMMARY_ITEMS.map((item) => (
+                {summaryItems.map((item) => (
                     <SlateCard key={item.label}>
                         <div className="col justify-center gap-1 py-2 text-center">
                             <div className="text-lg font-semibold">{item.value}</div>
