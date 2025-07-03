@@ -22,8 +22,14 @@ function Deployment() {
 
             <SlateCard title="Target Nodes">
                 <div className="col gap-4">
-                    {/* <NumberInput name="targetNodesCount" label="Target Nodes Count" /> */}
-                    {targetNodesCount == 0 && <TargetNodesSection />}
+                    {!targetNodesCount ? (
+                        <TargetNodesSection />
+                    ) : (
+                        <div className="text-sm text-slate-500">
+                            Your app will be deployed to <span className="font-medium text-primary">{targetNodesCount}</span>{' '}
+                            nodes.
+                        </div>
+                    )}
                 </div>
             </SlateCard>
 

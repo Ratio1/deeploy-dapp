@@ -21,7 +21,7 @@ function DeeployApp() {
             applicationType: APPLICATION_TYPES[0],
             containerType: CONTAINER_TYPES[0],
             // Step: Deployment
-            targetNodes: [],
+            targetNodes: [{ address: '' }],
             envVars: [{ key: '', value: '' }],
             enableNgrok: BOOLEAN_TYPES[0],
             restartPolicy: POLICY_TYPES[0],

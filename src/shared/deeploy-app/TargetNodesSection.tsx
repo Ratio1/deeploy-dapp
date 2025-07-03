@@ -9,10 +9,8 @@ export default function TargetNodesSection() {
         name: 'targetNodes',
     });
 
-    console.log(fields);
-
     return (
-        <div className="col gap-4">
+        <div className="col gap-4" key={fields.length}>
             <div className="col gap-2">
                 {fields.length === 0 ? (
                     <div className="text-sm text-slate-500">No target nodes added yet</div>
@@ -21,7 +19,7 @@ export default function TargetNodesSection() {
                         <div className="row gap-3" key={field.id}>
                             <div className="min-w-4 text-sm font-medium text-slate-500">{index + 1}</div>
                             <Controller
-                                name={`targetNodes.${index}`}
+                                name={`targetNodes.${index}.address`}
                                 control={control}
                                 render={({ field, fieldState }) => (
                                     <StyledInput
@@ -48,7 +46,7 @@ export default function TargetNodesSection() {
             {fields.length < 10 && (
                 <div
                     className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50"
-                    onClick={() => append('')}
+                    onClick={() => append({ address: '' })}
                 >
                     <RiAddLine className="text-lg" /> Add Node
                 </div>
