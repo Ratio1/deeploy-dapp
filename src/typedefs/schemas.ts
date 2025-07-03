@@ -49,13 +49,19 @@ const specificationsStepBase = z.object({
         required_error: 'Application type is required',
     }),
     targetNodesCount: z
-        .number({
-            required_error: 'Value is required',
-            invalid_type_error: 'Value must be a number',
+        .union([
+            z.literal(''),
+            z
+                .number()
+                .int('Value must be a whole number')
+                .min(0, 'Value must be at least 0')
+                .max(100, 'Value cannot exceed 100'),
+        ])
+        .transform((val) => {
+            if (val === '') return undefined;
+            return val as number;
         })
-        .int('Value must be a whole number')
-        .min(1, 'Value must be at least 1')
-        .max(100, 'Value cannot exceed 100'),
+        .optional() as z.ZodOptional<z.ZodType<number | undefined>>,
     containerType: z.enum(CONTAINER_TYPES, {
         required_error: 'Container type is required',
     }),
@@ -142,6 +148,14 @@ const deploymentStepBase = z.object({
             /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
             'Only letters, numbers, spaces and special characters allowed',
         ),
+    targetNodes: z
+        .array(
+            z
+                .string()
+                .max(52, 'Value cannot exceed 52 characters')
+                .refine((val) => val === '' || /^0xai_[A-Za-z0-9_-]{47}$/.test(val), 'Must be empty or a valid node address'),
+        )
+        .max(10, 'You can define up to 10 target nodes'),
     envVars: z.array(envVarSchema).max(10, 'Maximum 10 environment variables'),
     containerImage: z
         .string({

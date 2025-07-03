@@ -8,8 +8,6 @@ interface Props {
 }
 
 const getStepInputs = (step: number, values: FieldValues) => {
-    console.log(specificationsBaseKeys);
-
     const stepInputs = {
         2: [...specificationsBaseKeys, ...(values.containerType === customContainerType ? ['customCpu', 'customMemory'] : [])],
         4: [...deploymentBaseKeys, ...(values.enableNgrok === enabledBooleanType ? ['ngrokEdgeLabel', 'ngrokAuthToken'] : [])],
@@ -22,7 +20,11 @@ function StepButtons({ steps }: Props) {
     const { step, setStep, setAppType, isPaymentConfirmed } = useDeploymentContext() as DeploymentContextType;
     const { trigger, getValues } = useFormContext();
 
-    const validateStep = async () => {
+    const isStepValid: () => Promise<boolean> = async () => {
+        if (step === 3) {
+            return true;
+        }
+
         const values = getValues();
         const isFormValid = await trigger(getStepInputs(step, values));
 
@@ -72,7 +74,7 @@ function StepButtons({ steps }: Props) {
                 color="primary"
                 variant="solid"
                 onPress={async () => {
-                    const isValid = await validateStep();
+                    const isValid = await isStepValid();
 
                     if (isValid) {
                         if (step < steps.length) {

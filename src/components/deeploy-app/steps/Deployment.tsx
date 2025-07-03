@@ -10,6 +10,7 @@ import { useFormContext } from 'react-hook-form';
 function Deployment() {
     const { watch } = useFormContext();
     const enableNgrok = watch('enableNgrok');
+    const targetNodesCount: number = watch('targetNodesCount');
 
     return (
         <div className="col gap-6">
@@ -20,7 +21,10 @@ function Deployment() {
             </SlateCard>
 
             <SlateCard title="Target Nodes">
-                <TargetNodesSection />
+                <div className="col gap-4">
+                    {/* <NumberInput name="targetNodesCount" label="Target Nodes Count" /> */}
+                    {targetNodesCount == 0 && <TargetNodesSection />}
+                </div>
             </SlateCard>
 
             <SlateCard title="Container">

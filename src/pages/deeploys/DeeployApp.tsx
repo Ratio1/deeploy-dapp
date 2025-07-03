@@ -17,8 +17,11 @@ function DeeployApp() {
         resolver: zodResolver(deeployAppSchema),
         mode: 'onBlur',
         defaultValues: {
+            // Step: Specifications
             applicationType: APPLICATION_TYPES[0],
             containerType: CONTAINER_TYPES[0],
+            // Step: Deployment
+            targetNodes: [],
             envVars: [{ key: '', value: '' }],
             enableNgrok: BOOLEAN_TYPES[0],
             restartPolicy: POLICY_TYPES[0],

@@ -1,4 +1,3 @@
-import SelectWithLabel from '@shared/SelectWithLabel';
 import StyledInput from '@shared/StyledInput';
 import { RiAddLine } from 'react-icons/ri';
 
@@ -17,10 +16,10 @@ export default function DynamicEnvSection() {
                         </div>
 
                         <div className="row gap-3">
-                            <div className="flex w-full gap-2 pl-7">
+                            {/* <div className="flex w-full gap-2 pl-7">
                                 <SelectWithLabel options={['Static', 'Host IP']} />
                                 <StyledInput placeholder="None" />
-                            </div>
+                            </div> */}
 
                             {/* Hidden, used only for styling */}
                             <div className="invisible text-sm font-medium text-slate-500">Remove</div>

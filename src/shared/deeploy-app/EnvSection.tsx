@@ -24,7 +24,6 @@ export default function EnvSection() {
                                 render={({ field, fieldState }) => {
                                     return (
                                         <StyledInput
-                                            // {...field}
                                             placeholder="KEY"
                                             value={field.value ?? ''}
                                             onChange={(e) => {
@@ -45,7 +44,6 @@ export default function EnvSection() {
                                 render={({ field, fieldState }) => {
                                     return (
                                         <StyledInput
-                                            // {...field}
                                             placeholder="VALUE"
                                             value={field.value ?? ''}
                                             onChange={(e) => {
