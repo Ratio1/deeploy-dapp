@@ -1,6 +1,6 @@
 import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { customContainerType, enabledBooleanType } from '@typedefs/schemas';
+import { customContainerType, deploymentBaseKeys, enabledBooleanType, specificationsBaseKeys } from '@typedefs/schemas';
 import { FieldValues, useFormContext } from 'react-hook-form';
 
 interface Props {
@@ -8,28 +8,11 @@ interface Props {
 }
 
 const getStepInputs = (step: number, values: FieldValues) => {
+    console.log(specificationsBaseKeys);
+
     const stepInputs = {
-        2: [
-            'targetNodesCount',
-            'applicationType',
-            'containerType',
-            'cpu',
-            'memory',
-            ...(values.containerType === customContainerType ? ['customCpu', 'customMemory'] : []),
-        ],
-        4: [
-            'appAlias',
-            'envVars',
-            'containerImage',
-            'containerRegistry',
-            'crUsername',
-            'crPassword',
-            'port',
-            'enableNgrok',
-            'restartPolicy',
-            'imagePullPolicy',
-            ...(values.enableNgrok === enabledBooleanType ? ['ngrokEdgeLabel', 'ngrokAuthToken'] : []),
-        ],
+        2: [...specificationsBaseKeys, ...(values.containerType === customContainerType ? ['customCpu', 'customMemory'] : [])],
+        4: [...deploymentBaseKeys, ...(values.enableNgrok === enabledBooleanType ? ['ngrokEdgeLabel', 'ngrokAuthToken'] : [])],
     };
 
     return stepInputs[step];

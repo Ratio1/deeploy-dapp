@@ -43,132 +43,57 @@ const envVarSchema = z
         },
     );
 
-export const deeployAppSchema = z
-    .object({
-        // Step: Specifications
-        applicationType: z.enum(APPLICATION_TYPES, {
-            required_error: 'Application type is required',
-        }),
-        targetNodesCount: z
-            .number({
-                required_error: 'Value is required',
-                invalid_type_error: 'Value must be a number',
-            })
-            .int('Value must be a whole number')
-            .min(1, 'Value must be at least 1')
-            .max(100, 'Value cannot exceed 100'),
-        containerType: z.enum(CONTAINER_TYPES, {
-            required_error: 'Container type is required',
-        }),
-        cpu: z
-            .number({
-                required_error: 'Value is required',
-                invalid_type_error: 'Value must be a number',
-            })
-            .int('Value must be a whole number')
-            .min(1, 'Value must be at least 1')
-            .max(100, 'Value cannot exceed 100'),
-        memory: z
-            .number({
-                required_error: 'Value is required',
-                invalid_type_error: 'Value must be a number',
-            })
-            .int('Value must be a whole number')
-            .min(1, 'Value must be at least 1')
-            .max(1000, 'Value cannot exceed 1000'),
-        customCpu: z
-            .number({
-                required_error: 'Value is required',
-                invalid_type_error: 'Value must be a number',
-            })
-            .int('Value must be a whole number')
-            .min(1, 'Value must be at least 1')
-            .max(100, 'Value cannot exceed 100'),
-        customMemory: z
-            .number({
-                required_error: 'Value is required',
-                invalid_type_error: 'Value must be a number',
-            })
-            .int('Value must be a whole number')
-            .min(1, 'Value must be at least 1')
-            .max(1000000, 'Value cannot exceed 1000000'),
-        // Step: Deployment
-        appAlias: z
-            .string({
-                required_error: 'Value is required',
-            })
-            .min(3, 'Value must be at least 3 characters')
-            .max(36, 'Value cannot exceed 36 characters')
-            .regex(
-                /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
-                'Only letters, numbers, spaces and special characters allowed',
-            ),
-        envVars: z.array(envVarSchema).max(10, 'Maximum 10 environment variables'),
-        containerImage: z
-            .string({
-                required_error: 'Value is required',
-            })
-            .min(3, 'Value must be at least 3 characters')
-            .max(256, 'Value cannot exceed 256 characters'),
-        containerRegistry: z
-            .string({
-                required_error: 'Value is required',
-            })
-            .min(3, 'Value must be at least 3 characters')
-            .max(128, 'Value cannot exceed 128 characters')
-            .regex(/^[^/]+\.[^/]+$/, 'Must be a valid domain format'),
-        crUsername: z
-            .string({
-                required_error: 'Value is required',
-            })
-            .min(3, 'Value must be at least 3 characters')
-            .max(128, 'Value cannot exceed 128 characters')
-            .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed'),
-        crPassword: z
-            .string({
-                required_error: 'Value is required',
-            })
-            .min(3, 'Value must be at least 3 characters')
-            .max(64, 'Value cannot exceed 64 characters')
-            .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed'),
-        port: z
-            .number({
-                required_error: 'Value is required',
-                invalid_type_error: 'Value must be a number',
-            })
-            .int('Value must be a whole number')
-            .min(1, 'Value must be at least 1')
-            .max(65535, 'Value cannot exceed 65535'),
-        enableNgrok: z.enum(BOOLEAN_TYPES, {
+// Step 2: Specifications Schema
+const specificationsStepBase = z.object({
+    applicationType: z.enum(APPLICATION_TYPES, {
+        required_error: 'Application type is required',
+    }),
+    targetNodesCount: z
+        .number({
             required_error: 'Value is required',
-        }),
-        ngrokEdgeLabel: z
-            .string({
-                required_error: 'Value is required',
-            })
-            .min(3, 'Value must be at least 3 characters')
-            .max(64, 'Value cannot exceed 64 characters')
-            .regex(
-                /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
-                'Only letters, numbers, spaces and special characters allowed',
-            ),
-        ngrokAuthToken: z
-            .string({
-                required_error: 'Value is required',
-            })
-            .min(3, 'Value must be at least 3 characters')
-            .max(128, 'Value cannot exceed 128 characters')
-            .regex(
-                /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
-                'Only letters, numbers, spaces and special characters allowed',
-            ),
-        restartPolicy: z.enum(POLICY_TYPES, {
+            invalid_type_error: 'Value must be a number',
+        })
+        .int('Value must be a whole number')
+        .min(1, 'Value must be at least 1')
+        .max(100, 'Value cannot exceed 100'),
+    containerType: z.enum(CONTAINER_TYPES, {
+        required_error: 'Container type is required',
+    }),
+    cpu: z
+        .number({
             required_error: 'Value is required',
-        }),
-        imagePullPolicy: z.enum(POLICY_TYPES, {
+            invalid_type_error: 'Value must be a number',
+        })
+        .int('Value must be a whole number')
+        .min(1, 'Value must be at least 1')
+        .max(100, 'Value cannot exceed 100'),
+    memory: z
+        .number({
             required_error: 'Value is required',
-        }),
-    })
+            invalid_type_error: 'Value must be a number',
+        })
+        .int('Value must be a whole number')
+        .min(1, 'Value must be at least 1')
+        .max(1000, 'Value cannot exceed 1000'),
+    customCpu: z
+        .number({
+            required_error: 'Value is required',
+            invalid_type_error: 'Value must be a number',
+        })
+        .int('Value must be a whole number')
+        .min(1, 'Value must be at least 1')
+        .max(100, 'Value cannot exceed 100'),
+    customMemory: z
+        .number({
+            required_error: 'Value is required',
+            invalid_type_error: 'Value must be a number',
+        })
+        .int('Value must be a whole number')
+        .min(1, 'Value must be at least 1')
+        .max(1000000, 'Value cannot exceed 1000000'),
+});
+
+export const specificationsStepSchema = specificationsStepBase
     .refine(
         (data) => {
             if (data.containerType !== customContainerType) {
@@ -193,6 +118,98 @@ export const deeployAppSchema = z
             path: ['customMemory'],
         },
     )
+    .transform((data) => {
+        // Transform the data to make customCpu and customMemory optional for non-custom types
+        const transformed = { ...data } as any;
+
+        if (data.containerType !== customContainerType) {
+            transformed.customCpu = undefined;
+            transformed.customMemory = undefined;
+        }
+
+        return transformed;
+    });
+
+// Step 4: Deployment Schema
+const deploymentStepBase = z.object({
+    appAlias: z
+        .string({
+            required_error: 'Value is required',
+        })
+        .min(3, 'Value must be at least 3 characters')
+        .max(36, 'Value cannot exceed 36 characters')
+        .regex(
+            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
+            'Only letters, numbers, spaces and special characters allowed',
+        ),
+    envVars: z.array(envVarSchema).max(10, 'Maximum 10 environment variables'),
+    containerImage: z
+        .string({
+            required_error: 'Value is required',
+        })
+        .min(3, 'Value must be at least 3 characters')
+        .max(256, 'Value cannot exceed 256 characters'),
+    containerRegistry: z
+        .string({
+            required_error: 'Value is required',
+        })
+        .min(3, 'Value must be at least 3 characters')
+        .max(128, 'Value cannot exceed 128 characters')
+        .regex(/^[^/]+\.[^/]+$/, 'Must be a valid domain format'),
+    crUsername: z
+        .string({
+            required_error: 'Value is required',
+        })
+        .min(3, 'Value must be at least 3 characters')
+        .max(128, 'Value cannot exceed 128 characters')
+        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed'),
+    crPassword: z
+        .string({
+            required_error: 'Value is required',
+        })
+        .min(3, 'Value must be at least 3 characters')
+        .max(64, 'Value cannot exceed 64 characters')
+        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed'),
+    port: z
+        .number({
+            required_error: 'Value is required',
+            invalid_type_error: 'Value must be a number',
+        })
+        .int('Value must be a whole number')
+        .min(1, 'Value must be at least 1')
+        .max(65535, 'Value cannot exceed 65535'),
+    enableNgrok: z.enum(BOOLEAN_TYPES, {
+        required_error: 'Value is required',
+    }),
+    ngrokEdgeLabel: z
+        .string({
+            required_error: 'Value is required',
+        })
+        .min(3, 'Value must be at least 3 characters')
+        .max(64, 'Value cannot exceed 64 characters')
+        .regex(
+            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
+            'Only letters, numbers, spaces and special characters allowed',
+        ),
+    ngrokAuthToken: z
+        .string({
+            required_error: 'Value is required',
+        })
+        .min(3, 'Value must be at least 3 characters')
+        .max(128, 'Value cannot exceed 128 characters')
+        .regex(
+            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
+            'Only letters, numbers, spaces and special characters allowed',
+        ),
+    restartPolicy: z.enum(POLICY_TYPES, {
+        required_error: 'Value is required',
+    }),
+    imagePullPolicy: z.enum(POLICY_TYPES, {
+        required_error: 'Value is required',
+    }),
+});
+
+export const deploymentStepSchema = deploymentStepBase
     .refine(
         (data) => {
             if (data.enableNgrok !== enabledBooleanType) {
@@ -218,13 +235,8 @@ export const deeployAppSchema = z
         },
     )
     .transform((data) => {
-        // Transform the data to make values optional when necessary
+        // Transform the data to make ngrok fields optional when ngrok is not enabled
         const transformed = { ...data } as any;
-
-        if (data.containerType !== customContainerType) {
-            transformed.customCpu = undefined;
-            transformed.customMemory = undefined;
-        }
 
         if (data.enableNgrok !== enabledBooleanType) {
             transformed.ngrokEdgeLabel = undefined;
@@ -233,3 +245,22 @@ export const deeployAppSchema = z
 
         return transformed;
     });
+
+// Combined schema for the entire form
+export const deeployAppSchema = z.object({
+    ...specificationsStepBase.shape,
+    ...deploymentStepBase.shape,
+});
+
+// Extract keys for programmatic use
+const specificationsKeys = Object.keys(specificationsStepBase.shape) as (keyof z.infer<typeof specificationsStepBase>)[];
+const deploymentKeys = Object.keys(deploymentStepBase.shape) as (keyof z.infer<typeof deploymentStepBase>)[];
+
+// Filtered keys excluding conditional fields
+export const specificationsBaseKeys = specificationsKeys.filter(
+    (key) => !['customCpu', 'customMemory'].includes(key),
+) as (keyof z.infer<typeof specificationsStepBase>)[];
+
+export const deploymentBaseKeys = deploymentKeys.filter(
+    (key) => !['ngrokEdgeLabel', 'ngrokAuthToken'].includes(key),
+) as (keyof z.infer<typeof deploymentStepBase>)[];
