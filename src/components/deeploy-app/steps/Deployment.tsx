@@ -1,7 +1,6 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/deeploy-app/InputWithLabel';
-import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
 import NumberInput from '@shared/NumberInput';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
@@ -18,21 +17,21 @@ function Deployment() {
                 </div>
             </SlateCard>
 
-            <SlateCard title="Target Nodes">
+            {/* <SlateCard title="Target Nodes">
                 <TargetNodesSection />
-            </SlateCard>
+            </SlateCard> */}
 
             <SlateCard title="Container">
                 <div className="col gap-4">
-                    {/* <div className="flex gap-4">
-                        <InputWithLabel label="Image" placeholder="repo/image:tag" />
-                        <InputWithLabel label="Server (Container Registry)" placeholder="docker.io" />
-                    </div> */}
+                    <div className="flex gap-4">
+                        <InputWithLabel name="containerImage" label="Image" placeholder="repo/image:tag" />
+                        <InputWithLabel name="containerRegistry" label="Server (Container Registry)" placeholder="docker.io" />
+                    </div>
 
-                    {/* <div className="flex gap-4">
-                        <InputWithLabel label="Username" placeholder="" />
-                        <InputWithLabel type="password" label="Password" placeholder="" />
-                    </div> */}
+                    <div className="flex gap-4">
+                        <InputWithLabel name="crUsername" label="Username" placeholder="" />
+                        <InputWithLabel name="crPassword" type="password" label="Password" placeholder="" />
+                    </div>
                 </div>
             </SlateCard>
 
@@ -58,14 +57,14 @@ function Deployment() {
 
             <SlateCard title="Dynamic ENV Variables">
                 <DynamicEnvSection />
-            </SlateCard>
+            </SlateCard> */}
 
             <SlateCard title="Policies">
                 <div className="flex gap-4">
-                    <SelectWithLabel label="Restart Policy" options={['Always', 'Manual']} />
-                    <SelectWithLabel label="Image Pull Policy" options={['Always', 'Manual']} />
+                    <SelectWithLabel name="restartPolicy" label="Restart Policy" options={['Always', 'Manual']} />
+                    <SelectWithLabel name="imagePullPolicy" label="Image Pull Policy" options={['Always', 'Manual']} />
                 </div>
-            </SlateCard> */}
+            </SlateCard>
         </div>
     );
 }

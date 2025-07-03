@@ -1,6 +1,7 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CONTAINER_TYPES } from '@data/containerTypes';
+import { POLICY_TYPES } from '@data/policyTypes';
 import { z } from 'zod';
 
 export const customContainerType = CONTAINER_TYPES[CONTAINER_TYPES.length - 1];
@@ -8,7 +9,7 @@ export const enabledBooleanType = BOOLEAN_TYPES[0];
 
 export const deeployAppSchema = z
     .object({
-        // Step 1: Specifications
+        // Step: Specifications
         applicationType: z.enum(APPLICATION_TYPES, {
             required_error: 'Application type is required',
         }),
@@ -55,7 +56,7 @@ export const deeployAppSchema = z
             .int('Value must be a whole number')
             .min(1, 'Value must be at least 1')
             .max(1000000, 'Value cannot exceed 1000000'),
-        // Step 3: Deployment
+        // Step: Deployment
         appAlias: z
             .string({
                 required_error: 'Value is required',
@@ -66,6 +67,33 @@ export const deeployAppSchema = z
                 /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
                 'Only letters, numbers, spaces and special characters allowed',
             ),
+        containerImage: z
+            .string({
+                required_error: 'Value is required',
+            })
+            .min(3, 'Value must be at least 3 characters')
+            .max(256, 'Value cannot exceed 256 characters'),
+        containerRegistry: z
+            .string({
+                required_error: 'Value is required',
+            })
+            .min(3, 'Value must be at least 3 characters')
+            .max(128, 'Value cannot exceed 128 characters')
+            .regex(/^[^/]+\.[^/]+$/, 'Must be a valid domain format'),
+        crUsername: z
+            .string({
+                required_error: 'Value is required',
+            })
+            .min(3, 'Value must be at least 3 characters')
+            .max(128, 'Value cannot exceed 128 characters')
+            .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed'),
+        crPassword: z
+            .string({
+                required_error: 'Value is required',
+            })
+            .min(3, 'Value must be at least 3 characters')
+            .max(64, 'Value cannot exceed 64 characters')
+            .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed'),
         port: z
             .number({
                 required_error: 'Value is required',
@@ -97,6 +125,12 @@ export const deeployAppSchema = z
                 /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
                 'Only letters, numbers, spaces and special characters allowed',
             ),
+        restartPolicy: z.enum(POLICY_TYPES, {
+            required_error: 'Value is required',
+        }),
+        imagePullPolicy: z.enum(POLICY_TYPES, {
+            required_error: 'Value is required',
+        }),
     })
     .refine(
         (data) => {
