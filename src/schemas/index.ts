@@ -4,6 +4,7 @@ import { genericAppDeploymentSchemaWithRefinements } from './steps/deployment';
 import specificationsSchema from './steps/specifications';
 
 const deeployAppBaseSchema = z.object({
+    formType: z.enum([FormType.Generic, FormType.Native, FormType.Service]),
     specifications: specificationsSchema,
 });
 
