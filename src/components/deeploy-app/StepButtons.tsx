@@ -13,7 +13,7 @@ function StepButtons({ steps }: Props) {
     const { trigger, getValues } = useFormContext();
 
     const getSpecificationsRequiredKeys = (values: FieldValues) => [
-        ...specificationsBaseKeys,
+        ...specificationsBaseKeys.map((key) => `specifications.${key}`),
         ...(values.specifications?.containerType === customContainerTypeValue
             ? ['specifications.customCpu', 'specifications.customMemory']
             : []),
@@ -81,7 +81,7 @@ function StepButtons({ steps }: Props) {
                     onPress={handleNextStep}
                     isDisabled={step === 3 && !isPaymentConfirmed}
                 >
-                    <div>{step < steps.length ? `Next step: ${steps[step]}` : 'Deploy'}</div>
+                    <div>{`Next step: ${steps[step]}`}</div>
                 </Button>
             ) : (
                 <Button type="submit" color="primary" variant="solid">
