@@ -17,7 +17,7 @@ const getStepInputs = (step: number, values: FieldValues) => {
 };
 
 function StepButtons({ steps }: Props) {
-    const { step, setStep, setAppType, isPaymentConfirmed } = useDeploymentContext() as DeploymentContextType;
+    const { step, setStep, setFormType, isPaymentConfirmed } = useDeploymentContext() as DeploymentContextType;
     const { trigger, getValues } = useFormContext();
 
     const isStepValid: () => Promise<boolean> = async () => {
@@ -50,7 +50,7 @@ function StepButtons({ steps }: Props) {
                         if (step > 2) {
                             setStep(step - 1);
                         } else {
-                            setAppType(undefined);
+                            setFormType(undefined);
                         }
                     }}
                 >

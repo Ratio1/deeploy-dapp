@@ -4,6 +4,7 @@ import { CONTAINER_TYPES } from '@data/containerTypes';
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { z } from 'zod';
+import { FormType } from './deployment';
 
 export const customContainerType = CONTAINER_TYPES[CONTAINER_TYPES.length - 1];
 export const enabledBooleanType = BOOLEAN_TYPES[0];
@@ -283,6 +284,7 @@ export const deploymentStepSchema = deploymentStepBase
 
 // Combined schema for the entire form
 export const deeployAppSchema = z.object({
+    formType: z.enum([FormType.Generic, FormType.Native, FormType.Service]),
     ...specificationsStepBase.shape,
     ...deploymentStepBase.shape,
 });

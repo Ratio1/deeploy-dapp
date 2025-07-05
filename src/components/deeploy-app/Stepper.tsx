@@ -1,5 +1,5 @@
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { AppType } from '@typedefs/deployment';
+import { FormType } from '@typedefs/deployment';
 import { RiArrowLeftLine } from 'react-icons/ri';
 
 interface Props {
@@ -7,13 +7,13 @@ interface Props {
 }
 
 function Stepper({ steps }: Props) {
-    const { appType, setAppType, step, setStep } = useDeploymentContext() as DeploymentContextType;
+    const { formType, setFormType, step, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
         <div className="col w-full gap-8">
             <div className="col gap-4">
                 <div className="big-title text-center">
-                    Deeploy a {appType} {appType === AppType.Service ? '' : 'App'}
+                    Deeploy a {formType} {formType === FormType.Service ? '' : 'App'}
                 </div>
 
                 <div className="col gap-2.5">
@@ -31,14 +31,14 @@ function Stepper({ steps }: Props) {
                                 if (step > 2) {
                                     setStep(step - 1);
                                 } else {
-                                    setAppType(undefined);
+                                    setFormType(undefined);
                                 }
                             }}
                         />
 
                         <div
                             className="cursor-pointer text-sm font-medium text-slate-500 hover:opacity-50"
-                            onClick={() => setAppType(undefined)}
+                            onClick={() => setFormType(undefined)}
                         >
                             Cancel
                         </div>

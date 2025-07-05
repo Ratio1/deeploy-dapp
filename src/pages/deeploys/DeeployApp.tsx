@@ -1,5 +1,5 @@
 import DeeployWrapper from '@components/deeploy-app/DeeployWrapper';
-import AppTypeSelect from '@components/deeploy-app/steps/AppTypeSelect';
+import FormTypeSelect from '@components/deeploy-app/steps/FormTypeSelect';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CONTAINER_TYPES } from '@data/containerTypes';
@@ -12,7 +12,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 function DeeployApp() {
-    const { appType } = useDeploymentContext() as DeploymentContextType;
+    const { formType } = useDeploymentContext() as DeploymentContextType;
 
     const form = useForm<z.infer<typeof deeployAppSchema>>({
         resolver: zodResolver(deeployAppSchema),
@@ -43,7 +43,7 @@ function DeeployApp() {
     return (
         <FormProvider {...form}>
             <div className="w-full flex-1">
-                <div className="mx-auto max-w-[626px]">{!appType ? <AppTypeSelect /> : <DeeployWrapper />}</div>
+                <div className="mx-auto max-w-[626px]">{!formType ? <FormTypeSelect /> : <DeeployWrapper />}</div>
             </div>
         </FormProvider>
     );
