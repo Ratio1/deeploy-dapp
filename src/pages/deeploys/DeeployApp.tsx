@@ -42,8 +42,8 @@ function DeeployApp() {
         },
     });
 
-    const onSubmit = (data) => {
-        console.log('[DeeployApp]', data);
+    const onSubmit = (data: z.infer<typeof deeployAppSchema>) => {
+        console.log('[DeeployApp] onSubmit', data);
     };
 
     return (

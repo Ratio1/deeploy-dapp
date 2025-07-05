@@ -1,7 +1,6 @@
 import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { customContainerTypeValue, enabledBooleanTypeValue } from '@schemas/common';
-import { deploymentBaseKeys } from '@schemas/steps/deployment';
+import { customContainerTypeValue } from '@schemas/common';
 import { specificationsBaseKeys } from '@schemas/steps/specifications';
 import { FieldValues, useFormContext } from 'react-hook-form';
 
@@ -9,79 +8,38 @@ interface Props {
     steps: string[];
 }
 
-const getStepInputs = (step: number, values: FieldValues) => {
-    const stepInputs = {
-        2: [
-            ...specificationsBaseKeys,
-            ...(values.specifications?.containerType === customContainerTypeValue
-                ? ['specifications.customCpu', 'specifications.customMemory']
-                : []),
-        ],
-        4: [
-            ...deploymentBaseKeys,
-            ...(values.deployment?.enableNgrok === enabledBooleanTypeValue
-                ? ['deployment.ngrokEdgeLabel', 'deployment.ngrokAuthToken']
-                : []),
-        ],
-    };
-
-    return stepInputs[step];
-};
-
 function StepButtons({ steps }: Props) {
     const { step, setStep, setFormType, isPaymentConfirmed } = useDeploymentContext() as DeploymentContextType;
-    const { trigger, getValues, handleSubmit } = useFormContext();
+    const { trigger, getValues } = useFormContext();
 
-    const isStepValid: () => Promise<boolean> = async () => {
-        if (step === 3) {
-            return true;
-        }
+    const getSpecificationsRequiredKeys = (values: FieldValues) => [
+        ...specificationsBaseKeys,
+        ...(values.specifications?.containerType === customContainerTypeValue
+            ? ['specifications.customCpu', 'specifications.customMemory']
+            : []),
+    ];
 
+    const isSpecificationsStepValid: () => Promise<boolean> = async () => {
         const values = getValues();
-        const stepFields = getStepInputs(step, values);
-        const isFormValid = await trigger(stepFields);
+        const requiredKeys = getSpecificationsRequiredKeys(values);
+        const isStepValid = await trigger(requiredKeys);
 
-        if (isFormValid) {
-            console.log(`Valid values in Step ${step}`);
-        } else {
-            console.log(`Invalid values in Step ${step}`);
-        }
+        console.log(`Specifications step valid: ${isStepValid}`, values);
 
-        console.log(`Step ${step}`, values);
-
-        return isFormValid;
+        return isStepValid;
     };
 
     const handleNextStep = async () => {
-        const isValid = await isStepValid();
+        // Only the Specifications step requires validation
+        if (step === 2) {
+            const isValid = await isSpecificationsStepValid();
 
-        if (isValid) {
-            if (step < steps.length) {
-                setStep(step + 1);
-            } else {
-                console.log('Deploy');
+            if (!isValid) {
+                return;
             }
-        } else {
-            console.log('Cannot proceed to next step');
         }
-    };
 
-    const handleSubmitForm = async () => {
-        const isValid = await isStepValid();
-
-        if (isValid) {
-            // Trigger the form submission
-            handleSubmit(
-                (data) => {
-                    console.log('Form submitted successfully:', data);
-                },
-                (errors) => {
-                    console.log('Form submission failed:', errors);
-                },
-            )();
-        } else {
-            console.log('Cannot submit form - validation failed');
-        }
+        setStep(step + 1);
     };
 
     return (
@@ -115,15 +73,21 @@ function StepButtons({ steps }: Props) {
                 )}
             </div>
 
-            <Button
-                type="button"
-                color="primary"
-                variant="solid"
-                onPress={step < steps.length ? handleNextStep : handleSubmitForm}
-                isDisabled={step === 3 && !isPaymentConfirmed}
-            >
-                <div>{step < steps.length ? `Next step: ${steps[step]}` : 'Deploy'}</div>
-            </Button>
+            {step < steps.length ? (
+                <Button
+                    type="button"
+                    color="primary"
+                    variant="solid"
+                    onPress={handleNextStep}
+                    isDisabled={step === 3 && !isPaymentConfirmed}
+                >
+                    <div>{step < steps.length ? `Next step: ${steps[step]}` : 'Deploy'}</div>
+                </Button>
+            ) : (
+                <Button type="submit" color="primary" variant="solid">
+                    <div>Submit</div>
+                </Button>
+            )}
         </div>
     );
 }
