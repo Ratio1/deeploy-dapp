@@ -14,7 +14,7 @@ import { useAccount, useSignMessage } from 'wagmi';
 function Payment() {
     const { isPaymentConfirmed, setPaymentConfirmed } = useDeploymentContext() as DeploymentContextType;
     const { watch } = useFormContext();
-    const formValues = watch();
+    const specifications = watch('specifications');
 
     const { address, isConnected } = useAccount();
     const { signMessage, isPending: isSigning } = useSignMessage({
@@ -90,11 +90,11 @@ function Payment() {
     const summaryItems = [
         {
             label: 'Application Type',
-            value: formValues.applicationType,
+            value: specifications.applicationType,
         },
         {
             label: 'Target Nodes',
-            value: formValues.targetNodesCount ? formValues.targetNodesCount.toString() : 'N/A',
+            value: specifications.targetNodesCount ? specifications.targetNodesCount.toString() : 'N/A',
         },
         {
             label: 'GPU/CPU',
@@ -102,11 +102,11 @@ function Payment() {
         },
         {
             label: 'Container Type',
-            value: formValues.containerType.split(' ')[0],
+            value: specifications.containerType.split(' ')[0],
         },
         {
             label: 'Configuration',
-            value: formValues.containerType.split('(')[1]?.split(')')[0],
+            value: specifications.containerType.split('(')[1]?.split(')')[0],
         },
         {
             label: 'Expiration Date',

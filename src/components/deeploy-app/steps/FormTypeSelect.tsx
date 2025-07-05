@@ -82,7 +82,7 @@ function FormTypeSelect() {
                                     variant="flat"
                                     size="sm"
                                     onPress={() => {
-                                        // Step 1 is the selection of the app type
+                                        // Step 1 is the selection of the deployment type
                                         setStep(2); // TODO: change to 2
                                         setValue('formType', option.formType);
                                         setFormType(option.formType);
