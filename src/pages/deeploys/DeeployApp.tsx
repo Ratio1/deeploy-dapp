@@ -8,6 +8,7 @@ import { POLICY_TYPES } from '@data/policyTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { deeployAppSchema } from '@schemas/index';
+import { FormType } from '@typedefs/deployment';
 import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -44,6 +45,10 @@ function DeeployApp() {
 
     const onSubmit = (data: z.infer<typeof deeployAppSchema>) => {
         console.log('[DeeployApp] onSubmit', data);
+
+        if (data.formType === FormType.Generic) {
+            console.log('[DeeployApp] Generic app deployment', data);
+        }
     };
 
     return (

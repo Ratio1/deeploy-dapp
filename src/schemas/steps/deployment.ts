@@ -3,7 +3,7 @@ import { POLICY_TYPES } from '@data/policyTypes';
 import { dynamicEnvEntrySchema, enabledBooleanTypeValue, envVarEntrySchema, targetNodeEntrySchema } from '@schemas/common';
 import { z } from 'zod';
 
-const deploymentSchema = z.object({
+const baseDeploymentSchema = z.object({
     appAlias: z
         .string({
             required_error: 'Value is required',
@@ -15,6 +15,30 @@ const deploymentSchema = z.object({
             'Only letters, numbers, spaces and special characters allowed',
         ),
     targetNodes: z.array(targetNodeEntrySchema).max(10, 'You can define up to 10 target nodes'),
+    enableNgrok: z.enum(BOOLEAN_TYPES, {
+        required_error: 'Value is required',
+    }),
+    ngrokEdgeLabel: z
+        .string()
+        .min(3, 'Value must be at least 3 characters')
+        .max(64, 'Value cannot exceed 64 characters')
+        .regex(
+            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
+            'Only letters, numbers, spaces and special characters allowed',
+        )
+        .optional(),
+    ngrokAuthToken: z
+        .string()
+        .min(3, 'Value must be at least 3 characters')
+        .max(128, 'Value cannot exceed 128 characters')
+        .regex(
+            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
+            'Only letters, numbers, spaces and special characters allowed',
+        )
+        .optional(),
+});
+
+const genericAppDeploymentSchema = baseDeploymentSchema.extend({
     containerImage: z
         .string({
             required_error: 'Value is required',
@@ -50,27 +74,6 @@ const deploymentSchema = z.object({
         .int('Value must be a whole number')
         .min(1, 'Value must be at least 1')
         .max(65535, 'Value cannot exceed 65535'),
-    enableNgrok: z.enum(BOOLEAN_TYPES, {
-        required_error: 'Value is required',
-    }),
-    ngrokEdgeLabel: z
-        .string()
-        .min(3, 'Value must be at least 3 characters')
-        .max(64, 'Value cannot exceed 64 characters')
-        .regex(
-            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
-            'Only letters, numbers, spaces and special characters allowed',
-        )
-        .optional(),
-    ngrokAuthToken: z
-        .string()
-        .min(3, 'Value must be at least 3 characters')
-        .max(128, 'Value cannot exceed 128 characters')
-        .regex(
-            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
-            'Only letters, numbers, spaces and special characters allowed',
-        )
-        .optional(),
     envVars: z.array(envVarEntrySchema).max(10, 'Maximum 10 environment variables'),
     dynamicEnvVars: z.array(dynamicEnvEntrySchema).max(10, 'Maximum 10 dynamic environment variables'),
     restartPolicy: z.enum(POLICY_TYPES, {
@@ -81,7 +84,9 @@ const deploymentSchema = z.object({
     }),
 });
 
-const deploymentSchemaWithRefinements = deploymentSchema
+// TODO: Add NATIVE/SERVICE deployment schemas here
+
+export const genericAppDeploymentSchemaWithRefinements = genericAppDeploymentSchema
     .refine(
         (data) => {
             if (data.enableNgrok !== enabledBooleanTypeValue) {
@@ -106,13 +111,3 @@ const deploymentSchemaWithRefinements = deploymentSchema
             path: ['ngrokAuthToken'],
         },
     );
-
-// Extract keys for programmatic use
-const deploymentKeys = Object.keys(deploymentSchema.shape) as (keyof z.infer<typeof deploymentSchema>)[];
-
-// Filtered keys excluding conditional fields
-export const deploymentBaseKeys = deploymentKeys.filter(
-    (key) => !['ngrokEdgeLabel', 'ngrokAuthToken'].includes(key),
-) as (keyof z.infer<typeof deploymentSchema>)[];
-
-export default deploymentSchemaWithRefinements;
