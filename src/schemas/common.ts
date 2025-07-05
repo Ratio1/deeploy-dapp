@@ -53,17 +53,43 @@ export const dynamicEnvPairSchema = z.object({
     type: z.enum(DYNAMIC_ENV_TYPES),
     value: z
         .string()
-        .min(1, 'Value is required')
         .max(128, 'Value cannot exceed 128 characters')
-        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed'),
+        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
+        .optional(),
 });
 
 // The key + the 3 key-value pairs
-export const dynamicEnvEntrySchema = z.object({
-    key: z
-        .string()
-        .min(1, 'Key is required')
-        .max(128, 'Value cannot exceed 128 characters')
-        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed'),
-    values: z.array(dynamicEnvPairSchema).length(3, 'Must have exactly 3 value pairs'),
-});
+export const dynamicEnvEntrySchema = z
+    .object({
+        key: z.string().optional(),
+        values: z.array(dynamicEnvPairSchema).length(3, 'Must have exactly 3 value pairs'),
+    })
+    .refine(
+        (data) => {
+            if (!data.key) {
+                return true; // Empty entry is valid (will be ignored)
+            }
+            return true; // Key present
+        },
+        {
+            message: 'Key is required',
+            path: ['key'],
+        },
+    )
+    .refine(
+        (data) => {
+            if (!data.key) {
+                return true; // Empty entry is valid (will be ignored)
+            }
+            // Check if all values are empty
+            const allValuesEmpty = data.values.every((pair) => !pair.value);
+            if (allValuesEmpty) {
+                return false; // If key is present, at least one value must be provided
+            }
+            return true;
+        },
+        {
+            message: 'At least one value is required when key is provided',
+            path: ['values'],
+        },
+    );

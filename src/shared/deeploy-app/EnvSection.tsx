@@ -9,7 +9,7 @@ export default function EnvSection() {
 
     const { fields, append, remove } = useFieldArray({
         control: control,
-        name: 'envVars',
+        name: 'deployment.envVars',
     });
 
     return (
@@ -24,7 +24,7 @@ export default function EnvSection() {
 
                             <div className="flex w-full gap-2">
                                 <Controller
-                                    name={`envVars.${index}.key`}
+                                    name={`deployment.envVars.${index}.key`}
                                     control={control}
                                     render={({ field, fieldState }) => {
                                         return (
@@ -44,7 +44,7 @@ export default function EnvSection() {
                                 />
 
                                 <Controller
-                                    name={`envVars.${index}.value`}
+                                    name={`deployment.envVars.${index}.value`}
                                     control={control}
                                     render={({ field, fieldState }) => {
                                         return (

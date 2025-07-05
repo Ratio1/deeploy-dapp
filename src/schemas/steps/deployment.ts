@@ -54,25 +54,23 @@ const deploymentSchema = z.object({
         required_error: 'Value is required',
     }),
     ngrokEdgeLabel: z
-        .string({
-            required_error: 'Value is required',
-        })
+        .string()
         .min(3, 'Value must be at least 3 characters')
         .max(64, 'Value cannot exceed 64 characters')
         .regex(
             /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
             'Only letters, numbers, spaces and special characters allowed',
-        ),
+        )
+        .optional(),
     ngrokAuthToken: z
-        .string({
-            required_error: 'Value is required',
-        })
+        .string()
         .min(3, 'Value must be at least 3 characters')
         .max(128, 'Value cannot exceed 128 characters')
         .regex(
             /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
             'Only letters, numbers, spaces and special characters allowed',
-        ),
+        )
+        .optional(),
     envVars: z.array(envVarEntrySchema).max(10, 'Maximum 10 environment variables'),
     dynamicEnvVars: z.array(dynamicEnvEntrySchema).max(10, 'Maximum 10 dynamic environment variables'),
     restartPolicy: z.enum(POLICY_TYPES, {
@@ -83,7 +81,7 @@ const deploymentSchema = z.object({
     }),
 });
 
-deploymentSchema
+const deploymentSchemaWithRefinements = deploymentSchema
     .refine(
         (data) => {
             if (data.enableNgrok !== enabledBooleanTypeValue) {
@@ -107,18 +105,7 @@ deploymentSchema
             message: 'Required when NGROK is enabled',
             path: ['ngrokAuthToken'],
         },
-    )
-    .transform((data) => {
-        // Transform the data to make ngrok fields optional when ngrok is not enabled
-        const transformed = { ...data } as any;
-
-        if (data.enableNgrok !== enabledBooleanTypeValue) {
-            transformed.ngrokEdgeLabel = undefined;
-            transformed.ngrokAuthToken = undefined;
-        }
-
-        return transformed;
-    });
+    );
 
 // Extract keys for programmatic use
 const deploymentKeys = Object.keys(deploymentSchema.shape) as (keyof z.infer<typeof deploymentSchema>)[];
@@ -128,4 +115,4 @@ export const deploymentBaseKeys = deploymentKeys.filter(
     (key) => !['ngrokEdgeLabel', 'ngrokAuthToken'].includes(key),
 ) as (keyof z.infer<typeof deploymentSchema>)[];
 
-export default deploymentSchema;
+export default deploymentSchemaWithRefinements;

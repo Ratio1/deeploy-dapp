@@ -115,21 +115,15 @@ function StepButtons({ steps }: Props) {
                 )}
             </div>
 
-            {step < steps.length ? (
-                <Button type="button" color="primary" variant="solid" onPress={handleNextStep}>
-                    <div>Next step: {steps[step]}</div>
-                </Button>
-            ) : (
-                <Button
-                    type="button"
-                    color="primary"
-                    variant="solid"
-                    onPress={handleSubmitForm}
-                    isDisabled={step === 3 && !isPaymentConfirmed}
-                >
-                    <div>Deploy</div>
-                </Button>
-            )}
+            <Button
+                type="button"
+                color="primary"
+                variant="solid"
+                onPress={step < steps.length ? handleNextStep : handleSubmitForm}
+                isDisabled={step === 3 && !isPaymentConfirmed}
+            >
+                <div>{step < steps.length ? `Next step: ${steps[step]}` : 'Deploy'}</div>
+            </Button>
         </div>
     );
 }

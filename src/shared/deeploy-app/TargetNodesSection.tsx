@@ -8,7 +8,7 @@ export default function TargetNodesSection() {
     const { control } = useFormContext();
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'targetNodes',
+        name: 'deployment.targetNodes',
     });
 
     return (
@@ -22,7 +22,7 @@ export default function TargetNodesSection() {
                             <VariableSectionIndex index={index} />
 
                             <Controller
-                                name={`targetNodes.${index}.address`}
+                                name={`deployment.targetNodes.${index}.address`}
                                 control={control}
                                 render={({ field, fieldState }) => (
                                     <StyledInput

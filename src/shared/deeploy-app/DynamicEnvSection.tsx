@@ -11,7 +11,7 @@ export default function DynamicEnvSection() {
 
     const { fields, append, remove } = useFieldArray({
         control: control,
-        name: 'dynamicEnvVars',
+        name: 'deployment.dynamicEnvVars',
     });
 
     return (
@@ -26,7 +26,7 @@ export default function DynamicEnvSection() {
                                 <VariableSectionIndex index={index} />
 
                                 <Controller
-                                    name={`dynamicEnvVars.${index}.key`}
+                                    name={`deployment.dynamicEnvVars.${index}.key`}
                                     control={control}
                                     render={({ field, fieldState }) => {
                                         return (
@@ -53,7 +53,7 @@ export default function DynamicEnvSection() {
                                     <div className="flex w-full items-start gap-2 pl-7">
                                         <div className="w-1/3">
                                             <Controller
-                                                name={`dynamicEnvVars.${index}.values.${k}.type`}
+                                                name={`deployment.dynamicEnvVars.${index}.values.${k}.type`}
                                                 control={control}
                                                 render={({ field, fieldState }) => (
                                                     <StyledSelect
@@ -75,7 +75,7 @@ export default function DynamicEnvSection() {
 
                                         <div className="w-2/3">
                                             <Controller
-                                                name={`dynamicEnvVars.${index}.values.${k}.value`}
+                                                name={`deployment.dynamicEnvVars.${index}.values.${k}.value`}
                                                 control={control}
                                                 render={({ field, fieldState }) => {
                                                     return (

@@ -42,7 +42,9 @@ function DeeployApp() {
         },
     });
 
-    const onSubmit = (data) => console.log(data);
+    const onSubmit = (data) => {
+        console.log('[DeeployApp]', data);
+    };
 
     return (
         <FormProvider {...form}>

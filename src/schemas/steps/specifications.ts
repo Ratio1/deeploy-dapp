@@ -42,23 +42,23 @@ const specificationsSchema = z.object({
         .max(1000, 'Value cannot exceed 1000'),
     customCpu: z
         .number({
-            required_error: 'Value is required',
             invalid_type_error: 'Value must be a number',
         })
         .int('Value must be a whole number')
         .min(1, 'Value must be at least 1')
-        .max(100, 'Value cannot exceed 100'),
+        .max(100, 'Value cannot exceed 100')
+        .optional(),
     customMemory: z
         .number({
-            required_error: 'Value is required',
             invalid_type_error: 'Value must be a number',
         })
         .int('Value must be a whole number')
         .min(1, 'Value must be at least 1')
-        .max(1000000, 'Value cannot exceed 1000000'),
+        .max(1000000, 'Value cannot exceed 1000000')
+        .optional(),
 });
 
-specificationsSchema
+const specificationsSchemaWithRefinements = specificationsSchema
     .refine(
         (data) => {
             if (data.containerType !== customContainerTypeValue) {
@@ -82,18 +82,7 @@ specificationsSchema
             message: 'Required when using a custom container',
             path: ['customMemory'],
         },
-    )
-    .transform((data) => {
-        // Transform the data to make customCpu and customMemory optional for non-custom container types
-        const transformed = { ...data } as any;
-
-        if (data.containerType !== customContainerTypeValue) {
-            transformed.customCpu = undefined;
-            transformed.customMemory = undefined;
-        }
-
-        return transformed;
-    });
+    );
 
 // Extract keys for programmatic use
 const specificationsKeys = Object.keys(specificationsSchema.shape) as (keyof z.infer<typeof specificationsSchema>)[];
@@ -103,4 +92,4 @@ export const specificationsBaseKeys = specificationsKeys.filter(
     (key) => !['customCpu', 'customMemory'].includes(key),
 ) as (keyof z.infer<typeof specificationsSchema>)[];
 
-export default specificationsSchema;
+export default specificationsSchemaWithRefinements;
