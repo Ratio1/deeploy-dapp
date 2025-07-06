@@ -64,7 +64,7 @@ const specificationsSchemaWithRefinements = specificationsSchema
             if (data.containerType !== customContainerTypeValue) {
                 return true; // Allow undefined for non-custom container types
             }
-            return data.customCpu !== undefined && data.customMemory !== undefined;
+            return data.customCpu !== undefined;
         },
         {
             message: 'Required when using a custom container',
@@ -76,7 +76,7 @@ const specificationsSchemaWithRefinements = specificationsSchema
             if (data.containerType !== customContainerTypeValue) {
                 return true; // Allow undefined for non-custom container types
             }
-            return data.customCpu !== undefined && data.customMemory !== undefined;
+            return data.customMemory !== undefined;
         },
         {
             message: 'Required when using a custom container',

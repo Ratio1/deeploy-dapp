@@ -1,5 +1,5 @@
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import StepButtons from './StepButtons';
+import StepButtonsOld from './StepButtonsOld';
 import Stepper from './Stepper';
 import Deployment from './steps/Deployment';
 import Payment from './steps/Payment';
@@ -18,7 +18,8 @@ function DeeployWrapper() {
             {step === 3 && <Payment />}
             {step === 4 && <Deployment />}
 
-            <StepButtons steps={STEPS} />
+            <StepButtonsOld steps={STEPS} />
+            {/* <StepButtons steps={STEPS} />` */}
         </div>
     );
 }

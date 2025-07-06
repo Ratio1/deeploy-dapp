@@ -92,7 +92,7 @@ export const genericAppDeploymentSchemaWithRefinements = genericAppDeploymentSch
             if (data.enableNgrok !== enabledBooleanTypeValue) {
                 return true; // Allow undefined when ngrok is not enabled
             }
-            return data.ngrokEdgeLabel !== undefined && data.ngrokAuthToken !== undefined;
+            return data.ngrokEdgeLabel !== undefined;
         },
         {
             message: 'Required when NGROK is enabled',
@@ -104,7 +104,7 @@ export const genericAppDeploymentSchemaWithRefinements = genericAppDeploymentSch
             if (data.enableNgrok !== enabledBooleanTypeValue) {
                 return true; // Allow undefined when ngrok is not enabled
             }
-            return data.ngrokEdgeLabel !== undefined && data.ngrokAuthToken !== undefined;
+            return data.ngrokAuthToken !== undefined;
         },
         {
             message: 'Required when NGROK is enabled',

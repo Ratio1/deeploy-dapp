@@ -17,7 +17,7 @@ function DeeployApp() {
 
     const form = useForm<z.infer<typeof deeployAppSchema>>({
         resolver: zodResolver(deeployAppSchema),
-        mode: 'onBlur',
+        mode: 'onTouched',
         defaultValues: {
             specifications: {
                 applicationType: APPLICATION_TYPES[0],
