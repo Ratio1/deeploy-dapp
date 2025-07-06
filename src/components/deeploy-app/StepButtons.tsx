@@ -3,6 +3,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { customContainerTypeValue } from '@schemas/common';
 import { specificationsBaseKeys } from '@schemas/steps/specifications';
 import { FieldValues, useFormContext } from 'react-hook-form';
+import SubmitButton from './SubmitButton';
 
 interface Props {
     steps: string[];
@@ -84,9 +85,7 @@ function StepButtons({ steps }: Props) {
                     <div>{`Next step: ${steps[step]}`}</div>
                 </Button>
             ) : (
-                <Button type="submit" color="primary" variant="solid">
-                    <div>Submit</div>
-                </Button>
+                <SubmitButton />
             )}
         </div>
     );
