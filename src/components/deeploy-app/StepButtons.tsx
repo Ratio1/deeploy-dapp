@@ -80,7 +80,8 @@ function StepButtons({ steps }: Props) {
                     color="primary"
                     variant="solid"
                     onPress={handleNextStep}
-                    isDisabled={process.env.NODE_ENV === 'production' ? step === 3 && !isPaymentConfirmed : false}
+                    isDisabled={step === 3 && !isPaymentConfirmed}
+                    // isDisabled={process.env.NODE_ENV === 'production' ? step === 3 && !isPaymentConfirmed : false}
                 >
                     <div>{`Next step: ${steps[step]}`}</div>
                 </Button>
