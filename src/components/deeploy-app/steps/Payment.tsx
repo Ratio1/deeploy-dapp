@@ -1,0 +1,169 @@
+import { Button } from '@heroui/button';
+import { config } from '@lib/config';
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { SlateCard } from '@shared/cards/SlateCard';
+import { ConnectWalletWrapper } from '@shared/ConnectWalletWrapper';
+import { addYears } from 'date-fns';
+import { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import { RiCheckLine, RiExternalLinkLine } from 'react-icons/ri';
+import { Link } from 'react-router-dom';
+import { useAccount, useSignMessage } from 'wagmi';
+
+function Payment() {
+    const { isPaymentConfirmed, setPaymentConfirmed } = useDeploymentContext() as DeploymentContextType;
+    const { watch } = useFormContext();
+    const formValues = watch();
+
+    const { address, isConnected } = useAccount();
+    const { signMessage, isPending: isSigning } = useSignMessage({
+        mutation: {
+            onSuccess: (_data) => {
+                toast.promise(
+                    new Promise((resolve) => {
+                        setTimeout(() => {
+                            setLoading(false);
+                            setPaymentConfirmed(true);
+                            resolve({ transactionHash: '0x' });
+                        }, 1000);
+                    }),
+                    {
+                        loading: 'Transaction loading...',
+                        success: (receipt) => (
+                            <div className="col">
+                                <div className="font-medium">Transaction confirmed</div>
+                                <div className="row gap-1 text-sm">
+                                    <div className="text-slate-500">View transaction details</div>
+                                    <Link to={`${config.explorerUrl}`} target="_blank" className="text-primary">
+                                        <RiExternalLinkLine className="text-lg" />
+                                    </Link>
+                                </div>
+                            </div>
+                        ),
+                        error: () => {
+                            return (
+                                <div className="col">
+                                    <div className="font-medium text-red-600">Transaction failed</div>
+                                    <div className="row gap-1 text-sm">
+                                        <div className="text-slate-500">View transaction details</div>
+                                        <Link to={`${config.explorerUrl}`} target="_blank" className="text-primary">
+                                            <RiExternalLinkLine className="text-lg" />
+                                        </Link>
+                                    </div>
+                                </div>
+                            );
+                        },
+                    },
+                    {
+                        success: {
+                            duration: 6000,
+                        },
+                        position: 'bottom-right',
+                    },
+                );
+            },
+            onError: (error) => {
+                console.error(error);
+                toast.error('Failed to confirm transaction.');
+                setLoading(false);
+            },
+        },
+    });
+
+    const [isLoading, setLoading] = useState(false);
+
+    const handleConfirmTransaction = async () => {
+        if (!isConnected || !address) {
+            toast.error('Please connect your wallet first');
+            return;
+        }
+
+        setLoading(true);
+
+        const message = `Confirm Deeploy payment transaction for ${address}. Amount: 1250 $USDC. Timestamp: ${Date.now()}.`;
+
+        signMessage({ message });
+    };
+
+    // Calculate summary items from form values
+    const summaryItems = [
+        {
+            label: 'Application Type',
+            value: formValues.applicationType,
+        },
+        {
+            label: 'Target Nodes',
+            value: formValues.targetNodesCount ? formValues.targetNodesCount.toString() : 'N/A',
+        },
+        {
+            label: 'GPU/CPU',
+            value: 'CPU',
+        },
+        {
+            label: 'Container Type',
+            value: formValues.containerType.split(' ')[0],
+        },
+        {
+            label: 'Configuration',
+            value: formValues.containerType.split('(')[1]?.split(')')[0],
+        },
+        {
+            label: 'Expiration Date',
+            value: addYears(new Date(), 2).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            }),
+        },
+    ];
+
+    return (
+        <div className="col gap-2">
+            <div className="grid h-full w-full grid-cols-3 gap-2">
+                {summaryItems.map((item) => (
+                    <SlateCard key={item.label}>
+                        <div className="col justify-center gap-1 py-2 text-center">
+                            <div className="text-lg font-semibold">{item.value}</div>
+                            <div className="text-sm font-medium text-slate-500">{item.label}</div>
+                        </div>
+                    </SlateCard>
+                ))}
+            </div>
+
+            <SlateCard>
+                <div className="row justify-between gap-8 p-2">
+                    <div className="text-[20px] font-semibold text-primary">
+                        <span className="text-slate-400">$USDC</span> 1250
+                    </div>
+
+                    {!isPaymentConfirmed ? (
+                        <ConnectWalletWrapper classNames="h-9 px-3.5 rounded-lg">
+                            <Button
+                                className="h-9 px-3.5"
+                                color="primary"
+                                variant="solid"
+                                size="sm"
+                                onPress={handleConfirmTransaction}
+                                isLoading={isLoading || isSigning}
+                            >
+                                <div className="text-sm">
+                                    {isLoading || isSigning ? 'Confirm in wallet' : 'Confirm Transaction'}
+                                </div>
+                            </Button>
+                        </ConnectWalletWrapper>
+                    ) : (
+                        <div className="row h-9 rounded-lg bg-[#c8fcda] px-3.5">
+                            <div className="row gap-1 text-green-600">
+                                <RiCheckLine className="text-xl" />
+                                <div className="text-sm font-medium">Payment Confirmed</div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </SlateCard>
+        </div>
+    );
+}
+
+export default Payment;

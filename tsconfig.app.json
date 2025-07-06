@@ -9,6 +9,7 @@
             "@services/*": ["services/*"],
             "@assets/*": ["assets/*"],
             "@shared/*": ["shared/*"],
+            "@data/*": ["data/*"],
             "@blockchain/*": ["blockchain/*"],
             "@typedefs/*": ["typedefs/*"]
         },

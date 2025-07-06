@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 body {
-    @apply h-screen w-screen overflow-x-hidden font-mona text-body;
+    @apply h-screen w-screen font-mona text-body;
 }
 
 /* Utilities */
@@ -47,6 +47,10 @@ body {
 
 .active {
     @apply text-primary;
+}
+
+.big-title {
+    @apply text-lg font-semibold lg:text-[22px];
 }
 
 .list {

@@ -1,5 +1,3 @@
-import { Button } from '@heroui/button';
-import { useDisclosure } from '@heroui/modal';
 import { Select, SelectItem } from '@heroui/select';
 import { SharedSelection } from '@heroui/system';
 import { CardWithHeader } from '@shared/cards/CardWithHeader';
@@ -7,8 +5,7 @@ import ListHeader from '@shared/ListHeader';
 import { Invoice } from '@typedefs/general';
 import _ from 'lodash';
 import { useState } from 'react';
-import { RiCalendarEventLine, RiEdit2Line, RiInfoCardLine } from 'react-icons/ri';
-import { BillingInfoModal } from './BillingInfoModal';
+import { RiCalendarEventLine, RiInfoCardLine } from 'react-icons/ri';
 import InvoiceCard from './InvoiceCard';
 
 const invoices: Invoice[] = [
@@ -54,13 +51,6 @@ function Billing() {
         city: 'Dublin',
     });
 
-    const {
-        isOpen: isBillingInfoModalOpen,
-        onOpen: onBillingInfoModalOpen,
-        onClose: onCloseBillingInfoModal,
-        onOpenChange: onBillingInfoModalOpenChange,
-    } = useDisclosure();
-
     const uniqueMonths: string[] = _(invoices)
         .orderBy('date', 'desc')
         .map((i) => i.date.slice(0, 7))
@@ -72,25 +62,8 @@ function Billing() {
     return (
         <>
             <div className="col w-full flex-1 gap-5">
-                <CardWithHeader
-                    icon={<RiInfoCardLine />}
-                    title="Billing Information"
-                    label={
-                        <Button
-                            className="h-[34px] bg-slate-100"
-                            variant="faded"
-                            color="primary"
-                            size="sm"
-                            onPress={onBillingInfoModalOpen}
-                        >
-                            <div className="row gap-1.5">
-                                <RiEdit2Line className="text-base" />
-                                <div className="text-sm">Update</div>
-                            </div>
-                        </Button>
-                    }
-                >
-                    <div className="grid h-full w-full grid-cols-[15%_85%] gap-2.5">
+                <CardWithHeader icon={<RiInfoCardLine />} title="Billing Information">
+                    <div className="grid h-full w-full grid-cols-2 gap-3">
                         <BillingInfoRow label="Company name" value={billingInfo.companyName} />
                         <BillingInfoRow label="Billing email" value={billingInfo.billingEmail} />
                         <BillingInfoRow label="VAT number" value={billingInfo.vatNumber} />
@@ -110,7 +83,7 @@ function Billing() {
                                 <Select
                                     className="max-w-48"
                                     classNames={{
-                                        trigger: 'min-h-10 bg-slate-200 data-[hover=true]:bg-[#e0e3f0] rounded-lg',
+                                        trigger: 'min-h-10 bg-slate-200 data-[hover=true]:bg-[#e0e3f0] rounded-lg shadow-none',
                                         label: 'group-data-[filled=true]:-translate-y-5',
                                         value: 'font-medium !text-slate-600',
                                         selectorIcon: 'mt-0.5 mr-0.5',
@@ -164,7 +137,6 @@ function Billing() {
 
                     {invoices
                         .filter((i) => selectedMonth.has(i.date.slice(0, 7)))
-                        // .filter((i) => selectedMonth.has(new Date(i.date).toLocaleString('en-US', { month: 'long' })))
                         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                         .map((invoice) => (
                             <div key={invoice.id}>
@@ -173,19 +145,6 @@ function Billing() {
                         ))}
                 </div>
             </div>
-
-            {!!billingInfo && (
-                <BillingInfoModal
-                    billingInfo={billingInfo}
-                    isOpen={isBillingInfoModalOpen}
-                    onOpenChange={onBillingInfoModalOpenChange}
-                    onClose={onCloseBillingInfoModal}
-                    onSave={() => {
-                        console.log('save');
-                        onCloseBillingInfoModal();
-                    }}
-                />
-            )}
         </>
     );
 }
@@ -194,9 +153,9 @@ export default Billing;
 
 function BillingInfoRow({ label, value }: { label: string; value: string }) {
     return (
-        <>
-            <div className="text-sm text-slate-600">{label}</div>
+        <div className="col gap-0.5">
+            <div className="text-sm text-slate-500">{label}</div>
             <div className="text-sm font-medium">{value}</div>
-        </>
+        </div>
     );
 }

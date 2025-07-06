@@ -1,9 +1,11 @@
 import ApplicationCard from '@components/deeploys/ApplicationCard';
+import { routePath } from '@lib/routes/route-paths';
 import CustomTabs from '@shared/CustomTabs';
 import ListHeader from '@shared/ListHeader';
 import { DeeployApp } from '@typedefs/general';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { RiBox3Line, RiFileTextLine } from 'react-icons/ri';
+import { useNavigate } from 'react-router-dom';
 
 const running: DeeployApp[] = [
     {
@@ -53,6 +55,16 @@ const drafts: DeeployApp[] = [
 
 function Dashboard() {
     const [selectedTab, setSelectedTab] = useState<'running' | 'drafts'>('running');
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get('tab');
+
+        if (tab && (tab === 'running' || tab === 'drafts')) {
+            setSelectedTab(tab);
+        }
+    }, [window.location.search]);
 
     return (
         <div className="col w-full flex-1 gap-5">
@@ -72,7 +84,7 @@ function Dashboard() {
                     },
                 ]}
                 onSelectionChange={(key) => {
-                    setSelectedTab(key);
+                    navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=${key}`);
                 }}
             />
 

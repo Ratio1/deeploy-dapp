@@ -8,7 +8,7 @@ function Layout() {
                 <Sider />
             </div>
 
-            <div className="relative mb-[76px] min-h-dvh w-full py-6 layoutBreak:mb-0 layoutBreak:ml-[270px] layoutBreak:py-10 lg:py-12">
+            <div className="layoutBreak:ml-sider-with-padding relative mb-[76px] min-h-dvh w-full py-6 layoutBreak:mb-0 layoutBreak:py-10 lg:py-12">
                 <Content />
             </div>
 

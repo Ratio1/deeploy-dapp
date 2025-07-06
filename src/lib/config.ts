@@ -11,6 +11,7 @@ type Config = {
     mndContractAddress: EthAddress;
     controllerContractAddress: EthAddress;
     safeAddress: EthAddress;
+    usdcContractAddress: EthAddress;
     explorerUrl: string;
     genesisDate: Date;
     epochDurationInSeconds: number;
@@ -33,6 +34,7 @@ const configs: {
         mndContractAddress: '0x0C431e546371C87354714Fcc1a13365391A549E2',
         controllerContractAddress: '0x90dA5FdaA92edDC80FB73114fb7FE7D97f2be017',
         safeAddress: '0x2265539ae09c7A605A707E11a6ED4aF1d018750e',
+        usdcContractAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
         explorerUrl: 'https://basescan.org',
         genesisDate: new Date('2025-05-23T16:00:00.000Z'),
         epochDurationInSeconds: 86400, // 24 hours
@@ -51,6 +53,7 @@ const configs: {
         mndContractAddress: '0xa8d7FFCE91a888872A9f5431B4Dd6c0c135055c1',
         controllerContractAddress: '0x63BEC1B3004154698830C7736107E7d3cfcbde79',
         safeAddress: '0x5afF90797f717Fe8432A1809b6b53A18863061D6',
+        usdcContractAddress: '0xfD9A4a17D76087f7c94950b67c3A5b7638427ECF',
         explorerUrl: 'https://sepolia.basescan.org',
         genesisDate: new Date('2025-05-23T16:00:00.000Z'),
         epochDurationInSeconds: 86400, // 24 hours
@@ -69,6 +72,7 @@ const configs: {
         mndContractAddress: '0x7A14Be75135a7ebdef99339CCc700C25Cda60c6E',
         controllerContractAddress: '0xdd56E920810e2FD9a07C1718643E179839867253',
         safeAddress: '0x20b1ebc9c13A6F4f3dfBdF9bc9299ec40Ac988e3',
+        usdcContractAddress: '0xfD9A4a17D76087f7c94950b67c3A5b7638427ECF',
         explorerUrl: 'https://sepolia.basescan.org',
         genesisDate: new Date('2025-05-23T16:00:00.000Z'),
         epochDurationInSeconds: 3600, // 1 hour
