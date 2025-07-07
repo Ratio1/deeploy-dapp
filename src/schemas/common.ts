@@ -96,4 +96,35 @@ export const dynamicEnvEntrySchema = z
             message: 'All values are required when key is provided',
             path: ['values'],
         },
+    )
+    // Individual value refinements for specific error paths
+    .refine(
+        (data) => {
+            if (!data.key) return true;
+            return data.values[0]?.value || false;
+        },
+        {
+            message: 'Value is required',
+            path: ['values', 0, 'value'],
+        },
+    )
+    .refine(
+        (data) => {
+            if (!data.key) return true;
+            return data.values[1]?.value || false;
+        },
+        {
+            message: 'Value is required',
+            path: ['values', 1, 'value'],
+        },
+    )
+    .refine(
+        (data) => {
+            if (!data.key) return true;
+            return data.values[2]?.value || false;
+        },
+        {
+            message: 'Value is required',
+            path: ['values', 2, 'value'],
+        },
     );

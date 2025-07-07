@@ -24,9 +24,6 @@ export default function DynamicEnvSection() {
                         // Get the error for this specific dynamic env entry
                         const deploymentErrors = formState.errors.deployment as any;
                         const entryError = deploymentErrors?.dynamicEnvVars?.[index];
-                        const valuesError = entryError?.values;
-
-                        console.log('valuesError', valuesError);
 
                         return (
                             <div className="col gap-2" key={field.id}>
@@ -85,6 +82,9 @@ export default function DynamicEnvSection() {
                                                     name={`deployment.dynamicEnvVars.${index}.values.${k}.value`}
                                                     control={control}
                                                     render={({ field, fieldState }) => {
+                                                        // Check for specific error on this value input
+                                                        const specificValueError = entryError?.values?.[k]?.value;
+
                                                         return (
                                                             <StyledInput
                                                                 placeholder="None"
@@ -96,11 +96,9 @@ export default function DynamicEnvSection() {
                                                                     await trigger(`deployment.dynamicEnvVars.${index}`);
                                                                 }}
                                                                 onBlur={field.onBlur}
-                                                                isInvalid={!!fieldState.error || !!valuesError}
+                                                                isInvalid={!!fieldState.error || !!specificValueError}
                                                                 errorMessage={
-                                                                    fieldState.error?.message ||
-                                                                    valuesError?.root?.message ||
-                                                                    valuesError?.message
+                                                                    fieldState.error?.message || specificValueError?.message
                                                                 }
                                                             />
                                                         );
