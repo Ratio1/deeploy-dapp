@@ -70,6 +70,10 @@ function NativeDeployment() {
                     <KeyValueEntriesSection name="deployment.pipelineParams" label="Pipeline Parameters" />
                 </div>
             </SlateCard>
+
+            <SlateCard title="Other">
+                <SelectWithLabel name="deployment.chainstoreResponse" label="Chainstore Response" options={BOOLEAN_TYPES} />
+            </SlateCard>
         </div>
     );
 }

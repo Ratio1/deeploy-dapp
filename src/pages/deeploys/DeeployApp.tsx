@@ -60,6 +60,9 @@ function DeeployApp() {
             ...getBaseSchemaDefaults().deployment,
             port: '',
             pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
+            customParams: [{ key: '', value: '' }],
+            pipelineParams: [{ key: '', value: '' }],
+            chainstoreResponse: BOOLEAN_TYPES[1],
         },
     });
 
@@ -96,7 +99,7 @@ function DeeployApp() {
     }, [formType, form]);
 
     const onSubmit = (data: z.infer<typeof deeployAppSchema>) => {
-        console.log('[DeeployApp] onSubmit', data);
+        console.log('[DeeployApp] onSubmit');
 
         if (data.formType === FormType.Generic) {
             console.log('[DeeployApp] Generic app deployment', data);

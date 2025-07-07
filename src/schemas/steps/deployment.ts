@@ -139,6 +139,9 @@ const nativeAppDeploymentSchema = baseDeploymentSchema.extend({
         .min(2, 'Value must be at least 2 characters')
         .max(256, 'Value cannot exceed 256 characters')
         .regex(/^https?:\/\/.+/, 'Must be a valid URI'),
+    chainstoreResponse: z.enum(BOOLEAN_TYPES, {
+        required_error: 'Value is required',
+    }),
 });
 
 // TODO: Add SERVICE deployment schemas here
