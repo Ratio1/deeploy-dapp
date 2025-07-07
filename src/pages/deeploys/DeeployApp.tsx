@@ -118,20 +118,43 @@ function DeeployApp() {
         }
     }, [formType, form]);
 
+    const downloadDataAsJson = (data: any, filename: string) => {
+        const jsonString = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Clean up the URL object
+        URL.revokeObjectURL(url);
+    };
+
     const onSubmit = (data: z.infer<typeof deeployAppSchema>) => {
         console.log('[DeeployApp] onSubmit');
 
+        let name = '';
+
         if (data.formType === FormType.Generic) {
             console.log('[DeeployApp] Generic app deployment', data);
+            name = 'generic-app';
         }
 
         if (data.formType === FormType.Native) {
             console.log('[DeeployApp] Native app deployment', data);
+            name = 'native-app';
         }
 
         if (data.formType === FormType.Service) {
             console.log('[DeeployApp] Service deployment', data);
+            name = 'service';
         }
+
+        downloadDataAsJson(data.deployment, `${name}-deployment-${Date.now()}.json`);
     };
 
     const onError = (errors) => {
