@@ -66,28 +66,34 @@ export const dynamicEnvEntrySchema = z
     })
     .refine(
         (data) => {
+            // If key is empty and all values are empty, it's a valid empty entry
             if (!data.key && data.values.every((pair) => !pair.value)) {
-                return true; // Empty entry is valid (will be ignored)
+                return true;
             }
-            return true;
+            // If key is present, it's valid
+            if (data.key) {
+                return true;
+            }
+            // Key is missing but some values are present
+            return false;
         },
         {
-            message: 'Key is required',
+            message: 'Key is required when values are provided',
             path: ['key'],
         },
     )
     .refine(
         (data) => {
-            const hasEmptyValue = data.values.some((pair) => !pair.value);
-            console.log('hasEmptyValue', hasEmptyValue, data.values);
-
-            if (hasEmptyValue) {
-                return false;
+            // If key is empty, don't validate values
+            if (!data.key) {
+                return true;
             }
-            return true;
+            // Check if any value is missing when key is present
+            const hasEmptyValue = data.values.some((pair) => !pair.value);
+            return !hasEmptyValue;
         },
         {
-            message: 'At least one value is missing',
-            path: ['key'],
+            message: 'All values are required when key is provided',
+            path: ['values'],
         },
     );

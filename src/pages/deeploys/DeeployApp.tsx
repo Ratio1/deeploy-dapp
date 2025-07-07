@@ -104,7 +104,7 @@ function DeeployApp() {
 
     const form = useForm<z.infer<typeof deeployAppSchema>>({
         resolver: zodResolver(deeployAppSchema),
-        mode: 'onSubmit',
+        mode: 'onTouched',
         defaultValues: getDefaultSchemaValues(),
     });
 
