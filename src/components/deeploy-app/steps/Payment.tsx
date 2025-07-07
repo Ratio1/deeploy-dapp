@@ -124,7 +124,7 @@ function Payment() {
                 {summaryItems.map((item) => (
                     <SlateCard key={item.label}>
                         <div className="col justify-center gap-1 py-2 text-center">
-                            <div className="text-lg font-semibold">{item.value}</div>
+                            <div className="text-[17px] font-semibold">{item.value}</div>
                             <div className="text-sm font-medium text-slate-500">{item.label}</div>
                         </div>
                     </SlateCard>

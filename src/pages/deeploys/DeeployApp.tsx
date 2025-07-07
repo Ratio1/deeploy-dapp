@@ -72,6 +72,17 @@ function DeeployApp() {
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             serviceType: SERVICE_TYPES[0],
+            envVars: [{ key: '', value: '' }],
+            dynamicEnvVars: [
+                {
+                    key: '',
+                    values: [
+                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
+                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
+                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
+                    ],
+                },
+            ],
         },
     });
 
@@ -93,7 +104,7 @@ function DeeployApp() {
 
     const form = useForm<z.infer<typeof deeployAppSchema>>({
         resolver: zodResolver(deeployAppSchema),
-        mode: 'onTouched',
+        mode: 'onSubmit',
         defaultValues: getDefaultSchemaValues(),
     });
 
