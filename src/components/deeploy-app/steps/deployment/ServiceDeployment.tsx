@@ -14,20 +14,14 @@ function ServiceDeployment() {
 
     return (
         <div className="col gap-6">
-            <SlateCard title="App Identity">
-                <SelectWithLabel name="deployment.serviceType" label="Service Type" options={SERVICE_TYPES} />
-            </SlateCard>
-
             <SlateCard title="Target Nodes">
                 <TargetNodesSection />
             </SlateCard>
 
-            {/* ------------------------------------------------------------ */}
-
             <SlateCard title="App Parameters">
                 <div className="col gap-4">
                     <div className="flex gap-4">
-                        <InputWithLabel name="deployment.dockerImage" label="Docker Image" placeholder="repo/image:tag" />
+                        <SelectWithLabel name="deployment.serviceType" label="Service Type" options={SERVICE_TYPES} />
                         <SelectWithLabel name="deployment.enableNgrok" label="Enable NGROK" options={BOOLEAN_TYPES} />
                     </div>
 
