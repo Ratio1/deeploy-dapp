@@ -1,7 +1,8 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
-import { dynamicEnvEntrySchema, enabledBooleanTypeValue, keyValueEntrySchema, targetNodeEntrySchema } from '@schemas/common';
+import { SERVICE_TYPES } from '@data/serviceTypes';
+import { dynamicEnvEntrySchema, enabledBooleanTypeValue, keyValueEntrySchema, nodeSchema } from '@schemas/common';
 import { z } from 'zod';
 
 // Helper functions for ngrok refinements
@@ -32,17 +33,7 @@ const ngrokRefinements = {
 };
 
 const baseDeploymentSchema = z.object({
-    appAlias: z
-        .string({
-            required_error: 'Value is required',
-        })
-        .min(3, 'Value must be at least 3 characters')
-        .max(36, 'Value cannot exceed 36 characters')
-        .regex(
-            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
-            'Only letters, numbers, spaces and special characters allowed',
-        ),
-    targetNodes: z.array(targetNodeEntrySchema).max(10, 'You can define up to 10 target nodes'),
+    targetNodes: z.array(nodeSchema).max(10, 'You can define up to 10 target nodes'),
     enableNgrok: z.enum(BOOLEAN_TYPES, {
         required_error: 'Value is required',
     }),
@@ -66,7 +57,21 @@ const baseDeploymentSchema = z.object({
         .optional(),
 });
 
-const genericAppDeploymentSchema = baseDeploymentSchema.extend({
+const baseDeploymentSchemaWithRefinements = baseDeploymentSchema
+    .refine(ngrokRefinements.ngrokEdgeLabel.refine, ngrokRefinements.ngrokEdgeLabel.options)
+    .refine(ngrokRefinements.ngrokAuthToken.refine, ngrokRefinements.ngrokAuthToken.options);
+
+export const genericAppDeploymentSchema = baseDeploymentSchema.extend({
+    appAlias: z
+        .string({
+            required_error: 'Value is required',
+        })
+        .min(3, 'Value must be at least 3 characters')
+        .max(36, 'Value cannot exceed 36 characters')
+        .regex(
+            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
+            'Only letters, numbers, spaces and special characters allowed',
+        ),
     containerImage: z
         .string({
             required_error: 'Value is required',
@@ -120,7 +125,17 @@ const genericAppDeploymentSchema = baseDeploymentSchema.extend({
     }),
 });
 
-const nativeAppDeploymentSchema = baseDeploymentSchema.extend({
+export const nativeAppDeploymentSchema = baseDeploymentSchema.extend({
+    appAlias: z
+        .string({
+            required_error: 'Value is required',
+        })
+        .min(3, 'Value must be at least 3 characters')
+        .max(36, 'Value cannot exceed 36 characters')
+        .regex(
+            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
+            'Only letters, numbers, spaces and special characters allowed',
+        ),
     pluginSignature: z.enum(PLUGIN_SIGNATURE_TYPES, {
         required_error: 'Value is required',
     }),
@@ -144,12 +159,15 @@ const nativeAppDeploymentSchema = baseDeploymentSchema.extend({
     }),
 });
 
-// TODO: Add SERVICE deployment schemas here
-
-export const genericAppDeploymentSchemaWithRefinements = genericAppDeploymentSchema
-    .refine(ngrokRefinements.ngrokEdgeLabel.refine, ngrokRefinements.ngrokEdgeLabel.options)
-    .refine(ngrokRefinements.ngrokAuthToken.refine, ngrokRefinements.ngrokAuthToken.options);
-
-export const nativeAppDeploymentSchemaWithRefinements = nativeAppDeploymentSchema
-    .refine(ngrokRefinements.ngrokEdgeLabel.refine, ngrokRefinements.ngrokEdgeLabel.options)
-    .refine(ngrokRefinements.ngrokAuthToken.refine, ngrokRefinements.ngrokAuthToken.options);
+export const serviceAppDeploymentSchema = baseDeploymentSchema.extend({
+    serviceType: z.enum(SERVICE_TYPES, {
+        required_error: 'Value is required',
+    }),
+    dockerImage: z
+        .string({
+            required_error: 'Value is required',
+        })
+        .min(3, 'Value must be at least 3 characters')
+        .max(256, 'Value cannot exceed 256 characters'),
+    serviceReplica: nodeSchema.shape.address,
+});

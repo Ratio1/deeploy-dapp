@@ -6,6 +6,7 @@ import { CONTAINER_TYPES } from '@data/containerTypes';
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
+import { SERVICE_TYPES } from '@data/serviceTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { deeployAppSchema } from '@schemas/index';
@@ -66,6 +67,14 @@ function DeeployApp() {
         },
     });
 
+    const getServiceSchemaDefaults = () => ({
+        ...getBaseSchemaDefaults(),
+        deployment: {
+            ...getBaseSchemaDefaults().deployment,
+            serviceType: SERVICE_TYPES[0],
+        },
+    });
+
     const getDefaultSchemaValues = () => {
         switch (formType) {
             case FormType.Generic:
@@ -75,10 +84,10 @@ function DeeployApp() {
                 return getNativeSchemaDefaults();
 
             case FormType.Service:
-                return {}; // TODO: Add SERVICE deployment schemas here
+                return getServiceSchemaDefaults();
 
             default:
-                return getBaseSchemaDefaults();
+                return {};
         }
     };
 

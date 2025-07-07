@@ -42,7 +42,7 @@ export const keyValueEntrySchema = z
         },
     );
 
-export const targetNodeEntrySchema = z.object({
+export const nodeSchema = z.object({
     address: z
         .string()
         .max(52, 'Value cannot exceed 52 characters')

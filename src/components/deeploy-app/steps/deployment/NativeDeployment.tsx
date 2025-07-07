@@ -10,9 +10,7 @@ import { useFormContext } from 'react-hook-form';
 
 function NativeDeployment() {
     const { watch } = useFormContext();
-
     const enableNgrok = watch('deployment.enableNgrok');
-    const targetNodesCount: number = watch('deployment.targetNodesCount');
 
     return (
         <div className="col gap-6">
@@ -28,16 +26,7 @@ function NativeDeployment() {
             </SlateCard>
 
             <SlateCard title="Target Nodes">
-                <div className="col">
-                    {!targetNodesCount ? (
-                        <TargetNodesSection />
-                    ) : (
-                        <div className="text-sm text-slate-500">
-                            Your app will be deployed to <span className="font-medium text-primary">{targetNodesCount}</span>{' '}
-                            nodes.
-                        </div>
-                    )}
-                </div>
+                <TargetNodesSection />
             </SlateCard>
 
             <SlateCard title="App Parameters">
@@ -56,7 +45,7 @@ function NativeDeployment() {
                 </div>
             </SlateCard>
 
-            <SlateCard title="V-- (Custom Parameters)">
+            <SlateCard title="Custom Parameters">
                 <KeyValueEntriesSection name="deployment.customParams" />
             </SlateCard>
 
