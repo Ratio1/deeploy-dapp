@@ -1,15 +1,13 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
+import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
-import ContainerSection from '@shared/deeploy-app/ContainerSection';
-import DynamicEnvSection from '@shared/deeploy-app/DynamicEnvSection';
-import EnvSection from '@shared/deeploy-app/EnvSection';
 import InputWithLabel from '@shared/deeploy-app/InputWithLabel';
 import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
 import NumberInput from '@shared/NumberInput';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
 
-function GenericDeployment() {
+function NativeDeployment() {
     const { watch } = useFormContext();
 
     const enableNgrok = watch('deployment.enableNgrok');
@@ -20,6 +18,11 @@ function GenericDeployment() {
             <SlateCard title="App Identity">
                 <div className="flex gap-4">
                     <InputWithLabel name="deployment.appAlias" label="Alias" placeholder="My App" />
+                    <SelectWithLabel
+                        name="deployment.pluginSignature"
+                        label="Plugin Signature"
+                        options={PLUGIN_SIGNATURE_TYPES}
+                    />
                 </div>
             </SlateCard>
 
@@ -35,8 +38,6 @@ function GenericDeployment() {
                     )}
                 </div>
             </SlateCard>
-
-            <ContainerSection />
 
             <SlateCard title="App Parameters">
                 <div className="col gap-4">
@@ -54,14 +55,6 @@ function GenericDeployment() {
                 </div>
             </SlateCard>
 
-            <SlateCard title="ENV Variables">
-                <EnvSection />
-            </SlateCard>
-
-            <SlateCard title="Dynamic ENV Variables">
-                <DynamicEnvSection />
-            </SlateCard>
-
             <SlateCard title="Policies">
                 <div className="flex gap-4">
                     <SelectWithLabel name="deployment.restartPolicy" label="Restart Policy" options={['Always', 'Manual']} />
@@ -76,4 +69,4 @@ function GenericDeployment() {
     );
 }
 
-export default GenericDeployment;
+export default NativeDeployment;

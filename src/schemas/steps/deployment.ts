@@ -1,7 +1,35 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
+import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { dynamicEnvEntrySchema, enabledBooleanTypeValue, envVarEntrySchema, targetNodeEntrySchema } from '@schemas/common';
 import { z } from 'zod';
+
+// Helper functions for ngrok refinements
+const createNgrokRequiredRefinement = (fieldName: 'ngrokEdgeLabel' | 'ngrokAuthToken') => {
+    return (data: { enableNgrok: string; [key: string]: any }) => {
+        if (data.enableNgrok !== enabledBooleanTypeValue) {
+            return true; // Allow undefined when ngrok is not enabled
+        }
+        return data[fieldName] !== undefined;
+    };
+};
+
+const ngrokRefinements = {
+    ngrokEdgeLabel: {
+        refine: createNgrokRequiredRefinement('ngrokEdgeLabel'),
+        options: {
+            message: 'Required when NGROK is enabled',
+            path: ['ngrokEdgeLabel'],
+        },
+    },
+    ngrokAuthToken: {
+        refine: createNgrokRequiredRefinement('ngrokAuthToken'),
+        options: {
+            message: 'Required when NGROK is enabled',
+            path: ['ngrokAuthToken'],
+        },
+    },
+};
 
 const baseDeploymentSchema = z.object({
     appAlias: z
@@ -84,30 +112,18 @@ const genericAppDeploymentSchema = baseDeploymentSchema.extend({
     }),
 });
 
-// TODO: Add NATIVE/SERVICE deployment schemas here
+const nativeAppDeploymentSchema = baseDeploymentSchema.extend({
+    pluginSignature: z.enum(PLUGIN_SIGNATURE_TYPES, {
+        required_error: 'Value is required',
+    }),
+});
+
+// TODO: Add SERVICE deployment schemas here
 
 export const genericAppDeploymentSchemaWithRefinements = genericAppDeploymentSchema
-    .refine(
-        (data) => {
-            if (data.enableNgrok !== enabledBooleanTypeValue) {
-                return true; // Allow undefined when ngrok is not enabled
-            }
-            return data.ngrokEdgeLabel !== undefined;
-        },
-        {
-            message: 'Required when NGROK is enabled',
-            path: ['ngrokEdgeLabel'],
-        },
-    )
-    .refine(
-        (data) => {
-            if (data.enableNgrok !== enabledBooleanTypeValue) {
-                return true; // Allow undefined when ngrok is not enabled
-            }
-            return data.ngrokAuthToken !== undefined;
-        },
-        {
-            message: 'Required when NGROK is enabled',
-            path: ['ngrokAuthToken'],
-        },
-    );
+    .refine(ngrokRefinements.ngrokEdgeLabel.refine, ngrokRefinements.ngrokEdgeLabel.options)
+    .refine(ngrokRefinements.ngrokAuthToken.refine, ngrokRefinements.ngrokAuthToken.options);
+
+export const nativeAppDeploymentSchemaWithRefinements = nativeAppDeploymentSchema
+    .refine(ngrokRefinements.ngrokEdgeLabel.refine, ngrokRefinements.ngrokEdgeLabel.options)
+    .refine(ngrokRefinements.ngrokAuthToken.refine, ngrokRefinements.ngrokAuthToken.options);

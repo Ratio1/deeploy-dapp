@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { FormType } from '../typedefs/deployment';
-import { genericAppDeploymentSchemaWithRefinements } from './steps/deployment';
+import { genericAppDeploymentSchemaWithRefinements, nativeAppDeploymentSchemaWithRefinements } from './steps/deployment';
 import specificationsSchema from './steps/specifications';
 
 const deeployAppBaseSchema = z.object({
@@ -15,10 +15,10 @@ export const deeployAppSchema = z.discriminatedUnion('formType', [
     }),
     deeployAppBaseSchema.extend({
         formType: z.literal(FormType.Native),
-        deployment: genericAppDeploymentSchemaWithRefinements,
-    }), // TODO: Add NATIVE/SERVICE deployment schemas here
+        deployment: nativeAppDeploymentSchemaWithRefinements,
+    }),
     deeployAppBaseSchema.extend({
         formType: z.literal(FormType.Service),
         deployment: genericAppDeploymentSchemaWithRefinements,
-    }), // TODO: Add NATIVE/SERVICE deployment schemas here
+    }), // TODO: Add SERVICE deployment schemas here
 ]);

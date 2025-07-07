@@ -84,7 +84,6 @@ function FormTypeSelect() {
                                     onPress={() => {
                                         // Step 1 is the selection of the deployment type
                                         setStep(2);
-                                        setValue('formType', option.formType);
                                         setFormType(option.formType);
                                     }}
                                 >

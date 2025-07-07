@@ -4,50 +4,102 @@ import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CONTAINER_TYPES } from '@data/containerTypes';
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
+import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { deeployAppSchema } from '@schemas/index';
 import { FormType } from '@typedefs/deployment';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 function DeeployApp() {
     const { formType } = useDeploymentContext() as DeploymentContextType;
 
+    const getBaseSchemaDefaults = () => ({
+        specifications: {
+            applicationType: APPLICATION_TYPES[0],
+            containerType: CONTAINER_TYPES[0],
+        },
+        deployment: {
+            targetNodes: [{ address: '' }],
+            enableNgrok: BOOLEAN_TYPES[0],
+        },
+    });
+
+    const getGenericSchemaDefaults = () => ({
+        ...getBaseSchemaDefaults(),
+        deployment: {
+            ...getBaseSchemaDefaults().deployment,
+            envVars: [{ key: '', value: '' }],
+            dynamicEnvVars: [
+                {
+                    key: '',
+                    values: [
+                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
+                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
+                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
+                    ],
+                },
+            ],
+            restartPolicy: POLICY_TYPES[0],
+            imagePullPolicy: POLICY_TYPES[0],
+        },
+    });
+
+    const getNativeSchemaDefaults = () => ({
+        ...getBaseSchemaDefaults(),
+        deployment: {
+            ...getBaseSchemaDefaults().deployment,
+            pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
+        },
+    });
+
+    const getDefaultSchemaValues = () => {
+        switch (formType) {
+            case FormType.Generic:
+                return getGenericSchemaDefaults();
+
+            case FormType.Native:
+                return getNativeSchemaDefaults();
+
+            case FormType.Service:
+                return {}; // TODO: Add SERVICE deployment schemas here
+
+            default:
+                return getBaseSchemaDefaults();
+        }
+    };
+
     const form = useForm<z.infer<typeof deeployAppSchema>>({
         resolver: zodResolver(deeployAppSchema),
         mode: 'onTouched',
-        defaultValues: {
-            specifications: {
-                applicationType: APPLICATION_TYPES[0],
-                containerType: CONTAINER_TYPES[0],
-            },
-            deployment: {
-                targetNodes: [{ address: '' }],
-                envVars: [{ key: '', value: '' }],
-                dynamicEnvVars: [
-                    {
-                        key: '',
-                        values: [
-                            { type: DYNAMIC_ENV_TYPES[0], value: '' },
-                            { type: DYNAMIC_ENV_TYPES[0], value: '' },
-                            { type: DYNAMIC_ENV_TYPES[0], value: '' },
-                        ],
-                    },
-                ],
-                enableNgrok: BOOLEAN_TYPES[0],
-                restartPolicy: POLICY_TYPES[0],
-                imagePullPolicy: POLICY_TYPES[0],
-            },
-        },
+        defaultValues: getDefaultSchemaValues(),
     });
+
+    // Reset form with correct defaults when formType changes
+    useEffect(() => {
+        if (formType) {
+            const defaults = getDefaultSchemaValues();
+            form.reset(defaults);
+            form.setValue('formType', formType);
+        }
+    }, [formType, form]);
 
     const onSubmit = (data: z.infer<typeof deeployAppSchema>) => {
         console.log('[DeeployApp] onSubmit', data);
 
         if (data.formType === FormType.Generic) {
             console.log('[DeeployApp] Generic app deployment', data);
+        }
+
+        if (data.formType === FormType.Native) {
+            console.log('[DeeployApp] Native app deployment', data);
+        }
+
+        if (data.formType === FormType.Service) {
+            console.log('[DeeployApp] Service deployment', data);
         }
     };
 
