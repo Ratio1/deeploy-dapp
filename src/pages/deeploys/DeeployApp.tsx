@@ -111,9 +111,13 @@ function DeeployApp() {
         }
     };
 
+    const onError = (errors) => {
+        console.log('Validation errors:', errors);
+    };
+
     return (
         <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} key={formType || 'no-type'}>
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} key={formType || 'no-type'}>
                 <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">{!formType ? <FormTypeSelect /> : <DeeployWrapper />}</div>
                 </div>

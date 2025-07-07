@@ -6,7 +6,7 @@ import { z } from 'zod';
 export const customContainerTypeValue = CONTAINER_TYPES[CONTAINER_TYPES.length - 1];
 export const enabledBooleanTypeValue = BOOLEAN_TYPES[0];
 
-export const envVarEntrySchema = z
+export const keyValueEntrySchema = z
     .object({
         key: z.string().optional(),
         value: z.string().optional(),

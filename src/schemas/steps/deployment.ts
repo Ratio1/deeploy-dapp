@@ -1,7 +1,7 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
-import { dynamicEnvEntrySchema, enabledBooleanTypeValue, envVarEntrySchema, targetNodeEntrySchema } from '@schemas/common';
+import { dynamicEnvEntrySchema, enabledBooleanTypeValue, keyValueEntrySchema, targetNodeEntrySchema } from '@schemas/common';
 import { z } from 'zod';
 
 // Helper functions for ngrok refinements
@@ -110,7 +110,7 @@ const genericAppDeploymentSchema = baseDeploymentSchema.extend({
             if (!val) return undefined;
             return val as number;
         }) as z.ZodType<number>,
-    envVars: z.array(envVarEntrySchema).max(10, 'Maximum 10 environment variables'),
+    envVars: z.array(keyValueEntrySchema).max(10, 'Maximum 10 entries allowed'),
     dynamicEnvVars: z.array(dynamicEnvEntrySchema).max(10, 'Maximum 10 dynamic environment variables'),
     restartPolicy: z.enum(POLICY_TYPES, {
         required_error: 'Value is required',
@@ -124,6 +124,21 @@ const nativeAppDeploymentSchema = baseDeploymentSchema.extend({
     pluginSignature: z.enum(PLUGIN_SIGNATURE_TYPES, {
         required_error: 'Value is required',
     }),
+    customParams: z.array(keyValueEntrySchema).max(10, 'Maximum 10 entries allowed'),
+    pipelineParams: z.array(keyValueEntrySchema).max(10, 'Maximum 10 entries allowed'),
+    pipelineInputType: z
+        .string({
+            required_error: 'Value is required',
+        })
+        .min(2, 'Value must be at least 2 characters')
+        .max(256, 'Value cannot exceed 256 characters'),
+    pipelineInputUri: z
+        .string({
+            required_error: 'Value is required',
+        })
+        .min(2, 'Value must be at least 2 characters')
+        .max(256, 'Value cannot exceed 256 characters')
+        .regex(/^https?:\/\/.+/, 'Must be a valid URI'),
 });
 
 // TODO: Add SERVICE deployment schemas here

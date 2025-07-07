@@ -2,6 +2,7 @@ import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/deeploy-app/InputWithLabel';
+import KeyValueEntriesSection from '@shared/deeploy-app/KeyValueEntriesSection';
 import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
 import NumberInput from '@shared/NumberInput';
 import SelectWithLabel from '@shared/SelectWithLabel';
@@ -27,7 +28,7 @@ function NativeDeployment() {
             </SlateCard>
 
             <SlateCard title="Target Nodes">
-                <div className="col gap-4">
+                <div className="col">
                     {!targetNodesCount ? (
                         <TargetNodesSection />
                     ) : (
@@ -55,14 +56,18 @@ function NativeDeployment() {
                 </div>
             </SlateCard>
 
-            <SlateCard title="Policies">
-                <div className="flex gap-4">
-                    <SelectWithLabel name="deployment.restartPolicy" label="Restart Policy" options={['Always', 'Manual']} />
-                    <SelectWithLabel
-                        name="deployment.imagePullPolicy"
-                        label="Image Pull Policy"
-                        options={['Always', 'Manual']}
-                    />
+            <SlateCard title="V-- (Custom Parameters)">
+                <KeyValueEntriesSection name="deployment.customParams" />
+            </SlateCard>
+
+            <SlateCard title="Pipeline">
+                <div className="col gap-4">
+                    <div className="flex gap-4">
+                        <InputWithLabel name="deployment.pipelineInputType" label="Pipeline Input Type" placeholder="None" />
+                        <InputWithLabel name="deployment.pipelineInputUri" label="Pipeline Input URI" placeholder="None" />
+                    </div>
+
+                    <KeyValueEntriesSection name="deployment.pipelineParams" label="Pipeline Parameters" />
                 </div>
             </SlateCard>
         </div>

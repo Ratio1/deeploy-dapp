@@ -2,8 +2,8 @@ import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import ContainerSection from '@shared/deeploy-app/ContainerSection';
 import DynamicEnvSection from '@shared/deeploy-app/DynamicEnvSection';
-import EnvSection from '@shared/deeploy-app/EnvSection';
 import InputWithLabel from '@shared/deeploy-app/InputWithLabel';
+import KeyValueEntriesSection from '@shared/deeploy-app/KeyValueEntriesSection';
 import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
 import NumberInput from '@shared/NumberInput';
 import SelectWithLabel from '@shared/SelectWithLabel';
@@ -55,7 +55,7 @@ function GenericDeployment() {
             </SlateCard>
 
             <SlateCard title="ENV Variables">
-                <EnvSection />
+                <KeyValueEntriesSection name="deployment.envVars" />
             </SlateCard>
 
             <SlateCard title="Dynamic ENV Variables">
