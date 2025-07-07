@@ -21,6 +21,11 @@ function DeeployApp() {
         specifications: {
             applicationType: APPLICATION_TYPES[0],
             containerType: CONTAINER_TYPES[0],
+            targetNodesCount: '', // Number inputs must have empty default values when resetting form
+            cpu: '',
+            memory: '',
+            customCpu: '',
+            customMemory: '',
         },
         deployment: {
             targetNodes: [{ address: '' }],
@@ -32,6 +37,7 @@ function DeeployApp() {
         ...getBaseSchemaDefaults(),
         deployment: {
             ...getBaseSchemaDefaults().deployment,
+            port: '',
             envVars: [{ key: '', value: '' }],
             dynamicEnvVars: [
                 {
@@ -52,6 +58,7 @@ function DeeployApp() {
         ...getBaseSchemaDefaults(),
         deployment: {
             ...getBaseSchemaDefaults().deployment,
+            port: '',
             pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
         },
     });
@@ -83,6 +90,7 @@ function DeeployApp() {
         if (formType) {
             const defaults = getDefaultSchemaValues();
             form.reset(defaults);
+
             form.setValue('formType', formType);
         }
     }, [formType, form]);
@@ -105,7 +113,7 @@ function DeeployApp() {
 
     return (
         <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
+            <form onSubmit={form.handleSubmit(onSubmit)} key={formType || 'no-type'}>
                 <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">{!formType ? <FormTypeSelect /> : <DeeployWrapper />}</div>
                 </div>

@@ -16,46 +16,76 @@ const specificationsSchema = z.object({
                 .min(0, 'Value must be at least 0')
                 .max(100, 'Value cannot exceed 100'),
         ])
-        .transform((val) => {
-            if (val === '') return undefined;
-            return val as number;
+        .refine((val) => val !== '', {
+            message: 'Value is required',
         })
-        .optional() as z.ZodOptional<z.ZodType<number | undefined>>,
+        .transform((val) => {
+            if (!val) return undefined;
+            return val as number;
+        }) as z.ZodType<number>,
     containerType: z.enum(CONTAINER_TYPES, {
         required_error: 'Container type is required',
     }),
     cpu: z
-        .number({
-            required_error: 'Value is required',
-            invalid_type_error: 'Value must be a number',
+        .union([
+            z.literal(''),
+            z
+                .number()
+                .int('Value must be a whole number')
+                .min(1, 'Value must be at least 1')
+                .max(100, 'Value cannot exceed 100'),
+        ])
+        .refine((val) => val !== '', {
+            message: 'Value is required',
         })
-        .int('Value must be a whole number')
-        .min(1, 'Value must be at least 1')
-        .max(100, 'Value cannot exceed 100'),
+        .transform((val) => {
+            if (!val) return undefined;
+            return val as number;
+        }) as z.ZodType<number>,
     memory: z
-        .number({
-            required_error: 'Value is required',
-            invalid_type_error: 'Value must be a number',
+        .union([
+            z.literal(''),
+            z
+                .number()
+                .int('Value must be a whole number')
+                .min(1, 'Value must be at least 1')
+                .max(1000, 'Value cannot exceed 1000'),
+        ])
+        .refine((val) => val !== '', {
+            message: 'Value is required',
         })
-        .int('Value must be a whole number')
-        .min(1, 'Value must be at least 1')
-        .max(1000, 'Value cannot exceed 1000'),
+        .transform((val) => {
+            if (!val) return undefined;
+            return val as number;
+        }) as z.ZodType<number>,
     customCpu: z
-        .number({
-            invalid_type_error: 'Value must be a number',
+        .union([
+            z.literal(''),
+            z
+                .number()
+                .int('Value must be a whole number')
+                .min(1, 'Value must be at least 1')
+                .max(100, 'Value cannot exceed 100'),
+        ])
+        .transform((val) => {
+            if (!val) return undefined;
+            return val as number;
         })
-        .int('Value must be a whole number')
-        .min(1, 'Value must be at least 1')
-        .max(100, 'Value cannot exceed 100')
-        .optional(),
+        .optional() as z.ZodOptional<z.ZodType<number | undefined>>,
     customMemory: z
-        .number({
-            invalid_type_error: 'Value must be a number',
+        .union([
+            z.literal(''),
+            z
+                .number()
+                .int('Value must be a whole number')
+                .min(1, 'Value must be at least 1')
+                .max(1000000, 'Value cannot exceed 1000000'),
+        ])
+        .transform((val) => {
+            if (!val) return undefined;
+            return val as number;
         })
-        .int('Value must be a whole number')
-        .min(1, 'Value must be at least 1')
-        .max(1000000, 'Value cannot exceed 1000000')
-        .optional(),
+        .optional() as z.ZodOptional<z.ZodType<number | undefined>>,
 });
 
 const specificationsSchemaWithRefinements = specificationsSchema

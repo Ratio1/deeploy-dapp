@@ -19,7 +19,6 @@ export default function NumberInput({ name, label }: Props) {
                 name={name}
                 control={control}
                 render={({ field, fieldState }) => {
-                    console.log('[NumberInput] field', field);
                     return (
                         <StyledInput
                             placeholder="0"

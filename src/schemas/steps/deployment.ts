@@ -95,13 +95,21 @@ const genericAppDeploymentSchema = baseDeploymentSchema.extend({
         .max(64, 'Value cannot exceed 64 characters')
         .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed'),
     port: z
-        .number({
-            required_error: 'Value is required',
-            invalid_type_error: 'Value must be a number',
+        .union([
+            z.literal(''),
+            z
+                .number()
+                .int('Value must be a whole number')
+                .min(1, 'Value must be at least 1')
+                .max(65535, 'Value cannot exceed 65535'),
+        ])
+        .refine((val) => val !== '', {
+            message: 'Value is required',
         })
-        .int('Value must be a whole number')
-        .min(1, 'Value must be at least 1')
-        .max(65535, 'Value cannot exceed 65535'),
+        .transform((val) => {
+            if (!val) return undefined;
+            return val as number;
+        }) as z.ZodType<number>,
     envVars: z.array(envVarEntrySchema).max(10, 'Maximum 10 environment variables'),
     dynamicEnvVars: z.array(dynamicEnvEntrySchema).max(10, 'Maximum 10 dynamic environment variables'),
     restartPolicy: z.enum(POLICY_TYPES, {

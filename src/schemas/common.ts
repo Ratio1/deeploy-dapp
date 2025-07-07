@@ -89,7 +89,7 @@ export const dynamicEnvEntrySchema = z
             return true;
         },
         {
-            message: 'At least one value is required when key is provided',
+            message: 'At least one value is required',
             path: ['values'],
         },
     );
