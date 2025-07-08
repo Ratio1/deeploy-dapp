@@ -1,5 +1,4 @@
 import Favicon from '@assets/favicon.png';
-import { accessAuth } from '@lib/api/backend';
 import { config, domains, environment, projectId } from '@lib/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { EthAddress } from '@typedefs/blockchain';
@@ -35,7 +34,12 @@ const siweConfig: SIWEConfig = {
             const siweMessage = new SiweMessage(message);
             const chainId = siweMessage.chainId;
             const address = siweMessage.address;
-            const response = await accessAuth({ message, signature });
+
+            const response = {
+                accessToken: '123',
+                refreshToken: '456',
+                expiration: 2819859200,
+            }; // TODO: Remove (SIWE disabled)
 
             localStorage.setItem('chainId', chainId.toString());
             localStorage.setItem('address', address);
