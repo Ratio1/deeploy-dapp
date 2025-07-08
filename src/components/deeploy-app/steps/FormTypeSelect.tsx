@@ -1,7 +1,8 @@
 import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { BorderedCard } from '@shared/cards/BorderedCard';
-import { AppType } from '@typedefs/deployment';
+import { FormType } from '@typedefs/deployment';
+import { useFormContext } from 'react-hook-form';
 import { RiBox3Line, RiDatabase2Line, RiTelegram2Line, RiTerminalBoxLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
 
@@ -11,7 +12,7 @@ type DeploymentOption = {
     description: string;
     icon: React.ReactNode;
     bgColor: string;
-    appType: AppType;
+    formType: FormType;
 };
 
 const options: DeploymentOption[] = [
@@ -21,7 +22,7 @@ const options: DeploymentOption[] = [
         description: 'Deploy standard containerized apps.',
         icon: <RiBox3Line />,
         bgColor: 'bg-primary-100',
-        appType: AppType.Generic,
+        formType: FormType.Generic,
     },
     {
         id: 'native',
@@ -29,7 +30,7 @@ const options: DeploymentOption[] = [
         description: 'Customizable workloads with pipeline/plugin-based apps.',
         icon: <RiTerminalBoxLine />,
         bgColor: 'bg-green-200',
-        appType: AppType.Native,
+        formType: FormType.Native,
     },
     {
         id: 'service',
@@ -37,12 +38,13 @@ const options: DeploymentOption[] = [
         description: 'Containerized apps based on predefined images/resources.',
         icon: <RiDatabase2Line />,
         bgColor: 'bg-purple-200',
-        appType: AppType.Service,
+        formType: FormType.Service,
     },
 ];
 
-function AppTypeSelect() {
-    const { setAppType, setStep } = useDeploymentContext() as DeploymentContextType;
+function FormTypeSelect() {
+    const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
+    const { setValue } = useFormContext();
 
     return (
         <div className="col gap-12">
@@ -80,9 +82,9 @@ function AppTypeSelect() {
                                     variant="flat"
                                     size="sm"
                                     onPress={() => {
-                                        // Step 1 is the selection of the app type
-                                        setStep(2); // TODO: change to 2
-                                        setAppType(option.appType);
+                                        // Step 1 is the selection of the deployment type
+                                        setStep(2);
+                                        setFormType(option.formType);
                                     }}
                                 >
                                     <div className="text-sm">Deploy</div>
@@ -120,4 +122,4 @@ function AppTypeSelect() {
     );
 }
 
-export default AppTypeSelect;
+export default FormTypeSelect;

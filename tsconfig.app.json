@@ -11,7 +11,8 @@
             "@shared/*": ["shared/*"],
             "@data/*": ["data/*"],
             "@blockchain/*": ["blockchain/*"],
-            "@typedefs/*": ["typedefs/*"]
+            "@typedefs/*": ["typedefs/*"],
+            "@schemas/*": ["schemas/*"]
         },
 
         "target": "ES2020",

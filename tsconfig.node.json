@@ -18,7 +18,6 @@
         "noUnusedLocals": true,
         "noImplicitAny": false,
         "noUnusedParameters": true,
-        "erasableSyntaxOnly": true,
         "noFallthroughCasesInSwitch": true,
         "noUncheckedSideEffectImports": true
     },

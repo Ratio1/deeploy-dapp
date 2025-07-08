@@ -5,14 +5,20 @@ import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
 
 export default function TargetNodesSection() {
-    const { control } = useFormContext();
+    const { control, watch } = useFormContext();
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'targetNodes',
+        name: 'deployment.targetNodes',
     });
+
+    const targetNodesCount: number = watch('specifications.targetNodesCount');
 
     return (
         <div className="col gap-4" key={fields.length}>
+            <div className="text-sm text-slate-500">
+                Your app will be deployed to <span className="font-medium text-primary">{targetNodesCount}</span> nodes
+            </div>
+
             <div className="col gap-2">
                 {fields.length === 0 ? (
                     <div className="text-sm text-slate-500">No target nodes added yet</div>
@@ -22,7 +28,7 @@ export default function TargetNodesSection() {
                             <VariableSectionIndex index={index} />
 
                             <Controller
-                                name={`targetNodes.${index}.address`}
+                                name={`deployment.targetNodes.${index}.address`}
                                 control={control}
                                 render={({ field, fieldState }) => (
                                     <StyledInput
@@ -42,7 +48,7 @@ export default function TargetNodesSection() {
                 )}
             </div>
 
-            {fields.length < 10 && (
+            {fields.length < targetNodesCount && (
                 <div
                     className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50"
                     onClick={() => append({ address: '' })}

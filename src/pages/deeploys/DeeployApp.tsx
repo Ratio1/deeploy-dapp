@@ -1,28 +1,44 @@
 import DeeployWrapper from '@components/deeploy-app/DeeployWrapper';
-import AppTypeSelect from '@components/deeploy-app/steps/AppTypeSelect';
+import FormTypeSelect from '@components/deeploy-app/steps/FormTypeSelect';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CONTAINER_TYPES } from '@data/containerTypes';
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
+import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
+import { SERVICE_TYPES } from '@data/serviceTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { deeployAppSchema } from '@typedefs/schemas';
+import { deeployAppSchema } from '@schemas/index';
+import { FormType } from '@typedefs/deployment';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 function DeeployApp() {
-    const { appType } = useDeploymentContext() as DeploymentContextType;
+    const { formType } = useDeploymentContext() as DeploymentContextType;
 
-    const form = useForm<z.infer<typeof deeployAppSchema>>({
-        resolver: zodResolver(deeployAppSchema),
-        mode: 'onBlur',
-        defaultValues: {
-            // Step: Specifications
+    const getBaseSchemaDefaults = () => ({
+        specifications: {
             applicationType: APPLICATION_TYPES[0],
             containerType: CONTAINER_TYPES[0],
-            // Step: Deployment
+            targetNodesCount: '', // Number inputs must have empty default values when resetting form
+            cpu: '',
+            memory: '',
+            customCpu: '',
+            customMemory: '',
+        },
+        deployment: {
             targetNodes: [{ address: '' }],
+            enableNgrok: BOOLEAN_TYPES[0],
+        },
+    });
+
+    const getGenericSchemaDefaults = () => ({
+        ...getBaseSchemaDefaults(),
+        deployment: {
+            ...getBaseSchemaDefaults().deployment,
+            port: '',
             envVars: [{ key: '', value: '' }],
             dynamicEnvVars: [
                 {
@@ -34,17 +50,124 @@ function DeeployApp() {
                     ],
                 },
             ],
-            enableNgrok: BOOLEAN_TYPES[0],
             restartPolicy: POLICY_TYPES[0],
             imagePullPolicy: POLICY_TYPES[0],
         },
     });
 
+    const getNativeSchemaDefaults = () => ({
+        ...getBaseSchemaDefaults(),
+        deployment: {
+            ...getBaseSchemaDefaults().deployment,
+            port: '',
+            pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
+            customParams: [{ key: '', value: '' }],
+            pipelineParams: [{ key: '', value: '' }],
+            chainstoreResponse: BOOLEAN_TYPES[1],
+        },
+    });
+
+    const getServiceSchemaDefaults = () => ({
+        ...getBaseSchemaDefaults(),
+        deployment: {
+            ...getBaseSchemaDefaults().deployment,
+            serviceType: SERVICE_TYPES[0],
+            envVars: [{ key: '', value: '' }],
+            dynamicEnvVars: [
+                {
+                    key: '',
+                    values: [
+                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
+                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
+                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
+                    ],
+                },
+            ],
+        },
+    });
+
+    const getDefaultSchemaValues = () => {
+        switch (formType) {
+            case FormType.Generic:
+                return getGenericSchemaDefaults();
+
+            case FormType.Native:
+                return getNativeSchemaDefaults();
+
+            case FormType.Service:
+                return getServiceSchemaDefaults();
+
+            default:
+                return {};
+        }
+    };
+
+    const form = useForm<z.infer<typeof deeployAppSchema>>({
+        resolver: zodResolver(deeployAppSchema),
+        mode: 'onTouched',
+        defaultValues: getDefaultSchemaValues(),
+    });
+
+    // Reset form with correct defaults when formType changes
+    useEffect(() => {
+        if (formType) {
+            const defaults = getDefaultSchemaValues();
+            form.reset(defaults);
+
+            form.setValue('formType', formType);
+        }
+    }, [formType, form]);
+
+    const downloadDataAsJson = (data: any, filename: string) => {
+        const jsonString = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Clean up the URL object
+        URL.revokeObjectURL(url);
+    };
+
+    const onSubmit = (data: z.infer<typeof deeployAppSchema>) => {
+        console.log('[DeeployApp] onSubmit');
+
+        let name = '';
+
+        if (data.formType === FormType.Generic) {
+            console.log('[DeeployApp] Generic app deployment', data);
+            name = 'generic-app';
+        }
+
+        if (data.formType === FormType.Native) {
+            console.log('[DeeployApp] Native app deployment', data);
+            name = 'native-app';
+        }
+
+        if (data.formType === FormType.Service) {
+            console.log('[DeeployApp] Service deployment', data);
+            name = 'service';
+        }
+
+        downloadDataAsJson(data.deployment, `${name}-deployment-${Date.now()}.json`);
+    };
+
+    const onError = (errors) => {
+        console.log('Validation errors:', errors);
+    };
+
     return (
         <FormProvider {...form}>
-            <div className="w-full flex-1">
-                <div className="mx-auto max-w-[626px]">{!appType ? <AppTypeSelect /> : <DeeployWrapper />}</div>
-            </div>
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} key={formType || 'no-type'}>
+                <div className="w-full flex-1">
+                    <div className="mx-auto max-w-[626px]">{!formType ? <FormTypeSelect /> : <DeeployWrapper />}</div>
+                </div>
+            </form>
         </FormProvider>
     );
 }

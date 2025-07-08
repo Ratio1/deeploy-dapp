@@ -1,0 +1,1 @@
+export const PLUGIN_SIGNATURE_TYPES = ['SOME_PLUGIN_01', 'SOME_PLUGIN_02', 'SOME_PLUGIN_03'] as const;
