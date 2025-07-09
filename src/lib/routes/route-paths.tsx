@@ -5,6 +5,7 @@ export const routePath = {
     // Children of /deeploys
     dashboard: 'dashboard',
     deeployApp: 'deeploy-app',
+    legacyRequester: 'legacy-requester',
     //
     account: '/account',
     docs: '/docs',

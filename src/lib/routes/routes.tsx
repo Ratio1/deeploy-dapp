@@ -4,6 +4,7 @@ import PrivacyPolicy from '@pages/compliance/PrivacyPolicy';
 import TermsAndConditions from '@pages/compliance/T&C';
 import Dashboard from '@pages/deeploys/Dashboard';
 import DeeployApp from '@pages/deeploys/DeeployApp';
+import LegacyRequester from '@pages/deeploys/LegacyRequester';
 import Docs from '@pages/Docs';
 import Home from '@pages/Home';
 import Support from '@pages/Support';
@@ -58,6 +59,11 @@ export const routeInfo = {
         description: 'Create and configure a new app for deployment',
         routeTitle: 'Deeploy App',
     },
+    [`${routePath.deeploys}/${routePath.legacyRequester}`]: {
+        title: 'Legacy Requester',
+        description: 'Legacy interface for requesting deployments',
+        routeTitle: 'Legacy Requester',
+    },
     [routePath.account]: {
         title: 'Account',
         description: 'Manage your account & billing settings',
@@ -108,6 +114,10 @@ export const routes: AppRoute[] = [
                         <DeeployApp />
                     </DeploymentProvider>
                 ),
+            },
+            {
+                path: routePath.legacyRequester,
+                page: LegacyRequester,
             },
         ],
     },

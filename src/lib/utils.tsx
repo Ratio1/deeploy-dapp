@@ -74,3 +74,20 @@ export const arrayAverage = (numbers: number[]): number => {
     if (numbers.length === 0) return 0;
     return numbers.reduce((sum, num) => sum + num, 0) / numbers.length;
 };
+
+export function deepSort(obj: any): any {
+    if (Array.isArray(obj)) {
+        return obj.map(deepSort);
+    } else if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+        return Object.keys(obj)
+            .sort()
+            .reduce(
+                (acc, key) => {
+                    acc[key] = deepSort(obj[key]);
+                    return acc;
+                },
+                {} as Record<string, any>,
+            );
+    }
+    return obj;
+}
