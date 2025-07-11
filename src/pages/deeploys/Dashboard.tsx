@@ -68,25 +68,34 @@ function Dashboard() {
 
     return (
         <div className="col w-full flex-1 gap-5">
-            <CustomTabs
-                tabs={[
-                    {
-                        key: 'running',
-                        title: 'Running',
-                        icon: <RiBox3Line />,
-                        count: running.length,
-                    },
-                    {
-                        key: 'drafts',
-                        title: 'Drafts',
-                        icon: <RiFileTextLine />,
-                        count: drafts.length,
-                    },
-                ]}
-                onSelectionChange={(key) => {
-                    navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=${key}`);
-                }}
-            />
+            <div className="row justify-between">
+                <CustomTabs
+                    tabs={[
+                        {
+                            key: 'running',
+                            title: 'Running',
+                            icon: <RiBox3Line />,
+                            count: running.length,
+                        },
+                        {
+                            key: 'drafts',
+                            title: 'Drafts',
+                            icon: <RiFileTextLine />,
+                            count: drafts.length,
+                        },
+                    ]}
+                    onSelectionChange={(key) => {
+                        navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=${key}`);
+                    }}
+                />
+
+                {/* <Button className="bg-slate-200 px-3.5" color="default" variant="flat">
+                    <div className="row gap-1">
+                        <RiAddLine className="text-lg" />
+                        <div className="font-medium">Add Project</div>
+                    </div>
+                </Button> */}
+            </div>
 
             <div className="list">
                 <ListHeader>

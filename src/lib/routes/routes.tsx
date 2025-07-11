@@ -4,6 +4,7 @@ import PrivacyPolicy from '@pages/compliance/PrivacyPolicy';
 import TermsAndConditions from '@pages/compliance/T&C';
 import Dashboard from '@pages/deeploys/Dashboard';
 import DeeployApp from '@pages/deeploys/DeeployApp';
+import DeeployProject from '@pages/deeploys/DeeployProject';
 import Docs from '@pages/Docs';
 import Home from '@pages/Home';
 import Support from '@pages/Support';
@@ -58,6 +59,11 @@ export const routeInfo = {
         description: 'Create and configure a new app for deployment',
         routeTitle: 'Deeploy App',
     },
+    [`${routePath.deeploys}/${routePath.deeployProject}`]: {
+        title: 'Deployment',
+        description: 'Create and configure a new project for deployment',
+        routeTitle: 'Deeploy Project',
+    },
     [routePath.account]: {
         title: 'Account',
         description: 'Manage your account & billing settings',
@@ -106,6 +112,14 @@ export const routes: AppRoute[] = [
                 page: () => (
                     <DeploymentProvider>
                         <DeeployApp />
+                    </DeploymentProvider>
+                ),
+            },
+            {
+                path: routePath.deeployProject,
+                page: () => (
+                    <DeploymentProvider>
+                        <DeeployProject />
                     </DeploymentProvider>
                 ),
             },

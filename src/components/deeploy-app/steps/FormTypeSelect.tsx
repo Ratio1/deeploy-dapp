@@ -2,7 +2,6 @@ import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { FormType } from '@typedefs/deployment';
-import { useFormContext } from 'react-hook-form';
 import { RiBox3Line, RiDatabase2Line, RiTelegram2Line, RiTerminalBoxLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
 
@@ -44,7 +43,6 @@ const options: DeploymentOption[] = [
 
 function FormTypeSelect() {
     const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
-    const { setValue } = useFormContext();
 
     return (
         <div className="col gap-12">

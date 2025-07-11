@@ -2,9 +2,9 @@ import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { SERVICE_TYPES } from '@data/serviceTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import DynamicEnvSection from '@shared/deeploy-app/DynamicEnvSection';
-import InputWithLabel from '@shared/deeploy-app/InputWithLabel';
 import KeyValueEntriesSection from '@shared/deeploy-app/KeyValueEntriesSection';
 import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
+import InputWithLabel from '@shared/InputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
 

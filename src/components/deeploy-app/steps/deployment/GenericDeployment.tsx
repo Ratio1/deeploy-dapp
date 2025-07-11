@@ -2,10 +2,10 @@ import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import ContainerSection from '@shared/deeploy-app/ContainerSection';
 import DynamicEnvSection from '@shared/deeploy-app/DynamicEnvSection';
-import InputWithLabel from '@shared/deeploy-app/InputWithLabel';
 import KeyValueEntriesSection from '@shared/deeploy-app/KeyValueEntriesSection';
 import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
-import NumberInput from '@shared/NumberInput';
+import InputWithLabel from '@shared/InputWithLabel';
+import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
 
@@ -30,7 +30,7 @@ function GenericDeployment() {
             <SlateCard title="App Parameters">
                 <div className="col gap-4">
                     <div className="flex gap-4">
-                        <NumberInput name="deployment.port" label="Port" />
+                        <NumberInputWithLabel name="deployment.port" label="Port" />
                         <SelectWithLabel name="deployment.enableNgrok" label="Enable NGROK" options={BOOLEAN_TYPES} />
                     </div>
 

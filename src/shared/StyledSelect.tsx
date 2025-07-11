@@ -10,7 +10,7 @@ export default function StyledSelect({ options, ...props }: Props) {
             classNames={{
                 base: 'w-full',
                 trigger:
-                    'rounded-lg border !transition-shadow bg-[#fcfcfd] data-[hover=true]:border-slate-300 data-[focus=true]:border-slate-300 data-[open=true]:border-slate-400 data-[open=true]:shadow-testing',
+                    'rounded-lg border shadow-none !transition-shadow bg-[#fcfcfd] data-[hover=true]:border-slate-300 data-[focus=true]:border-slate-300 data-[open=true]:border-slate-400 data-[open=true]:shadow-custom',
             }}
             listboxProps={{
                 itemClasses: {

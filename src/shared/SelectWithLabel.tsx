@@ -1,5 +1,6 @@
 import StyledSelect from '@shared/StyledSelect';
 import { Controller, useFormContext } from 'react-hook-form';
+import Label from './Label';
 
 interface Props {
     name: string;
@@ -12,11 +13,7 @@ export default function SelectWithLabel({ name, label, options }: Props) {
 
     return (
         <div className="col w-full gap-2">
-            {label && (
-                <div className="row">
-                    <div className="text-sm font-medium text-slate-500">{label}</div>
-                </div>
-            )}
+            {label && <Label value={label} />}
 
             <Controller
                 name={name}
