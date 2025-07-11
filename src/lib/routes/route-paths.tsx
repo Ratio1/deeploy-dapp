@@ -16,4 +16,5 @@ export const routePath = {
     privacyPolicy: 'privacy-policy',
     //
     notFound: '/404',
+    tunnelsManager: '/tunnels-manager',
 };

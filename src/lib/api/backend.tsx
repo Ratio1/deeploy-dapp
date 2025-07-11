@@ -98,3 +98,26 @@ axiosBackend.interceptors.response.use(
         return error.response;
     },
 );
+
+// Tunnels API
+const tunnelsBaseUrl = 'https://ratio1-dev-debug.ngrok.dev';
+
+export async function get_tunnels() {
+    const { data } = await axios.get(`${tunnelsBaseUrl}/get_tunnels`);
+    return data;
+}
+
+export async function get_tunnel(id: string) {
+    const { data } = await axios.get(`${tunnelsBaseUrl}/get_tunnel/${id}`);
+    return data;
+}
+
+export async function new_tunnel(alias: string) {
+    const { data } = await axios.post(`${tunnelsBaseUrl}/new_tunnel`, { alias });
+    return data;
+}
+
+export async function delete_tunnel(id: string) {
+    const { data } = await axios.delete(`${tunnelsBaseUrl}/delete_tunnel?tunnel_id=${id}`);
+    return data;
+}

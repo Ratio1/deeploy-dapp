@@ -8,6 +8,7 @@ import LegacyRequester from '@pages/deeploys/LegacyRequester';
 import Docs from '@pages/Docs';
 import Home from '@pages/Home';
 import Support from '@pages/Support';
+import TunnelsManager from '@pages/TunnelsManager';
 import { JSX } from 'react';
 import { RiBox3Line, RiFileTextLine, RiHeadphoneLine, RiHomeLine, RiShieldLine, RiUser3Line } from 'react-icons/ri';
 import { routePath } from './route-paths';
@@ -90,6 +91,11 @@ export const routeInfo = {
     [routePath.notFound]: {
         title: 'Not Found',
     },
+    [routePath.tunnelsManager]: {
+        title: 'Tunnels Manager',
+        description: 'Manage your tunnels, create, delete, and link to your own domain',
+        routeTitle: 'Tunnels',
+    },
 };
 
 // Routes with icons are displayed in the main navigation
@@ -120,6 +126,11 @@ export const routes: AppRoute[] = [
                 page: LegacyRequester,
             },
         ],
+    },
+    {
+        path: routePath.tunnelsManager,
+        page: TunnelsManager,
+        icon: <RiBox3Line />,
     },
     {
         path: routePath.account,
