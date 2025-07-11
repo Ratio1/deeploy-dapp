@@ -20,14 +20,15 @@ function DeeployProject() {
         },
     });
 
-    const onSubmit = (data: z.infer<typeof projectSchema>) => {
+    const onSubmit = async (data: z.infer<typeof projectSchema>) => {
         const project = {
             ...data,
             datetime: new Date().toISOString(),
         };
 
-        db.projects.add(project);
-        navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`);
+        const id = await db.projects.add(project);
+
+        navigate(`${routePath.deeploys}/${routePath.project}/${id}`);
     };
 
     const onError = (errors) => {

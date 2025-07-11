@@ -12,11 +12,6 @@ function NetworkAndStatus() {
 
     return (
         <div className="col gap-2">
-            <div className="row mx-auto">
-                {/* TODO: */}
-                {/* <NetworkSelector /> */}
-            </div>
-
             <div className="row mx-auto gap-2 rounded-lg bg-slate-200 px-3.5 py-2.5">
                 <div className="center-all">
                     {isLoading ? (

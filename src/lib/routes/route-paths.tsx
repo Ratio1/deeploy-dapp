@@ -6,6 +6,7 @@ export const routePath = {
     dashboard: 'dashboard',
     deeployApp: 'deeploy-app',
     createProject: 'create-project',
+    project: 'project',
     //
     account: '/account',
     docs: '/docs',

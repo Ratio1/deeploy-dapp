@@ -1,4 +1,6 @@
+import Project from '@components/deeploys/Project';
 import { DeploymentProvider } from '@lib/contexts/deployment';
+import NotFound from '@pages/404';
 import Account from '@pages/Account';
 import PrivacyPolicy from '@pages/compliance/PrivacyPolicy';
 import TermsAndConditions from '@pages/compliance/T&C';
@@ -14,7 +16,7 @@ import { routePath } from './route-paths';
 
 export type BaseRoute = {
     path: string;
-    icon: JSX.Element;
+    icon?: JSX.Element;
 };
 
 export type SimpleRoute = BaseRoute & {
@@ -63,6 +65,10 @@ export const routeInfo = {
         title: 'Deployment',
         description: 'Create and configure a new project for deployment',
         routeTitle: 'Create Project',
+    },
+    [`${routePath.deeploys}/${routePath.project}`]: {
+        title: 'Project',
+        description: 'Create, edit & deploy your project',
     },
     [routePath.account]: {
         title: 'Account',
@@ -153,5 +159,14 @@ export const routes: AppRoute[] = [
                 page: PrivacyPolicy,
             },
         ],
+    },
+    // Routes which are not displayed in the main navigation
+    {
+        path: `${routePath.deeploys}/${routePath.project}/:id`,
+        page: Project,
+    },
+    {
+        path: routePath.notFound,
+        page: NotFound,
     },
 ];

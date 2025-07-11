@@ -18,8 +18,6 @@ function Dashboard() {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
 
-        console.log('[Dashboard] tab', tab);
-
         if (tab && (tab === 'running' || tab === 'drafts')) {
             setSelectedTab(tab);
         }

@@ -8,7 +8,7 @@ function NotFound() {
                 variant="red"
                 icon={<RiCloseLargeLine />}
                 title="404"
-                description={<div>The page or resource you're trying to reach is invalid or it doesn't exist anymore.</div>}
+                description={<div>The page or resource you're trying to reach is invalid or it doesn't exist anymore</div>}
                 largeTitle
             />
         </div>

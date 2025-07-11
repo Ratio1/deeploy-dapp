@@ -13,7 +13,10 @@ function Content() {
     useEffect(() => {
         // Exclude the root route
         if (location.pathname.length > 1) {
-            const path = Object.keys(routeInfo).find((p) => location.pathname === p);
+            // Sort keys first in order to prioritize child routes which are longer
+            const path = Object.keys(routeInfo)
+                .sort((a, b) => b.length - a.length)
+                .find((p) => location.pathname.startsWith(p));
 
             if (path) {
                 setTitle(routeInfo[path]?.title);
@@ -48,10 +51,7 @@ function Content() {
 
             <Outlet />
 
-            <div className="layoutBreak:hidden">
-                {/* TODO: */}
-                {/* <FooterMobile /> */}
-            </div>
+            <div className="layoutBreak:hidden">{/* TODO: Display a message to inform the user to switch to desktop */}</div>
         </div>
     );
 }
