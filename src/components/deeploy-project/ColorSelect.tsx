@@ -28,30 +28,31 @@ export default function ColorSelect() {
                         placeholder="Select a color"
                         renderValue={(items) => {
                             return items.map((item) => (
-                                <div key={item.key} className="row gap-2.5 py-1">
-                                    <div
-                                        className="mt-[1px] h-2.5 w-2.5 rounded-full"
-                                        style={{ backgroundColor: item.key as string }}
-                                    ></div>
-                                    <div className="font-medium">{item.textValue}</div>
-                                </div>
+                                <ColorOption
+                                    key={item.key}
+                                    colorHex={String(item.key as string)}
+                                    colorName={String(item.textValue as string)}
+                                />
                             ));
                         }}
                     >
                         {COLOR_TYPES.map((color) => (
                             <SelectItem key={color.hex} textValue={color.name}>
-                                <div className="row gap-2.5 py-1">
-                                    <div
-                                        className="mt-[1px] h-2.5 w-2.5 rounded-full"
-                                        style={{ backgroundColor: color.hex }}
-                                    ></div>
-                                    <div className="font-medium">{color.name}</div>
-                                </div>
+                                <ColorOption colorHex={color.hex} colorName={color.name} />
                             </SelectItem>
                         ))}
                     </StyledSelect>
                 )}
             />
+        </div>
+    );
+}
+
+function ColorOption({ colorHex, colorName }: { colorHex: string; colorName: string }) {
+    return (
+        <div className="row gap-2 py-1">
+            <div className="mt-[1px] h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colorHex }}></div>
+            <div className="font-medium">{colorName}</div>
         </div>
     );
 }
