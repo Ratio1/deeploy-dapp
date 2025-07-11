@@ -1,11 +1,16 @@
 import ProjectForm from '@components/deeploy-project/ProjectForm';
 import { COLOR_TYPES } from '@data/colorTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { routePath } from '@lib/routes/route-paths';
+import db from '@lib/storage/db';
 import { projectSchema } from '@schemas/project';
 import { FormProvider, useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 function DeeployProject() {
+    const navigate = useNavigate();
+
     const form = useForm<z.infer<typeof projectSchema>>({
         resolver: zodResolver(projectSchema),
         mode: 'onTouched',
@@ -16,12 +21,13 @@ function DeeployProject() {
     });
 
     const onSubmit = (data: z.infer<typeof projectSchema>) => {
-        const values = {
+        const project = {
             ...data,
             datetime: new Date().toISOString(),
         };
 
-        console.log('[DeeployProject] onSubmit', values);
+        db.projects.add(project);
+        navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`);
     };
 
     const onError = (errors) => {

@@ -34,6 +34,7 @@ function Account() {
                         icon: <RiBillLine />,
                     },
                 ]}
+                selectedKey={selectedTab}
                 onSelectionChange={(key) => {
                     navigate(`${routePath.account}?tab=${key}`);
                 }}
