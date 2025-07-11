@@ -1,10 +1,6 @@
-import { Select, SelectItem, SelectProps } from '@heroui/select';
+import { Select, SelectProps } from '@heroui/select';
 
-interface Props extends Omit<SelectProps, 'children'> {
-    options: readonly string[];
-}
-
-export default function StyledSelect({ options, ...props }: Props) {
+export default function StyledSelect({ children, ...props }: SelectProps) {
     return (
         <Select
             classNames={{
@@ -37,13 +33,7 @@ export default function StyledSelect({ options, ...props }: Props) {
             disallowEmptySelection={true}
             {...props}
         >
-            {options.map((option) => (
-                <SelectItem key={option} textValue={option}>
-                    <div className="row gap-2 py-1">
-                        <div className="font-medium">{option}</div>
-                    </div>
-                </SelectItem>
-            ))}
+            {children}
         </Select>
     );
 }

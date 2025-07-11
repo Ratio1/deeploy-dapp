@@ -59,10 +59,10 @@ export const routeInfo = {
         description: 'Create and configure a new app for deployment',
         routeTitle: 'Deeploy App',
     },
-    [`${routePath.deeploys}/${routePath.deeployProject}`]: {
+    [`${routePath.deeploys}/${routePath.createProject}`]: {
         title: 'Deployment',
         description: 'Create and configure a new project for deployment',
-        routeTitle: 'Deeploy Project',
+        routeTitle: 'Create Project',
     },
     [routePath.account]: {
         title: 'Account',
@@ -116,7 +116,7 @@ export const routes: AppRoute[] = [
                 ),
             },
             {
-                path: routePath.deeployProject,
+                path: routePath.createProject,
                 page: () => (
                     <DeploymentProvider>
                         <DeeployProject />
