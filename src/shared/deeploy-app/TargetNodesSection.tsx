@@ -16,12 +16,13 @@ export default function TargetNodesSection() {
     return (
         <div className="col gap-4" key={fields.length}>
             <div className="text-sm text-slate-500">
-                Your app will be deployed to <span className="font-medium text-primary">{targetNodesCount}</span> nodes
+                Your app will be deployed to <span className="font-medium text-primary">{targetNodesCount}</span> random nodes,
+                or to the nodes you specify below.
             </div>
 
             <div className="col gap-2">
                 {fields.length === 0 ? (
-                    <div className="text-sm text-slate-500">No target nodes added yet</div>
+                    <div className="text-sm italic text-slate-500">No target nodes added yet.</div>
                 ) : (
                     fields.map((field, index) => (
                         <div className="flex gap-3" key={field.id}>

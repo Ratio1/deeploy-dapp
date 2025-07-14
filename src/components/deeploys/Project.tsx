@@ -2,6 +2,7 @@ import GenericJobList from '@components/deeploy-project/GenericJobList';
 import NativeJobList from '@components/deeploy-project/NativeJobList';
 import ServiceJobList from '@components/deeploy-project/ServiceJobList';
 import { Spinner } from '@heroui/spinner';
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
@@ -46,6 +47,8 @@ const options: DeploymentOption[] = [
 ];
 
 export default function Project() {
+    const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
+
     const navigate = useNavigate();
     const { id } = useParams();
 
@@ -76,7 +79,7 @@ export default function Project() {
         return <></>;
     }
 
-    console.log('[Project]', project);
+    // console.log('[Project]', project);
 
     return (
         <div className="col gap-12">
@@ -139,7 +142,16 @@ export default function Project() {
 
                         <div className="row gap-2">
                             {options.map((option) => (
-                                <DeeployButton key={option.id} className="slate-button" color="default" onPress={() => {}}>
+                                <DeeployButton
+                                    key={option.id}
+                                    className="slate-button"
+                                    color="default"
+                                    onPress={() => {
+                                        // Job type selection is considered to be the 1st step
+                                        setStep(2);
+                                        setFormType(option.formType);
+                                    }}
+                                >
                                     <div className="row gap-1.5">
                                         <div className={`text-xl ${option.color}`}>{option.icon}</div>
                                         <div className="text-sm">{option.title}</div>

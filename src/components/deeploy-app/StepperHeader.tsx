@@ -6,7 +6,7 @@ interface Props {
     steps: string[];
 }
 
-function Stepper({ steps }: Props) {
+function StepperHeader({ steps }: Props) {
     const { formType, setFormType, step, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
@@ -56,4 +56,4 @@ function Stepper({ steps }: Props) {
     );
 }
 
-export default Stepper;
+export default StepperHeader;

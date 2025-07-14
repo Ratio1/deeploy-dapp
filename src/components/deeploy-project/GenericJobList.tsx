@@ -1,3 +1,4 @@
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import JobList from '@shared/deeploy-app/JobList';
 import { FormType } from '@typedefs/deployment';
 import { RiBox3Line } from 'react-icons/ri';
@@ -66,6 +67,8 @@ const genericJobs = [
 ];
 
 export default function GenericJobList() {
+    const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
+
     return (
         <JobList
             cardHeader={
@@ -95,6 +98,10 @@ export default function GenericJobList() {
                     </div>
                 </>
             )}
+            onAddJob={() => {
+                setStep(2);
+                setFormType(FormType.Generic);
+            }}
         />
     );
 }

@@ -1,3 +1,4 @@
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getShortAddress } from '@lib/utils';
 import JobList from '@shared/deeploy-app/JobList';
 import { FormType } from '@typedefs/deployment';
@@ -49,6 +50,8 @@ const serviceJobs = [
 ];
 
 export default function ServiceJobList() {
+    const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
+
     return (
         <JobList
             cardHeader={
@@ -78,6 +81,10 @@ export default function ServiceJobList() {
                     </div>
                 </>
             )}
+            onAddJob={() => {
+                setStep(2);
+                setFormType(FormType.Service);
+            }}
         />
     );
 }

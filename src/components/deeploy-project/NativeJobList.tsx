@@ -1,3 +1,4 @@
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import JobList from '@shared/deeploy-app/JobList';
 import { FormType } from '@typedefs/deployment';
 import { RiTerminalBoxLine } from 'react-icons/ri';
@@ -38,6 +39,8 @@ const nativeJobs = [
 ];
 
 export default function NativeJobList() {
+    const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
+
     return (
         <JobList
             cardHeader={
@@ -67,6 +70,10 @@ export default function NativeJobList() {
                     </div>
                 </>
             )}
+            onAddJob={() => {
+                setStep(2);
+                setFormType(FormType.Native);
+            }}
         />
     );
 }

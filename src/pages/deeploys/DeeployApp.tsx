@@ -1,5 +1,5 @@
 import DeeployWrapper from '@components/deeploy-app/DeeployWrapper';
-import FormTypeSelect from '@components/deeploy-app/steps/FormTypeSelect';
+import FormTypeSelect from '@components/deeploy-app/job-steps/FormTypeSelect';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CONTAINER_TYPES } from '@data/containerTypes';
@@ -29,7 +29,7 @@ function DeeployApp() {
             customMemory: '',
         },
         deployment: {
-            targetNodes: [{ address: '' }],
+            // targetNodes: [{ address: '' }],
             enableNgrok: BOOLEAN_TYPES[0],
         },
     });
@@ -154,7 +154,7 @@ function DeeployApp() {
             name = 'service';
         }
 
-        downloadDataAsJson(data.deployment, `${name}-deployment-${Date.now()}.json`);
+        // downloadDataAsJson(data.deployment, `${name}-deployment-${Date.now()}.json`);
     };
 
     const onError = (errors) => {

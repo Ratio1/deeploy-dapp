@@ -1,6 +1,6 @@
-import SubmitButton from '@components/deeploy-app/SubmitButton';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
+import SubmitButton from '@shared/SubmitButton';
 import SupportFooter from '@shared/SupportFooter';
 import { RiBox3Line } from 'react-icons/ri';
 import ColorSelect from './ColorSelect';

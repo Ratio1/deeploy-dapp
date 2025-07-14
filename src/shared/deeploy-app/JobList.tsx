@@ -11,11 +11,13 @@ export default function JobList({
     tableHeader,
     jobs,
     renderJob,
+    onAddJob,
 }: {
     cardHeader: React.ReactNode;
     tableHeader: React.ReactNode;
     jobs: Job[];
     renderJob: (job: Job) => React.ReactNode;
+    onAddJob: () => void;
 }) {
     return (
         <CompactCardWithHeader
@@ -23,7 +25,7 @@ export default function JobList({
                 <div className="row justify-between">
                     {cardHeader}
 
-                    <div className="-mr-1.5 cursor-pointer px-1.5 py-1 hover:opacity-60" onClick={() => {}}>
+                    <div className="-mr-1.5 cursor-pointer px-1.5 py-1 hover:opacity-60" onClick={onAddJob}>
                         <div className="row gap-0.5 text-slate-600">
                             <RiAddLine className="text-[17px]" />
                             <div className="text-sm font-medium">Add</div>

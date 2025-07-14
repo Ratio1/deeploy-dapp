@@ -19,7 +19,7 @@ export default function DynamicEnvSection() {
         <div className="col gap-4">
             <div className="col gap-4">
                 {fields.length === 0 ? (
-                    <div className="text-sm text-slate-500">No dynamic environment variables added yet</div>
+                    <div className="text-sm italic text-slate-500">No dynamic environment variables added yet.</div>
                 ) : (
                     fields.map((field, index) => {
                         // Get the error for this specific dynamic env entry

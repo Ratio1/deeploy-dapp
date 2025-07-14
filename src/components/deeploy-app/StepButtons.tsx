@@ -3,14 +3,14 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { customContainerTypeValue } from '@schemas/common';
 import { specificationsBaseKeys } from '@schemas/steps/specifications';
 import { FieldValues, useFormContext } from 'react-hook-form';
-import SubmitButton from './SubmitButton';
+import SubmitButton from '../../shared/SubmitButton';
 
 interface Props {
     steps: string[];
 }
 
 function StepButtons({ steps }: Props) {
-    const { step, setStep, setFormType, isPaymentConfirmed } = useDeploymentContext() as DeploymentContextType;
+    const { step, setStep, setFormType } = useDeploymentContext() as DeploymentContextType;
     const { trigger, getValues } = useFormContext();
 
     const getSpecificationsRequiredKeys = (values: FieldValues) => [
@@ -31,7 +31,7 @@ function StepButtons({ steps }: Props) {
     };
 
     const handleNextStep = async () => {
-        // Only the Specifications step requires validation
+        // Only the Specifications step requires intermediate validation
         if (step === 2) {
             const isValid = await isSpecificationsStepValid();
 
@@ -75,15 +75,8 @@ function StepButtons({ steps }: Props) {
             </div>
 
             {step < steps.length ? (
-                <Button
-                    type="button"
-                    color="primary"
-                    variant="solid"
-                    onPress={handleNextStep}
-                    isDisabled={step === 3 && !isPaymentConfirmed}
-                    // isDisabled={process.env.NODE_ENV === 'production' ? step === 3 && !isPaymentConfirmed : false}
-                >
-                    <div>{`Next step: ${steps[step]}`}</div>
+                <Button type="button" color="primary" variant="solid" onPress={handleNextStep}>
+                    <div>{`Next: ${steps[step]}`}</div>
                 </Button>
             ) : (
                 <SubmitButton />
