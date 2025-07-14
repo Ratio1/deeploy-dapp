@@ -32,7 +32,7 @@ function CreateProject() {
     };
 
     const onError = (errors) => {
-        console.log('[DeeployProject] Validation errors:', errors);
+        console.log('[CreateProject] Validation errors:', errors);
     };
 
     return (

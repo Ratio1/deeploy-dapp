@@ -50,7 +50,7 @@ body {
 }
 
 .big-title {
-    @apply text-lg font-semibold lg:text-[22px];
+    @apply text-lg font-semibold lg:text-[20px];
 }
 
 .list {
