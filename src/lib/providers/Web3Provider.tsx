@@ -1,12 +1,11 @@
 import Favicon from '@assets/favicon.png';
 import { accessAuth } from '@lib/api/backend';
-import { config, domains, environment, projectId } from '@lib/config';
+import { config, projectId } from '@lib/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { EthAddress } from '@typedefs/blockchain';
 import { ConnectKitProvider, getDefaultConfig, SIWEConfig, SIWEProvider } from 'connectkit';
 import { generateNonce, SiweMessage } from 'siwe';
 import { createConfig, WagmiProvider } from 'wagmi';
-import { routePath } from '../routes/route-paths';
 
 const siweConfig: SIWEConfig = {
     getNonce: async () => {
@@ -115,26 +114,6 @@ export const Web3Provider = ({ children }) => {
                             '--ck-connectbutton-font-weight': '600',
                         }}
                         options={{
-                            disclaimer: (
-                                <>
-                                    By connecting your wallet you agree to the{' '}
-                                    <a
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        href={`https://${domains[environment]}${routePath.termsAndConditions}`}
-                                    >
-                                        Terms & Conditions
-                                    </a>{' '}
-                                    and{' '}
-                                    <a
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        href={`https://${domains[environment]}${routePath.privacyPolicy}`}
-                                    >
-                                        Privacy Policy
-                                    </a>
-                                </>
-                            ),
                             enforceSupportedChains: true,
                         }}
                     >

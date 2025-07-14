@@ -78,14 +78,12 @@ export default function KeyValueEntriesSection({ name, label }: { name: string; 
                 </div>
             </div>
 
-            {fields.length < 10 && (
-                <div
-                    className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50"
-                    onClick={() => append({ key: '', value: '' })}
-                >
-                    <RiAddLine className="text-lg" /> Add
-                </div>
-            )}
+            <div
+                className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50"
+                onClick={() => append({ key: '', value: '' })}
+            >
+                <RiAddLine className="text-lg" /> Add
+            </div>
         </div>
     );
 }

@@ -9,4 +9,18 @@ db.version(1).stores({
     projects: '++id, name, color, datetime',
 });
 
+db.version(2)
+    .stores({
+        projects: '++id, name, color, datetime, jobs',
+    })
+    .upgrade((tx) => {
+        // Add empty jobs array to existing projects
+        return tx
+            .table('projects')
+            .toCollection()
+            .modify((project) => {
+                project.jobs = [];
+            });
+    });
+
 export default db;

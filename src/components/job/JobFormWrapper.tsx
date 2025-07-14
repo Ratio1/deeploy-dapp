@@ -44,16 +44,16 @@ function JobFormWrapper() {
             ...getBaseSchemaDefaults().deployment,
             port: '',
             envVars: [{ key: '', value: '' }],
-            dynamicEnvVars: [
-                {
-                    key: '',
-                    values: [
-                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
-                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
-                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
-                    ],
-                },
-            ],
+            // dynamicEnvVars: [
+            //     {
+            //         key: '',
+            //         values: [
+            //             { type: DYNAMIC_ENV_TYPES[0], value: '' },
+            //             { type: DYNAMIC_ENV_TYPES[0], value: '' },
+            //             { type: DYNAMIC_ENV_TYPES[0], value: '' },
+            //         ],
+            //     },
+            // ],
             restartPolicy: POLICY_TYPES[0],
             imagePullPolicy: POLICY_TYPES[0],
         },

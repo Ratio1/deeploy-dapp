@@ -27,6 +27,8 @@ export default function Project() {
     useEffect(() => {
         if (project === undefined) {
             navigate(routePath.notFound);
+        } else {
+            console.log('[Project]', project);
         }
     }, [project]);
 
@@ -41,8 +43,6 @@ export default function Project() {
     if (project === undefined) {
         return <></>;
     }
-
-    console.log('[Project]', project);
 
     return !formType ? <ProjectOverview project={project} /> : <JobFormWrapper />;
 }
