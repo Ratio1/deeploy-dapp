@@ -110,7 +110,7 @@ function JobFormButtons({ steps }: Props) {
                     <div>{`Next: ${steps[step]}`}</div>
                 </Button>
             ) : (
-                <SubmitButton />
+                <SubmitButton label="Add Job" />
             )}
         </div>
     );

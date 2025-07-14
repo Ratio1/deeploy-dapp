@@ -49,7 +49,7 @@ export default function ProjectOverview({ project }: { project: Project }) {
     const jobs = useLiveQuery(() => db.jobs.where('projectId').equals(project.id).toArray());
 
     useEffect(() => {
-        console.log('[ProjectOverview] Jobs', jobs);
+        console.log('[ProjectOverview]', project, jobs);
     }, [jobs]);
 
     return (

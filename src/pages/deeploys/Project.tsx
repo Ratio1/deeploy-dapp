@@ -26,8 +26,6 @@ export default function Project() {
     useEffect(() => {
         if (project === undefined) {
             navigate(routePath.notFound);
-        } else {
-            console.log('[Project]', project);
         }
     }, [project]);
 

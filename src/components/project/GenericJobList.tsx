@@ -19,7 +19,7 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
                     <div className="min-w-[128px]">Alias</div>
                     <div className="min-w-[106px]">Target Nodes</div>
                     <div className="min-w-[214px]">Container Type</div>
-                    <div className="min-w-[214px]">Container Image</div>
+                    <div className="min-w-[264px]">Container Image</div>
                 </>
             }
             jobs={jobs}
@@ -28,7 +28,7 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
                     <div className="min-w-[128px]">{job.deployment.appAlias}</div>
                     <div className="min-w-[106px]">{job.specifications.targetNodesCount}</div>
                     <div className="min-w-[214px]">{job.specifications.containerType}</div>
-                    <div className="flex min-w-[214px]">
+                    <div className="flex min-w-[264px]">
                         <div className="rounded-md border-2 border-slate-200 bg-slate-50 px-2 py-1">
                             {job.deployment.containerImage}
                         </div>
