@@ -1,9 +1,11 @@
+import GenericJobList from '@components/deeploy-project/GenericJobList';
+import NativeJobList from '@components/deeploy-project/NativeJobList';
+import ServiceJobList from '@components/deeploy-project/ServiceJobList';
 import { Spinner } from '@heroui/spinner';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import DeeployButton from '@shared/deeploy-app/DeeployButton';
-import GenericJobList from '@shared/deeploy-app/GenericJobList';
 import SupportFooter from '@shared/SupportFooter';
 import { FormType, type Project } from '@typedefs/deployment';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -43,84 +45,6 @@ const options: DeploymentOption[] = [
     },
 ];
 
-const nativeJobs = [
-    {
-        formType: FormType.Native,
-        specifications: {
-            applicationType: 'Web App',
-            targetNodesCount: 3,
-            containerType: 'MEDIUM (4 cores, 12 GB)',
-            cpu: 6,
-            memory: 12,
-        },
-        deployment: {
-            targetNodes: [],
-            enableNgrok: 'False',
-            appAlias: 'Native App',
-            pluginSignature: 'SOME_PLUGIN_02',
-            customParams: [
-                {
-                    key: 'KEY',
-                    value: 'VALUE',
-                },
-            ],
-            pipelineParams: [
-                {
-                    key: 'KEY',
-                    value: 'VALUE',
-                },
-            ],
-            pipelineInputType: 'Pipeline Input',
-            pipelineInputUri: 'https://uri.com',
-            chainstoreResponse: 'True',
-        },
-    },
-];
-
-const serviceJobs = [
-    {
-        formType: FormType.Service,
-        specifications: {
-            applicationType: 'Other',
-            targetNodesCount: 1,
-            containerType: 'HIGH (8 cores, 24 GB)',
-            cpu: 4,
-            memory: 4,
-        },
-        deployment: {
-            targetNodes: [],
-            enableNgrok: 'False',
-            serviceType: 'PostgreSQL',
-            envVars: [
-                {
-                    key: 'DB_PORT',
-                    value: '89',
-                },
-            ],
-            dynamicEnvVars: [
-                {
-                    key: 'DENVKEY',
-                    values: [
-                        {
-                            type: 'Static',
-                            value: 'A',
-                        },
-                        {
-                            type: 'Static',
-                            value: 'B',
-                        },
-                        {
-                            type: 'Static',
-                            value: 'C',
-                        },
-                    ],
-                },
-            ],
-            serviceReplica: '0xai_A-rqFlS6-9XR9g3LM0kuzshqg7gIjACFPMoqN0Co_8Lj',
-        },
-    },
-];
-
 export default function Project() {
     const navigate = useNavigate();
     const { id } = useParams();
@@ -156,61 +80,61 @@ export default function Project() {
 
     return (
         <div className="col gap-12">
-            {/* Header */}
-            <div className="flex items-start justify-between">
-                <div className="col gap-1">
+            <div className="col gap-8">
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                    <div className="col gap-1">
+                        <div className="row gap-2">
+                            <div className="mt-[1px] h-2.5 w-2.5 rounded-full" style={{ backgroundColor: project.color }}></div>
+                            <div className="text-xl font-semibold">{project.name}</div>
+                        </div>
+
+                        <div className="row gap-1.5 text-slate-500">
+                            <div className="text-sm font-medium">
+                                {new Date(project.datetime).toLocaleString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                    hour: 'numeric',
+                                    minute: 'numeric',
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="row gap-2">
-                        <div className="mt-[1px] h-2.5 w-2.5 rounded-full" style={{ backgroundColor: project.color }}></div>
-                        <div className="text-xl font-semibold">{project.name}</div>
-                    </div>
+                        <DeeployButton className="slate-button" color="default" onPress={() => {}}>
+                            <div className="text-sm">Cancel</div>
+                        </DeeployButton>
 
-                    <div className="row gap-1.5 text-slate-500">
-                        <div className="text-sm font-medium">
-                            {new Date(project.datetime).toLocaleString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                                hour: 'numeric',
-                                minute: 'numeric',
-                            })}
-                        </div>
+                        <DeeployButton className="slate-button" color="default" onPress={() => {}}>
+                            <div className="row gap-1.5">
+                                <RiSaveLine className="text-lg" />
+                                <div className="text-sm">Save Draft</div>
+                            </div>
+                        </DeeployButton>
+
+                        <DeeployButton
+                            color="primary"
+                            variant="solid"
+                            onPress={() => {
+                                console.log('Deeploy');
+                            }}
+                        >
+                            <div className="row gap-1.5">
+                                <RiBox3Line className="text-lg" />
+                                <div className="text-sm">Deeploy</div>
+                            </div>
+                        </DeeployButton>
                     </div>
                 </div>
 
-                <div className="row gap-2">
-                    <DeeployButton className="slate-button" color="default" onPress={() => {}}>
-                        <div className="text-sm">Cancel</div>
-                    </DeeployButton>
-
-                    <DeeployButton className="slate-button" color="default" onPress={() => {}}>
-                        <div className="row gap-1.5">
-                            <RiSaveLine className="text-lg" />
-                            <div className="text-sm">Save Draft</div>
-                        </div>
-                    </DeeployButton>
-
-                    <DeeployButton
-                        color="primary"
-                        variant="solid"
-                        onPress={() => {
-                            console.log('Deeploy');
-                        }}
-                    >
-                        <div className="row gap-1.5">
-                            <RiBox3Line className="text-lg" />
-                            <div className="text-sm">Deeploy</div>
-                        </div>
-                    </DeeployButton>
-                </div>
-            </div>
-
-            <div className="col gap-6">
                 {/* Add Job */}
                 <BorderedCard>
                     <div className="col items-center gap-2.5 text-center">
-                        <div className="row gap-1">
-                            <RiAddLine className="text-[22px]" />
-                            <div className="text-[17px] font-medium">Add Job</div>
+                        <div className="row gap-0.5">
+                            <RiAddLine className="text-xl" />
+                            <div className="font-medium">Add Job</div>
                         </div>
 
                         <div className="row gap-2">
@@ -228,6 +152,8 @@ export default function Project() {
 
                 {/* Jobs */}
                 <GenericJobList />
+                <NativeJobList />
+                <ServiceJobList />
             </div>
 
             <SupportFooter />
