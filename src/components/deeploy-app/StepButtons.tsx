@@ -47,7 +47,7 @@ function StepButtons({ steps }: Props) {
         <div className="row w-full justify-between pt-2">
             <div className="row gap-2">
                 <Button
-                    className="bg-slate-200"
+                    className="slate-button"
                     color="default"
                     variant="flat"
                     onPress={() => {

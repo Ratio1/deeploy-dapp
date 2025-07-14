@@ -75,7 +75,7 @@ function FormTypeSelect() {
                                 </div>
 
                                 <Button
-                                    className="h-9 bg-slate-200 px-3.5"
+                                    className="slate-button h-9 px-3.5"
                                     color="default"
                                     variant="flat"
                                     size="sm"

@@ -57,6 +57,11 @@ body {
     @apply col w-full gap-3 overflow-x-auto;
 }
 
+/* bg-[#e6ebf1] TODO: Remove */
+.slate-button {
+    @apply bg-[#e9edf2] hover:!opacity-75;
+}
+
 /* Safe padding for mobile devices */
 .nav-safe-padding {
     padding-bottom: env(safe-area-inset-bottom);
