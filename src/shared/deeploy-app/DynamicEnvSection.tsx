@@ -1,4 +1,5 @@
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
+import { SelectItem } from '@heroui/select';
 import StyledInput from '@shared/StyledInput';
 import StyledSelect from '@shared/StyledSelect';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
@@ -18,7 +19,7 @@ export default function DynamicEnvSection() {
         <div className="col gap-4">
             <div className="col gap-4">
                 {fields.length === 0 ? (
-                    <div className="text-sm text-slate-500">No dynamic environment variables added yet</div>
+                    <div className="text-sm italic text-slate-500">No dynamic environment variables added yet.</div>
                 ) : (
                     fields.map((field, index) => {
                         // Get the error for this specific dynamic env entry
@@ -62,7 +63,6 @@ export default function DynamicEnvSection() {
                                                     control={control}
                                                     render={({ field, fieldState }) => (
                                                         <StyledSelect
-                                                            options={DYNAMIC_ENV_TYPES}
                                                             selectedKeys={field.value ? [field.value] : []}
                                                             onSelectionChange={async (keys) => {
                                                                 const selectedKey = Array.from(keys)[0] as string;
@@ -72,7 +72,15 @@ export default function DynamicEnvSection() {
                                                             isInvalid={!!fieldState.error}
                                                             errorMessage={fieldState.error?.message}
                                                             placeholder="Select an option"
-                                                        />
+                                                        >
+                                                            {DYNAMIC_ENV_TYPES.map((envType) => (
+                                                                <SelectItem key={envType} textValue={envType}>
+                                                                    <div className="row gap-2 py-1">
+                                                                        <div className="font-medium">{envType}</div>
+                                                                    </div>
+                                                                </SelectItem>
+                                                            ))}
+                                                        </StyledSelect>
                                                     )}
                                                 />
                                             </div>

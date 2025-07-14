@@ -1,20 +1,20 @@
 import { DeploymentProvider } from '@lib/contexts/deployment';
+import NotFound from '@pages/404';
 import Account from '@pages/Account';
-import PrivacyPolicy from '@pages/compliance/PrivacyPolicy';
-import TermsAndConditions from '@pages/compliance/T&C';
+import CreateProject from '@pages/deeploys/CreateProject';
 import Dashboard from '@pages/deeploys/Dashboard';
-import DeeployApp from '@pages/deeploys/DeeployApp';
 import LegacyRequester from '@pages/deeploys/LegacyRequester';
+import Project from '@pages/deeploys/Project';
 import Docs from '@pages/Docs';
 import Home from '@pages/Home';
 import Support from '@pages/Support';
 import { JSX } from 'react';
-import { RiBox3Line, RiFileTextLine, RiHeadphoneLine, RiHomeLine, RiShieldLine, RiUser3Line } from 'react-icons/ri';
+import { RiBox3Line, RiFileTextLine, RiHeadphoneLine, RiHomeLine, RiUser3Line } from 'react-icons/ri';
 import { routePath } from './route-paths';
 
 export type BaseRoute = {
     path: string;
-    icon: JSX.Element;
+    icon?: JSX.Element;
 };
 
 export type SimpleRoute = BaseRoute & {
@@ -54,10 +54,14 @@ export const routeInfo = {
         title: 'Dashboard',
         description: 'An organized view of your deeployed apps',
     },
-    [`${routePath.deeploys}/${routePath.deeployApp}`]: {
+    [`${routePath.deeploys}/${routePath.createProject}`]: {
         title: 'Deployment',
-        description: 'Create and configure a new app for deployment',
-        routeTitle: 'Deeploy App',
+        description: 'Create and configure a new project for deployment',
+        routeTitle: 'Create Project',
+    },
+    [`${routePath.deeploys}/${routePath.project}`]: {
+        title: 'Project',
+        description: 'Create, edit and deploy your project',
     },
     [`${routePath.deeploys}/${routePath.legacyRequester}`]: {
         title: 'Legacy Requester',
@@ -75,17 +79,6 @@ export const routeInfo = {
     [routePath.support]: {
         title: 'Support',
         description: 'Get help and contact our support team',
-    },
-    [routePath.compliance]: {
-        title: 'Compliance',
-    },
-    [`${routePath.compliance}/${routePath.termsAndConditions}`]: {
-        title: 'Terms & Conditions',
-        description: 'Terms governing your use of our services',
-    },
-    [`${routePath.compliance}/${routePath.privacyPolicy}`]: {
-        title: 'Privacy Policy',
-        description: 'Understand how we handle and protect your personal data',
     },
     [routePath.notFound]: {
         title: 'Not Found',
@@ -108,10 +101,10 @@ export const routes: AppRoute[] = [
                 page: Dashboard,
             },
             {
-                path: routePath.deeployApp,
+                path: routePath.createProject,
                 page: () => (
                     <DeploymentProvider>
-                        <DeeployApp />
+                        <CreateProject />
                     </DeploymentProvider>
                 ),
             },
@@ -136,18 +129,17 @@ export const routes: AppRoute[] = [
         page: Support,
         icon: <RiHeadphoneLine />,
     },
+    // Routes which are not displayed in the main navigation
     {
-        path: routePath.compliance,
-        icon: <RiShieldLine />,
-        children: [
-            {
-                path: routePath.termsAndConditions,
-                page: TermsAndConditions,
-            },
-            {
-                path: routePath.privacyPolicy,
-                page: PrivacyPolicy,
-            },
-        ],
+        path: `${routePath.deeploys}/${routePath.project}/:id`,
+        page: () => (
+            <DeploymentProvider>
+                <Project />
+            </DeploymentProvider>
+        ),
+    },
+    {
+        path: routePath.notFound,
+        page: NotFound,
     },
 ];

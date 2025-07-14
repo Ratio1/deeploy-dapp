@@ -23,7 +23,7 @@ export default function KeyValueEntriesSection({ name, label }: { name: string; 
 
                 <div className="col gap-2">
                     {fields.length === 0 ? (
-                        <div className="text-sm text-slate-500">No entries added yet</div>
+                        <div className="text-sm italic text-slate-500">No entries added yet.</div>
                     ) : (
                         fields.map((field, index) => (
                             <div className="flex gap-3" key={field.id}>

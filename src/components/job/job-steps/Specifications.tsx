@@ -1,7 +1,7 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { CONTAINER_TYPES } from '@data/containerTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
-import NumberInput from '@shared/NumberInput';
+import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
 
@@ -18,14 +18,14 @@ function Specifications() {
                         label="Application Type"
                         options={APPLICATION_TYPES}
                     />
-                    <NumberInput name="specifications.targetNodesCount" label="Target Nodes Count" />
+                    <NumberInputWithLabel name="specifications.targetNodesCount" label="Target Nodes Count" />
                 </div>
             </SlateCard>
 
             <SlateCard title="Node Resource Requirements">
                 <div className="flex gap-4">
-                    <NumberInput name="specifications.cpu" label="CPU" />
-                    <NumberInput name="specifications.memory" label="Memory (GB)" />
+                    <NumberInputWithLabel name="specifications.cpu" label="CPU" />
+                    <NumberInputWithLabel name="specifications.memory" label="Memory (GB)" />
                 </div>
             </SlateCard>
 
@@ -37,8 +37,8 @@ function Specifications() {
                         <div className="-mb-2 text-sm font-medium">Custom Values</div>
 
                         <div className="flex gap-4">
-                            <NumberInput name="specifications.customCpu" label="CPU" />
-                            <NumberInput name="specifications.customMemory" label="Memory (MB)" />
+                            <NumberInputWithLabel name="specifications.customCpu" label="CPU" />
+                            <NumberInputWithLabel name="specifications.customMemory" label="Memory (MB)" />
                         </div>
                     </>
                 )}

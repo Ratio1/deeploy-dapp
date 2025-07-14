@@ -1,16 +1,12 @@
-import { Select, SelectItem, SelectProps } from '@heroui/select';
+import { Select, SelectProps } from '@heroui/select';
 
-interface Props extends Omit<SelectProps, 'children'> {
-    options: readonly string[];
-}
-
-export default function StyledSelect({ options, ...props }: Props) {
+export default function StyledSelect({ children, ...props }: SelectProps) {
     return (
         <Select
             classNames={{
                 base: 'w-full',
                 trigger:
-                    'rounded-lg border !transition-shadow bg-[#fcfcfd] data-[hover=true]:border-slate-300 data-[focus=true]:border-slate-300 data-[open=true]:border-slate-400 data-[open=true]:shadow-testing',
+                    'rounded-lg border shadow-none !transition-shadow bg-[#fcfcfd] data-[hover=true]:border-slate-300 data-[focus=true]:border-slate-300 data-[open=true]:border-slate-400 data-[open=true]:shadow-custom',
             }}
             listboxProps={{
                 itemClasses: {
@@ -37,13 +33,7 @@ export default function StyledSelect({ options, ...props }: Props) {
             disallowEmptySelection={true}
             {...props}
         >
-            {options.map((option) => (
-                <SelectItem key={option} textValue={option}>
-                    <div className="row gap-2 py-1">
-                        <div className="font-medium">{option}</div>
-                    </div>
-                </SelectItem>
-            ))}
+            {children}
         </Select>
     );
 }

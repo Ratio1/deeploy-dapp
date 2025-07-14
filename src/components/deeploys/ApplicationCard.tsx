@@ -5,7 +5,7 @@ import { DeeployApp } from '@typedefs/general';
 
 export default function ApplicationCard({ app }: { app: DeeployApp }) {
     return (
-        <BorderedCard isHoverable>
+        <BorderedCard>
             <div className="row justify-between gap-3 lg:gap-6">
                 <div className="min-w-[212px]">
                     <CardItem label="Version" value={<>{app.alias}</>} isBold />

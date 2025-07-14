@@ -21,7 +21,7 @@ function Overview() {
     return (
         <div className="w-full flex-1">
             <div className="grid w-full grid-cols-3 gap-5">
-                <CardWithHeader icon={<RiMoneyDollarCircleLine />} title="Balance">
+                <CardWithHeader icon={<RiMoneyDollarCircleLine className="-m-[1px] text-[20px]" />} title="Balance">
                     <div className="col h-full w-full gap-4">
                         <ValueWithLabel label="Amount in wallet" value={fBI(usdcBalance, 6)} prefix="$USDC" />
 

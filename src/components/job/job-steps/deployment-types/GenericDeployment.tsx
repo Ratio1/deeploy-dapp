@@ -1,14 +1,15 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
-import InputWithLabel from '@shared/deeploy-app/InputWithLabel';
+import ContainerSection from '@shared/deeploy-app/ContainerSection';
+import DynamicEnvSection from '@shared/deeploy-app/DynamicEnvSection';
 import KeyValueEntriesSection from '@shared/deeploy-app/KeyValueEntriesSection';
 import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
-import NumberInput from '@shared/NumberInput';
+import InputWithLabel from '@shared/InputWithLabel';
+import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
 
-function NativeDeployment() {
+function GenericDeployment() {
     const { watch } = useFormContext();
     const enableNgrok = watch('deployment.enableNgrok');
 
@@ -17,11 +18,6 @@ function NativeDeployment() {
             <SlateCard title="App Identity">
                 <div className="flex gap-4">
                     <InputWithLabel name="deployment.appAlias" label="Alias" placeholder="My App" />
-                    <SelectWithLabel
-                        name="deployment.pluginSignature"
-                        label="Plugin Signature"
-                        options={PLUGIN_SIGNATURE_TYPES}
-                    />
                 </div>
             </SlateCard>
 
@@ -29,10 +25,12 @@ function NativeDeployment() {
                 <TargetNodesSection />
             </SlateCard>
 
+            <ContainerSection />
+
             <SlateCard title="App Parameters">
                 <div className="col gap-4">
                     <div className="flex gap-4">
-                        <NumberInput name="deployment.port" label="Port" />
+                        <NumberInputWithLabel name="deployment.port" label="Port" />
                         <SelectWithLabel name="deployment.enableNgrok" label="Enable NGROK" options={BOOLEAN_TYPES} />
                     </div>
 
@@ -45,26 +43,26 @@ function NativeDeployment() {
                 </div>
             </SlateCard>
 
-            <SlateCard title="Custom Parameters">
-                <KeyValueEntriesSection name="deployment.customParams" />
+            <SlateCard title="ENV Variables">
+                <KeyValueEntriesSection name="deployment.envVars" />
             </SlateCard>
 
-            <SlateCard title="Pipeline">
-                <div className="col gap-4">
-                    <div className="flex gap-4">
-                        <InputWithLabel name="deployment.pipelineInputType" label="Pipeline Input Type" placeholder="None" />
-                        <InputWithLabel name="deployment.pipelineInputUri" label="Pipeline Input URI" placeholder="None" />
-                    </div>
+            <SlateCard title="Dynamic ENV Variables">
+                <DynamicEnvSection />
+            </SlateCard>
 
-                    <KeyValueEntriesSection name="deployment.pipelineParams" label="Pipeline Parameters" />
+            <SlateCard title="Policies">
+                <div className="flex gap-4">
+                    <SelectWithLabel name="deployment.restartPolicy" label="Restart Policy" options={['Always', 'Manual']} />
+                    <SelectWithLabel
+                        name="deployment.imagePullPolicy"
+                        label="Image Pull Policy"
+                        options={['Always', 'Manual']}
+                    />
                 </div>
-            </SlateCard>
-
-            <SlateCard title="Other">
-                <SelectWithLabel name="deployment.chainstoreResponse" label="Chainstore Response" options={BOOLEAN_TYPES} />
             </SlateCard>
         </div>
     );
 }
 
-export default NativeDeployment;
+export default GenericDeployment;

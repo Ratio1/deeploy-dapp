@@ -29,7 +29,7 @@ export default {
                 6: '6px',
             },
             boxShadow: {
-                testing: '0 0 0 3px #e2e8f0',
+                custom: '0 0 0 3px #e2e8f0',
             },
             width: {
                 sider: '270px',

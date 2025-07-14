@@ -50,11 +50,16 @@ body {
 }
 
 .big-title {
-    @apply text-lg font-semibold lg:text-[22px];
+    @apply text-lg font-semibold lg:text-[20px];
 }
 
 .list {
     @apply col w-full gap-3 overflow-x-auto;
+}
+
+/* bg-[#e6ebf1] TODO: Remove */
+.slate-button {
+    @apply bg-[#e9edf2] hover:!opacity-75;
 }
 
 /* Safe padding for mobile devices */

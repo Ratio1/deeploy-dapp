@@ -1,5 +1,5 @@
 import { SlateCard } from '@shared/cards/SlateCard';
-import InputWithLabel from './InputWithLabel';
+import InputWithLabel from '../InputWithLabel';
 
 export default function ContainerSection() {
     return (

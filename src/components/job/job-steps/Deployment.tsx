@@ -1,8 +1,8 @@
 import { FormType } from '@typedefs/deployment';
 import { useFormContext } from 'react-hook-form';
-import GenericDeployment from './deployment/GenericDeployment';
-import NativeDeployment from './deployment/NativeDeployment';
-import ServiceDeployment from './deployment/ServiceDeployment';
+import GenericDeployment from './deployment-types/GenericDeployment';
+import NativeDeployment from './deployment-types/NativeDeployment';
+import ServiceDeployment from './deployment-types/ServiceDeployment';
 
 function Deployment() {
     const { watch } = useFormContext();

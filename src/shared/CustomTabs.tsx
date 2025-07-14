@@ -4,6 +4,7 @@ import { SmallTag } from './SmallTag';
 
 export default function CustomTabs({
     tabs,
+    selectedKey,
     onSelectionChange,
 }: {
     tabs: {
@@ -12,6 +13,7 @@ export default function CustomTabs({
         icon: ReactNode;
         count?: number;
     }[];
+    selectedKey?: string;
     onSelectionChange: (key) => void;
 }) {
     return (
@@ -21,6 +23,7 @@ export default function CustomTabs({
             variant="bordered"
             radius="md"
             size="lg"
+            selectedKey={selectedKey}
             classNames={{
                 cursor: 'group-data-[selected=true]:bg-[#EFF2F6]',
                 tab: 'h-10',
@@ -38,7 +41,7 @@ export default function CustomTabs({
                         <div className="row gap-1.5">
                             <div className="text-lg">{tab.icon}</div>
                             {tab.title}
-                            {tab.count && (
+                            {!!tab.count && (
                                 <div className="mx-0.5">
                                     <SmallTag>{tab.count}</SmallTag>
                                 </div>

@@ -1,3 +1,4 @@
+// TODO: Deprecated
 type DeeployApp = {
     alias: string;
     pluginSignature: string;

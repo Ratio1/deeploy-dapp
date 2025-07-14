@@ -4,4 +4,12 @@ enum FormType {
     Service = 'Service',
 }
 
+type Project = {
+    id: number;
+    name: string;
+    color: string;
+    datetime: string;
+};
+
 export { FormType };
+export type { Project };
