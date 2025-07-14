@@ -2,8 +2,10 @@ import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
+import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { RiDraftLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
 
 function Drafts() {
@@ -64,6 +66,16 @@ function Drafts() {
                     </Link>
                 </div>
             ))}
+
+            {!drafts?.length && (
+                <div className="center-all w-full p-14">
+                    <EmptyData
+                        title="No drafts found"
+                        description="Saved project drafts will be displayed here."
+                        icon={<RiDraftLine />}
+                    />
+                </div>
+            )}
         </div>
     );
 }

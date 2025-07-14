@@ -1,6 +1,8 @@
 import ApplicationCard from '@components/deeploys/ApplicationCard';
+import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
 import { DeeployApp } from '@typedefs/general';
+import { RiDraftLine } from 'react-icons/ri';
 
 const running: DeeployApp[] = [
     {
@@ -46,6 +48,16 @@ function Running() {
                     <ApplicationCard app={app} />
                 </div>
             ))}
+
+            {!running?.length && (
+                <div className="center-all w-full p-14">
+                    <EmptyData
+                        title="No running apps"
+                        description="Deployed apps will be displayed here."
+                        icon={<RiDraftLine />}
+                    />
+                </div>
+            )}
         </div>
     );
 }
