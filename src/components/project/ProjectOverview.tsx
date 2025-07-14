@@ -1,18 +1,12 @@
-import GenericJobList from '@components/deeploy-project/GenericJobList';
-import NativeJobList from '@components/deeploy-project/NativeJobList';
-import ServiceJobList from '@components/deeploy-project/ServiceJobList';
-import { Spinner } from '@heroui/spinner';
+import GenericJobList from '@components/project/GenericJobList';
+import NativeJobList from '@components/project/NativeJobList';
+import ServiceJobList from '@components/project/ServiceJobList';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { routePath } from '@lib/routes/route-paths';
-import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import DeeployButton from '@shared/deeploy-app/DeeployButton';
 import SupportFooter from '@shared/SupportFooter';
 import { FormType, type Project } from '@typedefs/deployment';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect } from 'react';
 import { RiAddLine, RiBox3Line, RiDatabase2Line, RiSaveLine, RiTerminalBoxLine } from 'react-icons/ri';
-import { useNavigate, useParams } from 'react-router-dom';
 
 type DeploymentOption = {
     id: string;
@@ -46,40 +40,8 @@ const options: DeploymentOption[] = [
     },
 ];
 
-export default function Project() {
+export default function ProjectOverview({ project }: { project: Project }) {
     const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
-
-    const navigate = useNavigate();
-    const { id } = useParams();
-
-    const isValidId = id && !isNaN(parseInt(id)) && isFinite(parseInt(id));
-
-    // Only run the query if we have a valid ID
-    const project: Project | undefined | null = useLiveQuery(
-        isValidId ? () => db.projects.where('id').equals(parseInt(id)).first() : () => undefined,
-        [isValidId, id],
-        null, // Default value returned while data is loading
-    );
-
-    useEffect(() => {
-        if (project === undefined) {
-            navigate(routePath.notFound);
-        }
-    }, [project]);
-
-    if (project === null) {
-        return (
-            <div className="center-all w-full flex-1">
-                <Spinner />
-            </div>
-        );
-    }
-
-    if (project === undefined) {
-        return <></>;
-    }
-
-    // console.log('[Project]', project);
 
     return (
         <div className="col gap-12">

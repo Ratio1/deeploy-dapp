@@ -3,13 +3,14 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { customContainerTypeValue } from '@schemas/common';
 import { specificationsBaseKeys } from '@schemas/steps/specifications';
 import { FieldValues, useFormContext } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import SubmitButton from '../../shared/SubmitButton';
 
 interface Props {
     steps: string[];
 }
 
-function StepButtons({ steps }: Props) {
+function JobFormButtons({ steps }: Props) {
     const { step, setStep, setFormType } = useDeploymentContext() as DeploymentContextType;
     const { trigger, getValues } = useFormContext();
 
@@ -43,6 +44,36 @@ function StepButtons({ steps }: Props) {
         setStep(step + 1);
     };
 
+    const handleDownloadJson = async () => {
+        // Validate the entire form first
+        const isFormValid = await trigger();
+
+        if (!isFormValid) {
+            toast.error('Form validation failed, cannot download JSON.');
+            return;
+        }
+
+        const formData = getValues();
+
+        downloadDataAsJson(formData, `job-${formData.formType}-${Date.now()}.json`);
+    };
+
+    const downloadDataAsJson = (data: any, filename: string) => {
+        const jsonString = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Clean up the URL object
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <div className="row w-full justify-between pt-2">
             <div className="row gap-2">
@@ -63,7 +94,7 @@ function StepButtons({ steps }: Props) {
 
                 {step === 4 && (
                     <>
-                        <Button className="hover:!opacity-70" color="default" variant="bordered">
+                        <Button className="hover:!opacity-70" color="default" variant="bordered" onPress={handleDownloadJson}>
                             <div>Download JSON</div>
                         </Button>
 
@@ -85,4 +116,4 @@ function StepButtons({ steps }: Props) {
     );
 }
 
-export default StepButtons;
+export default JobFormButtons;

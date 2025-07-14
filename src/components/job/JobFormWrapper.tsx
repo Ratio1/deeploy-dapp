@@ -1,5 +1,8 @@
-import DeeployWrapper from '@components/deeploy-app/DeeployWrapper';
-import FormTypeSelect from '@components/deeploy-app/job-steps/FormTypeSelect';
+import Deployment from '@components/job/job-steps/Deployment';
+import PaymentSummary from '@components/job/job-steps/PaymentSummary';
+import Specifications from '@components/job/job-steps/Specifications';
+import JobFormButtons from '@components/job/JobFormButtons';
+import JobFormHeader from '@components/job/JobFormHeader';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CONTAINER_TYPES } from '@data/containerTypes';
@@ -15,8 +18,10 @@ import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-function DeeployApp() {
-    const { formType } = useDeploymentContext() as DeploymentContextType;
+const STEPS = ['Project', 'Specifications', 'Payment Summary', 'Deployment'];
+
+function JobFormWrapper() {
+    const { step, formType } = useDeploymentContext() as DeploymentContextType;
 
     const getBaseSchemaDefaults = () => ({
         specifications: {
@@ -29,7 +34,6 @@ function DeeployApp() {
             customMemory: '',
         },
         deployment: {
-            // targetNodes: [{ address: '' }],
             enableNgrok: BOOLEAN_TYPES[0],
         },
     });
@@ -118,58 +122,45 @@ function DeeployApp() {
         }
     }, [formType, form]);
 
-    const downloadDataAsJson = (data: any, filename: string) => {
-        const jsonString = JSON.stringify(data, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // Clean up the URL object
-        URL.revokeObjectURL(url);
-    };
-
     const onSubmit = (data: z.infer<typeof deeployAppSchema>) => {
-        console.log('[DeeployApp] onSubmit');
-
-        let name = '';
+        console.log('[JobFormWrapper] onSubmit');
 
         if (data.formType === FormType.Generic) {
-            console.log('[DeeployApp] Generic app deployment', data);
-            name = 'generic-app';
+            console.log('[JobFormWrapper] Generic app deployment', data);
         }
 
         if (data.formType === FormType.Native) {
-            console.log('[DeeployApp] Native app deployment', data);
-            name = 'native-app';
+            console.log('[JobFormWrapper] Native app deployment', data);
         }
 
         if (data.formType === FormType.Service) {
-            console.log('[DeeployApp] Service deployment', data);
-            name = 'service';
+            console.log('[JobFormWrapper] Service deployment', data);
         }
-
-        // downloadDataAsJson(data.deployment, `${name}-deployment-${Date.now()}.json`);
     };
 
     const onError = (errors) => {
-        console.log('Validation errors:', errors);
+        console.log('[JobFormWrapper] Validation errors:', errors);
     };
 
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit, onError)} key={formType || 'no-type'}>
                 <div className="w-full flex-1">
-                    <div className="mx-auto max-w-[626px]">{!formType ? <FormTypeSelect /> : <DeeployWrapper />}</div>
+                    <div className="mx-auto max-w-[626px]">
+                        <div className="col gap-6">
+                            <JobFormHeader steps={STEPS} />
+
+                            {step === 2 && <Specifications />}
+                            {step === 3 && <PaymentSummary />}
+                            {step === 4 && <Deployment />}
+
+                            <JobFormButtons steps={STEPS} />
+                        </div>
+                    </div>
                 </div>
             </form>
         </FormProvider>
     );
 }
 
-export default DeeployApp;
+export default JobFormWrapper;

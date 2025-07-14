@@ -6,7 +6,7 @@ interface Props {
     steps: string[];
 }
 
-function StepperHeader({ steps }: Props) {
+function JobFormHeader({ steps }: Props) {
     const { formType, setFormType, step, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
@@ -56,4 +56,4 @@ function StepperHeader({ steps }: Props) {
     );
 }
 
-export default StepperHeader;
+export default JobFormHeader;

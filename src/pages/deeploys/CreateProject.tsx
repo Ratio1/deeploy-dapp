@@ -1,4 +1,4 @@
-import ProjectForm from '@components/deeploy-project/ProjectForm';
+import ProjectForm from '@components/create-project/ProjectForm';
 import { COLOR_TYPES } from '@data/colorTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { routePath } from '@lib/routes/route-paths';
@@ -8,7 +8,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
-function DeeployProject() {
+function CreateProject() {
     const navigate = useNavigate();
 
     const form = useForm<z.infer<typeof projectSchema>>({
@@ -48,4 +48,4 @@ function DeeployProject() {
     );
 }
 
-export default DeeployProject;
+export default CreateProject;
