@@ -1,6 +1,6 @@
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import JobList from '@shared/deeploy-app/JobList';
-import { FormType } from '@typedefs/deployment';
+import { FormType, NativeJob } from '@typedefs/deployment';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
 const nativeJobs = [
@@ -38,7 +38,7 @@ const nativeJobs = [
     },
 ];
 
-export default function NativeJobList() {
+export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
     const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (

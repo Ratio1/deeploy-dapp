@@ -1,7 +1,7 @@
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getShortAddress } from '@lib/utils';
 import JobList from '@shared/deeploy-app/JobList';
-import { FormType } from '@typedefs/deployment';
+import { FormType, ServiceJob } from '@typedefs/deployment';
 import { RiDatabase2Line } from 'react-icons/ri';
 
 const serviceJobs = [
@@ -49,7 +49,7 @@ const serviceJobs = [
     },
 ];
 
-export default function ServiceJobList() {
+export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
     const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (

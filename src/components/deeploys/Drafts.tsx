@@ -11,8 +11,6 @@ import { Link } from 'react-router-dom';
 function Drafts() {
     const drafts = useLiveQuery(() => db.projects.toArray());
 
-    console.log('[Drafts]', drafts);
-
     return (
         <div className="list">
             <ListHeader>

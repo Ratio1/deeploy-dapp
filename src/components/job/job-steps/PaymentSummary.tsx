@@ -14,7 +14,7 @@ function PaymentSummary() {
         },
         {
             label: 'Target Nodes',
-            value: specifications.targetNodesCount ? specifications.targetNodesCount.toString() : 'N/A',
+            value: specifications.targetNodesCount,
         },
         {
             label: 'GPU/CPU',

@@ -15,6 +15,7 @@ enum FormType {
 
 type BaseJob = {
     id: number;
+    projectId: number;
     formType: FormType;
     specifications: JobSpecifications;
 };
@@ -103,8 +104,7 @@ type Project = {
     name: string;
     color: string;
     datetime: string;
-    jobs: Job[];
 };
 
 export { FormType };
-export type { Job, Project };
+export type { GenericJob, Job, NativeJob, Project, ServiceJob };

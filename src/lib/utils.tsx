@@ -74,3 +74,5 @@ export const arrayAverage = (numbers: number[]): number => {
     if (numbers.length === 0) return 0;
     return numbers.reduce((sum, num) => sum + num, 0) / numbers.length;
 };
+
+export const isValidId = (id: string | undefined) => id && !isNaN(parseInt(id)) && isFinite(parseInt(id));

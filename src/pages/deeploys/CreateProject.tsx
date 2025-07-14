@@ -5,6 +5,7 @@ import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { projectSchema } from '@schemas/project';
 import { FormProvider, useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
@@ -26,9 +27,13 @@ function CreateProject() {
             datetime: new Date().toISOString(),
         };
 
-        const id = await db.projects.add(project);
-
-        navigate(`${routePath.deeploys}/${routePath.project}/${id}`);
+        try {
+            const id = await db.projects.add(project);
+            navigate(`${routePath.deeploys}/${routePath.project}/${id}`);
+        } catch (error) {
+            console.error('[CreateProject] Error adding project:', error);
+            toast.error('Failed to create project.');
+        }
     };
 
     const onError = (errors) => {

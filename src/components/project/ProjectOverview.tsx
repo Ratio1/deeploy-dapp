@@ -2,10 +2,13 @@ import GenericJobList from '@components/project/GenericJobList';
 import NativeJobList from '@components/project/NativeJobList';
 import ServiceJobList from '@components/project/ServiceJobList';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import DeeployButton from '@shared/deeploy-app/DeeployButton';
 import SupportFooter from '@shared/SupportFooter';
 import { FormType, type Project } from '@typedefs/deployment';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { useEffect } from 'react';
 import { RiAddLine, RiBox3Line, RiDatabase2Line, RiSaveLine, RiTerminalBoxLine } from 'react-icons/ri';
 
 type DeploymentOption = {
@@ -42,6 +45,12 @@ const options: DeploymentOption[] = [
 
 export default function ProjectOverview({ project }: { project: Project }) {
     const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
+
+    const jobs = useLiveQuery(() => db.jobs.where('projectId').equals(project.id).toArray());
+
+    useEffect(() => {
+        console.log('[ProjectOverview] Jobs', jobs);
+    }, [jobs]);
 
     return (
         <div className="col gap-12">
@@ -125,9 +134,19 @@ export default function ProjectOverview({ project }: { project: Project }) {
                 </BorderedCard>
 
                 {/* Jobs */}
-                <GenericJobList />
-                <NativeJobList />
-                <ServiceJobList />
+                {!!jobs && jobs.length && (
+                    <>
+                        {jobs.filter((job) => job.formType === FormType.Generic).length > 0 && (
+                            <GenericJobList jobs={jobs.filter((job) => job.formType === FormType.Generic)} />
+                        )}
+                        {jobs.filter((job) => job.formType === FormType.Native).length > 0 && (
+                            <NativeJobList jobs={jobs.filter((job) => job.formType === FormType.Native)} />
+                        )}
+                        {jobs.filter((job) => job.formType === FormType.Service).length > 0 && (
+                            <ServiceJobList jobs={jobs.filter((job) => job.formType === FormType.Service)} />
+                        )}
+                    </>
+                )}
             </div>
 
             <SupportFooter />
