@@ -1,9 +1,9 @@
 import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { BorderedCard } from '@shared/cards/BorderedCard';
+import SupportFooter from '@shared/SupportFooter';
 import { FormType } from '@typedefs/deployment';
-import { RiBox3Line, RiDatabase2Line, RiTelegram2Line, RiTerminalBoxLine } from 'react-icons/ri';
-import { Link } from 'react-router-dom';
+import { RiBox3Line, RiDatabase2Line, RiTerminalBoxLine } from 'react-icons/ri';
 
 type DeploymentOption = {
     id: string;
@@ -93,29 +93,7 @@ function FormTypeSelect() {
                 </div>
             </div>
 
-            <div className="col items-center gap-5 text-center">
-                <div className="col gap-2.5">
-                    <div className="font-semibold leading-none">Need Help?</div>
-                    <div className="text-[15px] leading-none text-slate-500">
-                        Connect with our support team for any questions or assistance.
-                    </div>
-                </div>
-
-                <Button
-                    className="h-9 bg-slate-200 px-3.5"
-                    color="default"
-                    variant="flat"
-                    size="sm"
-                    as={Link}
-                    to="https://t.me/Ratio1Protocol"
-                    target="_blank"
-                >
-                    <div className="row gap-1.5">
-                        <div className="text-sm font-medium">Contact Support</div>
-                        <RiTelegram2Line className="text-xl" />
-                    </div>
-                </Button>
-            </div>
+            <SupportFooter />
         </div>
     );
 }

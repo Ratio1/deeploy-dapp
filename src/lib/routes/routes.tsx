@@ -68,7 +68,7 @@ export const routeInfo = {
     },
     [`${routePath.deeploys}/${routePath.project}`]: {
         title: 'Project',
-        description: 'Create, edit & deploy your project',
+        description: 'Create, edit and deploy your project',
     },
     [routePath.account]: {
         title: 'Account',
