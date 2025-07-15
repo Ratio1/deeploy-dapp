@@ -1,10 +1,10 @@
 import ProjectOverview from '@components/project/ProjectOverview';
-import { Spinner } from '@heroui/spinner';
+import { Skeleton } from '@heroui/skeleton';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { isValidId } from '@lib/utils';
-import { type Project } from '@typedefs/deployment';
+import { Job, type Project } from '@typedefs/deployment';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -23,16 +23,31 @@ export default function Project() {
         null, // Default value returned while data is loading
     );
 
+    const jobs: Job[] | undefined = useLiveQuery(
+        project ? () => db.jobs.where('projectId').equals(project.id).toArray() : () => undefined,
+        [project],
+    );
+
     useEffect(() => {
         if (project === undefined) {
             navigate(routePath.notFound);
         }
     }, [project]);
 
+    useEffect(() => {
+        console.log('[Project]', jobs);
+    }, [jobs]);
+
     if (project === null) {
         return (
-            <div className="center-all w-full flex-1">
-                <Spinner />
+            <div className="col w-full flex-1 gap-6">
+                <div className="row w-full justify-between">
+                    <Skeleton className="min-h-[52px] w-full max-w-[220px] rounded-lg" />
+                    <Skeleton className="min-h-[52px] w-full max-w-[330px] rounded-lg" />
+                </div>
+
+                <Skeleton className="min-h-[88px] w-full rounded-lg" />
+                <Skeleton className="min-h-[108px] w-full rounded-lg" />
             </div>
         );
     }
@@ -41,5 +56,5 @@ export default function Project() {
         return <></>;
     }
 
-    return !formType ? <ProjectOverview project={project} /> : <JobFormWrapper />;
+    return !formType ? <ProjectOverview project={project} jobs={jobs} /> : <JobFormWrapper />;
 }

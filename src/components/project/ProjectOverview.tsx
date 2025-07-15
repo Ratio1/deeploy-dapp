@@ -2,14 +2,15 @@ import GenericJobList from '@components/project/GenericJobList';
 import NativeJobList from '@components/project/NativeJobList';
 import ServiceJobList from '@components/project/ServiceJobList';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import db from '@lib/storage/db';
+import { routePath } from '@lib/routes/route-paths';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import DeeployButton from '@shared/deeploy-app/DeeployButton';
 import SupportFooter from '@shared/SupportFooter';
-import { FormType, type Project } from '@typedefs/deployment';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { FormType, Job, type Project } from '@typedefs/deployment';
 import { useEffect } from 'react';
-import { RiAddLine, RiBox3Line, RiDatabase2Line, RiSaveLine, RiTerminalBoxLine } from 'react-icons/ri';
+import { RiAddLine, RiBox3Line, RiDatabase2Line, RiDeleteBin2Line, RiTerminalBoxLine } from 'react-icons/ri';
+import { Link } from 'react-router-dom';
+import ProjectIdentity from './ProjectIdentity';
 import ProjectStats from './ProjectStats';
 
 type DeploymentOption = {
@@ -44,10 +45,8 @@ const options: DeploymentOption[] = [
     },
 ];
 
-export default function ProjectOverview({ project }: { project: Project }) {
+export default function ProjectOverview({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
     const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
-
-    const jobs = useLiveQuery(() => db.jobs.where('projectId').equals(project.id).toArray());
 
     useEffect(() => {
         console.log('[ProjectOverview]', project, jobs);
@@ -58,34 +57,22 @@ export default function ProjectOverview({ project }: { project: Project }) {
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <div className="col gap-1">
-                        <div className="row gap-2">
-                            <div className="mt-[1px] h-2.5 w-2.5 rounded-full" style={{ backgroundColor: project.color }}></div>
-                            <div className="text-xl font-semibold">{project.name}</div>
-                        </div>
-
-                        <div className="row gap-1.5 text-slate-500">
-                            <div className="text-sm font-medium">
-                                {new Date(project.datetime).toLocaleString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric',
-                                    hour: 'numeric',
-                                    minute: 'numeric',
-                                })}
-                            </div>
-                        </div>
-                    </div>
+                    <ProjectIdentity project={project} />
 
                     <div className="row gap-2">
-                        <DeeployButton className="slate-button" color="default" onPress={() => {}}>
+                        <DeeployButton
+                            className="slate-button"
+                            color="default"
+                            as={Link}
+                            to={`${routePath.deeploys}/${routePath.dashboard}`}
+                        >
                             <div className="text-sm">Cancel</div>
                         </DeeployButton>
 
-                        <DeeployButton className="slate-button" color="default" onPress={() => {}}>
+                        <DeeployButton className="bg-red-500" color="danger" onPress={() => {}}>
                             <div className="row gap-1.5">
-                                <RiSaveLine className="text-lg" />
-                                <div className="text-sm">Save Draft</div>
+                                <RiDeleteBin2Line className="text-lg" />
+                                <div className="text-sm">Delete Draft</div>
                             </div>
                         </DeeployButton>
 
@@ -95,6 +82,7 @@ export default function ProjectOverview({ project }: { project: Project }) {
                             onPress={() => {
                                 console.log('Deeploy');
                             }}
+                            isDisabled={jobs?.length === 0}
                         >
                             <div className="row gap-1.5">
                                 <RiBox3Line className="text-lg" />
@@ -138,7 +126,7 @@ export default function ProjectOverview({ project }: { project: Project }) {
                 </BorderedCard>
 
                 {/* Jobs */}
-                {!!jobs && jobs.length && (
+                {!!jobs && !!jobs.length && (
                     <>
                         {jobs.filter((job) => job.formType === FormType.Generic).length > 0 && (
                             <GenericJobList jobs={jobs.filter((job) => job.formType === FormType.Generic)} />
