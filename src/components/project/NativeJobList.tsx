@@ -3,41 +3,6 @@ import JobList from '@shared/deeploy-app/JobList';
 import { FormType, NativeJob } from '@typedefs/deployment';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
-const nativeJobs = [
-    {
-        id: 2,
-        formType: FormType.Native,
-        specifications: {
-            applicationType: 'Web App',
-            targetNodesCount: 2,
-            containerType: 'MEDIUM (4 cores, 12 GB)',
-            cpu: 6,
-            memory: 12,
-        },
-        deployment: {
-            targetNodes: [],
-            enableNgrok: 'False',
-            appAlias: 'Native App',
-            pluginSignature: 'SOME_PLUGIN_02',
-            customParams: [
-                {
-                    key: 'KEY',
-                    value: 'VALUE',
-                },
-            ],
-            pipelineParams: [
-                {
-                    key: 'KEY',
-                    value: 'VALUE',
-                },
-            ],
-            pipelineInputType: 'Pipeline Input',
-            pipelineInputUri: 'https://pipeline-uri.io',
-            chainstoreResponse: 'True',
-        },
-    },
-];
-
 export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
     const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
 
@@ -57,7 +22,7 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
                     <div className="min-w-[214px]">Pipeline Input URI</div>
                 </>
             }
-            jobs={nativeJobs}
+            jobs={jobs}
             renderJob={(job) => (
                 <>
                     <div className="min-w-[128px]">{job.deployment.appAlias}</div>

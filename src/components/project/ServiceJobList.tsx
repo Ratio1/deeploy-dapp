@@ -4,51 +4,6 @@ import JobList from '@shared/deeploy-app/JobList';
 import { FormType, ServiceJob } from '@typedefs/deployment';
 import { RiDatabase2Line } from 'react-icons/ri';
 
-const serviceJobs = [
-    {
-        id: 3,
-        formType: FormType.Service,
-        specifications: {
-            applicationType: 'Other',
-            targetNodesCount: 1,
-            containerType: 'HIGH (8 cores, 24 GB)',
-            cpu: 4,
-            memory: 4,
-        },
-        deployment: {
-            targetNodes: [],
-            enableNgrok: 'False',
-            serviceType: 'PostgreSQL',
-            envVars: [
-                {
-                    key: 'DB_PORT',
-                    value: '89',
-                },
-            ],
-            dynamicEnvVars: [
-                {
-                    key: 'DENVKEY',
-                    values: [
-                        {
-                            type: 'Static',
-                            value: 'A',
-                        },
-                        {
-                            type: 'Static',
-                            value: 'B',
-                        },
-                        {
-                            type: 'Static',
-                            value: 'C',
-                        },
-                    ],
-                },
-            ],
-            serviceReplica: '0xai_A-rqFlS6-9XR9g3LM0kuzshqg7gIjACFPMoqN0Co_8Lj',
-        },
-    },
-];
-
 export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
     const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
 
@@ -68,7 +23,7 @@ export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
                     <div className="min-w-[214px]">Service Replica</div>
                 </>
             }
-            jobs={serviceJobs}
+            jobs={jobs}
             renderJob={(job) => (
                 <>
                     <div className="min-w-[128px]">{job.deployment.serviceType}</div>

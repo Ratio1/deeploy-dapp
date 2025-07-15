@@ -97,10 +97,6 @@ function JobFormButtons({ steps }: Props) {
                         <Button className="hover:!opacity-70" color="default" variant="bordered" onPress={handleDownloadJson}>
                             <div>Download JSON</div>
                         </Button>
-
-                        <Button className="hover:!opacity-70" color="default" variant="bordered">
-                            <div>Save Draft</div>
-                        </Button>
                     </>
                 )}
             </div>

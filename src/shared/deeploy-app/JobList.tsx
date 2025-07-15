@@ -23,7 +23,12 @@ export default function JobList({
         <CompactCardWithHeader
             header={
                 <div className="row justify-between">
-                    {cardHeader}
+                    <div className="row gap-2">
+                        {cardHeader}
+                        <div className="center-all h-5 w-5 rounded-full bg-light">
+                            <div className="text-xs font-medium text-slate-600">{jobs.length}</div>
+                        </div>
+                    </div>
 
                     <div className="-mr-1.5 cursor-pointer px-1.5 py-1 hover:opacity-60" onClick={onAddJob}>
                         <div className="row gap-0.5 text-slate-600">

@@ -10,6 +10,7 @@ import { FormType, type Project } from '@typedefs/deployment';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
 import { RiAddLine, RiBox3Line, RiDatabase2Line, RiSaveLine, RiTerminalBoxLine } from 'react-icons/ri';
+import ProjectStats from './ProjectStats';
 
 type DeploymentOption = {
     id: string;
@@ -54,7 +55,7 @@ export default function ProjectOverview({ project }: { project: Project }) {
 
     return (
         <div className="col gap-12">
-            <div className="col gap-8">
+            <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
                     <div className="col gap-1">
@@ -102,6 +103,9 @@ export default function ProjectOverview({ project }: { project: Project }) {
                         </DeeployButton>
                     </div>
                 </div>
+
+                {/* Stats */}
+                <ProjectStats jobs={jobs} project={project} />
 
                 {/* Add Job */}
                 <BorderedCard>
