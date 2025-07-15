@@ -1,4 +1,5 @@
 import ProjectOverview from '@components/project/ProjectOverview';
+import ProjectPayment from '@components/project/ProjectPayment';
 import { Skeleton } from '@heroui/skeleton';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
@@ -7,13 +8,14 @@ import { isValidId } from '@lib/utils';
 import { Job, type Project } from '@typedefs/deployment';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import JobFormWrapper from '../../components/job/JobFormWrapper';
 
 export default function Project() {
     const { formType } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
+    const { pathname } = useLocation();
     const { id } = useParams();
 
     // Only run the query if we have a valid ID
@@ -35,8 +37,8 @@ export default function Project() {
     }, [project]);
 
     useEffect(() => {
-        console.log('[Project]', jobs);
-    }, [jobs]);
+        console.log('[Project] pathname', pathname);
+    }, [pathname]);
 
     if (project === null) {
         return (
@@ -56,5 +58,15 @@ export default function Project() {
         return <></>;
     }
 
-    return !formType ? <ProjectOverview project={project} jobs={jobs} /> : <JobFormWrapper />;
+    return !formType ? (
+        <>
+            {pathname.includes(routePath.payment) ? (
+                <ProjectPayment project={project} jobs={jobs} />
+            ) : (
+                <ProjectOverview project={project} jobs={jobs} />
+            )}
+        </>
+    ) : (
+        <JobFormWrapper />
+    );
 }

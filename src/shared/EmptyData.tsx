@@ -6,8 +6,8 @@ interface Props {
 
 export default function EmptyData({ title, description, icon }: Props) {
     return (
-        <div className="col items-center gap-2.5">
-            <div className="text-3xl text-primary-600">{icon}</div>
+        <div className="col items-center gap-2">
+            <div className="text-[28px] text-primary-600">{icon}</div>
 
             <div className="col text-center">
                 <div className="font-medium text-primary-600">{title}</div>

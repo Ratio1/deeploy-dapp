@@ -8,7 +8,7 @@ import DeeployButton from '@shared/deeploy-app/DeeployButton';
 import SupportFooter from '@shared/SupportFooter';
 import { FormType, Job, type Project } from '@typedefs/deployment';
 import { useEffect } from 'react';
-import { RiAddLine, RiBox3Line, RiDatabase2Line, RiDeleteBin2Line, RiTerminalBoxLine } from 'react-icons/ri';
+import { RiAddLine, RiBox3Line, RiDatabase2Line, RiDeleteBin2Line, RiTerminalBoxLine, RiWalletLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
 import ProjectIdentity from './ProjectIdentity';
 import ProjectStats from './ProjectStats';
@@ -49,8 +49,8 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
     const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     useEffect(() => {
-        console.log('[ProjectOverview]', project, jobs);
-    }, [jobs]);
+        console.log('[ProjectOverview]', project);
+    }, [project]);
 
     return (
         <div className="col gap-12">
@@ -66,7 +66,7 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                             as={Link}
                             to={`${routePath.deeploys}/${routePath.dashboard}`}
                         >
-                            <div className="text-sm">Cancel</div>
+                            <div className="text-sm font-medium">Cancel</div>
                         </DeeployButton>
 
                         <DeeployButton className="bg-red-500" color="danger" onPress={() => {}}>
@@ -77,16 +77,15 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                         </DeeployButton>
 
                         <DeeployButton
-                            color="primary"
+                            color="success"
                             variant="solid"
-                            onPress={() => {
-                                console.log('Deeploy');
-                            }}
+                            as={Link}
+                            to={`${routePath.deeploys}/${routePath.project}/${project.id}/${routePath.payment}`}
                             isDisabled={jobs?.length === 0}
                         >
                             <div className="row gap-1.5">
-                                <RiBox3Line className="text-lg" />
-                                <div className="text-sm">Deeploy</div>
+                                <RiWalletLine className="text-lg" />
+                                <div className="text-sm font-medium">Payment</div>
                             </div>
                         </DeeployButton>
                     </div>

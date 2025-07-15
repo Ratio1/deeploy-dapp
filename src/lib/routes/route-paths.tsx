@@ -6,6 +6,7 @@ export const routePath = {
     dashboard: 'dashboard',
     createProject: 'create-project',
     project: 'project',
+    payment: 'payment',
     //
     account: '/account',
     docs: '/docs',
