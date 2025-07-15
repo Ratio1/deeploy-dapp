@@ -1,3 +1,4 @@
+import { getJobCost } from '@lib/utils';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { addYears } from 'date-fns';
 import { useFormContext } from 'react-hook-form';
@@ -14,7 +15,7 @@ function PaymentSummary() {
         },
         {
             label: 'Target Nodes',
-            value: specifications.targetNodesCount ? specifications.targetNodesCount.toString() : 'N/A',
+            value: specifications.targetNodesCount,
         },
         {
             label: 'GPU/CPU',
@@ -53,10 +54,10 @@ function PaymentSummary() {
 
             <SlateCard>
                 <div className="row justify-between gap-8 p-2">
-                    <div className="text-lg font-medium text-slate-500">Total amount due</div>
+                    <div className="text-lg font-medium text-slate-500">Amount due</div>
 
-                    <div className="text-[20px] font-semibold text-primary">
-                        <span className="text-slate-400">$USDC</span> 1250
+                    <div className="text-xl font-semibold text-primary">
+                        <span className="text-slate-500">$USDC</span> {getJobCost(specifications)}
                     </div>
                 </div>
             </SlateCard>

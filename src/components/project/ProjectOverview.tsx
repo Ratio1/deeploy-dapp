@@ -1,12 +1,17 @@
-import GenericJobList from '@components/project/GenericJobList';
-import NativeJobList from '@components/project/NativeJobList';
-import ServiceJobList from '@components/project/ServiceJobList';
+import GenericJobList from '@components/project/job-lists/GenericJobList';
+import NativeJobList from '@components/project/job-lists/NativeJobList';
+import ServiceJobList from '@components/project/job-lists/ServiceJobList';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { routePath } from '@lib/routes/route-paths';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import DeeployButton from '@shared/deeploy-app/DeeployButton';
 import SupportFooter from '@shared/SupportFooter';
-import { FormType, type Project } from '@typedefs/deployment';
-import { RiAddLine, RiBox3Line, RiDatabase2Line, RiSaveLine, RiTerminalBoxLine } from 'react-icons/ri';
+import { FormType, Job, ProjectPage, type Project } from '@typedefs/deployment';
+import { useEffect } from 'react';
+import { RiAddLine, RiBox3Line, RiDatabase2Line, RiDeleteBin2Line, RiTerminalBoxLine, RiWalletLine } from 'react-icons/ri';
+import { Link } from 'react-router-dom';
+import ProjectIdentity from './ProjectIdentity';
+import ProjectStats from './ProjectStats';
 
 type DeploymentOption = {
     id: string;
@@ -40,59 +45,55 @@ const options: DeploymentOption[] = [
     },
 ];
 
-export default function ProjectOverview({ project }: { project: Project }) {
-    const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
+export default function ProjectOverview({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
+    const { setFormType, setStep, setProjectPage } = useDeploymentContext() as DeploymentContextType;
+
+    useEffect(() => {
+        console.log('[ProjectOverview]', project);
+    }, [project]);
 
     return (
         <div className="col gap-12">
-            <div className="col gap-8">
+            <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <div className="col gap-1">
-                        <div className="row gap-2">
-                            <div className="mt-[1px] h-2.5 w-2.5 rounded-full" style={{ backgroundColor: project.color }}></div>
-                            <div className="text-xl font-semibold">{project.name}</div>
-                        </div>
-
-                        <div className="row gap-1.5 text-slate-500">
-                            <div className="text-sm font-medium">
-                                {new Date(project.datetime).toLocaleString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric',
-                                    hour: 'numeric',
-                                    minute: 'numeric',
-                                })}
-                            </div>
-                        </div>
-                    </div>
+                    <ProjectIdentity project={project} />
 
                     <div className="row gap-2">
-                        <DeeployButton className="slate-button" color="default" onPress={() => {}}>
-                            <div className="text-sm">Cancel</div>
+                        <DeeployButton
+                            className="slate-button"
+                            color="default"
+                            as={Link}
+                            to={`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`}
+                        >
+                            <div className="text-sm font-medium">Cancel</div>
                         </DeeployButton>
 
-                        <DeeployButton className="slate-button" color="default" onPress={() => {}}>
+                        <DeeployButton className="bg-red-500" color="danger" onPress={() => {}}>
                             <div className="row gap-1.5">
-                                <RiSaveLine className="text-lg" />
-                                <div className="text-sm">Save Draft</div>
+                                <RiDeleteBin2Line className="text-lg" />
+                                <div className="text-sm">Delete Draft</div>
                             </div>
                         </DeeployButton>
 
                         <DeeployButton
-                            color="primary"
+                            color="success"
                             variant="solid"
+                            isDisabled={jobs?.length === 0}
                             onPress={() => {
-                                console.log('Deeploy');
+                                setProjectPage(ProjectPage.Payment);
                             }}
                         >
                             <div className="row gap-1.5">
-                                <RiBox3Line className="text-lg" />
-                                <div className="text-sm">Deeploy</div>
+                                <RiWalletLine className="text-lg" />
+                                <div className="text-sm font-medium">Payment</div>
                             </div>
                         </DeeployButton>
                     </div>
                 </div>
+
+                {/* Stats */}
+                <ProjectStats jobs={jobs} project={project} />
 
                 {/* Add Job */}
                 <BorderedCard>
@@ -125,9 +126,19 @@ export default function ProjectOverview({ project }: { project: Project }) {
                 </BorderedCard>
 
                 {/* Jobs */}
-                <GenericJobList />
-                <NativeJobList />
-                <ServiceJobList />
+                {!!jobs && !!jobs.length && (
+                    <>
+                        {jobs.filter((job) => job.formType === FormType.Generic).length > 0 && (
+                            <GenericJobList jobs={jobs.filter((job) => job.formType === FormType.Generic)} />
+                        )}
+                        {jobs.filter((job) => job.formType === FormType.Native).length > 0 && (
+                            <NativeJobList jobs={jobs.filter((job) => job.formType === FormType.Native)} />
+                        )}
+                        {jobs.filter((job) => job.formType === FormType.Service).length > 0 && (
+                            <ServiceJobList jobs={jobs.filter((job) => job.formType === FormType.Service)} />
+                        )}
+                    </>
+                )}
             </div>
 
             <SupportFooter />

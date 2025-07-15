@@ -12,16 +12,22 @@ import { POLICY_TYPES } from '@data/policyTypes';
 import { SERVICE_TYPES } from '@data/serviceTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import db from '@lib/storage/db';
+import { isValidId } from '@lib/utils';
 import { deeployAppSchema } from '@schemas/index';
-import { FormType } from '@typedefs/deployment';
+import { FormType, Job } from '@typedefs/deployment';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { useParams } from 'react-router-dom';
 import { z } from 'zod';
 
 const STEPS = ['Project', 'Specifications', 'Payment Summary', 'Deployment'];
 
 function JobFormWrapper() {
-    const { step, formType } = useDeploymentContext() as DeploymentContextType;
+    const { id: projectId } = useParams();
+
+    const { step, formType, setFormType } = useDeploymentContext() as DeploymentContextType;
 
     const getBaseSchemaDefaults = () => ({
         specifications: {
@@ -44,16 +50,16 @@ function JobFormWrapper() {
             ...getBaseSchemaDefaults().deployment,
             port: '',
             envVars: [{ key: '', value: '' }],
-            dynamicEnvVars: [
-                {
-                    key: '',
-                    values: [
-                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
-                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
-                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
-                    ],
-                },
-            ],
+            // dynamicEnvVars: [
+            //     {
+            //         key: '',
+            //         values: [
+            //             { type: DYNAMIC_ENV_TYPES[0], value: '' },
+            //             { type: DYNAMIC_ENV_TYPES[0], value: '' },
+            //             { type: DYNAMIC_ENV_TYPES[0], value: '' },
+            //         ],
+            //     },
+            // ],
             restartPolicy: POLICY_TYPES[0],
             imagePullPolicy: POLICY_TYPES[0],
         },
@@ -122,19 +128,33 @@ function JobFormWrapper() {
         }
     }, [formType, form]);
 
-    const onSubmit = (data: z.infer<typeof deeployAppSchema>) => {
+    const onSubmit = async (data: z.infer<typeof deeployAppSchema>) => {
         console.log('[JobFormWrapper] onSubmit');
 
-        if (data.formType === FormType.Generic) {
-            console.log('[JobFormWrapper] Generic app deployment', data);
+        if (!isValidId(projectId)) {
+            console.error('[JobFormWrapper] Invalid project ID');
+            toast.error('Invalid project ID.');
+            return;
         }
 
-        if (data.formType === FormType.Native) {
-            console.log('[JobFormWrapper] Native app deployment', data);
-        }
+        try {
+            const job = {
+                projectId: parseInt(projectId as string),
+                formType: data.formType,
+                specifications: data.specifications,
+                deployment: data.deployment,
+            };
 
-        if (data.formType === FormType.Service) {
-            console.log('[JobFormWrapper] Service deployment', data);
+            const jobId = await db.jobs.add(job as Job);
+
+            console.log('[JobFormWrapper] Job added successfully', jobId);
+            toast.success('Job added successfully.');
+
+            // Navigate back to the project overview
+            setFormType(undefined);
+        } catch (error) {
+            console.error('[JobFormWrapper] Error adding job:', error);
+            toast.error('Failed to add job');
         }
     };
 
