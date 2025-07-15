@@ -1,6 +1,6 @@
-import GenericJobList from '@components/project/GenericJobList';
-import NativeJobList from '@components/project/NativeJobList';
-import ServiceJobList from '@components/project/ServiceJobList';
+import GenericJobList from '@components/project/job-lists/GenericJobList';
+import NativeJobList from '@components/project/job-lists/NativeJobList';
+import ServiceJobList from '@components/project/job-lists/ServiceJobList';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import { BorderedCard } from '@shared/cards/BorderedCard';

@@ -1,7 +1,6 @@
-import { CONTAINER_PRICES, CONTAINER_TYPES } from '@data/containerTypes';
+import { getJobCost } from '@lib/utils';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { addYears } from 'date-fns';
-import { findIndex } from 'lodash';
 import { useFormContext } from 'react-hook-form';
 
 function PaymentSummary() {
@@ -40,11 +39,6 @@ function PaymentSummary() {
         },
     ];
 
-    const getAmountDue = () => {
-        const containerPrice = CONTAINER_PRICES[findIndex(CONTAINER_TYPES, (type) => type === specifications.containerType)];
-        return containerPrice * specifications.targetNodesCount;
-    };
-
     return (
         <div className="col gap-2">
             <div className="grid h-full w-full grid-cols-3 gap-2">
@@ -63,7 +57,7 @@ function PaymentSummary() {
                     <div className="text-lg font-medium text-slate-500">Amount due</div>
 
                     <div className="text-xl font-semibold text-primary">
-                        <span className="text-slate-500">$USDC</span> {getAmountDue()}
+                        <span className="text-slate-500">$USDC</span> {getJobCost(specifications)}
                     </div>
                 </div>
             </SlateCard>

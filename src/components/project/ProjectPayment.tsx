@@ -1,12 +1,16 @@
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { getJobsTotalCost } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import DeeployButton from '@shared/deeploy-app/DeeployButton';
 import EmptyData from '@shared/EmptyData';
 import SupportFooter from '@shared/SupportFooter';
-import { Job, ProjectPage, type Project } from '@typedefs/deployment';
+import { FormType, Job, ProjectPage, type Project } from '@typedefs/deployment';
 import { useEffect } from 'react';
 import { RiArrowLeftLine, RiBox3Line, RiDraftLine } from 'react-icons/ri';
 import ProjectIdentity from './ProjectIdentity';
+import GenericJobsCostRundown from './rundowns/GenericJobsCostRundown';
+import NativeJobsCostRundown from './rundowns/NativeJobsCostRundown';
+import ServiceJobsCostRundown from './rundowns/ServiceJobsCostRundown';
 
 export default function ProjectPayment({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
     const { setProjectPage } = useDeploymentContext() as DeploymentContextType;
@@ -52,8 +56,35 @@ export default function ProjectPayment({ project, jobs }: { project: Project; jo
                     </div>
                 </div>
 
+                {!!jobs && !!jobs.length && (
+                    <BorderedCard isLight={false}>
+                        <div className="row justify-between">
+                            <div className="text-[15px] font-semibold text-slate-500">Total Amount Due</div>
+
+                            <div className="text-xl font-semibold text-primary">
+                                <span className="text-slate-500">$USDC</span> {getJobsTotalCost(jobs)}
+                            </div>
+                        </div>
+                    </BorderedCard>
+                )}
+
+                {/* Rundowns */}
+                {!!jobs && !!jobs.length && (
+                    <>
+                        {jobs.filter((job) => job.formType === FormType.Generic).length > 0 && (
+                            <GenericJobsCostRundown jobs={jobs.filter((job) => job.formType === FormType.Generic)} />
+                        )}
+                        {jobs.filter((job) => job.formType === FormType.Native).length > 0 && (
+                            <NativeJobsCostRundown jobs={jobs.filter((job) => job.formType === FormType.Native)} />
+                        )}
+                        {jobs.filter((job) => job.formType === FormType.Service).length > 0 && (
+                            <ServiceJobsCostRundown jobs={jobs.filter((job) => job.formType === FormType.Service)} />
+                        )}
+                    </>
+                )}
+
                 {/* No Jobs added */}
-                {jobs !== undefined && jobs.length === 0 && (
+                {!!jobs && jobs.length === 0 && (
                     <BorderedCard>
                         <div className="center-all">
                             <EmptyData

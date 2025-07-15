@@ -1,4 +1,4 @@
-import { CompactCardWithHeader } from '@shared/cards/CompactCardWithHeader';
+import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import { RiAddLine, RiMoreFill } from 'react-icons/ri';
 
 interface Job {
@@ -20,11 +20,12 @@ export default function JobList({
     onAddJob: () => void;
 }) {
     return (
-        <CompactCardWithHeader
+        <CompactCustomCard
             header={
                 <div className="row justify-between">
                     <div className="row gap-2">
                         {cardHeader}
+
                         <div className="center-all h-5 w-5 rounded-full bg-light">
                             <div className="text-xs font-medium text-slate-600">{jobs.length}</div>
                         </div>
@@ -61,6 +62,6 @@ export default function JobList({
                     </div>
                 </div>
             ))}
-        </CompactCardWithHeader>
+        </CompactCustomCard>
     );
 }

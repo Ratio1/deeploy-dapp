@@ -1,5 +1,7 @@
+import { CONTAINER_PRICES, CONTAINER_TYPES } from '@data/containerTypes';
 import { ClosableToastContent } from '@shared/ClosableToastContent';
-import { throttle } from 'lodash';
+import { Job, JobSpecifications } from '@typedefs/deployment';
+import { findIndex, throttle } from 'lodash';
 import { JSX } from 'react';
 import toast from 'react-hot-toast';
 import { RiCodeSSlashLine } from 'react-icons/ri';
@@ -76,3 +78,14 @@ export const arrayAverage = (numbers: number[]): number => {
 };
 
 export const isValidId = (id: string | undefined) => id && !isNaN(parseInt(id)) && isFinite(parseInt(id));
+
+export const getJobCost = (specifications: JobSpecifications): number => {
+    const containerPrice = CONTAINER_PRICES[findIndex(CONTAINER_TYPES, (type) => type === specifications.containerType)];
+    return containerPrice * specifications.targetNodesCount;
+};
+
+export const getJobsTotalCost = (jobs: Job[]): number => {
+    return jobs.reduce((acc, job) => {
+        return acc + getJobCost(job.specifications);
+    }, 0);
+};

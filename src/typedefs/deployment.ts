@@ -112,4 +112,4 @@ type Project = {
 };
 
 export { FormType, ProjectPage };
-export type { GenericJob, Job, NativeJob, Project, ServiceJob };
+export type { GenericJob, Job, JobSpecifications, NativeJob, Project, ServiceJob };

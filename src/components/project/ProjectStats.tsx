@@ -1,21 +1,12 @@
-import { CONTAINER_PRICES, CONTAINER_TYPES } from '@data/containerTypes';
+import { getJobsTotalCost } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { Job, Project } from '@typedefs/deployment';
 import { addYears } from 'date-fns';
-import { findIndex } from 'lodash';
 
 export default function ProjectStats({ jobs, project }: { jobs: Job[] | undefined; project: Project }) {
     if (!jobs || jobs.length === 0) {
         return null;
     }
-
-    const getTotalAmountDue = () => {
-        return jobs.reduce((acc, job) => {
-            const containerPrice =
-                CONTAINER_PRICES[findIndex(CONTAINER_TYPES, (type) => type === job.specifications.containerType)];
-            return acc + containerPrice * job.specifications.targetNodesCount;
-        }, 0);
-    };
 
     return (
         <BorderedCard isLight={false}>
@@ -31,7 +22,7 @@ export default function ProjectStats({ jobs, project }: { jobs: Job[] | undefine
                     label="Total Amount Due"
                     value={
                         <div className="text-primary">
-                            <span className="text-slate-500">$USDC</span> {getTotalAmountDue()}
+                            <span className="text-slate-500">$USDC</span> {getJobsTotalCost(jobs)}
                         </div>
                     }
                 />
