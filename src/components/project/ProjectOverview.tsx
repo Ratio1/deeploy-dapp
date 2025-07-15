@@ -6,7 +6,7 @@ import { routePath } from '@lib/routes/route-paths';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import DeeployButton from '@shared/deeploy-app/DeeployButton';
 import SupportFooter from '@shared/SupportFooter';
-import { FormType, Job, type Project } from '@typedefs/deployment';
+import { FormType, Job, ProjectPage, type Project } from '@typedefs/deployment';
 import { useEffect } from 'react';
 import { RiAddLine, RiBox3Line, RiDatabase2Line, RiDeleteBin2Line, RiTerminalBoxLine, RiWalletLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
@@ -46,7 +46,7 @@ const options: DeploymentOption[] = [
 ];
 
 export default function ProjectOverview({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
-    const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
+    const { setFormType, setStep, setProjectPage } = useDeploymentContext() as DeploymentContextType;
 
     useEffect(() => {
         console.log('[ProjectOverview]', project);
@@ -64,7 +64,7 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                             className="slate-button"
                             color="default"
                             as={Link}
-                            to={`${routePath.deeploys}/${routePath.dashboard}`}
+                            to={`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`}
                         >
                             <div className="text-sm font-medium">Cancel</div>
                         </DeeployButton>
@@ -79,9 +79,10 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                         <DeeployButton
                             color="success"
                             variant="solid"
-                            as={Link}
-                            to={`${routePath.deeploys}/${routePath.project}/${project.id}/${routePath.payment}`}
                             isDisabled={jobs?.length === 0}
+                            onPress={() => {
+                                setProjectPage(ProjectPage.Payment);
+                            }}
                         >
                             <div className="row gap-1.5">
                                 <RiWalletLine className="text-lg" />

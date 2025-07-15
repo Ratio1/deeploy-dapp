@@ -1,15 +1,16 @@
-import { routePath } from '@lib/routes/route-paths';
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import DeeployButton from '@shared/deeploy-app/DeeployButton';
 import EmptyData from '@shared/EmptyData';
 import SupportFooter from '@shared/SupportFooter';
-import { Job, type Project } from '@typedefs/deployment';
+import { Job, ProjectPage, type Project } from '@typedefs/deployment';
 import { useEffect } from 'react';
 import { RiArrowLeftLine, RiBox3Line, RiDraftLine } from 'react-icons/ri';
-import { Link } from 'react-router-dom';
 import ProjectIdentity from './ProjectIdentity';
 
 export default function ProjectPayment({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
+    const { setProjectPage } = useDeploymentContext() as DeploymentContextType;
+
     useEffect(() => {
         console.log('[ProjectPayment] jobs', jobs);
     }, [jobs]);
@@ -25,8 +26,9 @@ export default function ProjectPayment({ project, jobs }: { project: Project; jo
                         <DeeployButton
                             className="slate-button"
                             color="default"
-                            as={Link}
-                            to={`${routePath.deeploys}/${routePath.project}/${project.id}`}
+                            onPress={() => {
+                                setProjectPage(ProjectPage.Overview);
+                            }}
                         >
                             <div className="row gap-1.5">
                                 <RiArrowLeftLine className="text-lg" />

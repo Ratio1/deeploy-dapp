@@ -1,11 +1,11 @@
-import { FormType } from '@typedefs/deployment';
+import { FormType, ProjectPage } from '@typedefs/deployment';
 import { useState } from 'react';
 import { DeploymentContext } from './context';
 
 export const DeploymentProvider = ({ children }) => {
     const [formType, setFormType] = useState<FormType | undefined>();
     const [step, setStep] = useState<number>(1);
-    const [isPaymentConfirmed, setPaymentConfirmed] = useState<boolean>(false);
+    const [projectPage, setProjectPage] = useState<ProjectPage>(ProjectPage.Overview);
 
     return (
         <DeploymentContext.Provider
@@ -14,8 +14,8 @@ export const DeploymentProvider = ({ children }) => {
                 setFormType,
                 step,
                 setStep,
-                isPaymentConfirmed,
-                setPaymentConfirmed,
+                projectPage,
+                setProjectPage,
             }}
         >
             {children}

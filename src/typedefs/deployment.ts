@@ -13,6 +13,11 @@ enum FormType {
     Service = 'Service',
 }
 
+enum ProjectPage {
+    Overview = 'Overview',
+    Payment = 'Payment',
+}
+
 type BaseJob = {
     id: number;
     projectId: number;
@@ -106,5 +111,5 @@ type Project = {
     datetime: string;
 };
 
-export { FormType };
+export { FormType, ProjectPage };
 export type { GenericJob, Job, NativeJob, Project, ServiceJob };

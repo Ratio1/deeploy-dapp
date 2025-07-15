@@ -129,15 +129,6 @@ export const routes: AppRoute[] = [
         ),
     },
     {
-        // The payment route acts as state for the Project component
-        path: `${routePath.deeploys}/${routePath.project}/:id/${routePath.payment}`,
-        page: () => (
-            <DeploymentProvider>
-                <Project />
-            </DeploymentProvider>
-        ),
-    },
-    {
         path: routePath.notFound,
         page: NotFound,
     },

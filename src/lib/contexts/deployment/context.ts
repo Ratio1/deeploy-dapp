@@ -1,4 +1,4 @@
-import { FormType } from '@typedefs/deployment';
+import { FormType, ProjectPage } from '@typedefs/deployment';
 import { createContext } from 'react';
 
 export interface DeploymentContextType {
@@ -6,8 +6,8 @@ export interface DeploymentContextType {
     setFormType: (formType: FormType | undefined) => void;
     step: number;
     setStep: (step: number) => void;
-    isPaymentConfirmed: boolean;
-    setPaymentConfirmed: (isPaymentConfirmed: boolean) => void;
+    projectPage: ProjectPage;
+    setProjectPage: (projectPage: ProjectPage) => void;
 }
 
 export const DeploymentContext = createContext<DeploymentContextType | null>(null);
