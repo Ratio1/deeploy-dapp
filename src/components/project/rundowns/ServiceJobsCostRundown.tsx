@@ -1,3 +1,4 @@
+import { CONTAINER_TYPES } from '@data/containerTypes';
 import JobsCostRundown from '@shared/deeploy-app/JobsCostRundown';
 import { ServiceJob } from '@typedefs/deployment';
 import { RiDatabase2Line } from 'react-icons/ri';
@@ -21,9 +22,16 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
                     // Specifications
                     { label: 'App Type', value: serviceJob.specifications.applicationType },
                     { label: 'Target Nodes', value: serviceJob.specifications.targetNodesCount },
-                    { label: 'Container Type', value: serviceJob.specifications.containerType },
                     { label: 'CPU', value: serviceJob.specifications.cpu },
                     { label: 'Memory', value: serviceJob.specifications.memory },
+                    { label: 'Container Type', value: serviceJob.specifications.containerType },
+                    // Custom Container CPU and Memory
+                    ...(serviceJob.specifications.containerType === CONTAINER_TYPES[CONTAINER_TYPES.length - 1]
+                        ? [
+                              { label: 'Container CPU', value: serviceJob.specifications.customCpu },
+                              { label: 'Container Memory', value: serviceJob.specifications.customMemory },
+                          ]
+                        : []),
                     // Deployment
                     { label: 'NGROK', value: serviceJob.deployment.enableNgrok },
                     { label: 'Service Replica', value: serviceJob.deployment.serviceReplica },

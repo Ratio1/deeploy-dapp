@@ -31,6 +31,8 @@ type JobSpecifications = {
     containerType: (typeof CONTAINER_TYPES)[number];
     cpu: number;
     memory: number;
+    customCpu?: number;
+    customMemory?: number;
 };
 
 type GenericJob = BaseJob & {

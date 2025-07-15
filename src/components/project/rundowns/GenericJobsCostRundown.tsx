@@ -1,3 +1,4 @@
+import { CONTAINER_TYPES } from '@data/containerTypes';
 import JobsCostRundown from '@shared/deeploy-app/JobsCostRundown';
 import { GenericJob } from '@typedefs/deployment';
 import { RiBox3Line } from 'react-icons/ri';
@@ -21,9 +22,16 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
                     // Specifications
                     { label: 'App Type', value: genericJob.specifications.applicationType },
                     { label: 'Target Nodes', value: genericJob.specifications.targetNodesCount },
-                    { label: 'Container Type', value: genericJob.specifications.containerType },
                     { label: 'CPU', value: genericJob.specifications.cpu },
                     { label: 'Memory', value: genericJob.specifications.memory },
+                    { label: 'Container Type', value: genericJob.specifications.containerType },
+                    // Custom Container CPU and Memory
+                    ...(genericJob.specifications.containerType === CONTAINER_TYPES[CONTAINER_TYPES.length - 1]
+                        ? [
+                              { label: 'Container CPU', value: genericJob.specifications.customCpu },
+                              { label: 'Container Memory', value: genericJob.specifications.customMemory },
+                          ]
+                        : []),
                     // Deployment
                     { label: 'Container Image', value: genericJob.deployment.containerImage },
                     { label: 'Port', value: genericJob.deployment.port },
