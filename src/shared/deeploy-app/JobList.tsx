@@ -1,5 +1,9 @@
+import db from '@lib/storage/db';
+import { downloadDataAsJson } from '@lib/utils';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
-import { RiAddLine, RiMoreFill } from 'react-icons/ri';
+import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
+import toast from 'react-hot-toast';
+import { RiAddLine, RiDeleteBinLine, RiFileCodeLine } from 'react-icons/ri';
 
 interface Job {
     id: number;
@@ -19,6 +23,20 @@ export default function JobList({
     renderJob: (job: Job) => React.ReactNode;
     onAddJob: () => void;
 }) {
+    const onDownloadJson = (job: Job) => {
+        downloadDataAsJson(job, `Deeploy-${job.formType}-job-${job.id}.json`);
+    };
+
+    const onDeleteJob = async (job: Job) => {
+        try {
+            await db.jobs.delete(job.id);
+            toast.success('Job deleted successfully.');
+        } catch (error) {
+            console.error('[JobList] Error deleting job:', error);
+            toast.error('Failed to delete job.');
+        }
+    };
+
     return (
         <CompactCustomCard
             header={
@@ -45,21 +63,31 @@ export default function JobList({
                 {tableHeader}
 
                 {/* Accounts for the context menu button */}
-                <div className="-mx-1.5 min-w-[30px] px-1.5"></div>
+                <div className="min-w-[32px]"></div>
             </div>
 
             {jobs.map((job) => (
                 <div key={job.id} className="row justify-between border-t-2 border-slate-200/65 px-4 py-3 text-sm">
                     {renderJob(job)}
 
-                    <div
-                        className="-mx-1.5 cursor-pointer px-1.5 py-1 hover:opacity-60"
-                        onClick={() => {
-                            console.log(job.id);
-                        }}
-                    >
-                        <RiMoreFill className="text-lg text-slate-600" />
-                    </div>
+                    <ContextMenuWithTrigger
+                        items={[
+                            {
+                                key: 'downloadJson',
+                                label: 'Download JSON',
+                                description: 'Exports the job as a JSON file',
+                                icon: <RiFileCodeLine />,
+                                onPress: () => onDownloadJson(job),
+                            },
+                            {
+                                key: 'delete',
+                                label: 'Delete',
+                                description: 'Removes the job from the project',
+                                icon: <RiDeleteBinLine />,
+                                onPress: () => onDeleteJob(job),
+                            },
+                        ]}
+                    />
                 </div>
             ))}
         </CompactCustomCard>

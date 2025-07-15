@@ -1,5 +1,6 @@
 import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { downloadDataAsJson } from '@lib/utils';
 import { customContainerTypeValue } from '@schemas/common';
 import { specificationsBaseKeys } from '@schemas/steps/specifications';
 import { FieldValues, useFormContext } from 'react-hook-form';
@@ -56,22 +57,6 @@ function JobFormButtons({ steps }: Props) {
         const formData = getValues();
 
         downloadDataAsJson(formData, `job-${formData.formType}-${Date.now()}.json`);
-    };
-
-    const downloadDataAsJson = (data: any, filename: string) => {
-        const jsonString = JSON.stringify(data, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // Clean up the URL object
-        URL.revokeObjectURL(url);
     };
 
     return (

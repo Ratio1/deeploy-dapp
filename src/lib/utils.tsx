@@ -89,3 +89,19 @@ export const getJobsTotalCost = (jobs: Job[]): number => {
         return acc + getJobCost(job.specifications);
     }, 0);
 };
+
+export const downloadDataAsJson = (data: any, filename: string) => {
+    const jsonString = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Clean up the URL object
+    URL.revokeObjectURL(url);
+};
