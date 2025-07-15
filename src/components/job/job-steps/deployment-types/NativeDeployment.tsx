@@ -1,8 +1,8 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
-import KeyValueEntriesSection from '@shared/deeploy-app/KeyValueEntriesSection';
-import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
+import KeyValueEntriesSection from '@shared/deployment/KeyValueEntriesSection';
+import TargetNodesSection from '@shared/deployment/TargetNodesSection';
 import InputWithLabel from '@shared/InputWithLabel';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';

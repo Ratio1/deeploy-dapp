@@ -15,11 +15,11 @@ export default function ApplicationCard({ app }: { app: DeeployApp }) {
                     <CardItem label="Plugin Signature" value={<>{app.pluginSignature}</>} />
                 </div>
 
-                <div className="min-w-[64px]">
+                <div className="min-w-[92px]">
                     <CardItem label="Nodes" value={<>{app.nodes}</>} />
                 </div>
 
-                <div className="min-w-[82px]">
+                <div className="min-w-[92px]">
                     <CardItem
                         label="GPU/CPU"
                         value={<SmallTag variant={app.processor === 'GPU' ? 'green' : 'blue'}>{app.processor}</SmallTag>}
@@ -32,10 +32,10 @@ export default function ApplicationCard({ app }: { app: DeeployApp }) {
 
                 <div className="min-w-[112px]">
                     <CardItem
-                        label="Deadline"
+                        label="Expiration Date"
                         value={
                             <>
-                                {new Date(app.deadline).toLocaleDateString('en-US', {
+                                {new Date(app.expiresAt).toLocaleDateString('en-US', {
                                     month: 'short',
                                     day: 'numeric',
                                     year: 'numeric',

@@ -1,5 +1,5 @@
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import JobList from '@shared/deeploy-app/JobList';
+import JobList from '@shared/deployment/JobList';
 import { FormType, NativeJob } from '@typedefs/deployment';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 

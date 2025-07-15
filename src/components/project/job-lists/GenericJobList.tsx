@@ -1,5 +1,5 @@
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import JobList from '@shared/deeploy-app/JobList';
+import JobList from '@shared/deployment/JobList';
 import { FormType, GenericJob } from '@typedefs/deployment';
 import { RiBox3Line } from 'react-icons/ri';
 

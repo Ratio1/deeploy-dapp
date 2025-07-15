@@ -1,7 +1,7 @@
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getJobsTotalCost } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
-import DeeployButton from '@shared/deeploy-app/DeeployButton';
+import DeeployButton from '@shared/deployment/DeeployButton';
 import EmptyData from '@shared/EmptyData';
 import SupportFooter from '@shared/SupportFooter';
 import { FormType, Job, ProjectPage, type Project } from '@typedefs/deployment';

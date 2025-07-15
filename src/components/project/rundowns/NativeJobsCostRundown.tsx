@@ -1,5 +1,5 @@
 import { CONTAINER_TYPES } from '@data/containerTypes';
-import JobsCostRundown from '@shared/deeploy-app/JobsCostRundown';
+import JobsCostRundown from '@shared/deployment/JobsCostRundown';
 import { NativeJob } from '@typedefs/deployment';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 

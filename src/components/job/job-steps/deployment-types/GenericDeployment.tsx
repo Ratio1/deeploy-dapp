@@ -1,9 +1,9 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
-import ContainerSection from '@shared/deeploy-app/ContainerSection';
-import DynamicEnvSection from '@shared/deeploy-app/DynamicEnvSection';
-import KeyValueEntriesSection from '@shared/deeploy-app/KeyValueEntriesSection';
-import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
+import ContainerSection from '@shared/deployment/ContainerSection';
+import DynamicEnvSection from '@shared/deployment/DynamicEnvSection';
+import KeyValueEntriesSection from '@shared/deployment/KeyValueEntriesSection';
+import TargetNodesSection from '@shared/deployment/TargetNodesSection';
 import InputWithLabel from '@shared/InputWithLabel';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';

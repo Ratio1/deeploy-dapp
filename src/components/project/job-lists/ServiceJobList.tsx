@@ -1,6 +1,6 @@
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getShortAddress } from '@lib/utils';
-import JobList from '@shared/deeploy-app/JobList';
+import JobList from '@shared/deployment/JobList';
 import { FormType, ServiceJob } from '@typedefs/deployment';
 import { RiDatabase2Line } from 'react-icons/ri';
 

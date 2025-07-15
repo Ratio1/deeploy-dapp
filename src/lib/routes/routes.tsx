@@ -47,11 +47,11 @@ export const routeInfo = {
     },
     [routePath.deeploys]: {
         title: 'Deeploys',
-        description: 'View, organize & deeploy your apps',
+        description: 'View, organize & deeploy your projects',
     },
     [`${routePath.deeploys}/${routePath.dashboard}`]: {
         title: 'Dashboard',
-        description: 'An organized view of your deeployed apps',
+        description: 'An organized view of your deeployed projects',
     },
     [`${routePath.deeploys}/${routePath.createProject}`]: {
         title: 'Deployment',

@@ -15,7 +15,12 @@ interface Props {
 export default function ContextMenuWithTrigger({ items }: Props) {
     return (
         <Dropdown placement="bottom-end" shouldBlockScroll={false} radius="sm">
-            <DropdownTrigger>
+            <DropdownTrigger
+                onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                }}
+            >
                 <Button
                     className="h-6 min-w-8 rounded-lg border-slate-200 bg-light p-0"
                     color="default"
@@ -61,38 +66,6 @@ export default function ContextMenuWithTrigger({ items }: Props) {
                         </div>
                     </DropdownItem>
                 ))}
-
-                {/* <DropdownItem
-                    key="downloadJson"
-                    onPress={() => {
-                        console.log('downloadJson');
-                    }}
-                >
-                    <div className="row gap-2">
-                        <RiFileCodeLine className="pr-0.5 text-[26px] text-slate-500" />
-
-                        <div className="col">
-                            <div className="font-medium leading-4">Download JSON</div>
-                            <div className="text-[13px] text-slate-500">Exports the job as a JSON file</div>
-                        </div>
-                    </div>
-                </DropdownItem>
-
-                <DropdownItem
-                    key="delete"
-                    onPress={() => {
-                        console.log('delete');
-                    }}
-                >
-                    <div className="row gap-2">
-                        <RiDeleteBinLine className="pr-0.5 text-[26px] text-slate-500" />
-
-                        <div className="col">
-                            <div className="font-medium leading-4">Delete</div>
-                            <div className="text-[13px] text-slate-500">Removes the job from the project</div>
-                        </div>
-                    </div>
-                </DropdownItem> */}
             </DropdownMenu>
         </Dropdown>
     );
