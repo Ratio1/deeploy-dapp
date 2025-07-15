@@ -54,7 +54,7 @@ function PaymentSummary() {
 
             <SlateCard>
                 <div className="row justify-between gap-8 p-2">
-                    <div className="text-lg font-medium text-slate-500">Amount due</div>
+                    <div className="text-[15px] font-semibold text-slate-500">Amount due</div>
 
                     <div className="text-xl font-semibold text-primary">
                         <span className="text-slate-500">$USDC</span> {getJobCost(specifications)}

@@ -24,7 +24,7 @@ function CreateProject() {
     const onSubmit = async (data: z.infer<typeof projectSchema>) => {
         const project = {
             ...data,
-            datetime: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
         };
 
         try {

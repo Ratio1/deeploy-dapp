@@ -29,7 +29,7 @@ export default function ProjectStats({ jobs, project }: { jobs: Job[] | undefine
 
                 <Item
                     label="Expiration Date"
-                    value={addYears(new Date(project.datetime), 2).toLocaleDateString('en-US', {
+                    value={addYears(new Date(project.createdAt), 2).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',

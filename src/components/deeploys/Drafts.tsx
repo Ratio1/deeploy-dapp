@@ -50,7 +50,7 @@ function Drafts() {
                                         label="Created"
                                         value={
                                             <>
-                                                {new Date(project.datetime).toLocaleString('en-US', {
+                                                {new Date(project.createdAt).toLocaleString('en-US', {
                                                     month: 'short',
                                                     day: 'numeric',
                                                     year: 'numeric',

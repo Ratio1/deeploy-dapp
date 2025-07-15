@@ -56,9 +56,10 @@ export default function ProjectPayment({ project, jobs }: { project: Project; jo
                     </div>
                 </div>
 
+                {/* Total Amount Due */}
                 {!!jobs && !!jobs.length && (
                     <BorderedCard isLight={false}>
-                        <div className="row justify-between">
+                        <div className="row justify-between py-2">
                             <div className="text-[15px] font-semibold text-slate-500">Total Amount Due</div>
 
                             <div className="text-xl font-semibold text-primary">

@@ -110,7 +110,7 @@ type Project = {
     id: number;
     name: string;
     color: string;
-    datetime: string;
+    createdAt: string;
 };
 
 export { FormType, ProjectPage };
