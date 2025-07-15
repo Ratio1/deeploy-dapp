@@ -15,10 +15,30 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
             renderJob={(job) => {
                 const serviceJob = job as ServiceJob;
 
+                const entries = [
+                    // Service Type
+                    { label: 'Service Type', value: serviceJob.deployment.serviceType },
+                    // Specifications
+                    { label: 'App Type', value: serviceJob.specifications.applicationType },
+                    { label: 'Target Nodes', value: serviceJob.specifications.targetNodesCount },
+                    { label: 'Container Type', value: serviceJob.specifications.containerType },
+                    { label: 'CPU', value: serviceJob.specifications.cpu },
+                    { label: 'Memory', value: serviceJob.specifications.memory },
+                    // Deployment
+                    { label: 'NGROK', value: serviceJob.deployment.enableNgrok },
+                    { label: 'Service Replica', value: serviceJob.deployment.serviceReplica },
+                ];
+
                 return (
-                    <>
-                        <div className="min-w-[128px]">{serviceJob.deployment.serviceType}</div>
-                    </>
+                    <div className="text-sm">
+                        {entries.map((entry, index) => (
+                            <span key={entry.label}>
+                                <span className="text-slate-500">{entry.label}: </span>
+                                <span className="font-medium">{entry.value}</span>
+                                {index < entries.length - 1 && <span className="mx-0.5 text-slate-500"> | </span>}
+                            </span>
+                        ))}
+                    </div>
                 );
             }}
         />
