@@ -7,13 +7,11 @@ import toast from 'react-hot-toast';
 import { RiCodeSSlashLine } from 'react-icons/ri';
 
 export const getShortAddress = (address: string, size = 4, asString = false): string | JSX.Element => {
-    const str = `${address.slice(0, size)}•••${address.slice(-size)}`;
-
     if (asString) {
-        return str;
+        return `${address.slice(0, size)}...${address.slice(-size)}`;
     }
 
-    return <div className="font-robotoMono">{str}</div>;
+    return <div className="font-robotoMono">{`${address.slice(0, size)}•••${address.slice(-size)}`}</div>;
 };
 
 export function fN(num: number): string | number {

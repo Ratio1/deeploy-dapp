@@ -2,6 +2,7 @@ import GenericJobList from '@components/project/job-lists/GenericJobList';
 import NativeJobList from '@components/project/job-lists/NativeJobList';
 import ServiceJobList from '@components/project/job-lists/ServiceJobList';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
@@ -48,6 +49,7 @@ const options: DeploymentOption[] = [
 ];
 
 export default function ProjectOverview({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
+    const confirm = useInteractionContext() as InteractionContextType;
     const { setFormType, setStep, setProjectPage } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
@@ -58,6 +60,10 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
 
     const onDeleteProject = async () => {
         try {
+            const confirmed = await confirm(<div>Are you sure you want to delete this project draft?</div>);
+
+            if (!confirmed) return;
+
             await db.projects.delete(project.id);
             toast.success('Project draft deleted successfully.');
             navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`);

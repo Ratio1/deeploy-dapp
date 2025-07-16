@@ -1,4 +1,5 @@
 import { CONTAINER_TYPES } from '@data/containerTypes';
+import { getShortAddress } from '@lib/utils';
 import JobsCostRundown from '@shared/deployment/JobsCostRundown';
 import { ServiceJob } from '@typedefs/deployment';
 import { RiDatabase2Line } from 'react-icons/ri';
@@ -34,7 +35,7 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
                         : []),
                     // Deployment
                     { label: 'NGROK', value: serviceJob.deployment.enableNgrok },
-                    { label: 'Service Replica', value: serviceJob.deployment.serviceReplica },
+                    { label: 'Service Replica', value: getShortAddress(serviceJob.deployment.serviceReplica, 4, true) },
                 ];
 
                 return (

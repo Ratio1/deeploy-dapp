@@ -1,3 +1,4 @@
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
@@ -10,10 +11,25 @@ import { RiDeleteBinLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
 
 export default function DraftCard({ project }: { project: Project }) {
+    const confirm = useInteractionContext() as InteractionContextType;
+
     const jobs: Job[] | undefined = useLiveQuery(() => db.jobs.where('projectId').equals(project.id).toArray(), [project]);
 
     const onDeleteProject = async () => {
         try {
+            const confirmed = await confirm(
+                <div className="col gap-3">
+                    <div>Are you sure you want to delete the following project draft?</div>
+
+                    <div className="row gap-2">
+                        <div className="mt-[1px] h-2.5 w-2.5 rounded-full" style={{ backgroundColor: project.color }}></div>
+                        <div className="font-medium">{project.name}</div>
+                    </div>
+                </div>,
+            );
+
+            if (!confirmed) return;
+
             await db.projects.delete(project.id);
             toast.success('Project draft deleted successfully.');
         } catch (error) {

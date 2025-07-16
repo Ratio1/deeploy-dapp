@@ -1,3 +1,4 @@
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import db from '@lib/storage/db';
 import { downloadDataAsJson } from '@lib/utils';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
@@ -23,12 +24,18 @@ export default function JobList({
     renderJob: (job: Job) => React.ReactNode;
     onAddJob: () => void;
 }) {
+    const confirm = useInteractionContext() as InteractionContextType;
+
     const onDownloadJson = (job: Job) => {
         downloadDataAsJson(job, `Deeploy-${job.formType}-job-${job.id}.json`);
     };
 
     const onDeleteJob = async (job: Job) => {
         try {
+            const confirmed = await confirm(<div>Are you sure you want to delete this job?</div>);
+
+            if (!confirmed) return;
+
             await db.jobs.delete(job.id);
             toast.success('Job deleted successfully.');
         } catch (error) {
