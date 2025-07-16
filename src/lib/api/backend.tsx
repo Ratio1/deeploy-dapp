@@ -100,7 +100,7 @@ axiosBackend.interceptors.response.use(
 );
 
 // Tunnels API
-const tunnelsBaseUrl = 'https://ratio1-dev-debug.ngrok.dev';
+const tunnelsBaseUrl = 'https://1f8b266e9dbf.ratio1.link';
 
 export async function get_tunnels() {
     const { data } = await axios.get(`${tunnelsBaseUrl}/get_tunnels`);
@@ -131,5 +131,10 @@ export async function remove_tunnel_hostname(tunnel_id: string, hostname_id: str
     const { data } = await axios.delete(
         `${tunnelsBaseUrl}/remove_custom_hostname?tunnel_id=${tunnel_id}&hostname_id=${hostname_id}`,
     );
+    return data;
+}
+
+export async function rename_tunnel(tunnel_id: string, new_alias: string) {
+    const { data } = await axios.post(`${tunnelsBaseUrl}/rename_tunnel`, { tunnel_id, new_alias });
     return data;
 }

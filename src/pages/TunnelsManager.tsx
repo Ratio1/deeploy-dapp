@@ -3,7 +3,14 @@ import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
 import { Modal, ModalContent } from '@heroui/modal';
 import { RiDeleteBinLine, RiLinkM, RiAddLine, RiExternalLinkLine } from 'react-icons/ri';
-import { get_tunnels, new_tunnel, delete_tunnel, add_tunnel_hostname, remove_tunnel_hostname } from '@lib/api/backend';
+import {
+    get_tunnels,
+    new_tunnel,
+    delete_tunnel,
+    add_tunnel_hostname,
+    remove_tunnel_hostname,
+    rename_tunnel,
+} from '@lib/api/backend';
 
 type Tunnel = {
     id: string;
@@ -30,6 +37,10 @@ function TunnelsManager() {
     const [dnsDomain, setDnsDomain] = useState<string>('');
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [tokenModal, setTokenModal] = useState<{ open: boolean; token: string | null }>({ open: false, token: null });
+    const [copied, setCopied] = useState(false);
+    const [renamingId, setRenamingId] = useState<string | null>(null);
+    const [renameValue, setRenameValue] = useState('');
+    const [renamingLoading, setRenamingLoading] = useState(false);
 
     // Fetch tunnels on mount
     useEffect(() => {
@@ -144,6 +155,32 @@ function TunnelsManager() {
         setShowDnsModal(true);
     };
 
+    const handleRenameTunnel = (tunnel: Tunnel) => {
+        setRenamingId(tunnel.id);
+        setRenameValue(tunnel.alias);
+    };
+
+    const handleRenameSave = async () => {
+        if (!renamingId || !renameValue) return;
+        setRenamingLoading(true);
+        setError(null);
+        try {
+            await rename_tunnel(renamingId, renameValue);
+            setRenamingId(null);
+            setRenameValue('');
+            await fetchTunnels();
+        } catch (e: any) {
+            setError('Failed to rename tunnel');
+        } finally {
+            setRenamingLoading(false);
+        }
+    };
+
+    const handleRenameCancel = () => {
+        setRenamingId(null);
+        setRenameValue('');
+    };
+
     return (
         <div className="col mx-auto w-full max-w-2xl flex-1 gap-8">
             <div className="row mb-4 items-center justify-between">
@@ -165,7 +202,47 @@ function TunnelsManager() {
                             className="row items-center justify-between gap-4 rounded-lg bg-white px-4 py-3 shadow"
                         >
                             <div className="col min-w-0 flex-1 gap-1">
-                                <div className="truncate font-medium">{tunnel.alias}</div>
+                                {renamingId === tunnel.id ? (
+                                    <div className="row items-center gap-2">
+                                        <Input
+                                            value={renameValue}
+                                            onChange={(e) => setRenameValue(e.target.value)}
+                                            size="sm"
+                                            autoFocus
+                                        />
+                                        <Button
+                                            color="primary"
+                                            variant="solid"
+                                            size="sm"
+                                            isLoading={renamingLoading}
+                                            onPress={handleRenameSave}
+                                            isDisabled={!renameValue || renamingLoading}
+                                        >
+                                            Save
+                                        </Button>
+                                        <Button
+                                            color="secondary"
+                                            variant="flat"
+                                            size="sm"
+                                            onPress={handleRenameCancel}
+                                            isDisabled={renamingLoading}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className="row items-center gap-2">
+                                        <div className="truncate font-medium">{tunnel.alias}</div>
+                                        <Button
+                                            color="secondary"
+                                            variant="flat"
+                                            size="sm"
+                                            onPress={() => handleRenameTunnel(tunnel)}
+                                        >
+                                            Rename
+                                        </Button>
+                                    </div>
+                                )}
                                 <div className="flex items-center gap-1 truncate text-sm text-slate-500">
                                     <a
                                         href={`https://${tunnel.url}`}
@@ -177,6 +254,11 @@ function TunnelsManager() {
                                         <RiExternalLinkLine className="ml-1 inline-block text-base" />
                                     </a>
                                 </div>
+                                {tunnel.custom_hostnames.length > 0 && (
+                                    <div className="mt-1 text-xs text-green-600">
+                                        Linked: {tunnel.custom_hostnames.map((h) => h.hostname).join(', ')}
+                                    </div>
+                                )}
                             </div>
                             <div className="row gap-2">
                                 <Button
@@ -321,12 +403,35 @@ function TunnelsManager() {
             </Modal>
 
             {/* Token Modal */}
-            <Modal isOpen={tokenModal.open} onClose={() => setTokenModal({ open: false, token: null })} title="Tunnel Token">
+            <Modal
+                isOpen={tokenModal.open}
+                onClose={() => {
+                    setTokenModal({ open: false, token: null });
+                    setCopied(false);
+                }}
+                title="Tunnel Token"
+            >
                 <ModalContent>
                     <div className="col gap-4 p-2">
                         <div className="text-sm font-medium">This is the token for your tunnel:</div>
-                        <div className="select-all break-all rounded bg-slate-100 p-3 font-mono text-xs">
-                            {tokenModal.token}
+                        <div className="row items-center gap-2">
+                            <div className="select-all break-all rounded bg-slate-100 p-3 font-mono text-xs">
+                                {tokenModal.token}
+                            </div>
+                            <Button
+                                color="primary"
+                                variant="flat"
+                                size="sm"
+                                onPress={async () => {
+                                    if (tokenModal.token) {
+                                        await navigator.clipboard.writeText(tokenModal.token);
+                                        setCopied(true);
+                                        setTimeout(() => setCopied(false), 1200);
+                                    }
+                                }}
+                            >
+                                {copied ? 'Copied!' : 'Copy'}
+                            </Button>
                         </div>
                     </div>
                 </ModalContent>
