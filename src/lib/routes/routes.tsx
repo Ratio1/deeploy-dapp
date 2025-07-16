@@ -1,6 +1,7 @@
 import { DeploymentProvider } from '@lib/contexts/deployment';
 import NotFound from '@pages/404';
 import Account from '@pages/Account';
+import CSP from '@pages/CSP';
 import CreateProject from '@pages/deeploys/CreateProject';
 import Dashboard from '@pages/deeploys/Dashboard';
 import Project from '@pages/deeploys/Project';
@@ -42,7 +43,7 @@ export function isParentRoute(route: AppRoute): route is ParentRoute {
 export const routeInfo = {
     [routePath.home]: {
         title: 'Deeploy',
-        description: 'Fast app development & go-to-market',
+        description: 'Fast app deployment & go-to-market',
         routeTitle: 'Home',
     },
     [routePath.deeploys]: {
@@ -76,6 +77,9 @@ export const routeInfo = {
     },
     [routePath.notFound]: {
         title: 'Not Found',
+    },
+    [routePath.notAllowed]: {
+        title: 'Not Allowed',
     },
 };
 
@@ -131,5 +135,9 @@ export const routes: AppRoute[] = [
     {
         path: routePath.notFound,
         page: NotFound,
+    },
+    {
+        path: routePath.notAllowed,
+        page: CSP,
     },
 ];

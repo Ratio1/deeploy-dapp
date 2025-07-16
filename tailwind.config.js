@@ -39,6 +39,9 @@ export default {
                 'sider-with-padding': 'calc(262px + 1rem)',
                 'small-sider-with-padding': 'calc(240px + 1rem)',
             },
+            backdropBlur: {
+                xs: '1px',
+            },
         },
         screens: {
             xs: '400px',
