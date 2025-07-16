@@ -39,14 +39,15 @@ export default {
                 'sider-with-padding': 'calc(262px + 1rem)',
                 'small-sider-with-padding': 'calc(240px + 1rem)',
             },
+            backdropBlur: {
+                xs: '1px',
+            },
         },
         screens: {
-            xs: '400px',
-            sm: '480px',
-            md: '768px',
+            break: '900px', // Screens narrower than this won't be supported
             lg: '1024px',
-            larger: '1176px',
-            xl: '1410px',
+            larger: '1200px',
+            xl: '1320px',
         },
     },
 

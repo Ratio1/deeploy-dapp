@@ -1,4 +1,6 @@
 import { ERC20Abi } from '@blockchain/ERC20';
+import { MNDContractAbi } from '@blockchain/MNDContract';
+import { NDContractAbi } from '@blockchain/NDContract';
 import { config } from '@lib/config';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -10,7 +12,6 @@ import { useAccount, usePublicClient } from 'wagmi';
 import { BlockchainContext } from './context';
 
 export const BlockchainProvider = ({ children }) => {
-    // R1 Balance
     const [r1Balance, setR1Balance] = useState<bigint>(0n);
 
     const { address } = useAccount();
@@ -104,6 +105,36 @@ export const BlockchainProvider = ({ children }) => {
         }
     };
 
+    const fetchLicenses = async (): Promise<
+        {
+            licenseId: bigint;
+            nodeAddress: EthAddress;
+        }[]
+    > => {
+        if (!publicClient || !address) {
+            console.log('No public client or address for fetching licenses');
+            return [];
+        }
+
+        const [mndLicenses, ndLicenses] = await Promise.all([
+            publicClient.readContract({
+                address: config.mndContractAddress,
+                abi: MNDContractAbi,
+                functionName: 'getLicenses',
+                args: [address],
+            }),
+            publicClient.readContract({
+                address: config.ndContractAddress,
+                abi: NDContractAbi,
+                functionName: 'getLicenses',
+                args: [address],
+            }),
+        ]);
+
+        const licenses = [...mndLicenses, ...ndLicenses];
+        return licenses;
+    };
+
     return (
         <BlockchainContext.Provider
             value={{
@@ -112,6 +143,8 @@ export const BlockchainProvider = ({ children }) => {
                 r1Balance,
                 setR1Balance,
                 fetchR1Balance,
+                // Licenses
+                fetchLicenses,
                 // Other
                 fetchErc20Balance,
             }}

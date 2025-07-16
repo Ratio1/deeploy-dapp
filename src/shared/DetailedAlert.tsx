@@ -28,15 +28,16 @@ export const DetailedAlert: FunctionComponent<PropsWithChildren<Props>> = ({
     };
 
     return (
-        <div className="center-all col gap-6 py-4">
+        <div className="col items-center gap-6">
             <div className={`center-all rounded-full ${bgColorClass[variant]} p-5`}>
                 <div className={`text-3xl ${textColorClass[variant]}`}>{icon}</div>
             </div>
 
-            <div className="col gap-1 text-center">
+            <div className="col gap-2 text-center">
                 <div
-                    className={clsx('text-primary-800 font-bold uppercase tracking-wider', {
-                        'text-3xl': largeTitle,
+                    className={clsx('font-bold uppercase tracking-wider text-primary-800', {
+                        'text-xl': !largeTitle,
+                        'text-4xl': largeTitle,
                     })}
                 >
                     {title}
