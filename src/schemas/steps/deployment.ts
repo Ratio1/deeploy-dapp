@@ -2,7 +2,7 @@ import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { SERVICE_TYPES } from '@data/serviceTypes';
-import { dynamicEnvEntrySchema, enabledBooleanTypeValue, keyValueEntrySchema, nodeSchema } from '@schemas/common';
+import { dynamicEnvEntrySchema, enabledBooleanTypeValue, keyValueEntriesArraySchema, nodeSchema } from '@schemas/common';
 import { z } from 'zod';
 
 // Common validation patterns
@@ -64,11 +64,24 @@ const commonValidations = {
         .refine((val) => val !== '', { message: 'Value is required' })
         .transform((val) => (!val ? undefined : (val as number))) as z.ZodType<number>,
 
-    // Array patterns
-    envVars: z.array(keyValueEntrySchema).max(10, 'Maximum 10 entries allowed'),
-    dynamicEnvVars: z.array(dynamicEnvEntrySchema).max(10, 'Maximum 10 dynamic environment variables'),
-    customParams: z.array(keyValueEntrySchema).max(10, 'Maximum 10 entries allowed'),
-    pipelineParams: z.array(keyValueEntrySchema).max(10, 'Maximum 10 entries allowed'),
+    // Array patterns with duplicate validation
+    envVars: keyValueEntriesArraySchema,
+    dynamicEnvVars: z
+        .array(dynamicEnvEntrySchema)
+        .max(10, 'Maximum 10 dynamic environment variables')
+        .refine(
+            (entries) => {
+                const keys = entries.map((entry) => entry.key?.trim()).filter((key) => key && key !== ''); // Only non-empty keys
+
+                const uniqueKeys = new Set(keys);
+                return uniqueKeys.size === keys.length;
+            },
+            {
+                message: 'Duplicate keys are not allowed',
+            },
+        ),
+    customParams: keyValueEntriesArraySchema,
+    pipelineParams: keyValueEntriesArraySchema,
 
     // Enum patterns
     restartPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
@@ -113,7 +126,17 @@ const applyNgrokRefinements = (schema: z.ZodObject<any>) => {
 };
 
 const baseDeploymentSchema = z.object({
-    targetNodes: z.array(nodeSchema).max(10, 'You can define up to 10 target nodes'),
+    targetNodes: z.array(nodeSchema).refine(
+        (nodes) => {
+            const addresses = nodes.map((node) => node.address?.trim()).filter((address) => address && address !== ''); // Only non-empty addresses
+
+            const uniqueAddresses = new Set(addresses);
+            return uniqueAddresses.size === addresses.length;
+        },
+        {
+            message: 'Duplicate addresses are not allowed',
+        },
+    ),
     enableNgrok: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
     ngrokEdgeLabel: z
         .string()

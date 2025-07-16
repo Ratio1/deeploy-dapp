@@ -7,6 +7,7 @@ import { RiAddLine } from 'react-icons/ri';
 import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
 
+// This component assumes it's being used in the deployment step
 export default function DynamicEnvSection() {
     const { control, formState, trigger } = useFormContext();
 
@@ -14,6 +15,9 @@ export default function DynamicEnvSection() {
         control: control,
         name: 'deployment.dynamicEnvVars',
     });
+
+    // Get array-level errors
+    const arrayError = (formState.errors.deployment as any)?.dynamicEnvVars;
 
     return (
         <div className="col gap-4">
@@ -23,8 +27,7 @@ export default function DynamicEnvSection() {
                 ) : (
                     fields.map((field, index) => {
                         // Get the error for this specific dynamic env entry
-                        const deploymentErrors = formState.errors.deployment as any;
-                        const entryError = deploymentErrors?.dynamicEnvVars?.[index];
+                        const entryError = arrayError?.[index];
 
                         return (
                             <div className="col gap-2" key={field.id}>
@@ -35,6 +38,11 @@ export default function DynamicEnvSection() {
                                         name={`deployment.dynamicEnvVars.${index}.key`}
                                         control={control}
                                         render={({ field, fieldState }) => {
+                                            // Check for specific error on this key input or array-level error
+                                            const specificKeyError = entryError?.key;
+                                            const hasError =
+                                                !!fieldState.error || !!specificKeyError || !!arrayError?.root?.message;
+
                                             return (
                                                 <StyledInput
                                                     placeholder="Dynamic ENV Key"
@@ -43,9 +51,22 @@ export default function DynamicEnvSection() {
                                                         const value = e.target.value;
                                                         field.onChange(value);
                                                     }}
-                                                    onBlur={field.onBlur}
-                                                    isInvalid={!!fieldState.error}
-                                                    errorMessage={fieldState.error?.message}
+                                                    onBlur={async () => {
+                                                        field.onBlur();
+
+                                                        // Trigger validation for the entire array to check for duplicate keys
+                                                        if (fields.length > 1) {
+                                                            await trigger('deployment.dynamicEnvVars');
+                                                        }
+                                                    }}
+                                                    isInvalid={hasError}
+                                                    errorMessage={
+                                                        fieldState.error?.message ||
+                                                        specificKeyError?.message ||
+                                                        (arrayError?.root?.message && index === 0
+                                                            ? arrayError.root.message
+                                                            : undefined)
+                                                    }
                                                 />
                                             );
                                         }}
