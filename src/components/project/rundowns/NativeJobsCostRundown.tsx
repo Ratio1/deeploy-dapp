@@ -37,6 +37,9 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeJob[] }) {
                     { label: 'Pipeline Input Type', value: nativeJob.deployment.pipelineInputType },
                     { label: 'Pipeline Input URI', value: nativeJob.deployment.pipelineInputUri },
                     { label: 'Tunneling', value: nativeJob.deployment.enableTunneling },
+                    ...(nativeJob.deployment.enableTunneling === 'True' && nativeJob.deployment.tunnelingLabel
+                        ? [{ label: 'Tunneling Label', value: nativeJob.deployment.tunnelingLabel }]
+                        : []),
                     { label: 'Chainstore Response', value: nativeJob.deployment.chainstoreResponse },
                 ];
 

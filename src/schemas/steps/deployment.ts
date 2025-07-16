@@ -91,7 +91,7 @@ const commonValidations = {
 };
 
 // Helper functions for tunneling refinements
-const createTunnelingRequiredRefinement = (fieldName: 'tunnelingLabel' | 'tunnelingToken') => {
+const createTunnelingRequiredRefinement = (fieldName: 'tunnelingToken') => {
     return (data: { [key: string]: any }) => {
         if (data.enableTunneling !== enabledBooleanTypeValue) {
             return true; // Allow undefined when tunneling is not enabled
@@ -101,13 +101,6 @@ const createTunnelingRequiredRefinement = (fieldName: 'tunnelingLabel' | 'tunnel
 };
 
 const tunnelingRefinements = {
-    tunnelingLabel: {
-        refine: createTunnelingRequiredRefinement('tunnelingLabel'),
-        options: {
-            message: 'Required when tunneling is enabled',
-            path: ['tunnelingLabel'],
-        },
-    },
     tunnelingToken: {
         refine: createTunnelingRequiredRefinement('tunnelingToken'),
         options: {
@@ -119,9 +112,7 @@ const tunnelingRefinements = {
 
 // Helper function to apply tunneling refinements
 const applyTunnelingRefinements = (schema: z.ZodObject<any>) => {
-    return schema
-        .refine(tunnelingRefinements.tunnelingLabel.refine, tunnelingRefinements.tunnelingLabel.options)
-        .refine(tunnelingRefinements.tunnelingToken.refine, tunnelingRefinements.tunnelingToken.options);
+    return schema.refine(tunnelingRefinements.tunnelingToken.refine, tunnelingRefinements.tunnelingToken.options);
 };
 
 const baseDeploymentSchema = z.object({

@@ -40,6 +40,8 @@ type GenericJob = BaseJob & {
     deployment: {
         targetNodes: R1Address[];
         enableTunneling: (typeof BOOLEAN_TYPES)[number];
+        tunnelingLabel?: string;
+        tunnelingToken?: string;
         appAlias: string;
         containerImage: string;
         containerRegistry: string;
@@ -67,6 +69,8 @@ type NativeJob = BaseJob & {
     deployment: {
         targetNodes: R1Address[];
         enableTunneling: (typeof BOOLEAN_TYPES)[number];
+        tunnelingLabel?: string;
+        tunnelingToken?: string;
         appAlias: string;
         pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
         customParams: Array<{
@@ -88,6 +92,8 @@ type ServiceJob = BaseJob & {
     deployment: {
         targetNodes: R1Address[];
         enableTunneling: (typeof BOOLEAN_TYPES)[number];
+        tunnelingLabel?: string;
+        tunnelingToken?: string;
         serviceType: (typeof SERVICE_TYPES)[number];
         envVars: Array<{
             key: string;

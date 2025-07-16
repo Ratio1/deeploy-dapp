@@ -36,6 +36,9 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
                     { label: 'Container Image', value: genericJob.deployment.containerImage },
                     { label: 'Port', value: genericJob.deployment.port },
                     { label: 'Tunneling', value: genericJob.deployment.enableTunneling },
+                    ...(genericJob.deployment.enableTunneling === 'True' && genericJob.deployment.tunnelingLabel
+                        ? [{ label: 'Tunneling Label', value: genericJob.deployment.tunnelingLabel }]
+                        : []),
                     { label: 'Restart Policy', value: genericJob.deployment.restartPolicy },
                     { label: 'Image Pull Policy', value: genericJob.deployment.imagePullPolicy },
                 ];

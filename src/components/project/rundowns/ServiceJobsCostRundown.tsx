@@ -35,6 +35,9 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
                         : []),
                     // Deployment
                     { label: 'Tunneling', value: serviceJob.deployment.enableTunneling },
+                    ...(serviceJob.deployment.enableTunneling === 'True' && serviceJob.deployment.tunnelingLabel
+                        ? [{ label: 'Tunneling Label', value: serviceJob.deployment.tunnelingLabel }]
+                        : []),
                     { label: 'Service Replica', value: getShortAddress(serviceJob.deployment.serviceReplica, 4, true) },
                 ];
 
