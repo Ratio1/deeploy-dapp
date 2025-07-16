@@ -1,4 +1,5 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
+import { pluginSignaturesCustomParams } from '@data/default-values/customParams';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import KeyValueEntriesSection from '@shared/deployment/KeyValueEntriesSection';
@@ -11,6 +12,7 @@ import { useFormContext } from 'react-hook-form';
 function NativeDeployment() {
     const { watch } = useFormContext();
     const enableTunneling = watch('deployment.enableTunneling');
+    const pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number] = watch('deployment.pluginSignature');
 
     return (
         <div className="col gap-6">
@@ -50,7 +52,12 @@ function NativeDeployment() {
             </SlateCard>
 
             <SlateCard title="Custom Parameters">
-                <KeyValueEntriesSection name="deployment.customParams" maxEntries={50} />
+                <KeyValueEntriesSection
+                    name="deployment.customParams"
+                    displayLabel="custom parameters"
+                    maxEntries={50}
+                    defaultEntries={pluginSignaturesCustomParams[pluginSignature] ?? []}
+                />
             </SlateCard>
 
             <SlateCard title="Pipeline">
@@ -60,7 +67,11 @@ function NativeDeployment() {
                         <InputWithLabel name="deployment.pipelineInputUri" label="Pipeline Input URI" placeholder="None" />
                     </div>
 
-                    <KeyValueEntriesSection name="deployment.pipelineParams" label="Pipeline Parameters" maxEntries={50} />
+                    <KeyValueEntriesSection
+                        name="deployment.pipelineParams"
+                        displayLabel="pipeline parameters"
+                        maxEntries={50}
+                    />
                 </div>
             </SlateCard>
 

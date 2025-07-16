@@ -48,7 +48,7 @@ function GenericDeployment() {
             </SlateCard>
 
             <SlateCard title="ENV Variables">
-                <KeyValueEntriesSection name="deployment.envVars" />
+                <KeyValueEntriesSection name="deployment.envVars" displayLabel="environment variables" />
             </SlateCard>
 
             <SlateCard title="Dynamic ENV Variables">

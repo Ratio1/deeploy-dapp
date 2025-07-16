@@ -8,6 +8,12 @@ body {
     @apply h-screen w-screen font-mona text-body;
 }
 
+@layer utilities {
+    input:disabled {
+        opacity: 0.7 !important;
+    }
+}
+
 /* Utilities */
 .row {
     @apply flex items-center;

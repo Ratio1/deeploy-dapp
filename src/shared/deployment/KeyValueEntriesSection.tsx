@@ -7,12 +7,16 @@ import VariableSectionRemove from './VariableSectionRemove';
 // This component assumes it's being used in the deployment step
 export default function KeyValueEntriesSection({
     name,
+    displayLabel = 'entries',
     label,
     maxEntries,
+    defaultEntries,
 }: {
     name: string;
+    displayLabel?: string;
     label?: string;
     maxEntries?: number;
+    defaultEntries?: { key: string; value: string }[];
 }) {
     const { control, formState, trigger } = useFormContext();
 
@@ -24,7 +28,7 @@ export default function KeyValueEntriesSection({
     // Get array-level errors
     const key = name.split('.')[1];
     const deploymentErrors = formState.errors.deployment as any;
-    const arrayError = deploymentErrors?.[key];
+    const errors = deploymentErrors?.[key];
 
     return (
         <div className="col gap-4">
@@ -36,16 +40,35 @@ export default function KeyValueEntriesSection({
                 )}
 
                 <div className="col gap-2">
+                    {!!defaultEntries && defaultEntries.length > 0 && (
+                        <>
+                            {defaultEntries.map((entry, index) => (
+                                <div key={entry.key} className="flex gap-3">
+                                    <VariableSectionIndex index={index} />
+
+                                    <div className="flex w-full gap-2">
+                                        <StyledInput value={entry.key} isDisabled />
+                                        <StyledInput value={entry.value} isDisabled />
+                                    </div>
+
+                                    <div className="invisible">
+                                        <VariableSectionRemove onClick={() => {}} />
+                                    </div>
+                                </div>
+                            ))}
+                        </>
+                    )}
+
                     {fields.length === 0 ? (
-                        <div className="text-sm italic text-slate-500">No entries added yet.</div>
+                        <div className="text-sm italic text-slate-500">No {displayLabel} added yet.</div>
                     ) : (
                         fields.map((field, index) => {
                             // Get the error for this specific entry
-                            const entryError = arrayError?.[index];
+                            const entryError = errors?.[index];
 
                             return (
-                                <div className="flex gap-3" key={field.id}>
-                                    <VariableSectionIndex index={index} />
+                                <div key={field.id} className="flex gap-3">
+                                    <VariableSectionIndex index={index + (defaultEntries?.length ?? 0)} />
 
                                     <div className="flex w-full gap-2">
                                         <Controller
@@ -55,7 +78,7 @@ export default function KeyValueEntriesSection({
                                                 // Check for specific error on this key input or array-level error
                                                 const specificKeyError = entryError?.key;
                                                 const hasError =
-                                                    !!fieldState.error || !!specificKeyError || !!arrayError?.root?.message;
+                                                    !!fieldState.error || !!specificKeyError || !!errors?.root?.message;
 
                                                 return (
                                                     <StyledInput
@@ -77,8 +100,8 @@ export default function KeyValueEntriesSection({
                                                         errorMessage={
                                                             fieldState.error?.message ||
                                                             specificKeyError?.message ||
-                                                            (arrayError?.root?.message && index === 0
-                                                                ? arrayError.root.message
+                                                            (errors?.root?.message && index === 0
+                                                                ? errors.root.message
                                                                 : undefined)
                                                         }
                                                     />

@@ -15,7 +15,7 @@ export default function TargetNodesSection() {
     const targetNodesCount: number = watch('specifications.targetNodesCount');
 
     // Get array-level errors
-    const arrayError = (formState.errors.deployment as any)?.targetNodes;
+    const errors = (formState.errors.deployment as any)?.targetNodes;
 
     return (
         <div className="col gap-4" key={fields.length}>
@@ -30,7 +30,7 @@ export default function TargetNodesSection() {
                 ) : (
                     fields.map((field, index) => {
                         // Get the error for this specific entry
-                        const entryError = arrayError?.[index];
+                        const entryError = errors?.[index];
 
                         return (
                             <div className="flex gap-3" key={field.id}>
@@ -43,7 +43,7 @@ export default function TargetNodesSection() {
                                         // Check for specific error on this address input or array-level error
                                         const specificAddressError = entryError?.address;
                                         const hasError =
-                                            !!fieldState.error || !!specificAddressError || !!arrayError?.root?.message;
+                                            !!fieldState.error || !!specificAddressError || !!errors?.root?.message;
 
                                         return (
                                             <StyledInput
@@ -62,9 +62,7 @@ export default function TargetNodesSection() {
                                                 errorMessage={
                                                     fieldState.error?.message ||
                                                     specificAddressError?.message ||
-                                                    (arrayError?.root?.message && index === 0
-                                                        ? arrayError.root.message
-                                                        : undefined)
+                                                    (errors?.root?.message && index === 0 ? errors.root.message : undefined)
                                                 }
                                             />
                                         );

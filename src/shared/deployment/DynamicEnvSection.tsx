@@ -17,7 +17,7 @@ export default function DynamicEnvSection() {
     });
 
     // Get array-level errors
-    const arrayError = (formState.errors.deployment as any)?.dynamicEnvVars;
+    const errors = (formState.errors.deployment as any)?.dynamicEnvVars;
 
     return (
         <div className="col gap-4">
@@ -27,7 +27,7 @@ export default function DynamicEnvSection() {
                 ) : (
                     fields.map((field, index) => {
                         // Get the error for this specific dynamic env entry
-                        const entryError = arrayError?.[index];
+                        const entryError = errors?.[index];
 
                         return (
                             <div className="col gap-2" key={field.id}>
@@ -41,7 +41,7 @@ export default function DynamicEnvSection() {
                                             // Check for specific error on this key input or array-level error
                                             const specificKeyError = entryError?.key;
                                             const hasError =
-                                                !!fieldState.error || !!specificKeyError || !!arrayError?.root?.message;
+                                                !!fieldState.error || !!specificKeyError || !!errors?.root?.message;
 
                                             return (
                                                 <StyledInput
@@ -63,9 +63,7 @@ export default function DynamicEnvSection() {
                                                     errorMessage={
                                                         fieldState.error?.message ||
                                                         specificKeyError?.message ||
-                                                        (arrayError?.root?.message && index === 0
-                                                            ? arrayError.root.message
-                                                            : undefined)
+                                                        (errors?.root?.message && index === 0 ? errors.root.message : undefined)
                                                     }
                                                 />
                                             );
