@@ -27,30 +27,6 @@ body {
     @apply row justify-center;
 }
 
-.web-only-block {
-    @apply hidden md:block;
-}
-
-.mobile-only-block {
-    @apply block md:hidden;
-}
-
-.web-only-flex {
-    @apply hidden md:flex;
-}
-
-.mobile-only-flex {
-    @apply flex md:hidden;
-}
-
-.web-only-xl-flex {
-    @apply hidden xl:flex;
-}
-
-.mobile-only-xl-flex {
-    @apply flex xl:hidden;
-}
-
 .active {
     @apply text-primary;
 }
@@ -63,14 +39,8 @@ body {
     @apply col w-full gap-3 overflow-x-auto;
 }
 
-/* bg-[#e6ebf1] TODO: Remove */
 .slate-button {
     @apply bg-[#e9edf2] hover:!opacity-75;
-}
-
-/* Safe padding for mobile devices */
-.nav-safe-padding {
-    padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Scrollbar */

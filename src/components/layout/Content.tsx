@@ -1,4 +1,3 @@
-import Logo from '@assets/token.svg';
 import { routeInfo } from '@lib/routes/routes';
 import { ConnectKitButton } from 'connectkit';
 import { useEffect, useState } from 'react';
@@ -26,11 +25,11 @@ function Content() {
     }, [location]);
 
     return (
-        <div className="col mx-auto h-full max-w-6xl gap-6 px-4 md:gap-8 md:px-8 lg:px-10 larger:gap-12">
-            <div className="flex flex-col-reverse items-center justify-between gap-8 lg:gap-8 larger:flex-row larger:items-start">
+        <div className="col mx-auto h-full max-w-6xl gap-6 px-4 md:gap-8 md:px-8 lg:gap-12 lg:px-10">
+            <div className="flex flex-col-reverse items-center justify-between gap-8 lg:flex-row lg:items-start lg:gap-8">
                 <div className="col gap-1.5">
                     {!!title && (
-                        <div className="row justify-center larger:justify-start">
+                        <div className="row justify-center lg:justify-start">
                             <div className="text-[26px] font-bold leading-none lg:text-[28px]">{title}</div>
                         </div>
                     )}
@@ -40,18 +39,12 @@ function Content() {
                     )}
                 </div>
 
-                <div className="row w-full justify-between larger:w-auto">
-                    <div className="mobile-only-block">
-                        <img src={Logo} alt="Logo" className="h-10" />
-                    </div>
-
+                <div className="flex">
                     <ConnectKitButton showBalance />
                 </div>
             </div>
 
             <Outlet />
-
-            <div className="layoutBreak:hidden">{/* TODO: Display a message to inform the user to switch to desktop */}</div>
         </div>
     );
 }

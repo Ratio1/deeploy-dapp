@@ -19,10 +19,10 @@ function Running() {
     return (
         <div className="list">
             <ListHeader>
-                <div className="min-w-[212px]">Alias</div>
-                <div className="min-w-[212px]">Plugin Signature</div>
-                <div className="min-w-[92px]">Nodes</div>
-                <div className="min-w-[92px]">GPU/CPU</div>
+                <div className="min-w-[168px]">Alias</div>
+                <div className="min-w-[168px]">Plugin Signature</div>
+                <div className="min-w-[64px]">Nodes</div>
+                <div className="min-w-[64px]">GPU/CPU</div>
                 <div className="min-w-[112px]">Running Nodes</div>
                 <div className="min-w-[112px]">Expiration Date</div>
             </ListHeader>

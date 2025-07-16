@@ -7,19 +7,19 @@ export default function ApplicationCard({ app }: { app: DeeployApp }) {
     return (
         <BorderedCard>
             <div className="row justify-between gap-3 lg:gap-6">
-                <div className="min-w-[212px]">
-                    <CardItem label="Version" value={<>{app.alias}</>} isBold />
+                <div className="min-w-[168px]">
+                    <CardItem label="Alias" value={<>{app.alias}</>} isBold />
                 </div>
 
-                <div className="min-w-[212px]">
+                <div className="min-w-[168px]">
                     <CardItem label="Plugin Signature" value={<>{app.pluginSignature}</>} />
                 </div>
 
-                <div className="min-w-[92px]">
+                <div className="min-w-[64px]">
                     <CardItem label="Nodes" value={<>{app.nodes}</>} />
                 </div>
 
-                <div className="min-w-[92px]">
+                <div className="min-w-[64px]">
                     <CardItem
                         label="GPU/CPU"
                         value={<SmallTag variant={app.processor === 'GPU' ? 'green' : 'blue'}>{app.processor}</SmallTag>}
