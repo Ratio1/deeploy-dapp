@@ -6,28 +6,12 @@ import { RiDraftLine } from 'react-icons/ri';
 
 const running: DeeployApp[] = [
     {
-        alias: 'native_app_x',
-        pluginSignature: 'CONTAINER_APP_RUNNER',
-        nodes: 3,
-        processor: 'GPU',
-        runningNodes: '2/3',
-        deadline: '2026-12-25',
-    },
-    {
-        alias: 'some_app_name_05',
-        pluginSignature: 'SOME_PLUGIN_01',
-        nodes: 4,
-        processor: 'GPU',
-        runningNodes: '4/4',
-        deadline: '2027-02-14',
-    },
-    {
-        alias: 'service_pubapi_etc',
-        pluginSignature: 'CONTAINER_APP_RUNNER',
+        alias: 'postgres_service',
+        pluginSignature: 'DB_RUNNER_1',
         nodes: 1,
         processor: 'CPU',
         runningNodes: '1/1',
-        deadline: '2026-11-30',
+        expiresAt: '2026-11-30',
     },
 ];
 
@@ -35,12 +19,12 @@ function Running() {
     return (
         <div className="list">
             <ListHeader>
-                <div className="min-w-[212px]">Alias</div>
-                <div className="min-w-[212px]">Plugin Signature</div>
+                <div className="min-w-[168px]">Alias</div>
+                <div className="min-w-[168px]">Plugin Signature</div>
                 <div className="min-w-[64px]">Nodes</div>
-                <div className="min-w-[82px]">GPU/CPU</div>
+                <div className="min-w-[64px]">GPU/CPU</div>
                 <div className="min-w-[112px]">Running Nodes</div>
-                <div className="min-w-[112px]">Deadline</div>
+                <div className="min-w-[112px]">Expiration Date</div>
             </ListHeader>
 
             {running.map((app, index) => (

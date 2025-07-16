@@ -1,16 +1,16 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { SERVICE_TYPES } from '@data/serviceTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
-import DynamicEnvSection from '@shared/deeploy-app/DynamicEnvSection';
-import KeyValueEntriesSection from '@shared/deeploy-app/KeyValueEntriesSection';
-import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
+import DynamicEnvSection from '@shared/deployment/DynamicEnvSection';
+import KeyValueEntriesSection from '@shared/deployment/KeyValueEntriesSection';
+import TargetNodesSection from '@shared/deployment/TargetNodesSection';
 import InputWithLabel from '@shared/InputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
 
 function ServiceDeployment() {
     const { watch } = useFormContext();
-    const enableNgrok = watch('deployment.enableNgrok');
+    const enableTunneling = watch('deployment.enableTunneling');
 
     return (
         <div className="col gap-6">
@@ -22,13 +22,17 @@ function ServiceDeployment() {
                 <div className="col gap-4">
                     <div className="flex gap-4">
                         <SelectWithLabel name="deployment.serviceType" label="Service Type" options={SERVICE_TYPES} />
-                        <SelectWithLabel name="deployment.enableNgrok" label="Enable NGROK" options={BOOLEAN_TYPES} />
+                        <SelectWithLabel name="deployment.enableTunneling" label="Enable Tunneling" options={BOOLEAN_TYPES} />
                     </div>
 
-                    {enableNgrok === BOOLEAN_TYPES[0] && (
+                    {enableTunneling === BOOLEAN_TYPES[0] && (
                         <div className="flex gap-4">
-                            <InputWithLabel name="deployment.ngrokEdgeLabel" label="NGROK Edge Label" placeholder="None" />
-                            <InputWithLabel name="deployment.ngrokAuthToken" label="NGROK Auth Token" placeholder="None" />
+                            <InputWithLabel name="deployment.tunnelingToken" label="Tunneling Token" placeholder="None" />
+                            <InputWithLabel
+                                name="deployment.tunnelingLabel"
+                                label="Tunneling Label (optional)"
+                                placeholder="None"
+                            />
                         </div>
                     )}
                 </div>

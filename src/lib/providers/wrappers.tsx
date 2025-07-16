@@ -1,5 +1,6 @@
 import ScrollToTop from '@components/layout/ScrollToTop';
 import { HeroUIProvider } from '@heroui/system';
+import { InteractionProvider } from '@lib/contexts/interaction';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -17,7 +18,9 @@ export function Wrappers({ children }: { children: React.ReactNode }) {
                 <QueryClientProvider client={queryClient}>
                     <HeroUIProvider>
                         <AuthenticationProvider>
-                            <BlockchainProvider>{children}</BlockchainProvider>
+                            <BlockchainProvider>
+                                <InteractionProvider>{children}</InteractionProvider>
+                            </BlockchainProvider>
                         </AuthenticationProvider>
 
                         <Toaster
@@ -29,6 +32,7 @@ export function Wrappers({ children }: { children: React.ReactNode }) {
                             }}
                             toastOptions={{
                                 className: 'font-mona text-base',
+                                duration: 3500,
                             }}
                         />
 

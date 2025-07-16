@@ -8,7 +8,7 @@ const db = new Dexie('Database') as Dexie & {
 };
 
 db.version(1).stores({
-    projects: '++id, name, datetime',
+    projects: '++id, name, createdAt',
     jobs: '++id, projectId',
 });
 

@@ -1,8 +1,9 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
+import { pluginSignaturesCustomParams } from '@data/default-values/customParams';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
-import KeyValueEntriesSection from '@shared/deeploy-app/KeyValueEntriesSection';
-import TargetNodesSection from '@shared/deeploy-app/TargetNodesSection';
+import KeyValueEntriesSection from '@shared/deployment/KeyValueEntriesSection';
+import TargetNodesSection from '@shared/deployment/TargetNodesSection';
 import InputWithLabel from '@shared/InputWithLabel';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
@@ -10,7 +11,8 @@ import { useFormContext } from 'react-hook-form';
 
 function NativeDeployment() {
     const { watch } = useFormContext();
-    const enableNgrok = watch('deployment.enableNgrok');
+    const enableTunneling = watch('deployment.enableTunneling');
+    const pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number] = watch('deployment.pluginSignature');
 
     return (
         <div className="col gap-6">
@@ -33,20 +35,29 @@ function NativeDeployment() {
                 <div className="col gap-4">
                     <div className="flex gap-4">
                         <NumberInputWithLabel name="deployment.port" label="Port" />
-                        <SelectWithLabel name="deployment.enableNgrok" label="Enable NGROK" options={BOOLEAN_TYPES} />
+                        <SelectWithLabel name="deployment.enableTunneling" label="Enable Tunneling" options={BOOLEAN_TYPES} />
                     </div>
 
-                    {enableNgrok === BOOLEAN_TYPES[0] && (
+                    {enableTunneling === BOOLEAN_TYPES[0] && (
                         <div className="flex gap-4">
-                            <InputWithLabel name="deployment.ngrokEdgeLabel" label="NGROK Edge Label" placeholder="None" />
-                            <InputWithLabel name="deployment.ngrokAuthToken" label="NGROK Auth Token" placeholder="None" />
+                            <InputWithLabel name="deployment.tunnelingToken" label="Tunneling Token" placeholder="None" />
+                            <InputWithLabel
+                                name="deployment.tunnelingLabel"
+                                label="Tunneling Label (optional)"
+                                placeholder="None"
+                            />
                         </div>
                     )}
                 </div>
             </SlateCard>
 
             <SlateCard title="Custom Parameters">
-                <KeyValueEntriesSection name="deployment.customParams" />
+                <KeyValueEntriesSection
+                    name="deployment.customParams"
+                    displayLabel="custom parameters"
+                    maxEntries={50}
+                    defaultEntries={pluginSignaturesCustomParams[pluginSignature] ?? []}
+                />
             </SlateCard>
 
             <SlateCard title="Pipeline">
@@ -56,7 +67,11 @@ function NativeDeployment() {
                         <InputWithLabel name="deployment.pipelineInputUri" label="Pipeline Input URI" placeholder="None" />
                     </div>
 
-                    <KeyValueEntriesSection name="deployment.pipelineParams" label="Pipeline Parameters" />
+                    <KeyValueEntriesSection
+                        name="deployment.pipelineParams"
+                        displayLabel="pipeline parameters"
+                        maxEntries={50}
+                    />
                 </div>
             </SlateCard>
 

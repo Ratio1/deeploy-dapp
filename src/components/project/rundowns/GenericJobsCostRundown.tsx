@@ -1,5 +1,5 @@
 import { CONTAINER_TYPES } from '@data/containerTypes';
-import JobsCostRundown from '@shared/deeploy-app/JobsCostRundown';
+import JobsCostRundown from '@shared/deployment/JobsCostRundown';
 import { GenericJob } from '@typedefs/deployment';
 import { RiBox3Line } from 'react-icons/ri';
 
@@ -35,7 +35,10 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
                     // Deployment
                     { label: 'Container Image', value: genericJob.deployment.containerImage },
                     { label: 'Port', value: genericJob.deployment.port },
-                    { label: 'NGROK', value: genericJob.deployment.enableNgrok },
+                    { label: 'Tunneling', value: genericJob.deployment.enableTunneling },
+                    ...(genericJob.deployment.enableTunneling === 'True' && genericJob.deployment.tunnelingLabel
+                        ? [{ label: 'Tunneling Label', value: genericJob.deployment.tunnelingLabel }]
+                        : []),
                     { label: 'Restart Policy', value: genericJob.deployment.restartPolicy },
                     { label: 'Image Pull Policy', value: genericJob.deployment.imagePullPolicy },
                 ];

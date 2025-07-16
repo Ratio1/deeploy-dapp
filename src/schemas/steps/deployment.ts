@@ -2,7 +2,7 @@ import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { SERVICE_TYPES } from '@data/serviceTypes';
-import { dynamicEnvEntrySchema, enabledBooleanTypeValue, keyValueEntrySchema, nodeSchema } from '@schemas/common';
+import { dynamicEnvEntrySchema, enabledBooleanTypeValue, getKeyValueEntriesArraySchema, nodeSchema } from '@schemas/common';
 import { z } from 'zod';
 
 // Common validation patterns
@@ -64,11 +64,23 @@ const commonValidations = {
         .refine((val) => val !== '', { message: 'Value is required' })
         .transform((val) => (!val ? undefined : (val as number))) as z.ZodType<number>,
 
-    // Array patterns
-    envVars: z.array(keyValueEntrySchema).max(10, 'Maximum 10 entries allowed'),
-    dynamicEnvVars: z.array(dynamicEnvEntrySchema).max(10, 'Maximum 10 dynamic environment variables'),
-    customParams: z.array(keyValueEntrySchema).max(10, 'Maximum 10 entries allowed'),
-    pipelineParams: z.array(keyValueEntrySchema).max(10, 'Maximum 10 entries allowed'),
+    envVars: getKeyValueEntriesArraySchema(),
+    dynamicEnvVars: z
+        .array(dynamicEnvEntrySchema)
+        .max(50, 'Maximum 50 dynamic environment variables')
+        .refine(
+            (entries) => {
+                const keys = entries.map((entry) => entry.key?.trim()).filter((key) => key && key !== ''); // Only non-empty keys
+
+                const uniqueKeys = new Set(keys);
+                return uniqueKeys.size === keys.length;
+            },
+            {
+                message: 'Duplicate keys are not allowed',
+            },
+        ),
+    customParams: getKeyValueEntriesArraySchema(50),
+    pipelineParams: getKeyValueEntriesArraySchema(50),
 
     // Enum patterns
     restartPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
@@ -78,44 +90,45 @@ const commonValidations = {
     chainstoreResponse: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
 };
 
-// Helper functions for ngrok refinements
-const createNgrokRequiredRefinement = (fieldName: 'ngrokEdgeLabel' | 'ngrokAuthToken') => {
+// Helper functions for tunneling refinements
+const createTunnelingRequiredRefinement = (fieldName: 'tunnelingToken') => {
     return (data: { [key: string]: any }) => {
-        if (data.enableNgrok !== enabledBooleanTypeValue) {
-            return true; // Allow undefined when ngrok is not enabled
+        if (data.enableTunneling !== enabledBooleanTypeValue) {
+            return true; // Allow undefined when tunneling is not enabled
         }
         return data[fieldName] !== undefined;
     };
 };
 
-const ngrokRefinements = {
-    ngrokEdgeLabel: {
-        refine: createNgrokRequiredRefinement('ngrokEdgeLabel'),
+const tunnelingRefinements = {
+    tunnelingToken: {
+        refine: createTunnelingRequiredRefinement('tunnelingToken'),
         options: {
-            message: 'Required when NGROK is enabled',
-            path: ['ngrokEdgeLabel'],
-        },
-    },
-    ngrokAuthToken: {
-        refine: createNgrokRequiredRefinement('ngrokAuthToken'),
-        options: {
-            message: 'Required when NGROK is enabled',
-            path: ['ngrokAuthToken'],
+            message: 'Required when tunneling is enabled',
+            path: ['tunnelingToken'],
         },
     },
 };
 
-// Helper function to apply ngrok refinements
-const applyNgrokRefinements = (schema: z.ZodObject<any>) => {
-    return schema
-        .refine(ngrokRefinements.ngrokEdgeLabel.refine, ngrokRefinements.ngrokEdgeLabel.options)
-        .refine(ngrokRefinements.ngrokAuthToken.refine, ngrokRefinements.ngrokAuthToken.options);
+// Helper function to apply tunneling refinements
+const applyTunnelingRefinements = (schema: z.ZodObject<any>) => {
+    return schema.refine(tunnelingRefinements.tunnelingToken.refine, tunnelingRefinements.tunnelingToken.options);
 };
 
 const baseDeploymentSchema = z.object({
-    targetNodes: z.array(nodeSchema).max(10, 'You can define up to 10 target nodes'),
-    enableNgrok: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
-    ngrokEdgeLabel: z
+    targetNodes: z.array(nodeSchema).refine(
+        (nodes) => {
+            const addresses = nodes.map((node) => node.address?.trim()).filter((address) => address && address !== ''); // Only non-empty addresses
+
+            const uniqueAddresses = new Set(addresses);
+            return uniqueAddresses.size === addresses.length;
+        },
+        {
+            message: 'Duplicate addresses are not allowed',
+        },
+    ),
+    enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
+    tunnelingLabel: z
         .string()
         .min(3, 'Value must be at least 3 characters')
         .max(64, 'Value cannot exceed 64 characters')
@@ -124,7 +137,7 @@ const baseDeploymentSchema = z.object({
             'Only letters, numbers, spaces and special characters allowed',
         )
         .optional(),
-    ngrokAuthToken: z
+    tunnelingToken: z
         .string()
         .min(3, 'Value must be at least 3 characters')
         .max(128, 'Value cannot exceed 128 characters')
@@ -135,7 +148,7 @@ const baseDeploymentSchema = z.object({
         .optional(),
 });
 
-export const genericAppDeploymentSchema = applyNgrokRefinements(
+export const genericAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
         appAlias: commonValidations.appAlias,
         containerImage: commonValidations.containerImage,
@@ -150,7 +163,7 @@ export const genericAppDeploymentSchema = applyNgrokRefinements(
     }),
 );
 
-export const nativeAppDeploymentSchema = applyNgrokRefinements(
+export const nativeAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
         appAlias: commonValidations.appAlias,
         pluginSignature: commonValidations.pluginSignature,
@@ -162,7 +175,7 @@ export const nativeAppDeploymentSchema = applyNgrokRefinements(
     }),
 );
 
-export const serviceAppDeploymentSchema = applyNgrokRefinements(
+export const serviceAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
         serviceType: commonValidations.serviceType,
         envVars: commonValidations.envVars,

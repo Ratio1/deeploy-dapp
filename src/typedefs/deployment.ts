@@ -39,7 +39,9 @@ type GenericJob = BaseJob & {
     formType: FormType.Generic;
     deployment: {
         targetNodes: R1Address[];
-        enableNgrok: (typeof BOOLEAN_TYPES)[number];
+        enableTunneling: (typeof BOOLEAN_TYPES)[number];
+        tunnelingLabel?: string;
+        tunnelingToken?: string;
         appAlias: string;
         containerImage: string;
         containerRegistry: string;
@@ -66,7 +68,9 @@ type NativeJob = BaseJob & {
     formType: FormType.Native;
     deployment: {
         targetNodes: R1Address[];
-        enableNgrok: (typeof BOOLEAN_TYPES)[number];
+        enableTunneling: (typeof BOOLEAN_TYPES)[number];
+        tunnelingLabel?: string;
+        tunnelingToken?: string;
         appAlias: string;
         pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
         customParams: Array<{
@@ -87,7 +91,9 @@ type ServiceJob = BaseJob & {
     formType: FormType.Service;
     deployment: {
         targetNodes: R1Address[];
-        enableNgrok: (typeof BOOLEAN_TYPES)[number];
+        enableTunneling: (typeof BOOLEAN_TYPES)[number];
+        tunnelingLabel?: string;
+        tunnelingToken?: string;
         serviceType: (typeof SERVICE_TYPES)[number];
         envVars: Array<{
             key: string;
@@ -110,7 +116,7 @@ type Project = {
     id: number;
     name: string;
     color: string;
-    datetime: string;
+    createdAt: string;
 };
 
 export { FormType, ProjectPage };

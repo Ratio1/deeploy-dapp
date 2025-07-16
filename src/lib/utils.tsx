@@ -7,13 +7,11 @@ import toast from 'react-hot-toast';
 import { RiCodeSSlashLine } from 'react-icons/ri';
 
 export const getShortAddress = (address: string, size = 4, asString = false): string | JSX.Element => {
-    const str = `${address.slice(0, size)}•••${address.slice(-size)}`;
-
     if (asString) {
-        return str;
+        return `${address.slice(0, size)}...${address.slice(-size)}`;
     }
 
-    return <div className="font-robotoMono">{str}</div>;
+    return <div className="font-robotoMono">{`${address.slice(0, size)}•••${address.slice(-size)}`}</div>;
 };
 
 export function fN(num: number): string | number {
@@ -105,4 +103,20 @@ export const getJobsTotalCost = (jobs: Job[]): number => {
     return jobs.reduce((acc, job) => {
         return acc + getJobCost(job.specifications);
     }, 0);
+};
+
+export const downloadDataAsJson = (data: any, filename: string) => {
+    const jsonString = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Clean up the URL object
+    URL.revokeObjectURL(url);
 };

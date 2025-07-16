@@ -5,7 +5,7 @@ type DeeployApp = {
     nodes: number;
     processor: 'GPU' | 'CPU';
     runningNodes: string;
-    deadline: string;
+    expiresAt: string;
 };
 
 type Invoice = {

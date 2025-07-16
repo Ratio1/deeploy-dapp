@@ -1,5 +1,5 @@
 import { CONTAINER_TYPES } from '@data/containerTypes';
-import JobsCostRundown from '@shared/deeploy-app/JobsCostRundown';
+import JobsCostRundown from '@shared/deployment/JobsCostRundown';
 import { NativeJob } from '@typedefs/deployment';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
@@ -36,7 +36,10 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeJob[] }) {
                     { label: 'Plugin Signature', value: nativeJob.deployment.pluginSignature },
                     { label: 'Pipeline Input Type', value: nativeJob.deployment.pipelineInputType },
                     { label: 'Pipeline Input URI', value: nativeJob.deployment.pipelineInputUri },
-                    { label: 'NGROK', value: nativeJob.deployment.enableNgrok },
+                    { label: 'Tunneling', value: nativeJob.deployment.enableTunneling },
+                    ...(nativeJob.deployment.enableTunneling === 'True' && nativeJob.deployment.tunnelingLabel
+                        ? [{ label: 'Tunneling Label', value: nativeJob.deployment.tunnelingLabel }]
+                        : []),
                     { label: 'Chainstore Response', value: nativeJob.deployment.chainstoreResponse },
                 ];
 

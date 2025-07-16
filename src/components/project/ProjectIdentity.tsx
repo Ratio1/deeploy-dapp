@@ -10,7 +10,7 @@ export default function ProjectIdentity({ project }: { project: Project }) {
 
             <div className="row gap-1.5 text-slate-500">
                 <div className="text-sm font-medium">
-                    {new Date(project.datetime).toLocaleString('en-US', {
+                    {new Date(project.createdAt).toLocaleString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',

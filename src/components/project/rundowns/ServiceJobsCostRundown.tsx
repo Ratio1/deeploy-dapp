@@ -1,5 +1,6 @@
 import { CONTAINER_TYPES } from '@data/containerTypes';
-import JobsCostRundown from '@shared/deeploy-app/JobsCostRundown';
+import { getShortAddress } from '@lib/utils';
+import JobsCostRundown from '@shared/deployment/JobsCostRundown';
 import { ServiceJob } from '@typedefs/deployment';
 import { RiDatabase2Line } from 'react-icons/ri';
 
@@ -33,8 +34,11 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
                           ]
                         : []),
                     // Deployment
-                    { label: 'NGROK', value: serviceJob.deployment.enableNgrok },
-                    { label: 'Service Replica', value: serviceJob.deployment.serviceReplica },
+                    { label: 'Tunneling', value: serviceJob.deployment.enableTunneling },
+                    ...(serviceJob.deployment.enableTunneling === 'True' && serviceJob.deployment.tunnelingLabel
+                        ? [{ label: 'Tunneling Label', value: serviceJob.deployment.tunnelingLabel }]
+                        : []),
+                    { label: 'Service Replica', value: getShortAddress(serviceJob.deployment.serviceReplica, 4, true) },
                 ];
 
                 return (
