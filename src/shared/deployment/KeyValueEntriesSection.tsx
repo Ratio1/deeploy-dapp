@@ -5,7 +5,15 @@ import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
 
 // This component assumes it's being used in the deployment step
-export default function KeyValueEntriesSection({ name, label }: { name: string; label?: string }) {
+export default function KeyValueEntriesSection({
+    name,
+    label,
+    maxEntries,
+}: {
+    name: string;
+    label?: string;
+    maxEntries?: number;
+}) {
     const { control, formState, trigger } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
@@ -111,14 +119,15 @@ export default function KeyValueEntriesSection({ name, label }: { name: string; 
                 </div>
             </div>
 
-            {fields.length < 50 && (
-                <div
-                    className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50"
-                    onClick={() => append({ key: '', value: '' })}
-                >
-                    <RiAddLine className="text-lg" /> Add
-                </div>
-            )}
+            {maxEntries === undefined ||
+                (fields.length < maxEntries && (
+                    <div
+                        className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50"
+                        onClick={() => append({ key: '', value: '' })}
+                    >
+                        <RiAddLine className="text-lg" /> Add
+                    </div>
+                ))}
         </div>
     );
 }

@@ -46,7 +46,7 @@ function NativeDeployment() {
             </SlateCard>
 
             <SlateCard title="Custom Parameters">
-                <KeyValueEntriesSection name="deployment.customParams" />
+                <KeyValueEntriesSection name="deployment.customParams" maxEntries={50} />
             </SlateCard>
 
             <SlateCard title="Pipeline">
@@ -56,7 +56,7 @@ function NativeDeployment() {
                         <InputWithLabel name="deployment.pipelineInputUri" label="Pipeline Input URI" placeholder="None" />
                     </div>
 
-                    <KeyValueEntriesSection name="deployment.pipelineParams" label="Pipeline Parameters" />
+                    <KeyValueEntriesSection name="deployment.pipelineParams" label="Pipeline Parameters" maxEntries={50} />
                 </div>
             </SlateCard>
 

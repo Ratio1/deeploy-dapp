@@ -2,7 +2,7 @@ import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { SERVICE_TYPES } from '@data/serviceTypes';
-import { dynamicEnvEntrySchema, enabledBooleanTypeValue, keyValueEntriesArraySchema, nodeSchema } from '@schemas/common';
+import { dynamicEnvEntrySchema, enabledBooleanTypeValue, getKeyValueEntriesArraySchema, nodeSchema } from '@schemas/common';
 import { z } from 'zod';
 
 // Common validation patterns
@@ -64,11 +64,10 @@ const commonValidations = {
         .refine((val) => val !== '', { message: 'Value is required' })
         .transform((val) => (!val ? undefined : (val as number))) as z.ZodType<number>,
 
-    // Array patterns with duplicate validation
-    envVars: keyValueEntriesArraySchema,
+    envVars: getKeyValueEntriesArraySchema(),
     dynamicEnvVars: z
         .array(dynamicEnvEntrySchema)
-        .max(10, 'Maximum 10 dynamic environment variables')
+        .max(50, 'Maximum 50 dynamic environment variables')
         .refine(
             (entries) => {
                 const keys = entries.map((entry) => entry.key?.trim()).filter((key) => key && key !== ''); // Only non-empty keys
@@ -80,8 +79,8 @@ const commonValidations = {
                 message: 'Duplicate keys are not allowed',
             },
         ),
-    customParams: keyValueEntriesArraySchema,
-    pipelineParams: keyValueEntriesArraySchema,
+    customParams: getKeyValueEntriesArraySchema(50),
+    pipelineParams: getKeyValueEntriesArraySchema(50),
 
     // Enum patterns
     restartPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),

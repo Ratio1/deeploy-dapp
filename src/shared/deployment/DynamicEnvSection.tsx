@@ -146,7 +146,7 @@ export default function DynamicEnvSection() {
                 )}
             </div>
 
-            {fields.length < 10 && (
+            {fields.length < 50 && (
                 <div
                     className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50"
                     onClick={() =>

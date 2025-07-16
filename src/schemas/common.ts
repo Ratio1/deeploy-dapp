@@ -43,10 +43,14 @@ export const keyValueEntrySchema = z
     );
 
 // Schema for array of key-value entries with duplicate key validation
-export const keyValueEntriesArraySchema = z
-    .array(keyValueEntrySchema)
-    .max(50, 'Maximum 50 entries allowed')
-    .refine(
+export const getKeyValueEntriesArraySchema = (maxEntries?: number) => {
+    let schema = z.array(keyValueEntrySchema);
+
+    if (maxEntries) {
+        schema = schema.max(maxEntries, `Maximum ${maxEntries} entries allowed`);
+    }
+
+    return schema.refine(
         (entries) => {
             const keys = entries.map((entry) => entry.key?.trim()).filter((key) => key && key !== ''); // Only non-empty keys
 
@@ -57,6 +61,7 @@ export const keyValueEntriesArraySchema = z
             message: 'Duplicate keys are not allowed',
         },
     );
+};
 
 export const nodeSchema = z.object({
     address: z
