@@ -3,14 +3,14 @@ import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
 import { Modal, ModalContent } from '@heroui/modal';
 import { RiDeleteBinLine, RiLinkM, RiAddLine, RiExternalLinkLine } from 'react-icons/ri';
-import { get_tunnels, new_tunnel, delete_tunnel } from '@lib/api/backend';
+import { get_tunnels, new_tunnel, delete_tunnel, add_tunnel_hostname, remove_tunnel_hostname } from '@lib/api/backend';
 
 type Tunnel = {
     id: string;
     alias: string;
     url: string;
-    customDomain?: string | null;
     token?: string | null;
+    custom_hostnames: { id: string; hostname: string }[];
 };
 type DnsInfo = { type: string; host: string; value: string };
 
@@ -23,8 +23,11 @@ function TunnelsManager() {
     const [creating, setCreating] = useState(false);
     const [linkDomainTunnel, setLinkDomainTunnel] = useState<Tunnel | null>(null);
     const [customDomain, setCustomDomain] = useState('');
+    const [addingDomain, setAddingDomain] = useState(false);
+    const [removingDomainId, setRemovingDomainId] = useState<string | null>(null);
     const [showDnsModal, setShowDnsModal] = useState(false);
     const [dnsInfo, setDnsInfo] = useState<DnsInfo | null>(null);
+    const [dnsDomain, setDnsDomain] = useState<string>('');
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [tokenModal, setTokenModal] = useState<{ open: boolean; token: string | null }>({ open: false, token: null });
 
@@ -45,8 +48,8 @@ function TunnelsManager() {
                     id: t.id,
                     alias: t.alias,
                     url: t.dns_name,
-                    customDomain: null, // update if/when custom domain is supported
                     token: t.tunnel_token,
+                    custom_hostnames: t.custom_hostnames,
                 }));
             setTunnels(tunnelsArr);
         } catch (e: any) {
@@ -92,6 +95,42 @@ function TunnelsManager() {
         setLinkDomainTunnel(tunnel);
         setCustomDomain('');
         setShowDnsModal(false);
+        setDnsDomain('');
+    };
+
+    const handleAddDomain = async () => {
+        if (!linkDomainTunnel || !customDomain) return;
+        setAddingDomain(true);
+        setError(null);
+        try {
+            await add_tunnel_hostname(linkDomainTunnel.id, customDomain);
+            await fetchTunnels();
+            // Find the tunnel again to get the new custom_hostnames
+            const updatedTunnel = tunnels.find((t) => t.id === linkDomainTunnel.id);
+            const newDomain = updatedTunnel?.custom_hostnames.find((h) => h.hostname === customDomain);
+            setDnsDomain(customDomain);
+            setDnsInfo({ type: 'CNAME', host: customDomain, value: linkDomainTunnel.url });
+            setShowDnsModal(true);
+            setCustomDomain('');
+        } catch (e: any) {
+            setError('Failed to add domain');
+        } finally {
+            setAddingDomain(false);
+        }
+    };
+
+    const handleRemoveDomain = async (hostname_id: string) => {
+        if (!linkDomainTunnel) return;
+        setRemovingDomainId(hostname_id);
+        setError(null);
+        try {
+            await remove_tunnel_hostname(linkDomainTunnel.id, hostname_id);
+            await fetchTunnels();
+        } catch (e: any) {
+            setError('Failed to remove domain');
+        } finally {
+            setRemovingDomainId(null);
+        }
     };
 
     // Show DNS info
@@ -138,9 +177,6 @@ function TunnelsManager() {
                                         <RiExternalLinkLine className="ml-1 inline-block text-base" />
                                     </a>
                                 </div>
-                                {tunnel.customDomain && (
-                                    <div className="mt-1 text-xs text-green-600">Linked: {tunnel.customDomain}</div>
-                                )}
                             </div>
                             <div className="row gap-2">
                                 <Button
@@ -150,7 +186,7 @@ function TunnelsManager() {
                                     startContent={<RiLinkM />}
                                     onPress={() => handleLinkDomain(tunnel)}
                                 >
-                                    Link Domain
+                                    Manage Domains
                                 </Button>
                                 <Button
                                     color="secondary"
@@ -201,19 +237,60 @@ function TunnelsManager() {
             </Modal>
 
             {/* Link Domain Modal */}
-            <Modal isOpen={!!linkDomainTunnel} onClose={() => setLinkDomainTunnel(null)} title="Link Custom Domain">
+            <Modal isOpen={!!linkDomainTunnel} onClose={() => setLinkDomainTunnel(null)} title="Manage Custom Domains">
                 <ModalContent>
                     <div className="col gap-4 p-2">
-                        <Input
-                            label="Your Domain"
-                            placeholder="e.g. mydomain.com"
-                            value={customDomain}
-                            onChange={(e) => setCustomDomain(e.target.value)}
-                            autoFocus
-                        />
-                        <Button color="primary" variant="solid" onPress={handleShowDnsInfo} isDisabled={!customDomain}>
-                            Show DNS Settings
-                        </Button>
+                        <div className="mb-2 font-medium">Linked Domains:</div>
+                        <div className="col gap-2">
+                            {linkDomainTunnel?.custom_hostnames.length === 0 && (
+                                <div className="text-xs text-slate-500">No custom domains linked yet.</div>
+                            )}
+                            {linkDomainTunnel?.custom_hostnames.map((h) => (
+                                <div key={h.id} className="row items-center gap-2">
+                                    <span className="text-sm">{h.hostname}</span>
+                                    <Button
+                                        color="primary"
+                                        variant="flat"
+                                        size="sm"
+                                        onPress={() => {
+                                            setDnsDomain(h.hostname);
+                                            setDnsInfo({ type: 'CNAME', host: h.hostname, value: linkDomainTunnel.url });
+                                            setShowDnsModal(true);
+                                        }}
+                                    >
+                                        Show DNS
+                                    </Button>
+                                    <Button
+                                        color="danger"
+                                        variant="flat"
+                                        size="sm"
+                                        isLoading={removingDomainId === h.id}
+                                        onPress={() => handleRemoveDomain(h.id)}
+                                    >
+                                        Remove
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-4 font-medium">Add New Domain:</div>
+                        <div className="row gap-2">
+                            <Input
+                                label="Your Domain"
+                                placeholder="e.g. mydomain.com"
+                                value={customDomain}
+                                onChange={(e) => setCustomDomain(e.target.value)}
+                                autoFocus
+                            />
+                            <Button
+                                color="primary"
+                                variant="solid"
+                                onPress={handleAddDomain}
+                                isDisabled={!customDomain || addingDomain}
+                                isLoading={addingDomain}
+                            >
+                                Add
+                            </Button>
+                        </div>
                     </div>
                 </ModalContent>
             </Modal>
@@ -223,7 +300,7 @@ function TunnelsManager() {
                 <ModalContent>
                     <div className="col gap-2 p-2">
                         <div className="text-sm">
-                            To link <b>{customDomain}</b> to <b>{linkDomainTunnel?.url}</b>, add the following DNS record:
+                            To link <b>{dnsDomain}</b> to <b>{linkDomainTunnel?.url}</b>, add the following DNS record:
                         </div>
                         <div className="mt-2 rounded bg-slate-100 p-3">
                             <div>

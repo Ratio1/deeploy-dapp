@@ -121,3 +121,15 @@ export async function delete_tunnel(id: string) {
     const { data } = await axios.delete(`${tunnelsBaseUrl}/delete_tunnel?tunnel_id=${id}`);
     return data;
 }
+
+export async function add_tunnel_hostname(tunnel_id: string, hostname: string) {
+    const { data } = await axios.post(`${tunnelsBaseUrl}/add_custom_hostname`, { tunnel_id, hostname });
+    return data;
+}
+
+export async function remove_tunnel_hostname(tunnel_id: string, hostname_id: string) {
+    const { data } = await axios.delete(
+        `${tunnelsBaseUrl}/remove_custom_hostname?tunnel_id=${tunnel_id}&hostname_id=${hostname_id}`,
+    );
+    return data;
+}
