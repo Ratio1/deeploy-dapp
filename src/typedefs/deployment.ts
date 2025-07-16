@@ -39,7 +39,7 @@ type GenericJob = BaseJob & {
     formType: FormType.Generic;
     deployment: {
         targetNodes: R1Address[];
-        enableNgrok: (typeof BOOLEAN_TYPES)[number];
+        enableTunneling: (typeof BOOLEAN_TYPES)[number];
         appAlias: string;
         containerImage: string;
         containerRegistry: string;
@@ -66,7 +66,7 @@ type NativeJob = BaseJob & {
     formType: FormType.Native;
     deployment: {
         targetNodes: R1Address[];
-        enableNgrok: (typeof BOOLEAN_TYPES)[number];
+        enableTunneling: (typeof BOOLEAN_TYPES)[number];
         appAlias: string;
         pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
         customParams: Array<{
@@ -87,7 +87,7 @@ type ServiceJob = BaseJob & {
     formType: FormType.Service;
     deployment: {
         targetNodes: R1Address[];
-        enableNgrok: (typeof BOOLEAN_TYPES)[number];
+        enableTunneling: (typeof BOOLEAN_TYPES)[number];
         serviceType: (typeof SERVICE_TYPES)[number];
         envVars: Array<{
             key: string;

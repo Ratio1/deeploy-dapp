@@ -34,7 +34,7 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
                           ]
                         : []),
                     // Deployment
-                    { label: 'NGROK', value: serviceJob.deployment.enableNgrok },
+                    { label: 'Tunneling', value: serviceJob.deployment.enableTunneling },
                     { label: 'Service Replica', value: getShortAddress(serviceJob.deployment.serviceReplica, 4, true) },
                 ];
 

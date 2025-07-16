@@ -90,38 +90,38 @@ const commonValidations = {
     chainstoreResponse: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
 };
 
-// Helper functions for ngrok refinements
-const createNgrokRequiredRefinement = (fieldName: 'ngrokEdgeLabel' | 'ngrokAuthToken') => {
+// Helper functions for tunneling refinements
+const createTunnelingRequiredRefinement = (fieldName: 'tunnelingLabel' | 'tunnelingToken') => {
     return (data: { [key: string]: any }) => {
-        if (data.enableNgrok !== enabledBooleanTypeValue) {
-            return true; // Allow undefined when ngrok is not enabled
+        if (data.enableTunneling !== enabledBooleanTypeValue) {
+            return true; // Allow undefined when tunneling is not enabled
         }
         return data[fieldName] !== undefined;
     };
 };
 
-const ngrokRefinements = {
-    ngrokEdgeLabel: {
-        refine: createNgrokRequiredRefinement('ngrokEdgeLabel'),
+const tunnelingRefinements = {
+    tunnelingLabel: {
+        refine: createTunnelingRequiredRefinement('tunnelingLabel'),
         options: {
-            message: 'Required when NGROK is enabled',
-            path: ['ngrokEdgeLabel'],
+            message: 'Required when tunneling is enabled',
+            path: ['tunnelingLabel'],
         },
     },
-    ngrokAuthToken: {
-        refine: createNgrokRequiredRefinement('ngrokAuthToken'),
+    tunnelingToken: {
+        refine: createTunnelingRequiredRefinement('tunnelingToken'),
         options: {
-            message: 'Required when NGROK is enabled',
-            path: ['ngrokAuthToken'],
+            message: 'Required when tunneling is enabled',
+            path: ['tunnelingToken'],
         },
     },
 };
 
-// Helper function to apply ngrok refinements
-const applyNgrokRefinements = (schema: z.ZodObject<any>) => {
+// Helper function to apply tunneling refinements
+const applyTunnelingRefinements = (schema: z.ZodObject<any>) => {
     return schema
-        .refine(ngrokRefinements.ngrokEdgeLabel.refine, ngrokRefinements.ngrokEdgeLabel.options)
-        .refine(ngrokRefinements.ngrokAuthToken.refine, ngrokRefinements.ngrokAuthToken.options);
+        .refine(tunnelingRefinements.tunnelingLabel.refine, tunnelingRefinements.tunnelingLabel.options)
+        .refine(tunnelingRefinements.tunnelingToken.refine, tunnelingRefinements.tunnelingToken.options);
 };
 
 const baseDeploymentSchema = z.object({
@@ -136,8 +136,8 @@ const baseDeploymentSchema = z.object({
             message: 'Duplicate addresses are not allowed',
         },
     ),
-    enableNgrok: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
-    ngrokEdgeLabel: z
+    enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
+    tunnelingLabel: z
         .string()
         .min(3, 'Value must be at least 3 characters')
         .max(64, 'Value cannot exceed 64 characters')
@@ -146,7 +146,7 @@ const baseDeploymentSchema = z.object({
             'Only letters, numbers, spaces and special characters allowed',
         )
         .optional(),
-    ngrokAuthToken: z
+    tunnelingToken: z
         .string()
         .min(3, 'Value must be at least 3 characters')
         .max(128, 'Value cannot exceed 128 characters')
@@ -157,7 +157,7 @@ const baseDeploymentSchema = z.object({
         .optional(),
 });
 
-export const genericAppDeploymentSchema = applyNgrokRefinements(
+export const genericAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
         appAlias: commonValidations.appAlias,
         containerImage: commonValidations.containerImage,
@@ -172,7 +172,7 @@ export const genericAppDeploymentSchema = applyNgrokRefinements(
     }),
 );
 
-export const nativeAppDeploymentSchema = applyNgrokRefinements(
+export const nativeAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
         appAlias: commonValidations.appAlias,
         pluginSignature: commonValidations.pluginSignature,
@@ -184,7 +184,7 @@ export const nativeAppDeploymentSchema = applyNgrokRefinements(
     }),
 );
 
-export const serviceAppDeploymentSchema = applyNgrokRefinements(
+export const serviceAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
         serviceType: commonValidations.serviceType,
         envVars: commonValidations.envVars,

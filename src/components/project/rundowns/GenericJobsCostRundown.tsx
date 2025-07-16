@@ -35,7 +35,7 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
                     // Deployment
                     { label: 'Container Image', value: genericJob.deployment.containerImage },
                     { label: 'Port', value: genericJob.deployment.port },
-                    { label: 'NGROK', value: genericJob.deployment.enableNgrok },
+                    { label: 'Tunneling', value: genericJob.deployment.enableTunneling },
                     { label: 'Restart Policy', value: genericJob.deployment.restartPolicy },
                     { label: 'Image Pull Policy', value: genericJob.deployment.imagePullPolicy },
                 ];

@@ -6,7 +6,6 @@ import JobFormHeader from '@components/job/JobFormHeader';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CONTAINER_TYPES } from '@data/containerTypes';
-import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { SERVICE_TYPES } from '@data/serviceTypes';
@@ -40,7 +39,7 @@ function JobFormWrapper() {
             customMemory: '',
         },
         deployment: {
-            enableNgrok: BOOLEAN_TYPES[0],
+            enableTunneling: BOOLEAN_TYPES[0],
         },
     });
 
@@ -49,7 +48,7 @@ function JobFormWrapper() {
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             port: '',
-            envVars: [{ key: '', value: '' }],
+            // envVars: [{ key: '', value: '' }],
             restartPolicy: POLICY_TYPES[0],
             imagePullPolicy: POLICY_TYPES[0],
         },
@@ -72,17 +71,17 @@ function JobFormWrapper() {
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             serviceType: SERVICE_TYPES[0],
-            envVars: [{ key: '', value: '' }],
-            dynamicEnvVars: [
-                {
-                    key: '',
-                    values: [
-                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
-                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
-                        { type: DYNAMIC_ENV_TYPES[0], value: '' },
-                    ],
-                },
-            ],
+            // envVars: [{ key: '', value: '' }],
+            // dynamicEnvVars: [
+            //     {
+            //         key: '',
+            //         values: [
+            //             { type: DYNAMIC_ENV_TYPES[0], value: '' },
+            //             { type: DYNAMIC_ENV_TYPES[0], value: '' },
+            //             { type: DYNAMIC_ENV_TYPES[0], value: '' },
+            //         ],
+            //     },
+            // ],
         },
     });
 

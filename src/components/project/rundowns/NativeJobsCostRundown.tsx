@@ -36,7 +36,7 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeJob[] }) {
                     { label: 'Plugin Signature', value: nativeJob.deployment.pluginSignature },
                     { label: 'Pipeline Input Type', value: nativeJob.deployment.pipelineInputType },
                     { label: 'Pipeline Input URI', value: nativeJob.deployment.pipelineInputUri },
-                    { label: 'NGROK', value: nativeJob.deployment.enableNgrok },
+                    { label: 'Tunneling', value: nativeJob.deployment.enableTunneling },
                     { label: 'Chainstore Response', value: nativeJob.deployment.chainstoreResponse },
                 ];
 

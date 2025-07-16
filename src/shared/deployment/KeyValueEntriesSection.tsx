@@ -119,15 +119,14 @@ export default function KeyValueEntriesSection({
                 </div>
             </div>
 
-            {maxEntries === undefined ||
-                (fields.length < maxEntries && (
-                    <div
-                        className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50"
-                        onClick={() => append({ key: '', value: '' })}
-                    >
-                        <RiAddLine className="text-lg" /> Add
-                    </div>
-                ))}
+            {(maxEntries === undefined || fields.length < maxEntries) && (
+                <div
+                    className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50"
+                    onClick={() => append({ key: '', value: '' })}
+                >
+                    <RiAddLine className="text-lg" /> Add
+                </div>
+            )}
         </div>
     );
 }
