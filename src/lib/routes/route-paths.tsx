@@ -6,6 +6,8 @@ export const routePath = {
     dashboard: 'dashboard',
     createProject: 'create-project',
     project: 'project',
+    deeployApp: 'deeploy-app',
+    legacyRequester: 'legacy-requester',
     //
     account: '/account',
     docs: '/docs',
@@ -13,4 +15,5 @@ export const routePath = {
     //
     notFound: '/404',
     notAllowed: '/not-allowed',
+    tunnelsManager: '/tunnels-manager',
 };

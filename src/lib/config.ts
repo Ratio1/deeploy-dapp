@@ -4,6 +4,7 @@ import { Chain } from 'viem';
 import { base, baseSepolia } from 'wagmi/chains';
 
 type Config = {
+    deeployUrl: string;
     backendUrl: string;
     oraclesUrl: string;
     r1ContractAddress: EthAddress;
@@ -27,6 +28,7 @@ const configs: {
     [key in 'mainnet' | 'testnet' | 'devnet']: Config;
 } = {
     mainnet: {
+        deeployUrl: 'https://deeploy-api.ratio1.ai',
         backendUrl: 'https://dapp-api.ratio1.ai',
         oraclesUrl: 'https://oracle.ratio1.ai',
         r1ContractAddress: '0x6444C6c2D527D85EA97032da9A7504d6d1448ecF',
@@ -46,6 +48,7 @@ const configs: {
         ND_LICENSE_CAP: 1575_188843457943924200n,
     },
     testnet: {
+        deeployUrl: 'https://testnet-deeploy-api.ratio1.ai',
         backendUrl: 'https://testnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://testnet-oracle.ratio1.ai',
         r1ContractAddress: '0xCC96f389F45Fc08b4fa8e2bC4C7DA9920292ec64',
@@ -65,6 +68,7 @@ const configs: {
         ND_LICENSE_CAP: 1575_188843457943924200n,
     },
     devnet: {
+        deeployUrl: 'https://devnet-deeploy-api.ratio1.ai',
         backendUrl: 'https://devnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://devnet-oracle.ratio1.ai',
         r1ContractAddress: '0x07C5678F0f4aC347496eAA8D6031b37FF3402CE5',

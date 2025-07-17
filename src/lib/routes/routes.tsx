@@ -4,12 +4,14 @@ import Account from '@pages/Account';
 import CSP from '@pages/CSP';
 import CreateProject from '@pages/deeploys/CreateProject';
 import Dashboard from '@pages/deeploys/Dashboard';
+import LegacyRequester from '@pages/deeploys/LegacyRequester';
 import Project from '@pages/deeploys/Project';
 import Docs from '@pages/Docs';
 import Home from '@pages/Home';
 import Support from '@pages/Support';
+import TunnelsManager from '@pages/TunnelsManager';
 import { JSX } from 'react';
-import { RiBox3Line, RiFileTextLine, RiHeadphoneLine, RiHomeLine, RiUser3Line } from 'react-icons/ri';
+import { RiBox3Line, RiCodeBoxLine, RiFileTextLine, RiHeadphoneLine, RiHomeLine, RiUser3Line } from 'react-icons/ri';
 import { routePath } from './route-paths';
 
 export type BaseRoute = {
@@ -63,6 +65,11 @@ export const routeInfo = {
         title: 'Project',
         description: 'Create, edit and deploy your project',
     },
+    [`${routePath.deeploys}/${routePath.legacyRequester}`]: {
+        title: 'Legacy Requester',
+        description: 'Legacy interface for requesting deployments',
+        routeTitle: 'Legacy Requester',
+    },
     [routePath.account]: {
         title: 'Account',
         description: 'Manage your account & billing settings',
@@ -80,6 +87,11 @@ export const routeInfo = {
     },
     [routePath.notAllowed]: {
         title: 'Not Allowed',
+    },
+    [routePath.tunnelsManager]: {
+        title: 'Tunnels Manager',
+        description: 'Manage your tunnels, create, delete, and link to your own domain',
+        routeTitle: 'Tunnels',
     },
 };
 
@@ -106,7 +118,16 @@ export const routes: AppRoute[] = [
                     </DeploymentProvider>
                 ),
             },
+            {
+                path: routePath.legacyRequester,
+                page: LegacyRequester,
+            },
         ],
+    },
+    {
+        path: routePath.tunnelsManager,
+        page: TunnelsManager,
+        icon: <RiCodeBoxLine />,
     },
     {
         path: routePath.account,
