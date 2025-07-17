@@ -9,7 +9,8 @@ import Project from '@pages/deeploys/Project';
 import Docs from '@pages/Docs';
 import Home from '@pages/Home';
 import Support from '@pages/Support';
-import TunnelsManager from '@pages/TunnelsManager';
+import TunnelPage from '@pages/tunnels/TunnelPage';
+import Tunnels from '@pages/tunnels/Tunnels';
 import { JSX } from 'react';
 import { RiBox3Line, RiCodeBoxLine, RiFileTextLine, RiHeadphoneLine, RiHomeLine, RiUser3Line } from 'react-icons/ri';
 import { routePath } from './route-paths';
@@ -70,6 +71,11 @@ export const routeInfo = {
         description: 'Legacy interface for requesting deployments',
         routeTitle: 'Legacy Requester',
     },
+    [routePath.tunnels]: {
+        title: 'Tunnels Manager',
+        description: 'Manage your tunnels and link them to your own domains',
+        routeTitle: 'Tunnels',
+    },
     [routePath.account]: {
         title: 'Account',
         description: 'Manage your account & billing settings',
@@ -87,11 +93,6 @@ export const routeInfo = {
     },
     [routePath.notAllowed]: {
         title: 'Not Allowed',
-    },
-    [routePath.tunnelsManager]: {
-        title: 'Tunnels Manager',
-        description: 'Manage your tunnels, create, delete, and link to your own domain',
-        routeTitle: 'Tunnels',
     },
 };
 
@@ -125,8 +126,8 @@ export const routes: AppRoute[] = [
         ],
     },
     {
-        path: routePath.tunnelsManager,
-        page: TunnelsManager,
+        path: routePath.tunnels,
+        page: Tunnels,
         icon: <RiCodeBoxLine />,
     },
     {
@@ -152,6 +153,10 @@ export const routes: AppRoute[] = [
                 <Project />
             </DeploymentProvider>
         ),
+    },
+    {
+        path: `${routePath.tunnels}/:id`,
+        page: TunnelPage,
     },
     {
         path: routePath.notFound,

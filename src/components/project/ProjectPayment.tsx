@@ -1,7 +1,7 @@
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getJobsTotalCost } from '@lib/utils';
+import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
-import DeeployButton from '@shared/deployment/DeeployButton';
 import EmptyData from '@shared/EmptyData';
 import SupportFooter from '@shared/SupportFooter';
 import { FormType, Job, ProjectPage, type Project } from '@typedefs/deployment';
@@ -27,7 +27,7 @@ export default function ProjectPayment({ project, jobs }: { project: Project; jo
                     <ProjectIdentity project={project} />
 
                     <div className="row gap-2">
-                        <DeeployButton
+                        <ActionButton
                             className="slate-button"
                             color="default"
                             onPress={() => {
@@ -38,9 +38,9 @@ export default function ProjectPayment({ project, jobs }: { project: Project; jo
                                 <RiArrowLeftLine className="text-lg" />
                                 <div className="text-sm font-medium">Project</div>
                             </div>
-                        </DeeployButton>
+                        </ActionButton>
 
-                        <DeeployButton
+                        <ActionButton
                             color="primary"
                             variant="solid"
                             onPress={() => {
@@ -52,7 +52,7 @@ export default function ProjectPayment({ project, jobs }: { project: Project; jo
                                 <RiBox3Line className="text-lg" />
                                 <div className="text-sm">Pay & Deeploy</div>
                             </div>
-                        </DeeployButton>
+                        </ActionButton>
                     </div>
                 </div>
 

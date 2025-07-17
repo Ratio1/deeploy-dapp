@@ -1,13 +1,14 @@
 import { Button } from '@heroui/button';
 import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/dropdown';
+import clsx from 'clsx';
 import { RiMoreFill } from 'react-icons/ri';
 
 interface Props {
     items: {
         key: string;
         label: string;
-        description: string;
-        icon: React.ReactNode;
+        description?: string;
+        icon?: React.ReactNode;
         onPress: () => void;
     }[];
 }
@@ -37,7 +38,7 @@ export default function ContextMenuWithTrigger({ items }: Props) {
                 itemClasses={{
                     base: [
                         'rounded-md',
-                        'text-default-500',
+                        // 'text-default-600',
                         'transition-opacity',
                         'data-[hover=true]:text-foreground',
                         'data-[hover=true]:bg-slate-100',
@@ -56,14 +57,24 @@ export default function ContextMenuWithTrigger({ items }: Props) {
             >
                 {items.map((item) => (
                     <DropdownItem key={item.key} onPress={item.onPress}>
-                        <div className="row gap-2">
-                            <div className="pr-0.5 text-[26px] text-slate-500">{item.icon}</div>
-
-                            <div className="col">
-                                <div className="font-medium leading-4">{item.label}</div>
-                                <div className="text-[13px] text-slate-500">{item.description}</div>
+                        {!item.icon || !item.description ? (
+                            <div
+                                className={clsx('font-medium', {
+                                    'text-danger': item.key === 'delete',
+                                })}
+                            >
+                                {item.label}
                             </div>
-                        </div>
+                        ) : (
+                            <div className="row gap-2">
+                                <div className="pr-0.5 text-[26px] text-slate-500">{item.icon}</div>
+
+                                <div className="col">
+                                    <div className="font-medium leading-none">{item.label}</div>
+                                    <div className="text-[13px] text-slate-500">{item.description}</div>
+                                </div>
+                            </div>
+                        )}
                     </DropdownItem>
                 ))}
             </DropdownMenu>

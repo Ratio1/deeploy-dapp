@@ -5,8 +5,8 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
+import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
-import DeeployButton from '@shared/deployment/DeeployButton';
 import SupportFooter from '@shared/SupportFooter';
 import { FormType, Job, ProjectPage, type Project } from '@typedefs/deployment';
 import { useEffect } from 'react';
@@ -81,23 +81,23 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                     <ProjectIdentity project={project} />
 
                     <div className="row gap-2">
-                        <DeeployButton
+                        <ActionButton
                             className="slate-button"
                             color="default"
                             as={Link}
                             to={`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`}
                         >
                             <div className="text-sm font-medium">Cancel</div>
-                        </DeeployButton>
+                        </ActionButton>
 
-                        <DeeployButton className="bg-red-500" color="danger" onPress={() => onDeleteProject()}>
+                        <ActionButton className="bg-red-500" color="danger" onPress={() => onDeleteProject()}>
                             <div className="row gap-1.5">
                                 <RiDeleteBin2Line className="text-lg" />
                                 <div className="text-sm">Delete Draft</div>
                             </div>
-                        </DeeployButton>
+                        </ActionButton>
 
-                        <DeeployButton
+                        <ActionButton
                             color="success"
                             variant="solid"
                             isDisabled={jobs?.length === 0}
@@ -109,7 +109,7 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                                 <RiWalletLine className="text-lg" />
                                 <div className="text-sm font-medium">Payment</div>
                             </div>
-                        </DeeployButton>
+                        </ActionButton>
                     </div>
                 </div>
 
@@ -126,7 +126,7 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
 
                         <div className="row gap-2">
                             {options.map((option) => (
-                                <DeeployButton
+                                <ActionButton
                                     key={option.id}
                                     className="slate-button"
                                     color="default"
@@ -140,7 +140,7 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                                         <div className={`text-xl ${option.color}`}>{option.icon}</div>
                                         <div className="text-sm">{option.title}</div>
                                     </div>
-                                </DeeployButton>
+                                </ActionButton>
                             ))}
                         </div>
                     </div>

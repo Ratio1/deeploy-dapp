@@ -23,6 +23,9 @@ export default {
                 body: '#0b0b47',
                 light: '#fcfcfd',
                 primary: '#1b47f7',
+                slate: {
+                    150: '#e9edf2',
+                },
             },
             outlineWidth: {
                 3: '3px',

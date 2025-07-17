@@ -9,11 +9,11 @@ export const routePath = {
     deeployApp: 'deeploy-app',
     legacyRequester: 'legacy-requester',
     //
+    tunnels: '/tunnels',
     account: '/account',
     docs: '/docs',
     support: '/support',
     //
     notFound: '/404',
     notAllowed: '/not-allowed',
-    tunnelsManager: '/tunnels-manager',
 };
