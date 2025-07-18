@@ -3,29 +3,21 @@ import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
 import { Modal, ModalContent } from '@heroui/modal';
 import { Skeleton } from '@heroui/skeleton';
-import {
-    addTunnelHostname,
-    createTunnel,
-    deleteTunnel,
-    getTunnels,
-    removeTunnelHostname,
-    renameTunnel,
-} from '@lib/api/tunnels';
+import { addTunnelHostname, deleteTunnel, getTunnels, removeTunnelHostname, renameTunnel } from '@lib/api/tunnels';
+import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import EmptyData from '@shared/EmptyData';
 import { DNSInfo, Tunnel } from '@typedefs/tunnels';
 import { useEffect, useState } from 'react';
 import { RiAddLine, RiDeleteBinLine, RiDraftLine, RiExternalLinkLine, RiLinkM } from 'react-icons/ri';
 
 function Tunnels() {
+    const { openTunnelCreateModal } = useTunnelsContext() as TunnelsContextType;
+
     const [tunnels, setTunnels] = useState<Tunnel[]>([]);
     const [loading, setLoading] = useState(true);
     // TODO: Style error message
     const [error, setError] = useState<string | null>(null);
 
-    // TODO: useDisclosure
-    const [showCreate, setShowCreate] = useState(false);
-    const [newAlias, setNewAlias] = useState('');
-    const [creating, setCreating] = useState(false);
     const [linkDomainTunnel, setLinkDomainTunnel] = useState<Tunnel | null>(null);
     const [customDomain, setCustomDomain] = useState('');
     const [addingDomain, setAddingDomain] = useState(false);
@@ -70,23 +62,6 @@ function Tunnels() {
             setError('Failed to load tunnels');
         } finally {
             setLoading(false);
-        }
-    };
-
-    // Create tunnel
-    const handleCreateTunnel = async () => {
-        if (!newAlias) return;
-        setCreating(true);
-        setError(null);
-        try {
-            await createTunnel(newAlias);
-            setShowCreate(false);
-            setNewAlias('');
-            fetchTunnels();
-        } catch (e: any) {
-            setError('Failed to create tunnel');
-        } finally {
-            setCreating(false);
         }
     };
 
@@ -190,7 +165,7 @@ function Tunnels() {
                 <div className="flex items-start justify-between">
                     <div className="text-2xl font-bold">Tunnels</div>
 
-                    <Button color="primary" variant="solid" onPress={() => setShowCreate(true)}>
+                    <Button color="primary" variant="solid" onPress={() => openTunnelCreateModal(() => fetchTunnels())}>
                         <div className="row gap-1">
                             <RiAddLine className="text-lg" />
                             <div className="text-sm font-medium">Add Tunnel</div>
@@ -203,7 +178,7 @@ function Tunnels() {
                 <div className="col gap-4">
                     {loading ? (
                         <>
-                            {Array.from({ length: 6 }).map((_, index) => (
+                            {Array.from({ length: 4 }).map((_, index) => (
                                 <Skeleton key={index} className="min-h-[104px] w-full rounded-lg" />
                             ))}
                         </>
@@ -319,30 +294,6 @@ function Tunnels() {
                         </>
                     )}
                 </div>
-
-                {/* Create Tunnel Modal */}
-                <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Create New Tunnel">
-                    <ModalContent>
-                        <div className="col gap-4 p-2">
-                            <Input
-                                label="Alias"
-                                placeholder="Enter tunnel alias"
-                                value={newAlias}
-                                onChange={(e) => setNewAlias(e.target.value)}
-                                autoFocus
-                            />
-                            <Button
-                                color="primary"
-                                variant="solid"
-                                onPress={handleCreateTunnel}
-                                isDisabled={!newAlias || creating}
-                                isLoading={creating}
-                            >
-                                Create
-                            </Button>
-                        </div>
-                    </ModalContent>
-                </Modal>
 
                 {/* Link Domain Modal */}
                 <Modal isOpen={!!linkDomainTunnel} onClose={() => setLinkDomainTunnel(null)} title="Manage Custom Domains">

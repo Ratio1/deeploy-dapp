@@ -1,14 +1,21 @@
-import TunnelRenameModal from '@components/tunnels/TunnelRenameModal';
+import TunnelAliasModal from '@components/tunnels/TunnelAliasModal';
 import { Tunnel } from '@typedefs/tunnels';
 import { useRef } from 'react';
 import { TunnelsContext } from './context';
 
 export const TunnelsProvider = ({ children }) => {
-    const tunnelRenameModalRef = useRef<{ trigger: (_tunnel: Tunnel, onRename: () => any) => void }>(null);
+    const tunnelRenameModalRef = useRef<{ trigger: (callback: () => any, tunnel?: Tunnel) => void }>(null);
+    const tunnelCreateModalRef = useRef<{ trigger: (callback: () => any, tunnel?: Tunnel) => void }>(null);
 
-    const openTunnelRenameModal = (tunnel: Tunnel, onRename: () => any) => {
+    const openTunnelRenameModal = (tunnel: Tunnel, callback: () => any) => {
         if (tunnelRenameModalRef.current) {
-            tunnelRenameModalRef.current.trigger(tunnel, onRename);
+            tunnelRenameModalRef.current.trigger(callback, tunnel);
+        }
+    };
+
+    const openTunnelCreateModal = (callback: () => any) => {
+        if (tunnelCreateModalRef.current) {
+            tunnelCreateModalRef.current.trigger(callback);
         }
     };
 
@@ -16,12 +23,14 @@ export const TunnelsProvider = ({ children }) => {
         <TunnelsContext.Provider
             value={{
                 openTunnelRenameModal,
+                openTunnelCreateModal,
             }}
         >
             {children}
 
             {/* Overlays */}
-            <TunnelRenameModal ref={tunnelRenameModalRef} />
+            <TunnelAliasModal ref={tunnelRenameModalRef} action="rename" />
+            <TunnelAliasModal ref={tunnelCreateModalRef} action="create" />
         </TunnelsContext.Provider>
     );
 };

@@ -1,0 +1,123 @@
+import { Form } from '@heroui/form';
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@heroui/modal';
+import { createTunnel, renameTunnel } from '@lib/api/tunnels';
+import StyledInput from '@shared/StyledInput';
+import SubmitButton from '@shared/SubmitButton';
+import { Tunnel } from '@typedefs/tunnels';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { toast } from 'react-hot-toast';
+
+interface Props {
+    action: 'rename' | 'create';
+}
+
+interface TunnelAliasModalRef {
+    trigger: (callback: () => any, tunnel?: Tunnel) => void;
+}
+
+const TunnelAliasModal = forwardRef<TunnelAliasModalRef, Props>(({ action }, ref) => {
+    const [isLoading, setLoading] = useState<boolean>(false);
+    const [alias, setAlias] = useState<string>('');
+
+    const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
+
+    const [tunnel, setTunnel] = useState<Tunnel>();
+    const [callback, setCallback] = useState<(() => any) | null>(null);
+
+    // Init
+    useEffect(() => {}, []);
+
+    const trigger = (callback: () => any, tunnel?: Tunnel) => {
+        setLoading(false);
+        setTunnel(tunnel);
+
+        if (tunnel) {
+            setAlias(tunnel.alias);
+        }
+
+        setCallback(() => callback);
+        onOpen();
+    };
+
+    useImperativeHandle(ref, () => ({
+        trigger,
+    }));
+
+    const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        if (callback) {
+            setLoading(true);
+
+            try {
+                if (action === 'rename' && tunnel) {
+                    await renameTunnel(tunnel.id, alias.trim());
+                } else {
+                    await createTunnel(alias.trim());
+                }
+
+                toast.success(`Tunnel ${action === 'rename' ? 'renamed' : 'created'} successfully.`);
+                callback();
+                onClose();
+            } catch (error) {
+                console.error('Error renaming tunnel:', error);
+                toast.error('Error renaming tunnel.');
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
+    const getModalTitle = () => {
+        return action === 'create' ? 'Create Tunnel' : 'Rename Tunnel';
+    };
+
+    const getButtonLabel = () => {
+        return action === 'create' ? 'Create' : 'Rename';
+    };
+
+    return (
+        <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="sm" shouldBlockScroll={false}>
+            <Form className="w-full" validationBehavior="native" onSubmit={onSubmit}>
+                <ModalContent>
+                    <ModalHeader>{getModalTitle()}</ModalHeader>
+
+                    <ModalBody>
+                        <div className="col w-full gap-2">
+                            <div className="text-sm font-medium text-slate-500">Alias</div>
+
+                            <StyledInput
+                                autoFocus
+                                value={alias}
+                                onValueChange={(value) => setAlias(value)}
+                                validate={(value) => {
+                                    const trimmedValue = value?.trim();
+
+                                    if (!trimmedValue) {
+                                        return 'Alias is required';
+                                    }
+                                    if (trimmedValue.length < 3) {
+                                        return 'Alias must be at least 3 characters';
+                                    }
+
+                                    return null;
+                                }}
+                                placeholder={action === 'create' ? 'My Tunnel' : 'Enter a new alias'}
+                            />
+                        </div>
+                    </ModalBody>
+
+                    <ModalFooter>
+                        <div className="flex justify-end pb-0.5">
+                            <SubmitButton label={getButtonLabel()} isLoading={isLoading} />
+                        </div>
+                    </ModalFooter>
+                </ModalContent>
+            </Form>
+        </Modal>
+    );
+});
+
+TunnelAliasModal.displayName = 'TunnelAliasModal';
+
+export default TunnelAliasModal;
