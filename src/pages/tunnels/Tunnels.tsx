@@ -216,7 +216,7 @@ function Tunnels() {
                                 </div>
                             )}
 
-                            <TunnelCard tunnel={tunnels[0]} />
+                            <TunnelCard tunnel={tunnels[tunnels.length - 1]} />
 
                             {tunnels.map((tunnel) => (
                                 <div

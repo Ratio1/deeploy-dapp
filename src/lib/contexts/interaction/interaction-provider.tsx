@@ -38,7 +38,7 @@ export const InteractionProvider = ({ children }) => {
         <InteractionContext.Provider value={confirm}>
             {children}
 
-            <Modal isOpen={isOpen} size="sm" onClose={onClose} onOpenChange={handleOpenChange}>
+            <Modal isOpen={isOpen} size="sm" onClose={onClose} onOpenChange={handleOpenChange} placement="center">
                 <ModalContent>
                     <ModalHeader className="flex flex-col gap-1">Confirmation</ModalHeader>
                     <ModalBody>{content}</ModalBody>

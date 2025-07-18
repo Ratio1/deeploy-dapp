@@ -1,3 +1,4 @@
+import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { routePath } from '@lib/routes/route-paths';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
@@ -8,6 +9,8 @@ import { Link, useNavigate } from 'react-router-dom';
 
 export default function TunnelCard({ tunnel }: { tunnel: Tunnel }) {
     const navigate = useNavigate();
+
+    const { openTunnelRenameModal } = useTunnelsContext() as TunnelsContextType;
 
     return (
         <div onClick={() => navigate(`${routePath.tunnels}/${tunnel.id}`)}>
@@ -44,7 +47,11 @@ export default function TunnelCard({ tunnel }: { tunnel: Tunnel }) {
                                 {
                                     key: 'rename',
                                     label: 'Rename',
-                                    onPress: () => {},
+                                    onPress: () => {
+                                        openTunnelRenameModal(tunnel, (alias) => {
+                                            console.log('alias', alias);
+                                        });
+                                    },
                                 },
                                 {
                                     key: 'viewToken',

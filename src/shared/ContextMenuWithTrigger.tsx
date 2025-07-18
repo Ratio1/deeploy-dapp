@@ -23,7 +23,7 @@ export default function ContextMenuWithTrigger({ items }: Props) {
                 }}
             >
                 <Button
-                    className="h-6 min-w-8 rounded-lg border-slate-200 bg-light p-0"
+                    className="h-6 min-w-8 rounded-lg border-slate-200 bg-light p-0 data-[hover=true]:!opacity-50"
                     color="default"
                     variant="bordered"
                     disableRipple
@@ -38,7 +38,6 @@ export default function ContextMenuWithTrigger({ items }: Props) {
                 itemClasses={{
                     base: [
                         'rounded-md',
-                        // 'text-default-600',
                         'transition-opacity',
                         'data-[hover=true]:text-foreground',
                         'data-[hover=true]:bg-slate-100',
@@ -70,7 +69,7 @@ export default function ContextMenuWithTrigger({ items }: Props) {
                                 <div className="pr-0.5 text-[26px] text-slate-500">{item.icon}</div>
 
                                 <div className="col">
-                                    <div className="font-medium leading-none">{item.label}</div>
+                                    <div className="-mb-0.5 font-medium">{item.label}</div>
                                     <div className="text-[13px] text-slate-500">{item.description}</div>
                                 </div>
                             </div>

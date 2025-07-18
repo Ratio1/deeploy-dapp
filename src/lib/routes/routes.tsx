@@ -1,4 +1,5 @@
 import { DeploymentProvider } from '@lib/contexts/deployment';
+import { TunnelsProvider } from '@lib/contexts/tunnels/tunnels-provider';
 import NotFound from '@pages/404';
 import Account from '@pages/Account';
 import CSP from '@pages/CSP';
@@ -127,7 +128,11 @@ export const routes: AppRoute[] = [
     },
     {
         path: routePath.tunnels,
-        page: Tunnels,
+        page: () => (
+            <TunnelsProvider>
+                <Tunnels />
+            </TunnelsProvider>
+        ),
         icon: <RiCodeBoxLine />,
     },
     {
@@ -156,7 +161,11 @@ export const routes: AppRoute[] = [
     },
     {
         path: `${routePath.tunnels}/:id`,
-        page: TunnelPage,
+        page: () => (
+            <TunnelsProvider>
+                <TunnelPage />
+            </TunnelsProvider>
+        ),
     },
     {
         path: routePath.notFound,
