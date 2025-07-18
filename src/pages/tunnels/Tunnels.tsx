@@ -1,32 +1,23 @@
 import TunnelCard from '@components/tunnels/TunnelCard';
+import { Alert } from '@heroui/alert';
 import { Button } from '@heroui/button';
-import { Input } from '@heroui/input';
-import { Modal, ModalContent } from '@heroui/modal';
 import { Skeleton } from '@heroui/skeleton';
-import { addTunnelHostname, getTunnels, removeTunnelHostname } from '@lib/api/tunnels';
+import { getTunnels } from '@lib/api/tunnels';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import EmptyData from '@shared/EmptyData';
-import { DNSInfo, Tunnel } from '@typedefs/tunnels';
+import { Tunnel } from '@typedefs/tunnels';
 import { useEffect, useState } from 'react';
-import { RiAddLine, RiDraftLine, RiExternalLinkLine, RiLinkM } from 'react-icons/ri';
+import { RiAddLine, RiDraftLine } from 'react-icons/ri';
 
 function Tunnels() {
     const { openTunnelCreateModal } = useTunnelsContext() as TunnelsContextType;
 
     const [tunnels, setTunnels] = useState<Tunnel[]>([]);
     const [loading, setLoading] = useState(true);
-    // TODO: Style error message
+
     const [error, setError] = useState<string | null>(null);
 
-    const [linkDomainTunnel, setLinkDomainTunnel] = useState<Tunnel | null>(null);
-    const [customDomain, setCustomDomain] = useState('');
-    const [addingDomain, setAddingDomain] = useState(false);
-    const [removingDomainId, setRemovingDomainId] = useState<string | null>(null);
-    const [showDnsModal, setShowDnsModal] = useState(false);
-    const [dnsInfo, setDnsInfo] = useState<DNSInfo | null>(null);
-    const [dnsDomain, setDnsDomain] = useState<string>('');
-
-    // Fetch tunnels on mount
+    // Init
     useEffect(() => {
         fetchTunnels();
     }, []);
@@ -53,64 +44,10 @@ function Tunnels() {
 
             setTunnels(tunnelsArray);
         } catch (e: any) {
-            setError('Failed to load tunnels');
+            setError('An error occurred while fetching the tunnels.');
         } finally {
             setLoading(false);
         }
-    };
-
-    // Link custom domain
-    const handleLinkDomain = (tunnel: Tunnel) => {
-        setLinkDomainTunnel(tunnel);
-        setCustomDomain('');
-        setShowDnsModal(false);
-        setDnsDomain('');
-    };
-
-    const handleAddDomain = async () => {
-        if (!linkDomainTunnel || !customDomain) return;
-        setAddingDomain(true);
-        setError(null);
-        try {
-            await addTunnelHostname(linkDomainTunnel.id, customDomain);
-            await fetchTunnels();
-            // Find the tunnel again to get the new custom_hostnames
-            const updatedTunnel = tunnels.find((t) => t.id === linkDomainTunnel.id);
-            const newDomain = updatedTunnel?.custom_hostnames.find((h) => h.hostname === customDomain);
-            setDnsDomain(customDomain);
-            setDnsInfo({ type: 'CNAME', host: customDomain, value: linkDomainTunnel.url });
-            setShowDnsModal(true);
-            setCustomDomain('');
-        } catch (e: any) {
-            setError('Failed to add domain');
-        } finally {
-            setAddingDomain(false);
-        }
-    };
-
-    const handleRemoveDomain = async (hostname_id: string) => {
-        if (!linkDomainTunnel) return;
-        setRemovingDomainId(hostname_id);
-        setError(null);
-        try {
-            await removeTunnelHostname(linkDomainTunnel.id, hostname_id);
-            await fetchTunnels();
-        } catch (e: any) {
-            setError('Failed to remove domain');
-        } finally {
-            setRemovingDomainId(null);
-        }
-    };
-
-    // Show DNS info
-    const handleShowDnsInfo = () => {
-        if (!linkDomainTunnel) return;
-        setDnsInfo({
-            type: 'CNAME',
-            host: customDomain,
-            value: linkDomainTunnel.url,
-        });
-        setShowDnsModal(true);
     };
 
     return (
@@ -127,7 +64,15 @@ function Tunnels() {
                     </Button>
                 </div>
 
-                {error && <div className="mb-2 text-red-600">{error}</div>}
+                {error && !loading && (
+                    <Alert
+                        color="danger"
+                        title={error}
+                        classNames={{
+                            base: 'items-center',
+                        }}
+                    />
+                )}
 
                 <div className="col gap-4">
                     {loading ? (
@@ -138,7 +83,7 @@ function Tunnels() {
                         </>
                     ) : (
                         <>
-                            {tunnels.length === 0 && (
+                            {tunnels.length === 0 && !error && (
                                 <div className="center-all">
                                     <EmptyData
                                         title="No tunnels added"
@@ -148,133 +93,14 @@ function Tunnels() {
                                 </div>
                             )}
 
-                            <TunnelCard tunnel={tunnels[tunnels.length - 1]} fetchTunnels={fetchTunnels} />
-                            <TunnelCard tunnel={tunnels[0]} fetchTunnels={fetchTunnels} />
-                            <TunnelCard tunnel={tunnels[1]} fetchTunnels={fetchTunnels} />
-
                             {tunnels.map((tunnel) => (
-                                <div
-                                    key={tunnel.id}
-                                    className="row items-center justify-between gap-4 rounded-lg bg-white px-4 py-3 shadow"
-                                >
-                                    <div className="col min-w-0 flex-1 gap-1">
-                                        <div className="flex items-center gap-1 truncate text-sm text-slate-500">
-                                            <a
-                                                href={`https://${tunnel.url}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex items-center gap-1 hover:underline"
-                                            >
-                                                {tunnel.url}
-                                                <RiExternalLinkLine className="ml-1 inline-block text-base" />
-                                            </a>
-                                        </div>
-                                        {tunnel.custom_hostnames.length > 0 && (
-                                            <div className="mt-1 text-xs text-green-600">
-                                                Linked: {tunnel.custom_hostnames.map((h) => h.hostname).join(', ')}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="row gap-2">
-                                        <Button
-                                            color="primary"
-                                            variant="flat"
-                                            size="sm"
-                                            startContent={<RiLinkM />}
-                                            onPress={() => handleLinkDomain(tunnel)}
-                                        >
-                                            Manage Domains
-                                        </Button>
-                                    </div>
+                                <div key={tunnel.id}>
+                                    <TunnelCard tunnel={tunnel} fetchTunnels={fetchTunnels} />
                                 </div>
                             ))}
                         </>
                     )}
                 </div>
-
-                {/* Link Domain Modal */}
-                <Modal isOpen={!!linkDomainTunnel} onClose={() => setLinkDomainTunnel(null)} title="Manage Custom Domains">
-                    <ModalContent>
-                        <div className="col gap-4 p-2">
-                            <div className="mb-2 font-medium">Linked Domains:</div>
-                            <div className="col gap-2">
-                                {linkDomainTunnel?.custom_hostnames.length === 0 && (
-                                    <div className="text-xs text-slate-500">No custom domains linked yet.</div>
-                                )}
-                                {linkDomainTunnel?.custom_hostnames.map((h) => (
-                                    <div key={h.id} className="row items-center gap-2">
-                                        <span className="text-sm">{h.hostname}</span>
-                                        <Button
-                                            color="primary"
-                                            variant="flat"
-                                            size="sm"
-                                            onPress={() => {
-                                                setDnsDomain(h.hostname);
-                                                setDnsInfo({ type: 'CNAME', host: h.hostname, value: linkDomainTunnel.url });
-                                                setShowDnsModal(true);
-                                            }}
-                                        >
-                                            Show DNS
-                                        </Button>
-                                        <Button
-                                            color="danger"
-                                            variant="flat"
-                                            size="sm"
-                                            isLoading={removingDomainId === h.id}
-                                            onPress={() => handleRemoveDomain(h.id)}
-                                        >
-                                            Remove
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="mt-4 font-medium">Add New Domain:</div>
-                            <div className="row gap-2">
-                                <Input
-                                    label="Your Domain"
-                                    placeholder="e.g. mydomain.com"
-                                    value={customDomain}
-                                    onChange={(e) => setCustomDomain(e.target.value)}
-                                    autoFocus
-                                />
-                                <Button
-                                    color="primary"
-                                    variant="solid"
-                                    onPress={handleAddDomain}
-                                    isDisabled={!customDomain || addingDomain}
-                                    isLoading={addingDomain}
-                                >
-                                    Add
-                                </Button>
-                            </div>
-                        </div>
-                    </ModalContent>
-                </Modal>
-
-                {/* DNS Info Modal */}
-                <Modal isOpen={showDnsModal} onClose={() => setShowDnsModal(false)} title="DNS Settings">
-                    <ModalContent>
-                        <div className="col gap-2 p-2">
-                            <div className="text-sm">
-                                To link <b>{dnsDomain}</b> to <b>{linkDomainTunnel?.url}</b>, add the following DNS record:
-                            </div>
-                            <div className="mt-2 rounded bg-slate-100 p-3">
-                                <div>
-                                    <b>Type:</b> {dnsInfo?.type}
-                                </div>
-                                <div>
-                                    <b>Host:</b> {dnsInfo?.host}
-                                </div>
-                                <div>
-                                    <b>Value:</b> {dnsInfo?.value}
-                                </div>
-                            </div>
-                            <div className="mt-2 text-xs text-slate-500">
-                                After updating your DNS, it may take some time for changes to propagate.
-                            </div>
-                        </div>
-                    </ModalContent>
-                </Modal>
             </div>
         </div>
     );

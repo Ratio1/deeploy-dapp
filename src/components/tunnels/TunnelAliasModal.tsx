@@ -94,6 +94,7 @@ const TunnelAliasModal = forwardRef<TunnelAliasModalRef, Props>(({ action }, ref
                                     if (!trimmedValue) {
                                         return 'Alias is required';
                                     }
+
                                     if (trimmedValue.length < 3) {
                                         return 'Alias must be at least 3 characters';
                                     }
