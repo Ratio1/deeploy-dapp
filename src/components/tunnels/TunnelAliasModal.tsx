@@ -5,7 +5,7 @@ import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
 import SubmitButton from '@shared/SubmitButton';
 import { Tunnel } from '@typedefs/tunnels';
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { forwardRef, useImperativeHandle, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
 interface Props {
@@ -24,9 +24,6 @@ const TunnelAliasModal = forwardRef<TunnelAliasModalRef, Props>(({ action }, ref
 
     const [tunnel, setTunnel] = useState<Tunnel>();
     const [callback, setCallback] = useState<(() => any) | null>(null);
-
-    // Init
-    useEffect(() => {}, []);
 
     const trigger = (callback: () => any, tunnel?: Tunnel) => {
         setLoading(false);

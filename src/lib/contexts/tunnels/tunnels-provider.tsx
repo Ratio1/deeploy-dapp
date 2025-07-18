@@ -1,4 +1,5 @@
 import TunnelAliasModal from '@components/tunnels/TunnelAliasModal';
+import TunnelDNSModal from '@components/tunnels/TunnelDNSModal';
 import TunnelTokenModal from '@components/tunnels/TunnelTokenModal';
 import { Tunnel } from '@typedefs/tunnels';
 import { useRef } from 'react';
@@ -8,6 +9,7 @@ export const TunnelsProvider = ({ children }) => {
     const tunnelRenameModalRef = useRef<{ trigger: (callback: () => any, tunnel?: Tunnel) => void }>(null);
     const tunnelCreateModalRef = useRef<{ trigger: (callback: () => any, tunnel?: Tunnel) => void }>(null);
     const tunnelTokenModalRef = useRef<{ trigger: (token: string, alias?: string) => void }>(null);
+    const tunnelDNSModalRef = useRef<{ trigger: (hostname: string, url: string) => void }>(null);
 
     const openTunnelRenameModal = (tunnel: Tunnel, callback: () => any) => {
         if (tunnelRenameModalRef.current) {
@@ -27,12 +29,19 @@ export const TunnelsProvider = ({ children }) => {
         }
     };
 
+    const openTunnelDNSModal = (hostname: string, url: string) => {
+        if (tunnelDNSModalRef.current) {
+            tunnelDNSModalRef.current.trigger(hostname, url);
+        }
+    };
+
     return (
         <TunnelsContext.Provider
             value={{
                 openTunnelRenameModal,
                 openTunnelCreateModal,
                 openTunnelTokenModal,
+                openTunnelDNSModal,
             }}
         >
             {children}
@@ -41,6 +50,7 @@ export const TunnelsProvider = ({ children }) => {
             <TunnelAliasModal ref={tunnelRenameModalRef} action="rename" />
             <TunnelAliasModal ref={tunnelCreateModalRef} action="create" />
             <TunnelTokenModal ref={tunnelTokenModalRef} />
+            <TunnelDNSModal ref={tunnelDNSModalRef} />
         </TunnelsContext.Provider>
     );
 };

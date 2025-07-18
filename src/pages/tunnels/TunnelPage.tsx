@@ -10,11 +10,19 @@ import StyledInput from '@shared/StyledInput';
 import { Tunnel } from '@typedefs/tunnels';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { RiArrowLeftLine, RiDeleteBin2Line, RiDraftLine, RiEdit2Line, RiExternalLinkLine, RiLinkM } from 'react-icons/ri';
+import {
+    RiArrowLeftLine,
+    RiDeleteBin2Line,
+    RiDraftLine,
+    RiEdit2Line,
+    RiExternalLinkLine,
+    RiEyeLine,
+    RiLinkM,
+} from 'react-icons/ri';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 export default function TunnelPage() {
-    const { openTunnelRenameModal, openTunnelTokenModal } = useTunnelsContext() as TunnelsContextType;
+    const { openTunnelRenameModal, openTunnelTokenModal, openTunnelDNSModal } = useTunnelsContext() as TunnelsContextType;
     const confirm = useInteractionContext() as InteractionContextType;
 
     const navigate = useNavigate();
@@ -68,9 +76,17 @@ export default function TunnelPage() {
         }
     };
 
+    const onViewDNS = (hostname: string) => {
+        console.log('onViewDNS', hostname, tunnel);
+
+        if (!tunnel) return;
+
+        openTunnelDNSModal(hostname, tunnel.url);
+    };
+
     if (!tunnel) {
         return (
-            <div className="col mx-auto w-full max-w-2xl gap-6">
+            <div className="col mx-auto w-full max-w-[620px] gap-6">
                 <Skeleton className="min-h-8 w-64 rounded-lg" />
 
                 <div className="row justify-between">
@@ -86,7 +102,7 @@ export default function TunnelPage() {
 
     return (
         <div className="w-full flex-1">
-            <div className="col mx-auto max-w-2xl gap-6">
+            <div className="col mx-auto max-w-[620px] gap-6">
                 <div className="row gap-2.5">
                     <Link to={routePath.tunnels} className="hover:opacity-50">
                         <div className="bg-slate-150 rounded-full p-1">
@@ -173,8 +189,21 @@ export default function TunnelPage() {
                     {tunnel.custom_hostnames.length > 0 ? (
                         <>
                             {tunnel.custom_hostnames.map((h) => (
-                                <div key={h.id} className="p-4 text-sm font-medium">
-                                    {h.hostname}
+                                <div key={h.id} className="row justify-between p-4">
+                                    <div className="text-sm font-medium">{h.hostname}</div>
+
+                                    <div className="row gap-1">
+                                        <div
+                                            className="group cursor-pointer rounded-full p-1.5 hover:bg-slate-100"
+                                            onClick={() => onViewDNS(h.hostname)}
+                                        >
+                                            <RiEyeLine className="text-xl text-slate-700 group-hover:text-body" />
+                                        </div>
+
+                                        <div className="group cursor-pointer rounded-full p-1.5 hover:bg-slate-100">
+                                            <RiDeleteBin2Line className="text-xl text-slate-700 group-hover:text-red-500" />
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
                         </>

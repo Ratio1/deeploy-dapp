@@ -1,7 +1,7 @@
 import { Button } from '@heroui/button';
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@heroui/modal';
 import Label from '@shared/Label';
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { forwardRef, useImperativeHandle, useState } from 'react';
 import { RiCheckLine, RiFileCopyLine } from 'react-icons/ri';
 
 interface TunnelTokenModalRef {
@@ -15,9 +15,6 @@ const TunnelTokenModal = forwardRef<TunnelTokenModalRef>((_, ref) => {
     const [token, setToken] = useState<string>();
 
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
-
-    // Init
-    useEffect(() => {}, []);
 
     const trigger = (token: string, alias?: string) => {
         setToken(token);
