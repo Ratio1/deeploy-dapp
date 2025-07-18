@@ -1,16 +1,39 @@
+import { deleteTunnel } from '@lib/api/tunnels';
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { routePath } from '@lib/routes/route-paths';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { SmallTag } from '@shared/SmallTag';
 import { Tunnel } from '@typedefs/tunnels';
+import toast from 'react-hot-toast';
 import { RiExternalLinkLine, RiLinkM } from 'react-icons/ri';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; fetchTunnels: () => Promise<void> }) {
     const { openTunnelRenameModal } = useTunnelsContext() as TunnelsContextType;
+    const confirm = useInteractionContext() as InteractionContextType;
 
     const navigate = useNavigate();
+
+    const onDeleteTunnel = async () => {
+        try {
+            await confirm(
+                <div className="col gap-3">
+                    <div>Are you sure you want to delete the following tunnel?</div>
+                    <div className="font-medium">{tunnel.alias}</div>
+                </div>,
+                async () => {
+                    await deleteTunnel(tunnel.id);
+                    fetchTunnels();
+                    toast.success('Tunnel deleted successfully.');
+                },
+            );
+        } catch (error) {
+            console.error('Error deleting tunnel:', error);
+            toast.error('Failed to delete tunnel.');
+        }
+    };
 
     return (
         <div onClick={() => navigate(`${routePath.tunnels}/${tunnel.id}`)}>
@@ -59,7 +82,7 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
                                 {
                                     key: 'delete',
                                     label: 'Delete',
-                                    onPress: () => {},
+                                    onPress: onDeleteTunnel,
                                 },
                             ]}
                         />

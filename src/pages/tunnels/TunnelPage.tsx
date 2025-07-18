@@ -1,5 +1,6 @@
 import { Skeleton } from '@heroui/skeleton';
-import { getTunnel } from '@lib/api/tunnels';
+import { deleteTunnel, getTunnel } from '@lib/api/tunnels';
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { routePath } from '@lib/routes/route-paths';
 import ActionButton from '@shared/ActionButton';
@@ -8,11 +9,13 @@ import EmptyData from '@shared/EmptyData';
 import StyledInput from '@shared/StyledInput';
 import { Tunnel } from '@typedefs/tunnels';
 import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { RiArrowLeftLine, RiDeleteBin2Line, RiDraftLine, RiEdit2Line, RiExternalLinkLine, RiLinkM } from 'react-icons/ri';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 export default function TunnelPage() {
     const { openTunnelRenameModal } = useTunnelsContext() as TunnelsContextType;
+    const confirm = useInteractionContext() as InteractionContextType;
 
     const navigate = useNavigate();
     const { id } = useParams();
@@ -50,14 +53,32 @@ export default function TunnelPage() {
         }
     };
 
+    const onDeleteTunnel = async () => {
+        if (!tunnel) return;
+
+        try {
+            await confirm(<div>Are you sure you want to delete this tunnel?</div>, async () => {
+                await deleteTunnel(tunnel.id);
+                navigate(routePath.tunnels);
+                toast.success('Tunnel deleted successfully.');
+            });
+        } catch (error) {
+            console.error('Error deleting tunnel:', error);
+            toast.error('Failed to delete tunnel.');
+        }
+    };
+
     if (!tunnel) {
         return (
             <div className="col mx-auto w-full max-w-2xl gap-6">
-                <div className="row">
-                    <Skeleton className="min-h-8 w-64 rounded-lg" />
+                <Skeleton className="min-h-8 w-64 rounded-lg" />
+
+                <div className="row justify-between">
+                    {Array.from({ length: 2 }).map((_, index) => (
+                        <Skeleton key={index} className="min-h-[38px] w-[280px] rounded-lg" />
+                    ))}
                 </div>
 
-                <Skeleton className="min-h-[38px] w-full rounded-lg" />
                 <Skeleton className="min-h-[150px] w-full rounded-lg" />
             </div>
         );
@@ -107,7 +128,7 @@ export default function TunnelPage() {
                             <div className="text-sm font-medium">View Token</div>
                         </ActionButton>
 
-                        <ActionButton className="bg-red-500" color="danger" onPress={() => {}}>
+                        <ActionButton className="bg-red-500" color="danger" onPress={onDeleteTunnel}>
                             <div className="row gap-1.5">
                                 <RiDeleteBin2Line className="text-lg" />
                                 <div className="text-sm">Delete</div>

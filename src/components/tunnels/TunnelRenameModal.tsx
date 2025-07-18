@@ -57,7 +57,7 @@ const TunnelRenameModal = forwardRef<TunnelRenameModalRef>((_props, ref) => {
     };
 
     return (
-        <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="sm" shouldBlockScroll={false} placement="center">
+        <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="sm" shouldBlockScroll={false}>
             <Form className="w-full" validationBehavior="native" onSubmit={onSubmit}>
                 <ModalContent>
                     <ModalHeader>Rename Tunnel</ModalHeader>
