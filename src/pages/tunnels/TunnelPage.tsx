@@ -14,7 +14,7 @@ import { RiArrowLeftLine, RiDeleteBin2Line, RiDraftLine, RiEdit2Line, RiExternal
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 export default function TunnelPage() {
-    const { openTunnelRenameModal } = useTunnelsContext() as TunnelsContextType;
+    const { openTunnelRenameModal, openTunnelTokenModal } = useTunnelsContext() as TunnelsContextType;
     const confirm = useInteractionContext() as InteractionContextType;
 
     const navigate = useNavigate();
@@ -79,7 +79,7 @@ export default function TunnelPage() {
                     ))}
                 </div>
 
-                <Skeleton className="min-h-[150px] w-full rounded-lg" />
+                <Skeleton className="min-h-[200px] w-full rounded-lg" />
             </div>
         );
     }
@@ -124,9 +124,17 @@ export default function TunnelPage() {
                             </div>
                         </ActionButton>
 
-                        <ActionButton className="slate-button" color="default" onPress={() => {}}>
-                            <div className="text-sm font-medium">View Token</div>
-                        </ActionButton>
+                        {tunnel.token && (
+                            <ActionButton
+                                className="slate-button"
+                                color="default"
+                                onPress={() => {
+                                    openTunnelTokenModal(tunnel.token as string);
+                                }}
+                            >
+                                <div className="text-sm font-medium">View Token</div>
+                            </ActionButton>
+                        )}
 
                         <ActionButton className="bg-red-500" color="danger" onPress={onDeleteTunnel}>
                             <div className="row gap-1.5">

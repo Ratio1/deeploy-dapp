@@ -1,6 +1,7 @@
 import { Form } from '@heroui/form';
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@heroui/modal';
 import { createTunnel, renameTunnel } from '@lib/api/tunnels';
+import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
 import SubmitButton from '@shared/SubmitButton';
 import { Tunnel } from '@typedefs/tunnels';
@@ -84,7 +85,7 @@ const TunnelAliasModal = forwardRef<TunnelAliasModalRef, Props>(({ action }, ref
 
                     <ModalBody>
                         <div className="col w-full gap-2">
-                            <div className="text-sm font-medium text-slate-500">Alias</div>
+                            <Label value="Alias" />
 
                             <StyledInput
                                 autoFocus

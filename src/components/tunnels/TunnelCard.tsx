@@ -11,7 +11,7 @@ import { RiExternalLinkLine, RiLinkM } from 'react-icons/ri';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; fetchTunnels: () => Promise<void> }) {
-    const { openTunnelRenameModal } = useTunnelsContext() as TunnelsContextType;
+    const { openTunnelRenameModal, openTunnelTokenModal } = useTunnelsContext() as TunnelsContextType;
     const confirm = useInteractionContext() as InteractionContextType;
 
     const navigate = useNavigate();
@@ -77,7 +77,9 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
                                 {
                                     key: 'viewToken',
                                     label: 'View Token',
-                                    onPress: () => {},
+                                    onPress: () => {
+                                        openTunnelTokenModal(tunnel.token as string, tunnel.alias);
+                                    },
                                 },
                                 {
                                     key: 'delete',

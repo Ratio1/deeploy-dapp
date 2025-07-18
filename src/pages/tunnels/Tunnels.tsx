@@ -195,6 +195,8 @@ function Tunnels() {
                             )}
 
                             <TunnelCard tunnel={tunnels[tunnels.length - 1]} fetchTunnels={fetchTunnels} />
+                            <TunnelCard tunnel={tunnels[0]} fetchTunnels={fetchTunnels} />
+                            <TunnelCard tunnel={tunnels[1]} fetchTunnels={fetchTunnels} />
 
                             {tunnels.map((tunnel) => (
                                 <div
