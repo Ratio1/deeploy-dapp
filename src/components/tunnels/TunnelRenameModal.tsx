@@ -1,5 +1,6 @@
 import { Form } from '@heroui/form';
-import { Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from '@heroui/modal';
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@heroui/modal';
+import { renameTunnel } from '@lib/api/tunnels';
 import StyledInput from '@shared/StyledInput';
 import SubmitButton from '@shared/SubmitButton';
 import { Tunnel } from '@typedefs/tunnels';
@@ -7,7 +8,7 @@ import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
 interface TunnelRenameModalRef {
-    trigger: (tunnel: Tunnel, onRename: (alias: string) => void) => void;
+    trigger: (tunnel: Tunnel, onRename: () => any) => void;
 }
 
 const TunnelRenameModal = forwardRef<TunnelRenameModalRef>((_props, ref) => {
@@ -18,12 +19,12 @@ const TunnelRenameModal = forwardRef<TunnelRenameModalRef>((_props, ref) => {
 
     const [tunnel, setTunnel] = useState<Tunnel>();
 
-    const [callback, setCallback] = useState<((alias: string) => void) | null>(null);
+    const [callback, setCallback] = useState<(() => any) | null>(null);
 
     // Init
     useEffect(() => {}, []);
 
-    const trigger = (tunnel: Tunnel, onRename: (alias: string) => void) => {
+    const trigger = (tunnel: Tunnel, onRename: () => any) => {
         setLoading(false);
         setTunnel(tunnel);
         setAlias(tunnel.alias);
@@ -38,13 +39,13 @@ const TunnelRenameModal = forwardRef<TunnelRenameModalRef>((_props, ref) => {
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        console.log('onSubmit', alias);
-
-        if (callback) {
+        if (callback && tunnel) {
             setLoading(true);
 
             try {
-                callback(alias.trim());
+                await renameTunnel(tunnel.id, alias.trim());
+                toast.success('Tunnel renamed successfully.');
+                callback();
                 onClose();
             } catch (error) {
                 console.error('Error renaming tunnel:', error);
@@ -57,12 +58,12 @@ const TunnelRenameModal = forwardRef<TunnelRenameModalRef>((_props, ref) => {
 
     return (
         <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="sm" shouldBlockScroll={false} placement="center">
-            <ModalContent>
-                <ModalHeader>Rename Tunnel</ModalHeader>
+            <Form className="w-full" validationBehavior="native" onSubmit={onSubmit}>
+                <ModalContent>
+                    <ModalHeader>Rename Tunnel</ModalHeader>
 
-                <ModalBody>
-                    <div className="col pb-2">
-                        <Form className="w-full" validationBehavior="native" onSubmit={onSubmit}>
+                    <ModalBody>
+                        <div className="col">
                             <div className="col w-full gap-2">
                                 <div className="text-sm font-medium text-slate-500">Alias</div>
 
@@ -84,15 +85,16 @@ const TunnelRenameModal = forwardRef<TunnelRenameModalRef>((_props, ref) => {
                                     placeholder="Enter new alias"
                                 />
                             </div>
+                        </div>
+                    </ModalBody>
 
-                            <div className="flex justify-end">
-                                {/* TODO: Add isLoading */}
-                                <SubmitButton label="Rename" />
-                            </div>
-                        </Form>
-                    </div>
-                </ModalBody>
-            </ModalContent>
+                    <ModalFooter>
+                        <div className="flex justify-end pb-0.5">
+                            <SubmitButton label="Rename" isLoading={isLoading} />
+                        </div>
+                    </ModalFooter>
+                </ModalContent>
+            </Form>
         </Modal>
     );
 });

@@ -7,10 +7,10 @@ import { Tunnel } from '@typedefs/tunnels';
 import { RiExternalLinkLine, RiLinkM } from 'react-icons/ri';
 import { Link, useNavigate } from 'react-router-dom';
 
-export default function TunnelCard({ tunnel }: { tunnel: Tunnel }) {
-    const navigate = useNavigate();
-
+export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; fetchTunnels: () => Promise<void> }) {
     const { openTunnelRenameModal } = useTunnelsContext() as TunnelsContextType;
+
+    const navigate = useNavigate();
 
     return (
         <div onClick={() => navigate(`${routePath.tunnels}/${tunnel.id}`)}>
@@ -48,9 +48,7 @@ export default function TunnelCard({ tunnel }: { tunnel: Tunnel }) {
                                     key: 'rename',
                                     label: 'Rename',
                                     onPress: () => {
-                                        openTunnelRenameModal(tunnel, (alias) => {
-                                            console.log('alias', alias);
-                                        });
+                                        openTunnelRenameModal(tunnel, () => fetchTunnels());
                                     },
                                 },
                                 {

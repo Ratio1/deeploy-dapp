@@ -42,7 +42,7 @@ export const InteractionProvider = ({ children }) => {
                 <ModalContent>
                     <ModalHeader className="flex flex-col gap-1">Confirmation</ModalHeader>
                     <ModalBody>{content}</ModalBody>
-                    <ModalFooter>
+                    <ModalFooter className="mb-0.5">
                         <Button className="slate-button" color="default" onPress={handleCancel}>
                             Cancel
                         </Button>

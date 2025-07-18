@@ -73,9 +73,8 @@ export const routeInfo = {
         routeTitle: 'Legacy Requester',
     },
     [routePath.tunnels]: {
-        title: 'Tunnels Manager',
+        title: 'Tunnels',
         description: 'Manage your tunnels and link them to your own domains',
-        routeTitle: 'Tunnels',
     },
     [routePath.account]: {
         title: 'Account',

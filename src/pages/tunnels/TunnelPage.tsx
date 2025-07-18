@@ -1,5 +1,6 @@
 import { Skeleton } from '@heroui/skeleton';
 import { getTunnel } from '@lib/api/tunnels';
+import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { routePath } from '@lib/routes/route-paths';
 import ActionButton from '@shared/ActionButton';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
@@ -11,13 +12,15 @@ import { RiArrowLeftLine, RiDeleteBin2Line, RiDraftLine, RiEdit2Line, RiExternal
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 export default function TunnelPage() {
+    const { openTunnelRenameModal } = useTunnelsContext() as TunnelsContextType;
+
     const navigate = useNavigate();
     const { id } = useParams();
 
     const [tunnel, setTunnel] = useState<Tunnel | undefined>();
 
     useEffect(() => {
-        init(id);
+        fetchTunnel(id);
     }, [id]);
 
     useEffect(() => {
@@ -26,11 +29,12 @@ export default function TunnelPage() {
         }
     }, [tunnel]);
 
-    const init = async (id: string | undefined) => {
+    const fetchTunnel = async (id: string | undefined) => {
         try {
             if (!id) {
                 throw new Error('Invalid tunnel ID.');
             }
+            setTunnel(undefined);
 
             const { result: tunnel } = await getTunnel(id);
             setTunnel({
@@ -49,10 +53,8 @@ export default function TunnelPage() {
     if (!tunnel) {
         return (
             <div className="col mx-auto w-full max-w-2xl gap-6">
-                <div className="row justify-between gap-8">
-                    {Array.from({ length: 2 }).map((_, index) => (
-                        <Skeleton key={index} className="min-h-8 w-64 rounded-lg" />
-                    ))}
+                <div className="row">
+                    <Skeleton className="min-h-8 w-64 rounded-lg" />
                 </div>
 
                 <Skeleton className="min-h-[38px] w-full rounded-lg" />
@@ -88,7 +90,13 @@ export default function TunnelPage() {
                     </Link>
 
                     <div className="row gap-2">
-                        <ActionButton className="slate-button" color="default" onPress={() => {}}>
+                        <ActionButton
+                            className="slate-button"
+                            color="default"
+                            onPress={() => {
+                                openTunnelRenameModal(tunnel, () => fetchTunnel(id));
+                            }}
+                        >
                             <div className="row gap-1.5">
                                 <RiEdit2Line className="text-lg" />
                                 <div className="text-sm font-medium">Rename</div>
@@ -142,10 +150,10 @@ export default function TunnelPage() {
                             ))}
                         </>
                     ) : (
-                        <div className="center-all">
+                        <div className="center-all py-4">
                             <EmptyData
                                 title="No linked domains"
-                                description="Link a domain to the tunnel."
+                                description="Domains linked to the tunnel will appear here."
                                 icon={<RiDraftLine />}
                             />
                         </div>

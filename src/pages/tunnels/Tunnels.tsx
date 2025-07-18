@@ -19,6 +19,7 @@ import { RiAddLine, RiDeleteBinLine, RiDraftLine, RiExternalLinkLine, RiLinkM } 
 function Tunnels() {
     const [tunnels, setTunnels] = useState<Tunnel[]>([]);
     const [loading, setLoading] = useState(true);
+    // TODO: Style error message
     const [error, setError] = useState<string | null>(null);
 
     // TODO: useDisclosure
@@ -47,10 +48,12 @@ function Tunnels() {
     const fetchTunnels = async () => {
         setLoading(true);
         setError(null);
+
         try {
             const data = await getTunnels();
             const tunnelsObj = data.result || {};
-            const tunnelsArr = Object.values(tunnelsObj)
+
+            const tunnelsArray = Object.values(tunnelsObj)
                 .filter(Boolean)
                 .map((t: any) => ({
                     id: t.id,
@@ -60,9 +63,9 @@ function Tunnels() {
                     custom_hostnames: t.custom_hostnames,
                 }));
 
-            console.log(tunnelsArr);
+            console.log(tunnelsArray);
 
-            setTunnels(tunnelsArr);
+            setTunnels(tunnelsArray);
         } catch (e: any) {
             setError('Failed to load tunnels');
         } finally {
@@ -216,7 +219,7 @@ function Tunnels() {
                                 </div>
                             )}
 
-                            <TunnelCard tunnel={tunnels[tunnels.length - 1]} />
+                            <TunnelCard tunnel={tunnels[tunnels.length - 1]} fetchTunnels={fetchTunnels} />
 
                             {tunnels.map((tunnel) => (
                                 <div
