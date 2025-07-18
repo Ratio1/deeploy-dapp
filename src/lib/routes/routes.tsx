@@ -1,4 +1,5 @@
 import { DeploymentProvider } from '@lib/contexts/deployment';
+import { TunnelsProvider } from '@lib/contexts/tunnels/tunnels-provider';
 import NotFound from '@pages/404';
 import Account from '@pages/Account';
 import CSP from '@pages/CSP';
@@ -9,8 +10,10 @@ import Project from '@pages/deeploys/Project';
 import Docs from '@pages/Docs';
 import Home from '@pages/Home';
 import Support from '@pages/Support';
+import TunnelPage from '@pages/tunnels/TunnelPage';
+import Tunnels from '@pages/tunnels/Tunnels';
 import { JSX } from 'react';
-import { RiBox3Line, RiFileTextLine, RiHeadphoneLine, RiHomeLine, RiUser3Line } from 'react-icons/ri';
+import { RiBox3Line, RiCodeBoxLine, RiFileTextLine, RiHeadphoneLine, RiHomeLine, RiUser3Line } from 'react-icons/ri';
 import { routePath } from './route-paths';
 
 export type BaseRoute = {
@@ -69,6 +72,10 @@ export const routeInfo = {
         description: 'Legacy interface for requesting deployments',
         routeTitle: 'Legacy Requester',
     },
+    [routePath.tunnels]: {
+        title: 'Tunnels',
+        description: 'Manage your tunnels and link them to your own domains',
+    },
     [routePath.account]: {
         title: 'Account',
         description: 'Manage your account & billing settings',
@@ -119,6 +126,15 @@ export const routes: AppRoute[] = [
         ],
     },
     {
+        path: routePath.tunnels,
+        page: () => (
+            <TunnelsProvider>
+                <Tunnels />
+            </TunnelsProvider>
+        ),
+        icon: <RiCodeBoxLine />,
+    },
+    {
         path: routePath.account,
         page: Account,
         icon: <RiUser3Line />,
@@ -140,6 +156,14 @@ export const routes: AppRoute[] = [
             <DeploymentProvider>
                 <Project />
             </DeploymentProvider>
+        ),
+    },
+    {
+        path: `${routePath.tunnels}/:id`,
+        page: () => (
+            <TunnelsProvider>
+                <TunnelPage />
+            </TunnelsProvider>
         ),
     },
     {

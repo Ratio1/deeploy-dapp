@@ -75,23 +75,6 @@ export const arrayAverage = (numbers: number[]): number => {
     return numbers.reduce((sum, num) => sum + num, 0) / numbers.length;
 };
 
-export function deepSort(obj: any): any {
-    if (Array.isArray(obj)) {
-        return obj.map(deepSort);
-    } else if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
-        return Object.keys(obj)
-            .sort()
-            .reduce(
-                (acc, key) => {
-                    acc[key] = deepSort(obj[key]);
-                    return acc;
-                },
-                {} as Record<string, any>,
-            );
-    }
-    return obj;
-}
-
 export const isValidId = (id: string | undefined) => id && !isNaN(parseInt(id)) && isFinite(parseInt(id));
 
 export const getJobCost = (specifications: JobSpecifications): number => {
@@ -120,3 +103,20 @@ export const downloadDataAsJson = (data: any, filename: string) => {
     // Clean up the URL object
     URL.revokeObjectURL(url);
 };
+
+export function deepSort(obj: any): any {
+    if (Array.isArray(obj)) {
+        return obj.map(deepSort);
+    } else if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+        return Object.keys(obj)
+            .sort()
+            .reduce(
+                (acc, key) => {
+                    acc[key] = deepSort(obj[key]);
+                    return acc;
+                },
+                {} as Record<string, any>,
+            );
+    }
+    return obj;
+}

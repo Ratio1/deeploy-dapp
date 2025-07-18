@@ -23,6 +23,9 @@ export default {
                 body: '#0b0b47',
                 light: '#fcfcfd',
                 primary: '#1b47f7',
+                slate: {
+                    150: '#e9edf2',
+                },
             },
             outlineWidth: {
                 3: '3px',
@@ -44,6 +47,9 @@ export default {
             },
         },
         screens: {
+            xs: '400px',
+            sm: '480px',
+            md: '768px',
             break: '900px', // Screens narrower than this won't be supported
             lg: '1024px',
             larger: '1200px',

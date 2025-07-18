@@ -8,6 +8,7 @@ export const routePath = {
     createProject: 'create-project',
     project: 'project',
     //
+    tunnels: '/tunnels',
     account: '/account',
     docs: '/docs',
     support: '/support',

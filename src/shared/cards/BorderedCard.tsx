@@ -15,7 +15,7 @@ export const BorderedCard: FunctionComponent<
         >
             <div
                 className={clsx('col w-full gap-4 px-4 py-4 lg:gap-5 lg:px-6', {
-                    'bg-light': isLight,
+                    'bg-white': isLight,
                 })}
             >
                 {children}

@@ -40,7 +40,7 @@ body {
 }
 
 .slate-button {
-    @apply bg-[#e9edf2] hover:!opacity-75;
+    @apply bg-slate-150 hover:!opacity-75;
 }
 
 /* Scrollbar */

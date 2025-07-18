@@ -1,7 +1,7 @@
 import { Button } from '@heroui/button';
 import { useEffect, useState } from 'react';
 
-function SubmitButton({ label = 'Submit' }: { label?: string }) {
+function SubmitButton({ label = 'Submit', isLoading = false }: { label?: string; isLoading?: boolean }) {
     const [isVisible, setVisible] = useState(false);
 
     // Rendering is delayed because of a bug which triggers form validation otherwise
@@ -13,7 +13,7 @@ function SubmitButton({ label = 'Submit' }: { label?: string }) {
     return (
         <>
             {isVisible && (
-                <Button type="submit" color="primary" variant="solid">
+                <Button type="submit" color="primary" variant="solid" isLoading={isLoading}>
                     <div>{label}</div>
                 </Button>
             )}
