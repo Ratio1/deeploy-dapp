@@ -174,9 +174,14 @@ function LegacyRequester() {
             setResponseInput(JSON.stringify(res, null, 2));
 
             toast.success('Request sent successfully.');
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error('Error sending request.');
+
+            if (error.message.includes('Expected') && error.message.includes('JSON')) {
+                toast.error('Invalid JSON format.');
+            } else {
+                toast.error('Error sending request.');
+            }
         } finally {
             setLoading(false);
         }
