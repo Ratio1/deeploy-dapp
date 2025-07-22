@@ -1,7 +1,14 @@
+import { Button } from '@heroui/button';
+import { SelectItem } from '@heroui/select';
 import { config, environment } from '@lib/config';
 import { deepSort } from '@lib/utils';
+import Label from '@shared/Label';
+import { SmallTag } from '@shared/SmallTag';
+import StyledSelect from '@shared/StyledSelect';
+import StyledTextarea from '@shared/StyledTextarea';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useAccount, useSignMessage } from 'wagmi';
 
 function buildMessage(data: Record<string, any>): string {
@@ -21,6 +28,9 @@ async function _doPost(endpoint: string, body: any) {
 
 function LegacyRequester() {
     const { address } = useAccount();
+
+    const [isLoading, setLoading] = useState(false);
+
     const [userInput, setUserInput] = useState<string>('');
     const [responseInput, setResponseInput] = useState<string>('');
     const [endpoint, setEndpoint] = useState<string>('/create_pipeline');
@@ -132,91 +142,113 @@ function LegacyRequester() {
         }
     }, [endpoint]);
 
+    const onSend = async () => {
+        setLoading(true);
+
+        try {
+            const parsed = JSON.parse(userInput).request;
+            const message = buildMessage(parsed);
+
+            console.log(JSON.stringify(message));
+
+            const signature = await signMessageAsync({
+                account: address,
+                message,
+            });
+
+            console.log('Signature', signature);
+
+            const request = {
+                ...parsed,
+                EE_ETH_SIGN: signature,
+                EE_ETH_SENDER: address,
+            };
+
+            console.log('Data to send', request);
+
+            const res = await _doPost(`${config.deeployUrl}${endpoint}`, {
+                request,
+            });
+
+            console.log('Response', res);
+            setResponseInput(JSON.stringify(res, null, 2));
+
+            toast.success('Request sent successfully.');
+        } catch (error) {
+            console.error(error);
+            toast.error('Error sending request.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <div>
-            <h3>Environment: {environment}</h3>
-            <h3>Endpoint:</h3>
-            <select
-                value={endpoint}
-                onChange={(e) => setEndpoint(e.target.value)}
-                className="rounded-md border border-gray-300 p-2"
-                style={{
-                    width: '100%',
-                    height: '50px',
-                    marginBottom: '1rem',
-                }}
-            >
-                <option value="/create_pipeline">/create_pipeline</option>
-                <option value="/delete_pipeline">/delete_pipeline</option>
-                <option value="/get_apps">/get_apps</option>
-            </select>
-            <div
-                style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: '1rem',
-                }}
-            >
-                <textarea
+        <div className="col gap-6">
+            <div className="flex items-start justify-between">
+                <div className="col w-full gap-2">
+                    <Label value="Endpoint" />
+
+                    <StyledSelect
+                        className="max-w-[300px]"
+                        selectedKeys={[endpoint]}
+                        onSelectionChange={(keys) => {
+                            const selectedKey = Array.from(keys)[0] as string;
+                            setEndpoint(selectedKey);
+                        }}
+                        placeholder="Select an endpoint"
+                    >
+                        <SelectItem key="/create_pipeline" textValue="/create_pipeline">
+                            <div className="row gap-2 py-1">
+                                <div className="font-medium">/create_pipeline</div>
+                            </div>
+                        </SelectItem>
+                        <SelectItem key="/delete_pipeline" textValue="/delete_pipeline">
+                            <div className="row gap-2 py-1">
+                                <div className="font-medium">/delete_pipeline</div>
+                            </div>
+                        </SelectItem>
+                        <SelectItem key="/get_apps" textValue="/get_apps">
+                            <div className="row gap-2 py-1">
+                                <div className="font-medium">/get_apps</div>
+                            </div>
+                        </SelectItem>
+                    </StyledSelect>
+                </div>
+
+                <div className="row gap-1.5">
+                    <Label value="Environment:" />
+
+                    <SmallTag variant="blue" isLarge>
+                        {environment}
+                    </SmallTag>
+                </div>
+            </div>
+
+            <div className="row gap-4">
+                <StyledTextarea
+                    inputWrapperClassnames="!h-[50vh]"
                     placeholder="Enter JSON"
                     value={userInput}
                     onChange={(e) => setUserInput(e.target.value)}
-                    className="rounded-md border border-gray-300 p-2"
-                    style={{
-                        width: '100%',
-                        height: '60vh',
-                        marginBottom: '1rem',
-                    }}
+                    minRows={30}
+                    disableAutosize
                 />
-                <textarea
+
+                <StyledTextarea
+                    inputWrapperClassnames="!h-[50vh]"
                     placeholder="Enter JSON"
                     value={responseInput}
                     onChange={(e) => setResponseInput(e.target.value)}
-                    className="rounded-md border border-gray-300 p-2"
-                    style={{
-                        width: '100%',
-                        height: '60vh',
-                        marginBottom: '1rem',
-                    }}
+                    minRows={30}
+                    disableAutosize
                 />
             </div>
-            <button
-                onClick={async () => {
-                    try {
-                        const parsed = JSON.parse(userInput).request;
-                        const message = buildMessage(parsed);
-                        console.log(JSON.stringify(message));
-                        const signature = await signMessageAsync({
-                            account: address,
-                            message,
-                        });
-                        console.log('Signature:', signature);
 
-                        const request = {
-                            ...parsed,
-                            EE_ETH_SIGN: signature,
-                            EE_ETH_SENDER: address,
-                        };
-                        console.log('Data to send:', request);
-
-                        const res = await _doPost(`${config.deeployUrl}${endpoint}`, {
-                            request,
-                        });
-                        console.log('Response:', res);
-                        setResponseInput(JSON.stringify(res, null, 2));
-                    } catch (error) {
-                        console.error('Error:', error);
-                        alert(`Error: ${error}`);
-                    }
-                }}
-                className="rounded-md bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600"
-                style={{
-                    width: '100%',
-                    height: '50px',
-                }}
-            >
-                Sign and send
-            </button>
+            <div className="center-all">
+                <Button color="primary" variant="solid" onPress={onSend} isLoading={isLoading}>
+                    Sign and send
+                </Button>
+            </div>
         </div>
     );
 }

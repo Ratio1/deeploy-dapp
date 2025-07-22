@@ -31,6 +31,7 @@ body {
     @apply text-primary;
 }
 
+/* Classes */
 .big-title {
     @apply text-lg font-semibold lg:text-[20px];
 }
