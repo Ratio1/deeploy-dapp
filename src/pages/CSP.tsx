@@ -27,8 +27,16 @@ function CSP() {
                 description={
                     <div className="col items-center gap-6">
                         <div className="col">
-                            <div>You are not a Cloud Service Provider.</div>
-                            <div>If you wish to become one, please contact us.</div>
+                            <div>
+                                You are not a <span className="font-medium">Cloud Service Provider</span>.
+                            </div>
+                            <div>
+                                If you wish to become one, please contact us at{' '}
+                                <a href="mailto:contact@ratio1.ai" className="text-primary">
+                                    contact@ratio1.ai
+                                </a>
+                                .
+                            </div>
                         </div>
 
                         <div className="center-all w-full gap-2">
@@ -36,7 +44,7 @@ function CSP() {
                                 <Link
                                     key={index}
                                     to={link.url}
-                                    className="cursor-pointer p-2 text-3xl text-primary hover:opacity-70"
+                                    className="cursor-pointer p-2 text-3xl text-primary hover:opacity-60"
                                     target="_blank"
                                 >
                                     {link.icon}
