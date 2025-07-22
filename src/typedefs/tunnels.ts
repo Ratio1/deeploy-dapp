@@ -4,6 +4,8 @@ type Tunnel = {
     url: string;
     token?: string | null;
     custom_hostnames: { id: string; hostname: string }[];
+    connections: { colo_name: string; opened_at: string; origin_ip: string }[];
+    status: 'inactive' | 'degraded' | 'healthy' | 'down';
 };
 
 type DNSInfo = { type: string; host: string; value: string };

@@ -31,13 +31,15 @@ function Tunnels() {
             const tunnelsObj = data.result || {};
 
             const tunnelsArray = Object.values(tunnelsObj)
-                .filter(Boolean)
+                .filter((t: any) => t.metadata.creator === 'ratio1')
                 .map((t: any) => ({
                     id: t.id,
-                    alias: t.alias,
-                    url: t.dns_name,
-                    token: t.tunnel_token,
-                    custom_hostnames: t.custom_hostnames,
+                    status: t.status,
+                    connections: t.connections || [],
+                    alias: t.metadata.alias,
+                    url: t.metadata.dns_name,
+                    token: t.metadata.tunnel_token,
+                    custom_hostnames: t.metadata.custom_hostnames,
                 }));
 
             console.log(tunnelsArray);

@@ -49,10 +49,12 @@ export default function TunnelPage() {
             const { result: tunnel } = await getTunnel(id);
             setTunnel({
                 id: tunnel.id,
-                alias: tunnel.alias,
-                url: tunnel.dns_name,
-                token: tunnel.tunnel_token,
-                custom_hostnames: tunnel.custom_hostnames,
+                status: tunnel.status,
+                connections: tunnel.connections || [],
+                alias: tunnel.metadata.alias,
+                url: tunnel.metadata.dns_name,
+                token: tunnel.metadata.tunnel_token,
+                custom_hostnames: tunnel.metadata.custom_hostnames,
             });
         } catch (error) {
             console.error(error);
@@ -143,7 +145,7 @@ export default function TunnelPage() {
             <div className="col mx-auto max-w-[620px] gap-6">
                 <div className="row gap-3 pb-2">
                     <Link to={routePath.tunnels} className="hover:opacity-50">
-                        <div className="bg-slate-150 rounded-full p-1">
+                        <div className="rounded-full bg-slate-150 p-1">
                             <RiArrowLeftLine className="text-xl" />
                         </div>
                     </Link>
