@@ -4,6 +4,7 @@ import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { routePath } from '@lib/routes/route-paths';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
+import { CopyableValue } from '@shared/CopyableValue';
 import { SmallTag } from '@shared/SmallTag';
 import { Tunnel } from '@typedefs/tunnels';
 import toast from 'react-hot-toast';
@@ -42,17 +43,19 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
                     <div className="col gap-1">
                         <div className="font-medium">{tunnel.alias}</div>
 
-                        <Link
-                            to={`https://${tunnel.url}`}
-                            target="_blank"
-                            onClick={(e) => e.stopPropagation()}
-                            className="cursor-pointer transition-all hover:opacity-60"
-                        >
-                            <div className="row gap-1 text-primary">
-                                <div className="font-robotoMono text-sm">{tunnel.url}</div>
-                                <RiExternalLinkLine className="mb-[1px] text-[17px]" />
-                            </div>
-                        </Link>
+                        <CopyableValue value={tunnel.url}>
+                            <Link
+                                to={`https://${tunnel.url}`}
+                                target="_blank"
+                                onClick={(e) => e.stopPropagation()}
+                                className="cursor-pointer transition-all hover:opacity-60"
+                            >
+                                <div className="row gap-1 text-primary">
+                                    <div className="font-robotoMono text-sm">{tunnel.url}</div>
+                                    <RiExternalLinkLine className="mb-[1px] text-[17px]" />
+                                </div>
+                            </Link>
+                        </CopyableValue>
                     </div>
 
                     <div className="row gap-3">
@@ -60,7 +63,10 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
                             <SmallTag variant="green">
                                 <div className="row gap-0.5">
                                     <RiLinkM className="text-lg" />
-                                    <div className="text-sm font-medium">Linked</div>
+                                    <div className="text-sm font-medium">
+                                        {tunnel.custom_hostnames.length}{' '}
+                                        {tunnel.custom_hostnames.length === 1 ? 'Domain' : 'Domains'}
+                                    </div>
                                 </div>
                             </SmallTag>
                         )}

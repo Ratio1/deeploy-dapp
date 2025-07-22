@@ -1,5 +1,6 @@
 import { Button } from '@heroui/button';
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@heroui/modal';
+import { CopyableValue } from '@shared/CopyableValue';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 
 interface TunnelDNSModalRef {
@@ -38,12 +39,18 @@ const TunnelDNSModal = forwardRef<TunnelDNSModalRef>((_, ref) => {
                             <div>
                                 <span className="font-medium">Type:</span> CNAME
                             </div>
-                            <div>
-                                <span className="font-medium">Host:</span> {hostname}
-                            </div>
-                            <div>
-                                <span className="font-medium">Value:</span> {url}
-                            </div>
+
+                            <CopyableValue value={hostname as string}>
+                                <div>
+                                    <span className="font-medium">Host:</span> {hostname}
+                                </div>
+                            </CopyableValue>
+
+                            <CopyableValue value={url as string}>
+                                <div>
+                                    <span className="font-medium">Value:</span> {url}
+                                </div>
+                            </CopyableValue>
                         </div>
 
                         <div className="italic text-slate-500">
