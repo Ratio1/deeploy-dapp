@@ -44,13 +44,13 @@ export default function ProjectPayment({ project, jobs }: { project: Project; jo
                             color="primary"
                             variant="solid"
                             onPress={() => {
-                                console.log('Deeploy');
+                                console.log('Deploy');
                             }}
                             isDisabled={jobs?.length === 0}
                         >
                             <div className="row gap-1.5">
                                 <RiBox3Line className="text-lg" />
-                                <div className="text-sm">Pay & Deeploy</div>
+                                <div className="text-sm">Pay & Deploy</div>
                             </div>
                         </ActionButton>
                     </div>

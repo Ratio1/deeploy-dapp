@@ -1,10 +1,10 @@
-import ApplicationCard from '@components/deeploys/ApplicationCard';
+import RunningProjectCard from '@components/deeploys/RunningProjectCard';
 import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
-import { DeeployApp } from '@typedefs/general';
+import { RunningProject } from '@typedefs/general';
 import { RiDraftLine } from 'react-icons/ri';
 
-const running: DeeployApp[] = [
+const running: RunningProject[] = [
     {
         alias: 'postgres_service',
         pluginSignature: 'DB_RUNNER_1',
@@ -29,7 +29,7 @@ function Running() {
 
             {running.map((app, index) => (
                 <div key={index}>
-                    <ApplicationCard app={app} />
+                    <RunningProjectCard project={app} />
                 </div>
             ))}
 

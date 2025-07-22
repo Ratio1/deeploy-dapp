@@ -1,33 +1,35 @@
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
 import { SmallTag } from '@shared/SmallTag';
-import { DeeployApp } from '@typedefs/general';
+import { RunningProject } from '@typedefs/general';
 
-export default function ApplicationCard({ app }: { app: DeeployApp }) {
+export default function RunningProjectCard({ project }: { project: RunningProject }) {
     return (
         <BorderedCard>
             <div className="row justify-between gap-3 lg:gap-6">
                 <div className="min-w-[168px]">
-                    <CardItem label="Alias" value={<>{app.alias}</>} isBold />
+                    <CardItem label="Alias" value={<>{project.alias}</>} isBold />
                 </div>
 
                 <div className="min-w-[168px]">
-                    <CardItem label="Plugin Signature" value={<>{app.pluginSignature}</>} />
+                    <CardItem label="Plugin Signature" value={<>{project.pluginSignature}</>} />
                 </div>
 
                 <div className="min-w-[64px]">
-                    <CardItem label="Nodes" value={<>{app.nodes}</>} />
+                    <CardItem label="Nodes" value={<>{project.nodes}</>} />
                 </div>
 
                 <div className="min-w-[64px]">
                     <CardItem
                         label="GPU/CPU"
-                        value={<SmallTag variant={app.processor === 'GPU' ? 'green' : 'blue'}>{app.processor}</SmallTag>}
+                        value={
+                            <SmallTag variant={project.processor === 'GPU' ? 'green' : 'blue'}>{project.processor}</SmallTag>
+                        }
                     />
                 </div>
 
                 <div className="min-w-[112px]">
-                    <CardItem label="Running Nodes" value={<>{app.runningNodes}</>} />
+                    <CardItem label="Running Nodes" value={<>{project.runningNodes}</>} />
                 </div>
 
                 <div className="min-w-[112px]">
@@ -35,7 +37,7 @@ export default function ApplicationCard({ app }: { app: DeeployApp }) {
                         label="Expiration Date"
                         value={
                             <>
-                                {new Date(app.expiresAt).toLocaleDateString('en-US', {
+                                {new Date(project.expiresAt).toLocaleDateString('en-US', {
                                     month: 'short',
                                     day: 'numeric',
                                     year: 'numeric',

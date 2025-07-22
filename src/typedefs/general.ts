@@ -1,5 +1,5 @@
 // TODO: Deprecated | to be replaced
-type DeeployApp = {
+type RunningProject = {
     alias: string;
     pluginSignature: string;
     nodes: number;
@@ -24,4 +24,4 @@ type BillingInfo = {
     city: string;
 };
 
-export type { BillingInfo, DeeployApp, Invoice };
+export type { BillingInfo, Invoice, RunningProject };

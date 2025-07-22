@@ -13,7 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import db from '@lib/storage/db';
 import { isValidId } from '@lib/utils';
-import { deeployAppSchema } from '@schemas/index';
+import { jobSchema } from '@schemas/index';
 import { FormType, Job } from '@typedefs/deployment';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -101,8 +101,8 @@ function JobFormWrapper() {
         }
     };
 
-    const form = useForm<z.infer<typeof deeployAppSchema>>({
-        resolver: zodResolver(deeployAppSchema),
+    const form = useForm<z.infer<typeof jobSchema>>({
+        resolver: zodResolver(jobSchema),
         mode: 'onTouched',
         defaultValues: getDefaultSchemaValues(),
     });
@@ -117,7 +117,7 @@ function JobFormWrapper() {
         }
     }, [formType, form]);
 
-    const onSubmit = async (data: z.infer<typeof deeployAppSchema>) => {
+    const onSubmit = async (data: z.infer<typeof jobSchema>) => {
         console.log('[JobFormWrapper] onSubmit');
 
         if (!isValidId(projectId)) {
