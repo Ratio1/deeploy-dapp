@@ -33,7 +33,7 @@ const createNumberField = (min: number, max: number, required: boolean = true) =
 
 const baseSpecificationsSchema = z.object({
     applicationType: z.enum(APPLICATION_TYPES, { required_error: 'Application type is required' }),
-    targetNodesCount: createNumberField(0, 100, true),
+    targetNodesCount: createNumberField(1, 100, true),
 });
 
 export const genericSpecificationsSchema = baseSpecificationsSchema.extend({

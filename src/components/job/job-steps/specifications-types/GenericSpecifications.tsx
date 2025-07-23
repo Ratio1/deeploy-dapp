@@ -1,17 +1,30 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
-import { genericContainerTypes } from '@data/containerTypes';
+import { ContainerOrWorkerType, genericContainerTypes } from '@data/containerTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
+import SelectContainerOrWorkerType from '@shared/deployment/SelectContainerOrWorkerType';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
+import { useEffect, useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 
 export default function GenericSpecifications() {
+    const { watch } = useFormContext();
+    const containerType: string = watch('specifications.containerType');
+
+    const [containerOrWorkerType, setContainerOrWorkerType] = useState<ContainerOrWorkerType>();
+
+    useEffect(() => {
+        setContainerOrWorkerType(genericContainerTypes.find((option) => option.name === containerType));
+    }, [containerType]);
+
     return (
         <div className="col gap-6">
             <SlateCard title="Container Resources">
-                <SelectWithLabel
+                <SelectContainerOrWorkerType
+                    type="generic"
                     name="specifications.containerType"
                     label="Container Type"
-                    options={genericContainerTypes.map((type) => type.name)}
+                    options={genericContainerTypes}
                 />
             </SlateCard>
 
@@ -22,7 +35,15 @@ export default function GenericSpecifications() {
                         label="Application Type"
                         options={APPLICATION_TYPES}
                     />
-                    <NumberInputWithLabel name="specifications.targetNodesCount" label="Target Nodes Count" />
+                    <NumberInputWithLabel
+                        name="specifications.targetNodesCount"
+                        label="Target Nodes Count"
+                        tag={
+                            containerOrWorkerType?.minimalBalancing && containerOrWorkerType?.minimalBalancing > 1
+                                ? `Minimal Balancing: ${containerOrWorkerType?.minimalBalancing}`
+                                : undefined
+                        }
+                    />
                 </div>
             </SlateCard>
         </div>

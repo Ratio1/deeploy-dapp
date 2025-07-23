@@ -1,6 +1,7 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { serviceContainerTypes } from '@data/containerTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
+import SelectContainerOrWorkerType from '@shared/deployment/SelectContainerOrWorkerType';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 
@@ -8,10 +9,11 @@ export default function ServiceSpecifications() {
     return (
         <div className="col gap-6">
             <SlateCard title="Service Resources">
-                <SelectWithLabel
+                <SelectContainerOrWorkerType
+                    type="service"
                     name="specifications.containerType"
                     label="Container Type"
-                    options={serviceContainerTypes.map((type) => type.name)}
+                    options={serviceContainerTypes}
                 />
             </SlateCard>
 
