@@ -1,11 +1,6 @@
 import { COLOR_TYPES } from '@data/colorTypes';
 import z from 'zod';
 
-const colorSchema = z.object({
-    name: z.enum(COLOR_TYPES.map((color) => color.name) as [string, ...string[]]),
-    hex: z.enum(COLOR_TYPES.map((color) => color.hex) as [string, ...string[]]),
-});
-
 export const projectSchema = z.object({
     name: z
         .string({ required_error: 'Value is required' })

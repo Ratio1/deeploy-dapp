@@ -50,14 +50,27 @@ body {
 }
 
 *::-webkit-scrollbar-track {
-    background: white;
+    background: #efeff4;
     background-clip: padding-box;
 }
 
 *::-webkit-scrollbar-thumb {
-    background-color: #f5f7fe;
+    background-color: #d7ddf1;
     border-radius: 0px;
     border: 0;
+}
+
+/* StyledTextarea specific scrollbar */
+.styled-textarea textarea::-webkit-scrollbar {
+    width: 6px;
+}
+
+.styled-textarea textarea::-webkit-scrollbar-track {
+    border-radius: 9999px;
+}
+
+.styled-textarea textarea::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
 }
 
 /* Number input */

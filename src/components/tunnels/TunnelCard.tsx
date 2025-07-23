@@ -66,7 +66,7 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
 
                     <div className="row gap-3">
                         {tunnel.custom_hostnames.length > 0 && (
-                            <SmallTag variant="green">
+                            <SmallTag>
                                 <div className="row gap-0.5">
                                     <RiLinkM className="text-lg" />
                                     <div className="text-sm font-medium">
