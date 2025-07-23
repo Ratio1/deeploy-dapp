@@ -23,11 +23,11 @@ function PaymentSummary() {
         },
         {
             label: 'Container Type',
-            value: specifications.containerType.split(' ')[0],
+            value: specifications.containerType || specifications.workerType, // TODO: Replace
         },
         {
             label: 'Configuration',
-            value: specifications.containerType.split('(')[1]?.split(')')[0],
+            value: specifications.containerType || specifications.workerType, // TODO: Replace
         },
         {
             label: 'Expiration Date',
