@@ -68,6 +68,7 @@ const siweConfig: SIWEConfig = {
         localStorage.removeItem('chainId');
         localStorage.removeItem('address');
         localStorage.removeItem('expiration');
+        localStorage.removeItem('tunnel_secrets');
 
         return true;
     },
