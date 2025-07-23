@@ -40,6 +40,12 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
         <div onClick={() => navigate(`${routePath.tunnels}/${tunnel.id}`)}>
             <BorderedCard isHoverable>
                 <div className="row justify-between gap-3 bg-white lg:gap-6">
+                    <SmallTag variant="green">
+                        <div className="row gap-0.5">
+                            <div className="text-sm font-medium">{tunnel.status}</div>
+                        </div>
+                    </SmallTag>
+
                     <div className="col gap-1">
                         <div className="font-medium">{tunnel.alias}</div>
 
