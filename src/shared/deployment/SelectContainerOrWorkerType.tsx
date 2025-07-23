@@ -15,14 +15,19 @@ interface Props {
 }
 
 export default function SelectContainerOrWorkerType({ type, name, label, options }: Props) {
-    const { control, watch } = useFormContext();
+    const { control, watch, trigger } = useFormContext();
     const containerType: string = watch(name);
 
     const [containerOrWorkerType, setContainerOrWorkerType] = useState<ContainerOrWorkerType>();
 
     useEffect(() => {
         setContainerOrWorkerType(options.find((option) => option.name === containerType));
-    }, [containerType]);
+
+        // Trigger validation of specifications when container type changes
+        if (containerType) {
+            trigger('specifications');
+        }
+    }, [containerType, trigger]);
 
     return (
         <div className="col w-full gap-2">

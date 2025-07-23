@@ -1,7 +1,6 @@
 import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { downloadDataAsJson } from '@lib/utils';
-import { specificationsKeys } from '@schemas/steps/specifications';
 import { useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import SubmitButton from '../../shared/SubmitButton';
@@ -12,17 +11,17 @@ interface Props {
 
 function JobFormButtons({ steps }: Props) {
     const { step, setStep, setFormType } = useDeploymentContext() as DeploymentContextType;
-    const { trigger, getValues } = useFormContext();
-
-    const getSpecificationsRequiredKeys = () => [...specificationsKeys.map((key) => `specifications.${key}`)];
+    const { trigger, getValues, formState } = useFormContext();
 
     const isSpecificationsStepValid: () => Promise<boolean> = async () => {
         const values = getValues();
 
-        const requiredKeys = getSpecificationsRequiredKeys();
-        const isStepValid = await trigger(requiredKeys);
+        // Trigger validation for the entire specifications object to include superRefine validation
+        const isStepValid = await trigger('specifications');
 
         console.log(`Specifications step valid: ${isStepValid}`, values);
+        console.log('Form errors:', formState.errors);
+        console.log('Specifications errors:', formState.errors.specifications);
 
         return isStepValid;
     };
