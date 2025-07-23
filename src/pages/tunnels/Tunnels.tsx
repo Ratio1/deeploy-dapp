@@ -18,7 +18,7 @@ function buildMessage(data: Record<string, any>): string {
 
     const sorted = deepSort(cleaned);
     const json = JSON.stringify(sorted, null, 1).replaceAll('": ', '":');
-    return `Please sign this message for managing your tunnels: ${json}`;
+    return `Please sign this message to manage your tunnels: ${json}`;
 }
 
 function Tunnels() {
