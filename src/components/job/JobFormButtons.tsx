@@ -1,9 +1,8 @@
 import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { downloadDataAsJson } from '@lib/utils';
-import { customContainerTypeValue } from '@schemas/common';
-import { specificationsBaseKeys } from '@schemas/steps/specifications';
-import { FieldValues, useFormContext } from 'react-hook-form';
+import { specificationsKeys } from '@schemas/steps/specifications';
+import { useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import SubmitButton from '../../shared/SubmitButton';
 
@@ -15,16 +14,12 @@ function JobFormButtons({ steps }: Props) {
     const { step, setStep, setFormType } = useDeploymentContext() as DeploymentContextType;
     const { trigger, getValues } = useFormContext();
 
-    const getSpecificationsRequiredKeys = (values: FieldValues) => [
-        ...specificationsBaseKeys.map((key) => `specifications.${key}`),
-        ...(values.specifications?.containerType === customContainerTypeValue
-            ? ['specifications.customCpu', 'specifications.customMemory']
-            : []),
-    ];
+    const getSpecificationsRequiredKeys = () => [...specificationsKeys.map((key) => `specifications.${key}`)];
 
     const isSpecificationsStepValid: () => Promise<boolean> = async () => {
         const values = getValues();
-        const requiredKeys = getSpecificationsRequiredKeys(values);
+
+        const requiredKeys = getSpecificationsRequiredKeys();
         const isStepValid = await trigger(requiredKeys);
 
         console.log(`Specifications step valid: ${isStepValid}`, values);

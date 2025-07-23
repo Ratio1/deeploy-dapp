@@ -1,7 +1,6 @@
-import { CONTAINER_TYPES } from '@data/containerTypes';
 import { getShortAddress } from '@lib/utils';
 import JobsCostRundown from '@shared/deployment/JobsCostRundown';
-import { ServiceJob } from '@typedefs/deployment';
+import { ServiceJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
 
 export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] }) {
@@ -19,6 +18,7 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
 
                 const entries = [
                     // Service Type
+
                     { label: 'Service Type', value: serviceJob.deployment.serviceType },
                     // Specifications
                     { label: 'App Type', value: serviceJob.specifications.applicationType },
@@ -26,13 +26,7 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
                     { label: 'CPU', value: serviceJob.specifications.cpu },
                     { label: 'Memory', value: serviceJob.specifications.memory },
                     { label: 'Container Type', value: serviceJob.specifications.containerType },
-                    // Custom Container CPU and Memory
-                    ...(serviceJob.specifications.containerType === CONTAINER_TYPES[CONTAINER_TYPES.length - 1]
-                        ? [
-                              { label: 'Container CPU', value: serviceJob.specifications.customCpu },
-                              { label: 'Container Memory', value: serviceJob.specifications.customMemory },
-                          ]
-                        : []),
+
                     // Deployment
                     { label: 'Tunneling', value: serviceJob.deployment.enableTunneling },
                     ...(serviceJob.deployment.enableTunneling === 'True' && serviceJob.deployment.tunnelingLabel

@@ -1,50 +1,30 @@
-import { APPLICATION_TYPES } from '@data/applicationTypes';
-import { CONTAINER_TYPES } from '@data/containerTypes';
-import { SlateCard } from '@shared/cards/SlateCard';
-import NumberInputWithLabel from '@shared/NumberInputWithLabel';
-import SelectWithLabel from '@shared/SelectWithLabel';
+import { FormType } from '@typedefs/deeploys';
 import { useFormContext } from 'react-hook-form';
+import GenericSpecifications from './specifications-types/GenericSpecifications';
+import NativeSpecifications from './specifications-types/NativeSpecifications';
+import ServiceSpecifications from './specifications-types/ServiceSpecifications';
 
 function Specifications() {
     const { watch } = useFormContext();
-    const containerType = watch('specifications.containerType');
+    const formType = watch('formType');
 
-    return (
-        <div className="col gap-6">
-            <SlateCard>
-                <div className="flex gap-4">
-                    <SelectWithLabel
-                        name="specifications.applicationType"
-                        label="Application Type"
-                        options={APPLICATION_TYPES}
-                    />
-                    <NumberInputWithLabel name="specifications.targetNodesCount" label="Target Nodes Count" />
-                </div>
-            </SlateCard>
+    const getComponent = () => {
+        switch (formType) {
+            case FormType.Generic:
+                return <GenericSpecifications />;
 
-            <SlateCard title="Node Resource Requirements">
-                <div className="flex gap-4">
-                    <NumberInputWithLabel name="specifications.cpu" label="CPU" />
-                    <NumberInputWithLabel name="specifications.memory" label="Memory (GB)" />
-                </div>
-            </SlateCard>
+            case FormType.Native:
+                return <NativeSpecifications />;
 
-            <SlateCard title="Container Resources">
-                <SelectWithLabel name="specifications.containerType" label="Container Type" options={CONTAINER_TYPES} />
+            case FormType.Service:
+                return <ServiceSpecifications />;
 
-                {containerType === CONTAINER_TYPES[CONTAINER_TYPES.length - 1] && (
-                    <>
-                        <div className="-mb-2 text-sm font-medium">Custom Values</div>
+            default:
+                return <div>Error: Unknown specifications type</div>;
+        }
+    };
 
-                        <div className="flex gap-4">
-                            <NumberInputWithLabel name="specifications.customCpu" label="CPU" />
-                            <NumberInputWithLabel name="specifications.customMemory" label="Memory (MB)" />
-                        </div>
-                    </>
-                )}
-            </SlateCard>
-        </div>
-    );
+    return getComponent();
 }
 
 export default Specifications;

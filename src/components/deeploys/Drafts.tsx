@@ -1,7 +1,7 @@
 import db from '@lib/storage/db';
 import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
-import { Project } from '@typedefs/deployment';
+import { Project } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { RiDraftLine } from 'react-icons/ri';
 import DraftCard from './DraftCard';

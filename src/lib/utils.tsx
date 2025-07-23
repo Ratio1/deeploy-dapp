@@ -1,7 +1,7 @@
-import { CONTAINER_PRICES, CONTAINER_TYPES } from '@data/containerTypes';
+import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerTypes';
 import { ClosableToastContent } from '@shared/ClosableToastContent';
-import { Job, JobSpecifications } from '@typedefs/deployment';
-import { findIndex, throttle } from 'lodash';
+import { GenericJobSpecifications, Job, NativeJobSpecifications, ServiceJobSpecifications } from '@typedefs/deeploys';
+import { throttle } from 'lodash';
 import { JSX } from 'react';
 import toast from 'react-hot-toast';
 import { RiCodeSSlashLine } from 'react-icons/ri';
@@ -77,9 +77,28 @@ export const arrayAverage = (numbers: number[]): number => {
 
 export const isValidId = (id: string | undefined) => id && !isNaN(parseInt(id)) && isFinite(parseInt(id));
 
-export const getJobCost = (specifications: JobSpecifications): number => {
-    const containerPrice = CONTAINER_PRICES[findIndex(CONTAINER_TYPES, (type) => type === specifications.containerType)];
-    return containerPrice * specifications.targetNodesCount;
+export const getJobCost = (
+    specifications: GenericJobSpecifications | NativeJobSpecifications | ServiceJobSpecifications,
+): number => {
+    switch (specifications.type) {
+        case 'Generic': {
+            const genericContainerType = genericContainerTypes.find((type) => type.name === specifications.containerType);
+            return genericContainerType ? genericContainerType.monthlyBudgetPerWorker * specifications.targetNodesCount : 0;
+        }
+
+        case 'Native': {
+            const nativeWorkerType = nativeWorkerTypes.find((type) => type.name === specifications.workerType);
+            return nativeWorkerType ? nativeWorkerType.monthlyBudgetPerWorker * specifications.targetNodesCount : 0;
+        }
+
+        case 'Service': {
+            const serviceContainerType = serviceContainerTypes.find((type) => type.name === specifications.containerType);
+            return serviceContainerType ? serviceContainerType.monthlyBudgetPerWorker * specifications.targetNodesCount : 0;
+        }
+
+        default:
+            return 0;
+    }
 };
 
 export const getJobsTotalCost = (jobs: Job[]): number => {

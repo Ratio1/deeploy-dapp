@@ -1,9 +1,7 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { CONTAINER_TYPES } from '@data/containerTypes';
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { z } from 'zod';
 
-export const customContainerTypeValue = CONTAINER_TYPES[CONTAINER_TYPES.length - 1];
 export const enabledBooleanTypeValue = BOOLEAN_TYPES[0];
 
 export const keyValueEntrySchema = z

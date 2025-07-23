@@ -3,7 +3,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { isValidId } from '@lib/utils';
-import { FormType, Project } from '@typedefs/deployment';
+import { FormType, Project } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
 import { RiArrowLeftLine } from 'react-icons/ri';

@@ -8,7 +8,7 @@ import db from '@lib/storage/db';
 import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import SupportFooter from '@shared/SupportFooter';
-import { FormType, Job, ProjectPage, type Project } from '@typedefs/deployment';
+import { FormType, Job, ProjectPage, type Project } from '@typedefs/deeploys';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { RiAddLine, RiBox3Line, RiDatabase2Line, RiDeleteBin2Line, RiTerminalBoxLine, RiWalletLine } from 'react-icons/ri';

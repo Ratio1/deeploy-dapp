@@ -1,6 +1,5 @@
-import { CONTAINER_TYPES } from '@data/containerTypes';
 import JobsCostRundown from '@shared/deployment/JobsCostRundown';
-import { NativeJob } from '@typedefs/deployment';
+import { NativeJob } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
 export default function NativeJobsCostRundown({ jobs }: { jobs: NativeJob[] }) {
@@ -19,19 +18,14 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeJob[] }) {
                 const entries = [
                     // Alias
                     { label: 'Alias', value: nativeJob.deployment.appAlias },
+
                     // Specifications
                     { label: 'App Type', value: nativeJob.specifications.applicationType },
                     { label: 'Target Nodes', value: nativeJob.specifications.targetNodesCount },
                     { label: 'CPU', value: nativeJob.specifications.cpu },
                     { label: 'Memory', value: nativeJob.specifications.memory },
                     { label: 'Container Type', value: nativeJob.specifications.containerType },
-                    // Custom Container CPU and Memory
-                    ...(nativeJob.specifications.containerType === CONTAINER_TYPES[CONTAINER_TYPES.length - 1]
-                        ? [
-                              { label: 'Container CPU', value: nativeJob.specifications.customCpu },
-                              { label: 'Container Memory', value: nativeJob.specifications.customMemory },
-                          ]
-                        : []),
+
                     // Deployment
                     { label: 'Plugin Signature', value: nativeJob.deployment.pluginSignature },
                     { label: 'Pipeline Input Type', value: nativeJob.deployment.pipelineInputType },

@@ -1,6 +1,6 @@
 import { getJobCost, getJobsTotalCost } from '@lib/utils';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
-import { Job } from '@typedefs/deployment';
+import { Job } from '@typedefs/deeploys';
 
 export default function JobsCostRundown({
     cardHeader,

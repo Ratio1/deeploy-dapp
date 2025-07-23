@@ -1,4 +1,4 @@
-import { FormType, ProjectPage } from '@typedefs/deployment';
+import { FormType, ProjectPage } from '@typedefs/deeploys';
 import { useState } from 'react';
 import { DeploymentContext } from './context';
 

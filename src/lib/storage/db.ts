@@ -1,4 +1,4 @@
-import { Job, Project } from '@typedefs/deployment';
+import { Job, Project } from '@typedefs/deeploys';
 import { Dexie, type EntityTable } from 'dexie';
 
 // Only declare properties you want to index

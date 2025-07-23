@@ -4,7 +4,7 @@ import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import EmptyData from '@shared/EmptyData';
 import SupportFooter from '@shared/SupportFooter';
-import { FormType, Job, ProjectPage, type Project } from '@typedefs/deployment';
+import { FormType, Job, ProjectPage, type Project } from '@typedefs/deeploys';
 import { useEffect } from 'react';
 import { RiArrowLeftLine, RiBox3Line, RiDraftLine } from 'react-icons/ri';
 import ProjectIdentity from './ProjectIdentity';

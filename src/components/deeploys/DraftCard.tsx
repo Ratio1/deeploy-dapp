@@ -4,7 +4,7 @@ import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
-import { Job, Project } from '@typedefs/deployment';
+import { Job, Project } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { toast } from 'react-hot-toast';
 import { RiDeleteBinLine } from 'react-icons/ri';

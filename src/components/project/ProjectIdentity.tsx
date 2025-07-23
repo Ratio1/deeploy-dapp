@@ -1,4 +1,4 @@
-import { Project } from '@typedefs/deployment';
+import { Project } from '@typedefs/deeploys';
 
 export default function ProjectIdentity({ project }: { project: Project }) {
     return (

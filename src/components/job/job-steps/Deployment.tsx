@@ -1,4 +1,4 @@
-import { FormType } from '@typedefs/deployment';
+import { FormType } from '@typedefs/deeploys';
 import { useFormContext } from 'react-hook-form';
 import GenericDeployment from './deployment-types/GenericDeployment';
 import NativeDeployment from './deployment-types/NativeDeployment';
@@ -8,7 +8,7 @@ function Deployment() {
     const { watch } = useFormContext();
     const formType = watch('formType');
 
-    const getDeploymentComponent = () => {
+    const getComponent = () => {
         switch (formType) {
             case FormType.Generic:
                 return <GenericDeployment />;
@@ -24,7 +24,7 @@ function Deployment() {
         }
     };
 
-    return getDeploymentComponent();
+    return getComponent();
 }
 
 export default Deployment;

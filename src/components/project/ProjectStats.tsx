@@ -1,6 +1,6 @@
 import { getJobsTotalCost } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
-import { Job, Project } from '@typedefs/deployment';
+import { Job, Project } from '@typedefs/deeploys';
 import { addYears } from 'date-fns';
 
 export default function ProjectStats({ jobs, project }: { jobs: Job[] | undefined; project: Project }) {

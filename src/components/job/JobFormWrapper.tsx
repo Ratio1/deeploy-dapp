@@ -5,7 +5,7 @@ import JobFormButtons from '@components/job/JobFormButtons';
 import JobFormHeader from '@components/job/JobFormHeader';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { CONTAINER_TYPES } from '@data/containerTypes';
+import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { SERVICE_TYPES } from '@data/serviceTypes';
@@ -14,7 +14,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import db from '@lib/storage/db';
 import { isValidId } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
-import { FormType, Job } from '@typedefs/deployment';
+import { FormType, Job } from '@typedefs/deeploys';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -31,12 +31,7 @@ function JobFormWrapper() {
     const getBaseSchemaDefaults = () => ({
         specifications: {
             applicationType: APPLICATION_TYPES[0],
-            containerType: CONTAINER_TYPES[0],
             targetNodesCount: '', // Number inputs must have empty default values when resetting form
-            cpu: '',
-            memory: '',
-            customCpu: '',
-            customMemory: '',
         },
         deployment: {
             enableTunneling: BOOLEAN_TYPES[0],
@@ -44,18 +39,23 @@ function JobFormWrapper() {
     });
 
     const getGenericSchemaDefaults = () => ({
-        ...getBaseSchemaDefaults(),
+        specifications: {
+            ...getBaseSchemaDefaults().specifications,
+            containerType: genericContainerTypes[0].name,
+        },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             port: '',
-            // envVars: [{ key: '', value: '' }],
             restartPolicy: POLICY_TYPES[0],
             imagePullPolicy: POLICY_TYPES[0],
         },
     });
 
     const getNativeSchemaDefaults = () => ({
-        ...getBaseSchemaDefaults(),
+        specifications: {
+            ...getBaseSchemaDefaults().specifications,
+            workerType: nativeWorkerTypes[0].name,
+        },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             port: '',
@@ -67,21 +67,13 @@ function JobFormWrapper() {
     });
 
     const getServiceSchemaDefaults = () => ({
-        ...getBaseSchemaDefaults(),
+        specifications: {
+            ...getBaseSchemaDefaults().specifications,
+            containerType: serviceContainerTypes[0].name,
+        },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             serviceType: SERVICE_TYPES[0],
-            // envVars: [{ key: '', value: '' }],
-            // dynamicEnvVars: [
-            //     {
-            //         key: '',
-            //         values: [
-            //             { type: DYNAMIC_ENV_TYPES[0], value: '' },
-            //             { type: DYNAMIC_ENV_TYPES[0], value: '' },
-            //             { type: DYNAMIC_ENV_TYPES[0], value: '' },
-            //         ],
-            //     },
-            // ],
         },
     });
 
