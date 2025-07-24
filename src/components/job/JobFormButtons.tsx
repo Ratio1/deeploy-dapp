@@ -19,7 +19,10 @@ function JobFormButtons({ steps }: Props) {
         const isValid = await trigger('specifications.targetNodesCount');
 
         console.log(`Specifications step valid: ${isValid}`, values);
-        console.log('Specifications errors:', formState.errors.specifications);
+
+        if (formState.errors.specifications) {
+            console.log('Specifications errors:', formState.errors.specifications);
+        }
 
         return isValid;
     };

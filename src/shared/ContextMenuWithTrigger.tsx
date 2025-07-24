@@ -66,7 +66,7 @@ export default function ContextMenuWithTrigger({ items }: Props) {
                             </div>
                         ) : (
                             <div className="row gap-2">
-                                <div className="pr-0.5 text-[26px] text-slate-500">{item.icon}</div>
+                                <div className="pr-0.5 text-2xl text-slate-500">{item.icon}</div>
 
                                 <div className="col">
                                     <div className="-mb-0.5 font-medium">{item.label}</div>

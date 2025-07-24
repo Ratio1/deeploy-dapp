@@ -24,8 +24,6 @@ export default function NumberInputWithLabel({ name, label, placeholder, tag }: 
                 name={name}
                 control={control}
                 render={({ field, fieldState }) => {
-                    console.log('name', fieldState.error);
-
                     return (
                         <StyledInput
                             placeholder={placeholder ?? '0'}

@@ -1,42 +1,64 @@
+import {
+    ContainerOrWorkerType,
+    genericContainerTypes,
+    nativeWorkerTypes,
+    serviceContainerTypes,
+} from '@data/containerAndWorkerTypes';
 import { getJobCost } from '@lib/utils';
 import { SlateCard } from '@shared/cards/SlateCard';
-import { addYears } from 'date-fns';
+import { FormType } from '@typedefs/deeploys';
 import { useFormContext } from 'react-hook-form';
 
 function PaymentSummary() {
     const { watch } = useFormContext();
+
+    const formType: FormType = watch('formType');
     const specifications = watch('specifications');
+    const targetNodesCount: number = specifications.targetNodesCount;
+
+    const containerOrWorkerType: ContainerOrWorkerType = (
+        formType === FormType.Generic
+            ? genericContainerTypes.find((type) => type.name === specifications.containerType)
+            : formType === FormType.Native
+              ? nativeWorkerTypes.find((type) => type.name === specifications.workerType)
+              : serviceContainerTypes.find((type) => type.name === specifications.containerType)
+    ) as ContainerOrWorkerType;
 
     // Calculate summary items from form values
     const summaryItems = [
         {
-            label: 'Application Type',
-            value: specifications.applicationType,
+            label: 'Container Type',
+            value: containerOrWorkerType.name,
+        },
+        {
+            label: 'Configuration',
+            value: containerOrWorkerType.description,
         },
         {
             label: 'Target Nodes',
-            value: specifications.targetNodesCount,
+            value: targetNodesCount,
         },
+        {
+            label: 'Application Type',
+            value: specifications.applicationType,
+        },
+
         {
             label: 'GPU/CPU',
             value: 'CPU',
         },
         {
-            label: 'Container Type',
-            value: specifications.containerType || specifications.workerType, // TODO: Replace
+            label: 'Monthly Cost',
+            value: `$${containerOrWorkerType.monthlyBudgetPerWorker * targetNodesCount}`,
         },
-        {
-            label: 'Configuration',
-            value: specifications.containerType || specifications.workerType, // TODO: Replace
-        },
-        {
-            label: 'Expiration Date',
-            value: addYears(new Date(), 2).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-            }),
-        },
+        // {
+        //     label: 'Expiration Date',
+        //     value: addYears(new Date(), 2).toLocaleDateString('en-US', {
+        //         year: 'numeric',
+        //         month: 'long',
+        //         day: 'numeric',
+        //     }),
+        // },
     ];
 
     return (
