@@ -29,7 +29,7 @@ function CreateProject() {
 
         try {
             const id = await db.projects.add(project);
-            navigate(`${routePath.deeploys}/${routePath.project}/${id}`);
+            navigate(`${routePath.deeploys}/${routePath.draft}/${id}`);
         } catch (error) {
             console.error('[CreateProject] Error adding project:', error);
             toast.error('Failed to create project.');

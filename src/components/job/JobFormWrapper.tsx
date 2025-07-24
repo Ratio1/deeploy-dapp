@@ -39,6 +39,7 @@ function JobFormWrapper() {
         },
         deployment: {
             enableTunneling: BOOLEAN_TYPES[0],
+            targetNodes: [{ address: '' }],
         },
     });
 

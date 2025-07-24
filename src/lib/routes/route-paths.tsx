@@ -6,7 +6,7 @@ export const routePath = {
     dashboard: 'dashboard',
     legacyRequester: 'legacy-requester',
     createProject: 'create-project',
-    project: 'project',
+    draft: 'draft',
     //
     tunnels: '/tunnels',
     account: '/account',

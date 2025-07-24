@@ -3,7 +3,7 @@ import { SlateCard } from '@shared/cards/SlateCard';
 import ContainerSection from '@shared/deployment/ContainerSection';
 import DynamicEnvSection from '@shared/deployment/DynamicEnvSection';
 import KeyValueEntriesSection from '@shared/deployment/KeyValueEntriesSection';
-import TargetNodesSection from '@shared/deployment/TargetNodesSection';
+import TargetNodesCard from '@shared/deployment/TargetNodesCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
@@ -21,9 +21,7 @@ function GenericDeployment() {
                 </div>
             </SlateCard>
 
-            <SlateCard title="Target Nodes">
-                <TargetNodesSection />
-            </SlateCard>
+            <TargetNodesCard />
 
             <ContainerSection />
 

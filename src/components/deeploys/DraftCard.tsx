@@ -39,7 +39,7 @@ export default function DraftCard({ project }: { project: Project }) {
     };
 
     return (
-        <Link to={`${routePath.deeploys}/${routePath.project}/${project.id}`}>
+        <Link to={`${routePath.deeploys}/${routePath.draft}/${project.id}`}>
             <BorderedCard isHoverable>
                 <div className="row justify-between gap-3 lg:gap-6">
                     <div className="min-w-[82px]">

@@ -63,9 +63,9 @@ export const routeInfo = {
         description: 'Create and configure a new project for deployment',
         routeTitle: 'Create Project',
     },
-    [`${routePath.deeploys}/${routePath.project}`]: {
-        title: 'Project',
-        description: 'Create, edit and deploy your project',
+    [`${routePath.deeploys}/${routePath.draft}`]: {
+        title: 'Project Draft',
+        description: 'Edit, pay and deploy your project',
     },
     [`${routePath.deeploys}/${routePath.legacyRequester}`]: {
         title: 'Legacy Requester',
@@ -151,7 +151,7 @@ export const routes: AppRoute[] = [
     },
     // Routes which are not displayed in the main navigation
     {
-        path: `${routePath.deeploys}/${routePath.project}/:id`,
+        path: `${routePath.deeploys}/${routePath.draft}/:id`,
         page: () => (
             <DeploymentProvider>
                 <Project />
