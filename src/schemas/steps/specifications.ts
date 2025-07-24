@@ -1,5 +1,5 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
-import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerTypes';
+import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerAndWorkerTypes';
 import { z } from 'zod';
 
 // Common number validation pattern

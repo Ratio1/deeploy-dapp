@@ -1,3 +1,4 @@
+import { ContainerOrWorkerType, serviceContainerTypes } from '@data/containerAndWorkerTypes';
 import { getShortAddress } from '@lib/utils';
 import JobsCostRundown from '@shared/deployment/JobsCostRundown';
 import { ServiceJob } from '@typedefs/deeploys';
@@ -15,17 +16,17 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
             jobs={jobs}
             renderJob={(job) => {
                 const serviceJob = job as ServiceJob;
+                const containerType = serviceContainerTypes.find(
+                    (type) => type.name === serviceJob.specifications.containerType,
+                ) as ContainerOrWorkerType;
 
                 const entries = [
                     // Service Type
-
                     { label: 'Service Type', value: serviceJob.deployment.serviceType },
                     // Specifications
                     { label: 'App Type', value: serviceJob.specifications.applicationType },
                     { label: 'Target Nodes', value: serviceJob.specifications.targetNodesCount },
-                    { label: 'CPU', value: serviceJob.specifications.cpu },
-                    { label: 'Memory', value: serviceJob.specifications.memory },
-                    { label: 'Container Type', value: serviceJob.specifications.containerType },
+                    { label: 'Container Type', value: `${containerType.name} (${containerType.description})` },
 
                     // Deployment
                     { label: 'Tunneling', value: serviceJob.deployment.enableTunneling },

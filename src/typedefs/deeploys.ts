@@ -1,6 +1,6 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerTypes';
+import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerAndWorkerTypes';
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';

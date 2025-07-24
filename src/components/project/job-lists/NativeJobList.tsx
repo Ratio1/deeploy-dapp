@@ -18,23 +18,27 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
                 <>
                     <div className="min-w-[128px]">Alias</div>
                     <div className="min-w-[106px]">Target Nodes</div>
-                    <div className="min-w-[214px]">Container Type</div>
+                    <div className="min-w-[214px]">Worker Type</div>
                     <div className="min-w-[264px]">Pipeline Input URI</div>
                 </>
             }
             jobs={jobs}
-            renderJob={(job) => (
-                <>
-                    <div className="min-w-[128px]">{job.deployment.appAlias}</div>
-                    <div className="min-w-[106px]">{job.specifications.targetNodesCount}</div>
-                    <div className="min-w-[214px]">{job.specifications.containerType}</div>
-                    <div className="flex min-w-[264px]">
-                        <div className="rounded-md border-2 border-slate-200 bg-slate-50 px-2 py-1">
-                            {job.deployment.pipelineInputUri}
+            renderJob={(job) => {
+                const nativeJob = job as NativeJob;
+
+                return (
+                    <>
+                        <div className="min-w-[128px]">{nativeJob.deployment.appAlias}</div>
+                        <div className="min-w-[106px]">{nativeJob.specifications.targetNodesCount}</div>
+                        <div className="min-w-[214px]">{nativeJob.specifications.workerType}</div>
+                        <div className="flex min-w-[264px]">
+                            <div className="rounded-md border-2 border-slate-200 bg-slate-50 px-2 py-1">
+                                {nativeJob.deployment.pipelineInputUri}
+                            </div>
                         </div>
-                    </div>
-                </>
-            )}
+                    </>
+                );
+            }}
             onAddJob={() => {
                 setStep(2);
                 setFormType(FormType.Native);

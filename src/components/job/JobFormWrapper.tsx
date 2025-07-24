@@ -5,7 +5,7 @@ import JobFormButtons from '@components/job/JobFormButtons';
 import JobFormHeader from '@components/job/JobFormHeader';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerTypes';
+import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerAndWorkerTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { SERVICE_TYPES } from '@data/serviceTypes';

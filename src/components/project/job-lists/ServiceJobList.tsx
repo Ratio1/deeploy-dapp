@@ -24,18 +24,22 @@ export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
                 </>
             }
             jobs={jobs}
-            renderJob={(job) => (
-                <>
-                    <div className="min-w-[128px]">{job.deployment.serviceType}</div>
-                    <div className="min-w-[106px]">{job.specifications.targetNodesCount}</div>
-                    <div className="min-w-[214px]">{job.specifications.containerType}</div>
-                    <div className="flex min-w-[264px]">
-                        <div className="rounded-md border-2 border-slate-200 bg-slate-50 px-2 py-1 text-slate-600">
-                            {getShortAddress(job.deployment.serviceReplica)}
+            renderJob={(job) => {
+                const serviceJob = job as ServiceJob;
+
+                return (
+                    <>
+                        <div className="min-w-[128px]">{serviceJob.deployment.serviceType}</div>
+                        <div className="min-w-[106px]">{serviceJob.specifications.targetNodesCount}</div>
+                        <div className="min-w-[214px]">{serviceJob.specifications.containerType}</div>
+                        <div className="flex min-w-[264px]">
+                            <div className="rounded-md border-2 border-slate-200 bg-slate-50 px-2 py-1 text-slate-600">
+                                {getShortAddress(serviceJob.deployment.serviceReplica)}
+                            </div>
                         </div>
-                    </div>
-                </>
-            )}
+                    </>
+                );
+            }}
             onAddJob={() => {
                 setStep(2);
                 setFormType(FormType.Service);

@@ -1,4 +1,4 @@
-import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerTypes';
+import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerAndWorkerTypes';
 import { ClosableToastContent } from '@shared/ClosableToastContent';
 import { GenericJobSpecifications, Job, NativeJobSpecifications, ServiceJobSpecifications } from '@typedefs/deeploys';
 import { throttle } from 'lodash';

@@ -1,3 +1,4 @@
+import { ContainerOrWorkerType, nativeWorkerTypes } from '@data/containerAndWorkerTypes';
 import JobsCostRundown from '@shared/deployment/JobsCostRundown';
 import { NativeJob } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
@@ -14,6 +15,9 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeJob[] }) {
             jobs={jobs}
             renderJob={(job) => {
                 const nativeJob = job as NativeJob;
+                const workerType = nativeWorkerTypes.find(
+                    (type) => type.name === nativeJob.specifications.workerType,
+                ) as ContainerOrWorkerType;
 
                 const entries = [
                     // Alias
@@ -22,9 +26,7 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeJob[] }) {
                     // Specifications
                     { label: 'App Type', value: nativeJob.specifications.applicationType },
                     { label: 'Target Nodes', value: nativeJob.specifications.targetNodesCount },
-                    { label: 'CPU', value: nativeJob.specifications.cpu },
-                    { label: 'Memory', value: nativeJob.specifications.memory },
-                    { label: 'Container Type', value: nativeJob.specifications.containerType },
+                    { label: 'Worker Type', value: `${workerType.name} (${workerType.description})` },
 
                     // Deployment
                     { label: 'Plugin Signature', value: nativeJob.deployment.pluginSignature },

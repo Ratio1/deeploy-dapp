@@ -23,18 +23,22 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
                 </>
             }
             jobs={jobs}
-            renderJob={(job) => (
-                <>
-                    <div className="min-w-[128px]">{job.deployment.appAlias}</div>
-                    <div className="min-w-[106px]">{job.specifications.targetNodesCount}</div>
-                    <div className="min-w-[214px]">{job.specifications.containerType}</div>
-                    <div className="flex min-w-[264px]">
-                        <div className="rounded-md border-2 border-slate-200 bg-slate-50 px-2 py-1">
-                            {job.deployment.containerImage}
+            renderJob={(job) => {
+                const genericJob = job as GenericJob;
+
+                return (
+                    <>
+                        <div className="min-w-[128px]">{genericJob.deployment.appAlias}</div>
+                        <div className="min-w-[106px]">{genericJob.specifications.targetNodesCount}</div>
+                        <div className="min-w-[214px]">{genericJob.specifications.containerType}</div>
+                        <div className="flex min-w-[264px]">
+                            <div className="rounded-md border-2 border-slate-200 bg-slate-50 px-2 py-1">
+                                {genericJob.deployment.containerImage}
+                            </div>
                         </div>
-                    </div>
-                </>
-            )}
+                    </>
+                );
+            }}
             onAddJob={() => {
                 setStep(2);
                 setFormType(FormType.Generic);

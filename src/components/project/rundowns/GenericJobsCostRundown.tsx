@@ -1,3 +1,4 @@
+import { ContainerOrWorkerType, genericContainerTypes } from '@data/containerAndWorkerTypes';
 import JobsCostRundown from '@shared/deployment/JobsCostRundown';
 import { GenericJob } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
@@ -14,6 +15,9 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
             jobs={jobs}
             renderJob={(job) => {
                 const genericJob = job as GenericJob;
+                const containerType = genericContainerTypes.find(
+                    (type) => type.name === genericJob.specifications.containerType,
+                ) as ContainerOrWorkerType;
 
                 const entries = [
                     // Alias
@@ -22,9 +26,7 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
                     // Specifications
                     { label: 'App Type', value: genericJob.specifications.applicationType },
                     { label: 'Target Nodes', value: genericJob.specifications.targetNodesCount },
-                    { label: 'CPU', value: genericJob.specifications.cpu },
-                    { label: 'Memory', value: genericJob.specifications.memory },
-                    { label: 'Container Type', value: genericJob.specifications.containerType },
+                    { label: 'Container Type', value: `${containerType.name} (${containerType.description})` },
 
                     // Deployment
                     { label: 'Container Image', value: genericJob.deployment.containerImage },

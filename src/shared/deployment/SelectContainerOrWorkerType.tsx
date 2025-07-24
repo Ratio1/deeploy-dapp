@@ -1,4 +1,4 @@
-import { ContainerOrWorkerType } from '@data/containerTypes';
+import { ContainerOrWorkerType } from '@data/containerAndWorkerTypes';
 import { SelectItem } from '@heroui/select';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
@@ -16,20 +16,20 @@ interface Props {
 
 export default function SelectContainerOrWorkerType({ type, name, label, options }: Props) {
     const { control, watch, trigger } = useFormContext();
-    const containerType: string = watch(name);
+    const containerOrWorkerTypeName: string = watch(name);
     const targetNodesCount: number = watch('specifications.targetNodesCount');
 
     const [containerOrWorkerType, setContainerOrWorkerType] = useState<ContainerOrWorkerType>();
 
     useEffect(() => {
-        setContainerOrWorkerType(options.find((option) => option.name === containerType));
+        setContainerOrWorkerType(options.find((option) => option.name === containerOrWorkerTypeName));
 
         // Trigger validation of specifications when container/worker type changes and target nodes count is set
-        if (containerType && targetNodesCount) {
+        if (containerOrWorkerTypeName && targetNodesCount) {
             console.log('triggering');
             trigger('specifications.targetNodesCount');
         }
-    }, [containerType, trigger]);
+    }, [containerOrWorkerTypeName, trigger]);
 
     return (
         <div className="col w-full gap-2">

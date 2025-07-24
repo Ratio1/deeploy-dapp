@@ -1,5 +1,5 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
-import { ContainerOrWorkerType, nativeWorkerTypes } from '@data/containerTypes';
+import { ContainerOrWorkerType, nativeWorkerTypes } from '@data/containerAndWorkerTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import SelectContainerOrWorkerType from '@shared/deployment/SelectContainerOrWorkerType';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
@@ -9,13 +9,13 @@ import { useFormContext } from 'react-hook-form';
 
 export default function NativeSpecifications() {
     const { watch } = useFormContext();
-    const containerType: string = watch('specifications.workerType');
+    const workerType: string = watch('specifications.workerType');
 
     const [containerOrWorkerType, setContainerOrWorkerType] = useState<ContainerOrWorkerType>();
 
     useEffect(() => {
-        setContainerOrWorkerType(nativeWorkerTypes.find((option) => option.name === containerType));
-    }, [containerType]);
+        setContainerOrWorkerType(nativeWorkerTypes.find((option) => option.name === workerType));
+    }, [workerType]);
 
     return (
         <div className="col gap-6">
