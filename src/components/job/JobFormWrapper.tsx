@@ -1,5 +1,5 @@
 import Deployment from '@components/job/job-steps/Deployment';
-import PaymentSummary from '@components/job/job-steps/PaymentSummary';
+import PaymentAndDuration from '@components/job/job-steps/PaymentAndDuration';
 import Specifications from '@components/job/job-steps/Specifications';
 import JobFormButtons from '@components/job/JobFormButtons';
 import JobFormHeader from '@components/job/JobFormHeader';
@@ -21,7 +21,7 @@ import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { z } from 'zod';
 
-const STEPS = ['Project', 'Specifications', 'Payment Summary', 'Deployment'];
+const STEPS = ['Project', 'Specifications', 'Payment & Duration', 'Deployment'];
 
 function JobFormWrapper() {
     const { id: projectId } = useParams();
@@ -152,7 +152,7 @@ function JobFormWrapper() {
                             <JobFormHeader steps={STEPS} />
 
                             {step === 2 && <Specifications />}
-                            {step === 3 && <PaymentSummary />}
+                            {step === 3 && <PaymentAndDuration />}
                             {step === 4 && <Deployment />}
 
                             <JobFormButtons steps={STEPS} />

@@ -77,6 +77,10 @@ export const arrayAverage = (numbers: number[]): number => {
 
 export const isValidId = (id: string | undefined) => id && !isNaN(parseInt(id)) && isFinite(parseInt(id));
 
+export const getDiscountPercentage = (paymentMonthsCount: number): number => {
+    return paymentMonthsCount === 1 ? 0 : paymentMonthsCount / 2;
+};
+
 export const getJobCost = (
     specifications: GenericJobSpecifications | NativeJobSpecifications | ServiceJobSpecifications,
 ): number => {

@@ -6,7 +6,7 @@ export default function StyledSelect({ children, ...props }: SelectProps) {
             classNames={{
                 base: 'w-full',
                 trigger:
-                    'rounded-lg border shadow-none transition-shadow! bg-light data-[hover=true]:border-slate-300 data-[focus=true]:border-slate-300 data-[open=true]:border-slate-400 data-[open=true]:shadow-custom',
+                    'rounded-lg border cursor-pointer shadow-none transition-shadow! bg-light data-[hover=true]:border-slate-300 data-[focus=true]:border-slate-300 data-[open=true]:border-slate-400 data-[open=true]:shadow-custom',
             }}
             listboxProps={{
                 itemClasses: {

@@ -113,7 +113,7 @@ export const Web3Provider = ({ children }) => {
                             '--ck-connectbutton-color': '#ffffff',
                             '--ck-connectbutton-hover-color': '#ffffff',
                             '--ck-connectbutton-active-color': '#ffffff',
-                            '--ck-connectbutton-font-size': '16px',
+                            '--ck-connectbutton-font-size': '15px',
                             '--ck-connectbutton-font-weight': '600',
                         }}
                         options={{

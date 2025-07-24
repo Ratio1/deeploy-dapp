@@ -1,0 +1,163 @@
+import {
+    ContainerOrWorkerType,
+    genericContainerTypes,
+    nativeWorkerTypes,
+    serviceContainerTypes,
+} from '@data/containerAndWorkerTypes';
+import { Slider } from '@heroui/slider';
+import { getDiscountPercentage } from '@lib/utils';
+import { BorderedCard } from '@shared/cards/BorderedCard';
+import { SlateCard } from '@shared/cards/SlateCard';
+import { SmallTag } from '@shared/SmallTag';
+import { FormType } from '@typedefs/deeploys';
+import { addMonths } from 'date-fns';
+import { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
+
+function PaymentAndDuration() {
+    const { watch } = useFormContext();
+
+    const formType: FormType = watch('formType');
+    const specifications = watch('specifications');
+    const targetNodesCount: number = specifications.targetNodesCount;
+
+    const containerOrWorkerType: ContainerOrWorkerType = (
+        formType === FormType.Generic
+            ? genericContainerTypes.find((type) => type.name === specifications.containerType)
+            : formType === FormType.Native
+              ? nativeWorkerTypes.find((type) => type.name === specifications.workerType)
+              : serviceContainerTypes.find((type) => type.name === specifications.containerType)
+    ) as ContainerOrWorkerType;
+
+    const [duration, setDuration] = useState<number>(12);
+    const [paymentMonthsCount, setPaymentMonthsCount] = useState<number>(1);
+
+    // Calculate summary items from form values
+    const summaryItems = [
+        {
+            label: 'GPU/CPU',
+            value: 'CPU',
+        },
+        {
+            label: 'Container Type',
+            value: containerOrWorkerType.name,
+        },
+        {
+            label: 'Configuration',
+            value: containerOrWorkerType.description,
+        },
+        {
+            label: 'Target Nodes',
+            value: targetNodesCount,
+        },
+        {
+            label: 'Monthly Cost',
+            value: `$${containerOrWorkerType.monthlyBudgetPerWorker * targetNodesCount}`,
+        },
+        {
+            label: 'Expiration Date',
+            value: addMonths(new Date(), duration).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            }),
+        },
+    ];
+
+    const getPaymentAmount = (applyDiscount: boolean = true) => {
+        return (
+            paymentMonthsCount *
+            containerOrWorkerType.monthlyBudgetPerWorker *
+            targetNodesCount *
+            (applyDiscount ? 1 - getDiscountPercentage(paymentMonthsCount) / 100 : 1)
+        );
+    };
+
+    return (
+        <div className="col gap-2">
+            <div className="grid h-full w-full grid-cols-3 gap-2">
+                {summaryItems.map((item) => (
+                    <SlateCard key={item.label}>
+                        <div className="col justify-center gap-1 py-2 text-center">
+                            <div className="text-[17px] font-semibold">{item.value}</div>
+                            <div className="text-sm font-medium text-slate-500">{item.label}</div>
+                        </div>
+                    </SlateCard>
+                ))}
+            </div>
+
+            <BorderedCard>
+                <div className="w-full">
+                    <Slider
+                        classNames={{
+                            base: 'gap-2',
+                            labelWrapper: 'font-medium',
+                        }}
+                        color="foreground"
+                        aria-label="Job Duration"
+                        label="Job Duration"
+                        defaultValue={12}
+                        maxValue={24}
+                        minValue={1}
+                        size="sm"
+                        step={1}
+                        getValue={(value) => `${value} month${(value.valueOf() as number) > 1 ? 's' : ''}`}
+                        value={duration}
+                        onChange={(value) => setDuration(value as number)}
+                    />
+                </div>
+            </BorderedCard>
+
+            <BorderedCard>
+                <div className="w-full">
+                    <Slider
+                        classNames={{
+                            base: 'gap-2',
+                            labelWrapper: 'font-medium',
+                        }}
+                        aria-label="Payment (in advance)"
+                        label="Payment (in advance)"
+                        defaultValue={12}
+                        maxValue={24}
+                        minValue={1}
+                        size="sm"
+                        step={1}
+                        renderValue={(_props) => (
+                            <div className="row gap-1.5">
+                                <div className="text-sm">
+                                    {paymentMonthsCount} month{paymentMonthsCount > 1 ? 's' : ''}
+                                </div>
+
+                                {paymentMonthsCount > 1 && (
+                                    <SmallTag variant="green">
+                                        {getDiscountPercentage(paymentMonthsCount).toFixed()}% Discount
+                                    </SmallTag>
+                                )}
+                            </div>
+                        )}
+                        value={paymentMonthsCount}
+                        onChange={(value) => setPaymentMonthsCount(value as number)}
+                    />
+                </div>
+            </BorderedCard>
+
+            <SlateCard>
+                <div className="row justify-between gap-8 p-2">
+                    <div className="text-[15px] font-semibold text-slate-500">Amount due</div>
+
+                    <div className="row gap-1.5 text-xl font-semibold">
+                        <div className="text-slate-500">$USDC</div>
+
+                        {paymentMonthsCount > 1 && (
+                            <div className="text-slate-400 line-through">{parseFloat(getPaymentAmount(false).toFixed(2))}</div>
+                        )}
+
+                        <div className="text-primary">{parseFloat(getPaymentAmount().toFixed(2))}</div>
+                    </div>
+                </div>
+            </SlateCard>
+        </div>
+    );
+}
+
+export default PaymentAndDuration;
