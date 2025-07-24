@@ -3,6 +3,9 @@ layer(base);
 
 @import 'tailwindcss';
 
+@plugin './hero.ts';
+@source '../node_modules/@heroui/theme/dist/components/(alert|button|dropdown|form|input|modal|pagination|select|skeleton|spinner|slider|tabs|ripple|menu|divider|popover|listbox|scroll-shadow).js';
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {

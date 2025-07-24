@@ -56,8 +56,8 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
                                 onClick={(e) => e.stopPropagation()}
                                 className="cursor-pointer transition-all hover:opacity-60"
                             >
-                                <div className="row gap-1 text-primary">
-                                    <div className="font-robotoMono text-sm">{tunnel.url}</div>
+                                <div className="row text-primary gap-1">
+                                    <div className="font-roboto-mono text-sm">{tunnel.url}</div>
                                     <RiExternalLinkLine className="mb-px text-[17px]" />
                                 </div>
                             </Link>

@@ -131,7 +131,7 @@ export default function TunnelPage() {
                 <Skeleton className="min-h-10 w-64 rounded-lg" />
 
                 <div className="row justify-between">
-                    <Skeleton className="min-h-[38px] w-small-sider rounded-lg" />
+                    <Skeleton className="min-h-[38px] w-[242px] rounded-lg" />
                     <Skeleton className="min-h-[38px] w-[320px] rounded-lg" />
                 </div>
 
@@ -145,7 +145,7 @@ export default function TunnelPage() {
             <div className="col mx-auto max-w-[620px] gap-6">
                 <div className="row gap-3 pb-2">
                     <Link to={routePath.tunnels} className="hover:opacity-50">
-                        <div className="rounded-full bg-slate-150 p-1">
+                        <div className="bg-slate-150 rounded-full p-1">
                             <RiArrowLeftLine className="text-xl" />
                         </div>
                     </Link>
@@ -160,8 +160,8 @@ export default function TunnelPage() {
                         onClick={(e) => e.stopPropagation()}
                         className="cursor-pointer transition-all hover:opacity-60"
                     >
-                        <div className="row gap-1 text-primary">
-                            <div className="font-robotoMono text-[15px]">{tunnel.url}</div>
+                        <div className="row text-primary gap-1">
+                            <div className="font-roboto-mono text-[15px]">{tunnel.url}</div>
                             <RiExternalLinkLine className="mb-px text-[17px]" />
                         </div>
                     </Link>
@@ -204,7 +204,7 @@ export default function TunnelPage() {
                 <CompactCustomCard
                     header={
                         <div className="row gap-1.5">
-                            <RiLinkM className="text-lg text-primary-500" />
+                            <RiLinkM className="text-primary-500 text-lg" />
                             <div className="text-sm font-medium">Linked Domains</div>
                         </div>
                     }
@@ -253,7 +253,7 @@ export default function TunnelPage() {
                                             className="group cursor-pointer rounded-full p-1.5 hover:bg-slate-100"
                                             onClick={() => onViewDNS(h.hostname)}
                                         >
-                                            <RiEyeLine className="text-xl text-slate-700 group-hover:text-body" />
+                                            <RiEyeLine className="group-hover:text-body text-xl text-slate-700" />
                                         </div>
 
                                         <div className="group cursor-pointer rounded-full p-1.5 hover:bg-slate-100">

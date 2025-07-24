@@ -11,7 +11,7 @@ export const getShortAddress = (address: string, size = 4, asString = false): st
         return `${address.slice(0, size)}...${address.slice(-size)}`;
     }
 
-    return <div className="font-robotoMono">{`${address.slice(0, size)}•••${address.slice(-size)}`}</div>;
+    return <div className="font-roboto-mono">{`${address.slice(0, size)}•••${address.slice(-size)}`}</div>;
 };
 
 export function fN(num: number): string | number {
