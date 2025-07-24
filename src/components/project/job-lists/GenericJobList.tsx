@@ -1,4 +1,6 @@
+import { ContainerOrWorkerType } from '@data/containerAndWorkerTypes';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { getContainerOrWorkerType } from '@lib/utils';
 import JobList from '@shared/deployment/JobList';
 import { FormType, GenericJob } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
@@ -17,7 +19,8 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
             tableHeader={
                 <>
                     <div className="min-w-[128px]">Alias</div>
-                    <div className="min-w-[106px]">Target Nodes</div>
+                    <div className="min-w-[90px]">Duration (m.)</div>
+                    <div className="min-w-[90px]">Target Nodes</div>
                     <div className="min-w-[214px]">Container Type</div>
                     <div className="min-w-[264px]">Container Image</div>
                 </>
@@ -25,12 +28,19 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
             jobs={jobs}
             renderJob={(job) => {
                 const genericJob = job as GenericJob;
+                const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
+                    genericJob.formType,
+                    genericJob.specifications,
+                );
 
                 return (
                     <>
                         <div className="min-w-[128px]">{genericJob.deployment.appAlias}</div>
-                        <div className="min-w-[106px]">{genericJob.specifications.targetNodesCount}</div>
-                        <div className="min-w-[214px]">{genericJob.specifications.containerType}</div>
+                        <div className="min-w-[90px]">{genericJob.paymentAndDuration.duration}</div>
+                        <div className="min-w-[90px]">{genericJob.specifications.targetNodesCount}</div>
+                        <div className="min-w-[214px]">
+                            {containerOrWorkerType.name} ({containerOrWorkerType.description})
+                        </div>
                         <div className="flex min-w-[264px]">
                             <div className="rounded-md border-2 border-slate-200 bg-slate-50 px-2 py-1">
                                 {genericJob.deployment.containerImage}

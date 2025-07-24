@@ -1,4 +1,6 @@
+import { ContainerOrWorkerType } from '@data/containerAndWorkerTypes';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { getContainerOrWorkerType } from '@lib/utils';
 import JobList from '@shared/deployment/JobList';
 import { FormType, NativeJob } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
@@ -17,6 +19,7 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
             tableHeader={
                 <>
                     <div className="min-w-[128px]">Alias</div>
+                    <div className="min-w-[90px]">Duration (m.)</div>
                     <div className="min-w-[106px]">Target Nodes</div>
                     <div className="min-w-[214px]">Worker Type</div>
                     <div className="min-w-[264px]">Pipeline Input URI</div>
@@ -25,12 +28,19 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
             jobs={jobs}
             renderJob={(job) => {
                 const nativeJob = job as NativeJob;
+                const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
+                    nativeJob.formType,
+                    nativeJob.specifications,
+                );
 
                 return (
                     <>
                         <div className="min-w-[128px]">{nativeJob.deployment.appAlias}</div>
+                        <div className="min-w-[90px]">{nativeJob.paymentAndDuration.duration}</div>
                         <div className="min-w-[106px]">{nativeJob.specifications.targetNodesCount}</div>
-                        <div className="min-w-[214px]">{nativeJob.specifications.workerType}</div>
+                        <div className="min-w-[214px]">
+                            {containerOrWorkerType.name} ({containerOrWorkerType.description})
+                        </div>
                         <div className="flex min-w-[264px]">
                             <div className="rounded-md border-2 border-slate-200 bg-slate-50 px-2 py-1">
                                 {nativeJob.deployment.pipelineInputUri}

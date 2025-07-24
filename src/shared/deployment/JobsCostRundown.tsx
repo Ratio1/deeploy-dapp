@@ -1,5 +1,6 @@
 import { getJobCost, getJobsTotalCost } from '@lib/utils';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
+import { SmallTag } from '@shared/SmallTag';
 import { Job } from '@typedefs/deeploys';
 
 export default function JobsCostRundown({
@@ -24,7 +25,7 @@ export default function JobsCostRundown({
                     </div>
 
                     <div className="row gap-4">
-                        <div className="compact min-w-[90px]">Duration (m.)</div>
+                        <div className="compact min-w-20">Payment</div>
                         <div className="compact min-w-16 text-right">Cost ($)</div>
                     </div>
                 </div>
@@ -43,7 +44,9 @@ export default function JobsCostRundown({
                         {renderJob(job)}
 
                         <div className="row gap-4">
-                            <div className="compact min-w-[90px]">{job.paymentAndDuration.duration}</div>
+                            <div className="compact min-w-20">
+                                <SmallTag>{job.paymentAndDuration.paymentMonthsCount} months</SmallTag>
+                            </div>
                             <div className="text-primary compact min-w-16 text-right">
                                 ${parseFloat(getJobCost(job).toFixed(2))}
                             </div>

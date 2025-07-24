@@ -14,7 +14,7 @@ layer(base);
     --breakpoint-md: 768px;
     --breakpoint-break: 900px;
     --breakpoint-lg: 1024px;
-    --breakpoint-larger: 1200px;
+    --breakpoint-larger: 1260px;
     --breakpoint-xl: 1320px;
 
     --font-mona: Mona Sans, sans-serif;
@@ -115,12 +115,12 @@ layer(base);
 }
 
 *::-webkit-scrollbar-track {
-    background: #efeff4;
+    background: #f3f3f7;
     background-clip: padding-box;
 }
 
 *::-webkit-scrollbar-thumb {
-    background-color: #d7ddf1;
+    background-color: #e7eaf6;
     border-radius: 0px;
     border: 0;
 }
