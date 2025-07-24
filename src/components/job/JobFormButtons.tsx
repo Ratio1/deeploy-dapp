@@ -10,7 +10,7 @@ interface Props {
 }
 
 function JobFormButtons({ steps }: Props) {
-    const { step, setStep, setFormType } = useDeploymentContext() as DeploymentContextType;
+    const { step, setStep, setJobType } = useDeploymentContext() as DeploymentContextType;
     const { trigger, getValues, formState } = useFormContext();
 
     const isSpecificationsStepValid: () => Promise<boolean> = async () => {
@@ -51,7 +51,7 @@ function JobFormButtons({ steps }: Props) {
 
         const formData = getValues();
 
-        downloadDataAsJson(formData, `job-${formData.formType}-${Date.now()}.json`);
+        downloadDataAsJson(formData, `job-${formData.jobType}-${Date.now()}.json`);
     };
 
     return (
@@ -65,7 +65,7 @@ function JobFormButtons({ steps }: Props) {
                         if (step > 2) {
                             setStep(step - 1);
                         } else {
-                            setFormType(undefined);
+                            setJobType(undefined);
                         }
                     }}
                 >

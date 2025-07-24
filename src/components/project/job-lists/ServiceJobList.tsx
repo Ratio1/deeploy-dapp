@@ -2,11 +2,11 @@ import { ContainerOrWorkerType } from '@data/containerAndWorkerTypes';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getContainerOrWorkerType, getShortAddress } from '@lib/utils';
 import JobList from '@shared/deployment/JobList';
-import { FormType, ServiceJob } from '@typedefs/deeploys';
+import { JobType, ServiceJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
 
 export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
-    const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
+    const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
         <JobList
@@ -29,7 +29,7 @@ export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
             renderJob={(job) => {
                 const serviceJob = job as ServiceJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
-                    serviceJob.formType,
+                    serviceJob.jobType,
                     serviceJob.specifications,
                 );
 
@@ -51,7 +51,7 @@ export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
             }}
             onAddJob={() => {
                 setStep(2);
-                setFormType(FormType.Service);
+                setJobType(JobType.Service);
             }}
         />
     );

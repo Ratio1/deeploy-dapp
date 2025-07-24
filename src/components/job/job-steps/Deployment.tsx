@@ -1,4 +1,4 @@
-import { FormType } from '@typedefs/deeploys';
+import { JobType } from '@typedefs/deeploys';
 import { useFormContext } from 'react-hook-form';
 import GenericDeployment from './deployment-types/GenericDeployment';
 import NativeDeployment from './deployment-types/NativeDeployment';
@@ -6,17 +6,17 @@ import ServiceDeployment from './deployment-types/ServiceDeployment';
 
 function Deployment() {
     const { watch } = useFormContext();
-    const formType = watch('formType');
+    const jobType = watch('jobType');
 
     const getComponent = () => {
-        switch (formType) {
-            case FormType.Generic:
+        switch (jobType) {
+            case JobType.Generic:
                 return <GenericDeployment />;
 
-            case FormType.Native:
+            case JobType.Native:
                 return <NativeDeployment />;
 
-            case FormType.Service:
+            case JobType.Service:
                 return <ServiceDeployment />;
 
             default:

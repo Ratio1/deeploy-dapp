@@ -8,7 +8,7 @@ import db from '@lib/storage/db';
 import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import SupportFooter from '@shared/SupportFooter';
-import { FormType, Job, ProjectPage, type Project } from '@typedefs/deeploys';
+import { Job, JobType, ProjectPage, type Project } from '@typedefs/deeploys';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { RiAddLine, RiBox3Line, RiDatabase2Line, RiDeleteBin2Line, RiTerminalBoxLine, RiWalletLine } from 'react-icons/ri';
@@ -21,7 +21,7 @@ type DeploymentOption = {
     title: string;
     icon: React.ReactNode;
     color: string;
-    formType: FormType;
+    jobType: JobType;
 };
 
 const options: DeploymentOption[] = [
@@ -30,27 +30,27 @@ const options: DeploymentOption[] = [
         title: 'Generic App',
         icon: <RiBox3Line />,
         color: 'text-primary-500',
-        formType: FormType.Generic,
+        jobType: JobType.Generic,
     },
     {
         id: 'native',
         title: 'Native App',
         icon: <RiTerminalBoxLine />,
         color: 'text-green-600',
-        formType: FormType.Native,
+        jobType: JobType.Native,
     },
     {
         id: 'service',
         title: 'Service',
         icon: <RiDatabase2Line />,
         color: 'text-purple-500',
-        formType: FormType.Service,
+        jobType: JobType.Service,
     },
 ];
 
 export default function ProjectOverview({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
     const confirm = useInteractionContext() as InteractionContextType;
-    const { setFormType, setStep, setProjectPage } = useDeploymentContext() as DeploymentContextType;
+    const { setJobType, setStep, setProjectPage } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
 
@@ -133,7 +133,7 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                                     onPress={() => {
                                         // Job type selection is considered to be the 1st step
                                         setStep(2);
-                                        setFormType(option.formType);
+                                        setJobType(option.jobType);
                                     }}
                                 >
                                     <div className="row gap-1.5">
@@ -149,14 +149,14 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                 {/* Jobs */}
                 {!!jobs && !!jobs.length && (
                     <>
-                        {jobs.filter((job) => job.formType === FormType.Generic).length > 0 && (
-                            <GenericJobList jobs={jobs.filter((job) => job.formType === FormType.Generic)} />
+                        {jobs.filter((job) => job.jobType === JobType.Generic).length > 0 && (
+                            <GenericJobList jobs={jobs.filter((job) => job.jobType === JobType.Generic)} />
                         )}
-                        {jobs.filter((job) => job.formType === FormType.Native).length > 0 && (
-                            <NativeJobList jobs={jobs.filter((job) => job.formType === FormType.Native)} />
+                        {jobs.filter((job) => job.jobType === JobType.Native).length > 0 && (
+                            <NativeJobList jobs={jobs.filter((job) => job.jobType === JobType.Native)} />
                         )}
-                        {jobs.filter((job) => job.formType === FormType.Service).length > 0 && (
-                            <ServiceJobList jobs={jobs.filter((job) => job.formType === FormType.Service)} />
+                        {jobs.filter((job) => job.jobType === JobType.Service).length > 0 && (
+                            <ServiceJobList jobs={jobs.filter((job) => job.jobType === JobType.Service)} />
                         )}
                     </>
                 )}

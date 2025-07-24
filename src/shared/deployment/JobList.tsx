@@ -27,7 +27,7 @@ export default function JobList({
     const confirm = useInteractionContext() as InteractionContextType;
 
     const onDownloadJson = (job: Job) => {
-        downloadDataAsJson(job, `Deeploy-${job.formType}-job-${job.id}.json`);
+        downloadDataAsJson(job, `Deeploy-${job.jobType}-job-${job.id}.json`);
     };
 
     const onDeleteJob = async (job: Job) => {

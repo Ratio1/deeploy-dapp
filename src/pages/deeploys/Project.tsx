@@ -11,7 +11,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import JobFormWrapper from '../../components/job/JobFormWrapper';
 
 export default function Project() {
-    const { formType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
+    const { jobType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
     const { id } = useParams();
@@ -47,7 +47,7 @@ export default function Project() {
         return <></>;
     }
 
-    return !formType ? (
+    return !jobType ? (
         <>
             {projectPage === ProjectPage.Payment ? (
                 <ProjectPayment project={project} jobs={jobs} />

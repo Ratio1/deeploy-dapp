@@ -4,7 +4,7 @@ import { getContainerOrWorkerType, getDiscountPercentage } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
-import { FormType, JobPaymentAndDuration, JobSpecifications } from '@typedefs/deeploys';
+import { JobPaymentAndDuration, JobSpecifications, JobType } from '@typedefs/deeploys';
 import { addMonths } from 'date-fns';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -12,13 +12,13 @@ import { useFormContext } from 'react-hook-form';
 function PaymentAndDuration() {
     const { watch, setValue } = useFormContext();
 
-    const formType: FormType = watch('formType');
+    const jobType: JobType = watch('jobType');
     const specifications: JobSpecifications = watch('specifications');
     const paymentAndDuration: JobPaymentAndDuration = watch('paymentAndDuration');
 
     const targetNodesCount: number = specifications.targetNodesCount;
 
-    const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(formType, specifications);
+    const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(jobType, specifications);
 
     // Initialize state from form default values
     const [duration, setDuration] = useState<number>(paymentAndDuration.duration);

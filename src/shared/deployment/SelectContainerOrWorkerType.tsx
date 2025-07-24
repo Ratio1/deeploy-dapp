@@ -103,7 +103,7 @@ export default function SelectContainerOrWorkerType({ type, name, label, options
             {!!containerOrWorkerType && (
                 <div className="col gap-1 pt-1">
                     <div className="row gap-1.5">
-                        <Label value={type === 'service' ? 'Database:' : 'GPU Support'} />
+                        <Label value={type === 'service' ? 'Database:' : 'GPU Support:'} />
                         <div
                             className={clsx('compact', {
                                 'text-red-600': containerOrWorkerType.notesColor === 'red',

@@ -2,11 +2,11 @@ import { ContainerOrWorkerType } from '@data/containerAndWorkerTypes';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getContainerOrWorkerType } from '@lib/utils';
 import JobList from '@shared/deployment/JobList';
-import { FormType, NativeJob } from '@typedefs/deeploys';
+import { JobType, NativeJob } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
 export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
-    const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
+    const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
         <JobList
@@ -29,7 +29,7 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
             renderJob={(job) => {
                 const nativeJob = job as NativeJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
-                    nativeJob.formType,
+                    nativeJob.jobType,
                     nativeJob.specifications,
                 );
 
@@ -51,7 +51,7 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
             }}
             onAddJob={() => {
                 setStep(2);
-                setFormType(FormType.Native);
+                setJobType(JobType.Native);
             }}
         />
     );

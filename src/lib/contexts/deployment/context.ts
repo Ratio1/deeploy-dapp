@@ -1,9 +1,9 @@
-import { FormType, ProjectPage } from '@typedefs/deeploys';
+import { JobType, ProjectPage } from '@typedefs/deeploys';
 import { createContext } from 'react';
 
 export interface DeploymentContextType {
-    formType: FormType | undefined;
-    setFormType: (formType: FormType | undefined) => void;
+    jobType: JobType | undefined;
+    setJobType: (jobType: JobType | undefined) => void;
     step: number;
     setStep: (step: number) => void;
     projectPage: ProjectPage;

@@ -7,7 +7,7 @@ import { POLICY_TYPES } from '@data/policyTypes';
 import { SERVICE_TYPES } from '@data/serviceTypes';
 import { R1Address } from './blockchain';
 
-enum FormType {
+enum JobType {
     Generic = 'Generic',
     Native = 'Native',
     Service = 'Service',
@@ -116,26 +116,26 @@ type JobDeployment = BaseJobDeployment & (GenericJobDeployment | NativeJobDeploy
 type BaseJob = {
     id: number;
     projectId: number;
-    formType: FormType;
+    jobType: JobType;
     specifications: JobSpecifications;
     paymentAndDuration: JobPaymentAndDuration;
     deployment: JobDeployment;
 };
 
 type GenericJob = BaseJob & {
-    formType: FormType.Generic;
+    jobType: JobType.Generic;
     specifications: GenericJobSpecifications;
     deployment: GenericJobDeployment;
 };
 
 type NativeJob = BaseJob & {
-    formType: FormType.Native;
+    jobType: JobType.Native;
     specifications: NativeJobSpecifications;
     deployment: NativeJobDeployment;
 };
 
 type ServiceJob = BaseJob & {
-    formType: FormType.Service;
+    jobType: JobType.Service;
     specifications: ServiceJobSpecifications;
     deployment: ServiceJobDeployment;
 };
@@ -149,7 +149,7 @@ type Project = {
     createdAt: string;
 };
 
-export { FormType, ProjectPage };
+export { JobType, ProjectPage };
 export type {
     GenericJob,
     GenericJobSpecifications,

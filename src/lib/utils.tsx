@@ -6,10 +6,10 @@ import {
 } from '@data/containerAndWorkerTypes';
 import { ClosableToastContent } from '@shared/ClosableToastContent';
 import {
-    FormType,
     GenericJobSpecifications,
     Job,
     JobSpecifications,
+    JobType,
     NativeJobSpecifications,
     ServiceJobSpecifications,
 } from '@typedefs/deeploys';
@@ -94,7 +94,7 @@ export const getDiscountPercentage = (paymentMonthsCount: number): number => {
 };
 
 export const getJobCost = (job: Job): number => {
-    const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.formType, job.specifications);
+    const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
 
     return (
         job.paymentAndDuration.paymentMonthsCount *
@@ -110,11 +110,11 @@ export const getJobsTotalCost = (jobs: Job[]): number => {
     }, 0);
 };
 
-export const getContainerOrWorkerType = (formType: FormType, specifications: JobSpecifications): ContainerOrWorkerType => {
+export const getContainerOrWorkerType = (jobType: JobType, specifications: JobSpecifications): ContainerOrWorkerType => {
     const containerOrWorkerType: ContainerOrWorkerType = (
-        formType === FormType.Generic
+        jobType === JobType.Generic
             ? genericContainerTypes.find((type) => type.name === (specifications as GenericJobSpecifications).containerType)
-            : formType === FormType.Native
+            : jobType === JobType.Native
               ? nativeWorkerTypes.find((type) => type.name === (specifications as NativeJobSpecifications).workerType)
               : serviceContainerTypes.find((type) => type.name === (specifications as ServiceJobSpecifications).containerType)
     ) as ContainerOrWorkerType;

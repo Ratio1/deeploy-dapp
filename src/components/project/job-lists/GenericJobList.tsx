@@ -2,11 +2,11 @@ import { ContainerOrWorkerType } from '@data/containerAndWorkerTypes';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getContainerOrWorkerType } from '@lib/utils';
 import JobList from '@shared/deployment/JobList';
-import { FormType, GenericJob } from '@typedefs/deeploys';
+import { GenericJob, JobType } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
 
 export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
-    const { setFormType, setStep } = useDeploymentContext() as DeploymentContextType;
+    const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
         <JobList
@@ -29,7 +29,7 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
             renderJob={(job) => {
                 const genericJob = job as GenericJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
-                    genericJob.formType,
+                    genericJob.jobType,
                     genericJob.specifications,
                 );
 
@@ -51,7 +51,7 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
             }}
             onAddJob={() => {
                 setStep(2);
-                setFormType(FormType.Generic);
+                setJobType(JobType.Generic);
             }}
         />
     );

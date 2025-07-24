@@ -1,4 +1,4 @@
-import { FormType } from '@typedefs/deeploys';
+import { JobType } from '@typedefs/deeploys';
 import { useFormContext } from 'react-hook-form';
 import GenericSpecifications from './specifications-types/GenericSpecifications';
 import NativeSpecifications from './specifications-types/NativeSpecifications';
@@ -6,17 +6,17 @@ import ServiceSpecifications from './specifications-types/ServiceSpecifications'
 
 function Specifications() {
     const { watch } = useFormContext();
-    const formType = watch('formType');
+    const jobType = watch('jobType');
 
     const getComponent = () => {
-        switch (formType) {
-            case FormType.Generic:
+        switch (jobType) {
+            case JobType.Generic:
                 return <GenericSpecifications />;
 
-            case FormType.Native:
+            case JobType.Native:
                 return <NativeSpecifications />;
 
-            case FormType.Service:
+            case JobType.Service:
                 return <ServiceSpecifications />;
 
             default:

@@ -1,27 +1,27 @@
 import { z } from 'zod';
-import { FormType } from '../typedefs/deeploys';
+import { JobType } from '../typedefs/deeploys';
 import { genericAppDeploymentSchema, nativeAppDeploymentSchema, serviceAppDeploymentSchema } from './steps/deployment';
 import { paymentAndDurationSchema } from './steps/paymentAndDuration';
 import { genericSpecificationsSchema, nativeSpecificationsSchema, serviceSpecificationsSchema } from './steps/specifications';
 
 const jobBaseSchema = z.object({
-    formType: z.enum([FormType.Generic, FormType.Native, FormType.Service]),
+    jobType: z.enum([JobType.Generic, JobType.Native, JobType.Service]),
     paymentAndDuration: paymentAndDurationSchema,
 });
 
-export const jobSchema = z.discriminatedUnion('formType', [
+export const jobSchema = z.discriminatedUnion('jobType', [
     jobBaseSchema.extend({
-        formType: z.literal(FormType.Generic),
+        jobType: z.literal(JobType.Generic),
         specifications: genericSpecificationsSchema,
         deployment: genericAppDeploymentSchema,
     }),
     jobBaseSchema.extend({
-        formType: z.literal(FormType.Native),
+        jobType: z.literal(JobType.Native),
         specifications: nativeSpecificationsSchema,
         deployment: nativeAppDeploymentSchema,
     }),
     jobBaseSchema.extend({
-        formType: z.literal(FormType.Service),
+        jobType: z.literal(JobType.Service),
         specifications: serviceSpecificationsSchema,
         deployment: serviceAppDeploymentSchema,
     }),

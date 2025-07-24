@@ -14,7 +14,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import db from '@lib/storage/db';
 import { isValidId } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
-import { FormType, Job } from '@typedefs/deeploys';
+import { Job, JobType } from '@typedefs/deeploys';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -26,7 +26,7 @@ const STEPS = ['Project', 'Specifications', 'Payment & Duration', 'Deployment'];
 function JobFormWrapper() {
     const { id: projectId } = useParams();
 
-    const { step, formType, setFormType } = useDeploymentContext() as DeploymentContextType;
+    const { step, jobType, setJobType } = useDeploymentContext() as DeploymentContextType;
 
     const getBaseSchemaDefaults = () => ({
         specifications: {
@@ -85,14 +85,14 @@ function JobFormWrapper() {
     });
 
     const getDefaultSchemaValues = () => {
-        switch (formType) {
-            case FormType.Generic:
+        switch (jobType) {
+            case JobType.Generic:
                 return getGenericSchemaDefaults();
 
-            case FormType.Native:
+            case JobType.Native:
                 return getNativeSchemaDefaults();
 
-            case FormType.Service:
+            case JobType.Service:
                 return getServiceSchemaDefaults();
 
             default:
@@ -106,15 +106,15 @@ function JobFormWrapper() {
         defaultValues: getDefaultSchemaValues(),
     });
 
-    // Reset form with correct defaults when formType changes
+    // Reset form with correct defaults when jobType changes
     useEffect(() => {
-        if (formType) {
+        if (jobType) {
             const defaults = getDefaultSchemaValues();
             form.reset(defaults);
 
-            form.setValue('formType', formType);
+            form.setValue('jobType', jobType);
         }
-    }, [formType, form]);
+    }, [jobType, form]);
 
     const onSubmit = async (data: z.infer<typeof jobSchema>) => {
         console.log('[JobFormWrapper] onSubmit');
@@ -128,7 +128,7 @@ function JobFormWrapper() {
         try {
             const job = {
                 projectId: parseInt(projectId as string),
-                formType: data.formType,
+                jobType: data.jobType,
                 specifications: data.specifications,
                 paymentAndDuration: data.paymentAndDuration,
                 deployment: data.deployment,
@@ -140,7 +140,7 @@ function JobFormWrapper() {
             toast.success('Job added successfully.');
 
             // Navigate back to the project overview
-            setFormType(undefined);
+            setJobType(undefined);
         } catch (error) {
             console.error('[JobFormWrapper] Error adding job:', error);
             toast.error('Failed to add job');
@@ -153,7 +153,7 @@ function JobFormWrapper() {
 
     return (
         <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, onError)} key={formType || 'no-type'}>
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} key={jobType || 'no-type'}>
                 <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">

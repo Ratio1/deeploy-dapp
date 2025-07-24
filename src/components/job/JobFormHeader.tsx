@@ -3,7 +3,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { isValidId } from '@lib/utils';
-import { FormType, Project } from '@typedefs/deeploys';
+import { JobType, Project } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
 import { RiArrowLeftLine } from 'react-icons/ri';
@@ -14,7 +14,7 @@ interface Props {
 }
 
 function JobFormHeader({ steps }: Props) {
-    const { formType, setFormType, step, setStep } = useDeploymentContext() as DeploymentContextType;
+    const { jobType, setJobType, step, setStep } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
     const { id } = useParams();
@@ -55,14 +55,14 @@ function JobFormHeader({ steps }: Props) {
                     </div>
 
                     <div className="big-title">
-                        Add a {formType} {formType === FormType.Service ? '' : 'App'} Job
+                        Add a {jobType} {jobType === JobType.Service ? '' : 'App'} Job
                     </div>
                 </div>
 
                 <div className="col gap-2.5">
                     <div className="relative h-1.5 w-full rounded-full bg-slate-200">
                         <div
-                            className="absolute bottom-0 left-0 top-0 rounded-full bg-primary transition-all"
+                            className="bg-primary absolute top-0 bottom-0 left-0 rounded-full transition-all"
                             style={{ width: `${((step - 1) / steps.length) * 100}%` }}
                         ></div>
                     </div>
@@ -74,14 +74,14 @@ function JobFormHeader({ steps }: Props) {
                                 if (step > 2) {
                                     setStep(step - 1);
                                 } else {
-                                    setFormType(undefined);
+                                    setJobType(undefined);
                                 }
                             }}
                         />
 
                         <div
                             className="cursor-pointer text-[15px] font-medium text-slate-500 hover:opacity-50"
-                            onClick={() => setFormType(undefined)}
+                            onClick={() => setJobType(undefined)}
                         >
                             Cancel
                         </div>
@@ -90,7 +90,7 @@ function JobFormHeader({ steps }: Props) {
             </div>
 
             <div className="col gap-0.5">
-                <div className="text-sm font-semibold uppercase text-primary">
+                <div className="text-primary text-sm font-semibold uppercase">
                     Step {step} of {steps.length}
                 </div>
                 <div className="big-title">{steps[step - 1]}</div>

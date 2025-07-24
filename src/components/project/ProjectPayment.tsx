@@ -4,7 +4,7 @@ import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import EmptyData from '@shared/EmptyData';
 import SupportFooter from '@shared/SupportFooter';
-import { FormType, Job, ProjectPage, type Project } from '@typedefs/deeploys';
+import { Job, JobType, ProjectPage, type Project } from '@typedefs/deeploys';
 import { useEffect } from 'react';
 import { RiArrowLeftLine, RiBox3Line, RiDraftLine } from 'react-icons/ri';
 import ProjectIdentity from './ProjectIdentity';
@@ -72,14 +72,14 @@ export default function ProjectPayment({ project, jobs }: { project: Project; jo
                 {/* Rundowns */}
                 {!!jobs && !!jobs.length && (
                     <>
-                        {jobs.filter((job) => job.formType === FormType.Generic).length > 0 && (
-                            <GenericJobsCostRundown jobs={jobs.filter((job) => job.formType === FormType.Generic)} />
+                        {jobs.filter((job) => job.jobType === JobType.Generic).length > 0 && (
+                            <GenericJobsCostRundown jobs={jobs.filter((job) => job.jobType === JobType.Generic)} />
                         )}
-                        {jobs.filter((job) => job.formType === FormType.Native).length > 0 && (
-                            <NativeJobsCostRundown jobs={jobs.filter((job) => job.formType === FormType.Native)} />
+                        {jobs.filter((job) => job.jobType === JobType.Native).length > 0 && (
+                            <NativeJobsCostRundown jobs={jobs.filter((job) => job.jobType === JobType.Native)} />
                         )}
-                        {jobs.filter((job) => job.formType === FormType.Service).length > 0 && (
-                            <ServiceJobsCostRundown jobs={jobs.filter((job) => job.formType === FormType.Service)} />
+                        {jobs.filter((job) => job.jobType === JobType.Service).length > 0 && (
+                            <ServiceJobsCostRundown jobs={jobs.filter((job) => job.jobType === JobType.Service)} />
                         )}
                     </>
                 )}
