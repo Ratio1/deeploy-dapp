@@ -3,8 +3,7 @@ layer(base);
 
 @import 'tailwindcss';
 
-@plugin './hero.ts';
-@source '../node_modules/@heroui/theme/dist/components/(alert|button|dropdown|form|input|modal|pagination|select|skeleton|spinner|slider|tabs|ripple|menu|divider|popover|listbox|scroll-shadow).js';
+@config '../tailwind.config.ts';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -148,10 +147,10 @@ input[type='number'] {
 }
 
 /* Primitives */
-button {
+/* button {
     font-weight: 500 !important;
     letter-spacing: 0 !important;
-}
+} */
 
 ul {
     list-style: inside;

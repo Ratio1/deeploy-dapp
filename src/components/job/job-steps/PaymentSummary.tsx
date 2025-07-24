@@ -4,6 +4,7 @@ import {
     nativeWorkerTypes,
     serviceContainerTypes,
 } from '@data/containerAndWorkerTypes';
+import { Slider } from '@heroui/slider';
 import { getJobCost } from '@lib/utils';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { FormType } from '@typedefs/deeploys';
@@ -74,11 +75,23 @@ function PaymentSummary() {
                 ))}
             </div>
 
+            <div>
+                <Slider
+                    aria-label="Temperature"
+                    className="max-w-md"
+                    defaultValue={0.2}
+                    maxValue={1}
+                    minValue={0}
+                    size="sm"
+                    step={0.01}
+                />
+            </div>
+
             <SlateCard>
                 <div className="row justify-between gap-8 p-2">
                     <div className="text-[15px] font-semibold text-slate-500">Amount due</div>
 
-                    <div className="text-xl font-semibold text-primary">
+                    <div className="text-primary text-xl font-semibold">
                         <span className="text-slate-500">$USDC</span> {getJobCost(specifications)}
                     </div>
                 </div>
