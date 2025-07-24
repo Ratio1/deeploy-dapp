@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
@@ -12,7 +13,7 @@ export default defineConfig({
             overlay: true, // Shows errors without reloading the page
         },
     },
-    plugins: [react(), basicSsl()],
+    plugins: [react(), basicSsl(), tailwindcss()],
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),

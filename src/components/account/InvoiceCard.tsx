@@ -45,7 +45,7 @@ export default function InvoiceCard({ invoice }: { invoice: Invoice }) {
                 <div className="min-w-[112px]">
                     <div className="row cursor-pointer gap-1.5 hover:opacity-60">
                         <div className="text-sm font-medium">View invoice</div>
-                        <RiArrowRightLine className="mt-[1px] text-lg" />
+                        <RiArrowRightLine className="mt-px text-lg" />
                     </div>
                 </div>
             </div>

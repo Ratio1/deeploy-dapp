@@ -85,7 +85,7 @@ function Billing() {
                                     classNames={{
                                         trigger: 'min-h-10 bg-slate-200 data-[hover=true]:bg-[#e0e3f0] rounded-lg shadow-none',
                                         label: 'group-data-[filled=true]:-translate-y-5',
-                                        value: 'font-medium !text-slate-600',
+                                        value: 'font-medium text-slate-600!',
                                         selectorIcon: 'mt-0.5 mr-0.5',
                                     }}
                                     listboxProps={{
@@ -111,7 +111,7 @@ function Billing() {
                                     }}
                                     placeholder="Select a month"
                                     variant="flat"
-                                    startContent={<RiCalendarEventLine className="mt-[1px] text-[20px] text-slate-600" />}
+                                    startContent={<RiCalendarEventLine className="mt-px text-[20px] text-slate-600" />}
                                     selectedKeys={selectedMonth}
                                     onSelectionChange={(value: SharedSelection) => {
                                         if (value.anchorKey) {

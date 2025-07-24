@@ -50,7 +50,7 @@ function JobFormHeader({ steps }: Props) {
             <div className="col gap-4">
                 <div className="row justify-between">
                     <div className="row gap-2">
-                        <div className="mt-[1px] h-2.5 w-2.5 rounded-full" style={{ backgroundColor: project.color }}></div>
+                        <div className="mt-px h-2.5 w-2.5 rounded-full" style={{ backgroundColor: project.color }}></div>
                         <div className="big-title max-w-[280px] truncate">{project.name}</div>
                     </div>
 

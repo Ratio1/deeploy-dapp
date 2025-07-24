@@ -131,7 +131,7 @@ export default function TunnelPage() {
                 <Skeleton className="min-h-10 w-64 rounded-lg" />
 
                 <div className="row justify-between">
-                    <Skeleton className="min-h-[38px] w-[240px] rounded-lg" />
+                    <Skeleton className="min-h-[38px] w-small-sider rounded-lg" />
                     <Skeleton className="min-h-[38px] w-[320px] rounded-lg" />
                 </div>
 
@@ -162,7 +162,7 @@ export default function TunnelPage() {
                     >
                         <div className="row gap-1 text-primary">
                             <div className="font-robotoMono text-[15px]">{tunnel.url}</div>
-                            <RiExternalLinkLine className="mb-[1px] text-[17px]" />
+                            <RiExternalLinkLine className="mb-px text-[17px]" />
                         </div>
                     </Link>
 

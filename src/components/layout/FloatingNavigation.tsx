@@ -55,7 +55,7 @@ function FloatingNavigation() {
                                 <Link
                                     to={route.path}
                                     className={clsx(`${baseClasses} text-slate-500 hover:opacity-60`, {
-                                        '!text-primary !opacity-100': location.pathname.includes(route.path),
+                                        'text-primary! opacity-100!': location.pathname.includes(route.path),
                                     })}
                                 >
                                     <div className="text-2xl">{route.icon}</div>

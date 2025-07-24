@@ -23,7 +23,7 @@ export default function ContextMenuWithTrigger({ items }: Props) {
                 }}
             >
                 <Button
-                    className="h-6 min-w-8 rounded-lg border-slate-200 bg-light p-0 data-[hover=true]:!opacity-50"
+                    className="h-6 min-w-8 rounded-lg border-slate-200 bg-light p-0 data-[hover=true]:opacity-50!"
                     color="default"
                     variant="bordered"
                     disableRipple

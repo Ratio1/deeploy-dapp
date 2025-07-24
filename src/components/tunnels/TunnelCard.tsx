@@ -58,7 +58,7 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
                             >
                                 <div className="row gap-1 text-primary">
                                     <div className="font-robotoMono text-sm">{tunnel.url}</div>
-                                    <RiExternalLinkLine className="mb-[1px] text-[17px]" />
+                                    <RiExternalLinkLine className="mb-px text-[17px]" />
                                 </div>
                             </Link>
                         </CopyableValue>

@@ -231,7 +231,7 @@ function LegacyRequester() {
 
             <div className="row gap-4">
                 <StyledTextarea
-                    inputWrapperClassnames="!h-[50vh]"
+                    inputWrapperClassnames="h-[50vh]!"
                     placeholder="Enter JSON"
                     value={userInput}
                     onChange={(e) => setUserInput(e.target.value)}
@@ -240,7 +240,7 @@ function LegacyRequester() {
                 />
 
                 <StyledTextarea
-                    inputWrapperClassnames="!h-[50vh]"
+                    inputWrapperClassnames="h-[50vh]!"
                     placeholder="Enter JSON"
                     value={responseInput}
                     onChange={(e) => setResponseInput(e.target.value)}

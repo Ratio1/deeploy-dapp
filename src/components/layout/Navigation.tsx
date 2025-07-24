@@ -22,7 +22,7 @@ function Route({ route }: { route: AppRoute }) {
             <Link
                 to={route.path}
                 className={clsx('min-w-40 cursor-pointer rounded-lg px-3 py-2.5 text-body transition-all hover:bg-[#dbecff]', {
-                    'bg-[#dbecff] !text-primary': location.pathname.includes(route.path),
+                    'bg-[#dbecff] text-primary!': location.pathname.includes(route.path),
                 })}
             >
                 <div className="row gap-2.5">
@@ -42,7 +42,7 @@ function Route({ route }: { route: AppRoute }) {
                             className={clsx(
                                 'cursor-pointer py-1 text-[15px] font-medium text-slate-700 transition-all hover:opacity-60',
                                 {
-                                    '!text-primary hover:!opacity-100':
+                                    'text-primary! hover:opacity-100!':
                                         location.pathname.includes(route.path) && location.pathname.includes(child.path),
                                 },
                             )}

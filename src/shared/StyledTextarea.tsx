@@ -7,11 +7,11 @@ interface StyledTextareaProps extends TextAreaProps {
 export default function StyledTextarea({ inputWrapperClassnames, ...props }: StyledTextareaProps) {
     return (
         <Textarea
-            className="styled-textarea w-[100%]"
+            className="styled-textarea w-full"
             size="md"
             classNames={{
-                inputWrapper: `rounded-lg bg-[#fcfcfd] shadow-none !transition-shadow border data-[hover=true]:border-slate-300 group-data-[focus=true]:border-slate-400 group-data-[focus=true]:shadow-custom ${inputWrapperClassnames || ''}`,
-                input: 'font-medium placeholder:text-slate-400 !h-full',
+                inputWrapper: `rounded-lg bg-light shadow-none transition-shadow! border data-[hover=true]:border-slate-300 group-data-[focus=true]:border-slate-400 group-data-[focus=true]:shadow-custom ${inputWrapperClassnames || ''}`,
+                input: 'font-medium placeholder:text-slate-400 h-full!',
                 errorMessage: 'text-sm',
             }}
             variant="bordered"

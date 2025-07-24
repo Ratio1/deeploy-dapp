@@ -1,11 +1,70 @@
-@import url('https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&family=Roboto+Mono:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&family=Roboto+Mono:wght@500&display=swap')
+layer(base);
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-body {
-    @apply h-screen w-screen font-mona text-body;
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+    --breakpoint-*: initial;
+    --breakpoint-xs: 400px;
+    --breakpoint-sm: 480px;
+    --breakpoint-md: 768px;
+    --breakpoint-break: 900px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-larger: 1200px;
+    --breakpoint-xl: 1320px;
+
+    --font-mona: Mona Sans, sans-serif;
+    --font-roboto-mono: Roboto Mono, serif;
+
+    --flex-0: 0;
+    --flex-2: 2 1 0%;
+    --flex-3: 3 1 0%;
+    --flex-4: 4 1 0%;
+
+    --color-body: #0b0b47;
+    --color-light: #fcfcfd;
+    --color-primary: #1b47f7;
+
+    --color-slate-150: #e9edf2;
+
+    --outline-width-3: 3px;
+    --outline-width-6: 6px;
+
+    --shadow-custom: 0 0 0 3px #e2e8f0;
+
+    --width-sider: 262px;
+    --width-small-sider: 240px;
+
+    --margin-sider-with-padding: calc(262px + 1rem);
+    --margin-small-sider-with-padding: calc(240px + 1rem);
+
+    --backdrop-blur-xs: 1px;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentcolor);
+    }
+}
+
+@layer utilities {
+    body {
+        @apply font-mona text-body h-screen w-screen;
+    }
 }
 
 @layer utilities {
@@ -24,7 +83,7 @@ body {
 }
 
 .center-all {
-    @apply row justify-center;
+    @apply flex items-center justify-center;
 }
 
 .active {
@@ -37,11 +96,11 @@ body {
 }
 
 .list {
-    @apply col w-full gap-3 overflow-x-auto;
+    @apply flex w-full flex-col gap-3 overflow-x-auto;
 }
 
 .slate-button {
-    @apply bg-slate-150 hover:!opacity-75;
+    @apply bg-slate-150 hover:opacity-75!;
 }
 
 /* Scrollbar */

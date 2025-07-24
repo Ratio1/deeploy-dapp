@@ -51,7 +51,7 @@ export default function ColorSelect() {
 function ColorOption({ colorHex, colorName }: { colorHex: string; colorName: string }) {
     return (
         <div className="row gap-2 py-1">
-            <div className="mt-[1px] h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colorHex }}></div>
+            <div className="mt-px h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colorHex }}></div>
             <div className="font-medium">{colorName}</div>
         </div>
     );
