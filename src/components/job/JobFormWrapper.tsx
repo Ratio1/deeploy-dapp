@@ -33,12 +33,17 @@ function JobFormWrapper() {
             applicationType: APPLICATION_TYPES[0],
             targetNodesCount: '', // Number inputs must have empty default values when resetting form
         },
+        paymentAndDuration: {
+            duration: 12,
+            paymentMonthsCount: 1,
+        },
         deployment: {
             enableTunneling: BOOLEAN_TYPES[0],
         },
     });
 
     const getGenericSchemaDefaults = () => ({
+        ...getBaseSchemaDefaults(),
         specifications: {
             ...getBaseSchemaDefaults().specifications,
             containerType: genericContainerTypes[0].name,
@@ -52,6 +57,7 @@ function JobFormWrapper() {
     });
 
     const getNativeSchemaDefaults = () => ({
+        ...getBaseSchemaDefaults(),
         specifications: {
             ...getBaseSchemaDefaults().specifications,
             workerType: nativeWorkerTypes[0].name,
@@ -67,6 +73,7 @@ function JobFormWrapper() {
     });
 
     const getServiceSchemaDefaults = () => ({
+        ...getBaseSchemaDefaults(),
         specifications: {
             ...getBaseSchemaDefaults().specifications,
             containerType: serviceContainerTypes[0].name,
@@ -123,6 +130,7 @@ function JobFormWrapper() {
                 projectId: parseInt(projectId as string),
                 formType: data.formType,
                 specifications: data.specifications,
+                paymentAndDuration: data.paymentAndDuration,
                 deployment: data.deployment,
             };
 

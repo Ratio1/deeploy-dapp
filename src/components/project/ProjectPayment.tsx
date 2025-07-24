@@ -62,8 +62,8 @@ export default function ProjectPayment({ project, jobs }: { project: Project; jo
                         <div className="row justify-between py-2">
                             <div className="text-[15px] font-semibold text-slate-500">Total Amount Due</div>
 
-                            <div className="text-xl font-semibold text-primary">
-                                <span className="text-slate-500">$USDC</span> {getJobsTotalCost(jobs)}
+                            <div className="text-primary text-xl font-semibold">
+                                <span className="text-slate-500">$USDC</span> {parseFloat(getJobsTotalCost(jobs).toFixed(2))}
                             </div>
                         </div>
                     </BorderedCard>

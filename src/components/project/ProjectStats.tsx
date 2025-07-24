@@ -1,7 +1,6 @@
 import { getJobsTotalCost } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { Job, Project } from '@typedefs/deeploys';
-import { addYears } from 'date-fns';
 
 export default function ProjectStats({ jobs, project }: { jobs: Job[] | undefined; project: Project }) {
     if (!jobs || jobs.length === 0) {
@@ -19,21 +18,12 @@ export default function ProjectStats({ jobs, project }: { jobs: Job[] | undefine
                 />
 
                 <Item
-                    label="Total Amount Due"
+                    label="Total Cost"
                     value={
                         <div className="text-primary">
-                            <span className="text-slate-500">$USDC</span> {getJobsTotalCost(jobs)}
+                            <span className="text-slate-500">$USDC</span> {parseFloat(getJobsTotalCost(jobs).toFixed(2))}
                         </div>
                     }
-                />
-
-                <Item
-                    label="Expiration Date"
-                    value={addYears(new Date(project.createdAt), 2).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                    })}
                 />
             </div>
         </BorderedCard>

@@ -1,38 +1,39 @@
-import {
-    ContainerOrWorkerType,
-    genericContainerTypes,
-    nativeWorkerTypes,
-    serviceContainerTypes,
-} from '@data/containerAndWorkerTypes';
+import { ContainerOrWorkerType } from '@data/containerAndWorkerTypes';
 import { Slider } from '@heroui/slider';
-import { getDiscountPercentage } from '@lib/utils';
+import { getContainerOrWorkerType, getDiscountPercentage } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
-import { FormType } from '@typedefs/deeploys';
+import { FormType, JobPaymentAndDuration, JobSpecifications } from '@typedefs/deeploys';
 import { addMonths } from 'date-fns';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 function PaymentAndDuration() {
-    const { watch } = useFormContext();
+    const { watch, setValue } = useFormContext();
 
     const formType: FormType = watch('formType');
-    const specifications = watch('specifications');
+    const specifications: JobSpecifications = watch('specifications');
+    const paymentAndDuration: JobPaymentAndDuration = watch('paymentAndDuration');
+
     const targetNodesCount: number = specifications.targetNodesCount;
 
-    const containerOrWorkerType: ContainerOrWorkerType = (
-        formType === FormType.Generic
-            ? genericContainerTypes.find((type) => type.name === specifications.containerType)
-            : formType === FormType.Native
-              ? nativeWorkerTypes.find((type) => type.name === specifications.workerType)
-              : serviceContainerTypes.find((type) => type.name === specifications.containerType)
-    ) as ContainerOrWorkerType;
+    const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(formType, specifications);
 
-    const [duration, setDuration] = useState<number>(12);
-    const [paymentMonthsCount, setPaymentMonthsCount] = useState<number>(1);
+    // Initialize state from form default values
+    const [duration, setDuration] = useState<number>(paymentAndDuration.duration);
+    const [paymentMonthsCount, setPaymentMonthsCount] = useState<number>(paymentAndDuration.paymentMonthsCount);
 
-    // Calculate summary items from form values
+    const handleDurationChange = (value: number) => {
+        setDuration(value);
+        setValue('paymentAndDuration.duration', value);
+    };
+
+    const handlePaymentMonthsCountChange = (value: number) => {
+        setPaymentMonthsCount(value);
+        setValue('paymentAndDuration.paymentMonthsCount', value);
+    };
+
     const summaryItems = [
         {
             label: 'GPU/CPU',
@@ -103,7 +104,7 @@ function PaymentAndDuration() {
                         step={1}
                         getValue={(value) => `${value} month${(value.valueOf() as number) > 1 ? 's' : ''}`}
                         value={duration}
-                        onChange={(value) => setDuration(value as number)}
+                        onChange={(value) => handleDurationChange(value as number)}
                     />
                 </div>
             </BorderedCard>
@@ -136,7 +137,7 @@ function PaymentAndDuration() {
                             </div>
                         )}
                         value={paymentMonthsCount}
-                        onChange={(value) => setPaymentMonthsCount(value as number)}
+                        onChange={(value) => handlePaymentMonthsCountChange(value as number)}
                     />
                 </div>
             </BorderedCard>

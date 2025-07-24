@@ -42,6 +42,12 @@ type ServiceJobSpecifications = BaseJobSpecifications & {
 type JobSpecifications = BaseJobSpecifications &
     (GenericJobSpecifications | NativeJobSpecifications | ServiceJobSpecifications);
 
+// Payment and Duration
+type JobPaymentAndDuration = {
+    duration: number;
+    paymentMonthsCount: number;
+};
+
 // Deployment
 type BaseJobDeployment = {
     targetNodes: R1Address[];
@@ -112,6 +118,7 @@ type BaseJob = {
     projectId: number;
     formType: FormType;
     specifications: JobSpecifications;
+    paymentAndDuration: JobPaymentAndDuration;
     deployment: JobDeployment;
 };
 
@@ -147,6 +154,7 @@ export type {
     GenericJob,
     GenericJobSpecifications,
     Job,
+    JobPaymentAndDuration,
     JobSpecifications,
     NativeJob,
     NativeJobSpecifications,

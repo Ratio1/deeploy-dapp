@@ -18,29 +18,41 @@ export default function JobsCostRundown({
                     <div className="row gap-2">
                         {cardHeader}
 
-                        <div className="center-all h-5 w-5 rounded-full bg-light">
+                        <div className="center-all bg-light h-5 w-5 rounded-full">
                             <div className="text-xs font-medium text-slate-600">{jobs.length}</div>
                         </div>
                     </div>
 
-                    <div className="text-sm font-medium">Cost ($)</div>
+                    {/* TODO: text-sm font-medium = COMPACT */}
+
+                    <div className="row gap-4">
+                        <div className="min-w-[90px] text-sm font-medium">Duration (m.)</div>
+                        <div className="min-w-16 text-right text-sm font-medium">Cost ($)</div>
+                    </div>
                 </div>
             }
             footer={
                 <div className="row justify-between text-sm font-medium">
                     <div>Total Cost ($)</div>
 
-                    <div className="text-primary">${getJobsTotalCost(jobs)}</div>
+                    <div className="text-primary">${parseFloat(getJobsTotalCost(jobs).toFixed(2))}</div>
                 </div>
             }
         >
-            {jobs.map((job) => (
-                <div key={job.id} className="row justify-between gap-12 border-t-2 border-slate-200/65 px-4 py-3 text-sm">
-                    {renderJob(job)}
+            {jobs.map((job) => {
+                return (
+                    <div key={job.id} className="row justify-between gap-12 border-t-2 border-slate-200/65 px-4 py-3 text-sm">
+                        {renderJob(job)}
 
-                    <div className="text-sm font-medium text-primary">${getJobCost(job.specifications)}</div>
-                </div>
-            ))}
+                        <div className="row gap-4">
+                            <div className="min-w-[90px] text-sm font-medium">{job.paymentAndDuration.duration}</div>
+                            <div className="text-primary min-w-16 text-right text-sm font-medium">
+                                ${parseFloat(getJobCost(job).toFixed(2))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })}
         </CompactCustomCard>
     );
 }

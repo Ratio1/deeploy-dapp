@@ -1,6 +1,18 @@
-import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerAndWorkerTypes';
+import {
+    ContainerOrWorkerType,
+    genericContainerTypes,
+    nativeWorkerTypes,
+    serviceContainerTypes,
+} from '@data/containerAndWorkerTypes';
 import { ClosableToastContent } from '@shared/ClosableToastContent';
-import { GenericJobSpecifications, Job, NativeJobSpecifications, ServiceJobSpecifications } from '@typedefs/deeploys';
+import {
+    FormType,
+    GenericJobSpecifications,
+    Job,
+    JobSpecifications,
+    NativeJobSpecifications,
+    ServiceJobSpecifications,
+} from '@typedefs/deeploys';
 import { throttle } from 'lodash';
 import { JSX } from 'react';
 import toast from 'react-hot-toast';
@@ -81,34 +93,33 @@ export const getDiscountPercentage = (paymentMonthsCount: number): number => {
     return paymentMonthsCount === 1 ? 0 : paymentMonthsCount / 2;
 };
 
-export const getJobCost = (
-    specifications: GenericJobSpecifications | NativeJobSpecifications | ServiceJobSpecifications,
-): number => {
-    switch (specifications.type) {
-        case 'Generic': {
-            const genericContainerType = genericContainerTypes.find((type) => type.name === specifications.containerType);
-            return genericContainerType ? genericContainerType.monthlyBudgetPerWorker * specifications.targetNodesCount : 0;
-        }
+export const getJobCost = (job: Job): number => {
+    const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.formType, job.specifications);
 
-        case 'Native': {
-            const nativeWorkerType = nativeWorkerTypes.find((type) => type.name === specifications.workerType);
-            return nativeWorkerType ? nativeWorkerType.monthlyBudgetPerWorker * specifications.targetNodesCount : 0;
-        }
-
-        case 'Service': {
-            const serviceContainerType = serviceContainerTypes.find((type) => type.name === specifications.containerType);
-            return serviceContainerType ? serviceContainerType.monthlyBudgetPerWorker * specifications.targetNodesCount : 0;
-        }
-
-        default:
-            return 0;
-    }
+    return (
+        job.paymentAndDuration.paymentMonthsCount *
+        job.specifications.targetNodesCount *
+        containerOrWorkerType.monthlyBudgetPerWorker *
+        (1 - getDiscountPercentage(job.paymentAndDuration.paymentMonthsCount) / 100)
+    );
 };
 
 export const getJobsTotalCost = (jobs: Job[]): number => {
     return jobs.reduce((acc, job) => {
-        return acc + getJobCost(job.specifications);
+        return acc + getJobCost(job);
     }, 0);
+};
+
+export const getContainerOrWorkerType = (formType: FormType, specifications: JobSpecifications): ContainerOrWorkerType => {
+    const containerOrWorkerType: ContainerOrWorkerType = (
+        formType === FormType.Generic
+            ? genericContainerTypes.find((type) => type.name === (specifications as GenericJobSpecifications).containerType)
+            : formType === FormType.Native
+              ? nativeWorkerTypes.find((type) => type.name === (specifications as NativeJobSpecifications).workerType)
+              : serviceContainerTypes.find((type) => type.name === (specifications as ServiceJobSpecifications).containerType)
+    ) as ContainerOrWorkerType;
+
+    return containerOrWorkerType;
 };
 
 export const downloadDataAsJson = (data: any, filename: string) => {
