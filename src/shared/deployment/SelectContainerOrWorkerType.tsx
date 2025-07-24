@@ -17,15 +17,17 @@ interface Props {
 export default function SelectContainerOrWorkerType({ type, name, label, options }: Props) {
     const { control, watch, trigger } = useFormContext();
     const containerType: string = watch(name);
+    const targetNodesCount: number = watch('specifications.targetNodesCount');
 
     const [containerOrWorkerType, setContainerOrWorkerType] = useState<ContainerOrWorkerType>();
 
     useEffect(() => {
         setContainerOrWorkerType(options.find((option) => option.name === containerType));
 
-        // Trigger validation of specifications when container type changes
-        if (containerType) {
-            trigger('specifications');
+        // Trigger validation of specifications when container/worker type changes and target nodes count is set
+        if (containerType && targetNodesCount) {
+            console.log('triggering');
+            trigger('specifications.targetNodesCount');
         }
     }, [containerType, trigger]);
 
@@ -84,7 +86,10 @@ export default function SelectContainerOrWorkerType({ type, name, label, options
                                             </div>
 
                                             <div className="col py-0.5">
-                                                <div className="font-medium">${containerType.monthlyBudgetPerWorker}</div>
+                                                <div className="row min-w-11 gap-0.5 font-medium">
+                                                    <span className="text-slate-500">$</span>
+                                                    <div>{containerType.monthlyBudgetPerWorker}</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </SelectItem>

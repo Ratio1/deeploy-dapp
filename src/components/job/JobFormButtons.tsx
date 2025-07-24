@@ -16,14 +16,12 @@ function JobFormButtons({ steps }: Props) {
     const isSpecificationsStepValid: () => Promise<boolean> = async () => {
         const values = getValues();
 
-        // Trigger validation for the entire specifications object to include superRefine validation
-        const isStepValid = await trigger('specifications');
+        const isValid = await trigger('specifications.targetNodesCount');
 
-        console.log(`Specifications step valid: ${isStepValid}`, values);
-        console.log('Form errors:', formState.errors);
+        console.log(`Specifications step valid: ${isValid}`, values);
         console.log('Specifications errors:', formState.errors.specifications);
 
-        return isStepValid;
+        return isValid;
     };
 
     const handleNextStep = async () => {
