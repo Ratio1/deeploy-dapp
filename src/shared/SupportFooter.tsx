@@ -6,7 +6,7 @@ export default function SupportFooter() {
     return (
         <div className="col items-center gap-5 text-center">
             <div className="col gap-2.5">
-                <div className="font-semibold leading-none">Need Help?</div>
+                <div className="leading-none font-semibold">Need Help?</div>
                 <div className="text-[15px] leading-none text-slate-500">
                     Connect with our support team for any questions or assistance.
                 </div>
@@ -22,7 +22,7 @@ export default function SupportFooter() {
                 target="_blank"
             >
                 <div className="row gap-1.5">
-                    <div className="text-sm font-medium">Contact Support</div>
+                    <div className="compact">Contact Support</div>
                     <RiTelegram2Line className="text-xl" />
                 </div>
             </Button>

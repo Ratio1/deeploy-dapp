@@ -78,7 +78,7 @@ function Billing() {
                     <ListHeader
                         label={
                             <div className="row w-full justify-between">
-                                <div className="text-lg font-semibold leading-6 text-body larger:text-[20px]">Invoices</div>
+                                <div className="text-body larger:text-[20px] text-lg leading-6 font-semibold">Invoices</div>
 
                                 <Select
                                     className="max-w-48"
@@ -155,7 +155,7 @@ function BillingInfoRow({ label, value }: { label: string; value: string }) {
     return (
         <div className="col gap-0.5">
             <div className="text-sm text-slate-500">{label}</div>
-            <div className="text-sm font-medium">{value}</div>
+            <div className="compact">{value}</div>
         </div>
     );
 }

@@ -36,13 +36,13 @@ const TunnelTokenModal = forwardRef<TunnelTokenModalRef>((_, ref) => {
                         {alias && (
                             <div className="col gap-1">
                                 <Label value="Alias" />
-                                <div className="truncate text-sm font-medium">{alias}</div>
+                                <div className="compact truncate">{alias}</div>
                             </div>
                         )}
 
                         <div className="col gap-2">
                             <Label value="Token" />
-                            <div className="select-all break-all rounded bg-slate-100 p-3 font-mono text-xs">{token}</div>
+                            <div className="rounded bg-slate-100 p-3 font-mono text-xs break-all select-all">{token}</div>
                         </div>
                     </div>
                 </ModalBody>
@@ -64,7 +64,7 @@ const TunnelTokenModal = forwardRef<TunnelTokenModalRef>((_, ref) => {
                         >
                             <div className="row gap-1.5">
                                 <div className="text-lg">{!copied ? <RiFileCopyLine /> : <RiCheckLine />}</div>
-                                <div className="text-sm font-medium">{copied ? 'Copied!' : 'Copy'}</div>
+                                <div className="compact">{copied ? 'Copied!' : 'Copy'}</div>
                             </div>
                         </Button>
                     </div>

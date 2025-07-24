@@ -105,6 +105,10 @@ layer(base);
     @apply bg-slate-150 hover:opacity-75!;
 }
 
+.compact {
+    @apply text-sm font-medium;
+}
+
 /* Scrollbar */
 *::-webkit-scrollbar {
     width: 8px;

@@ -53,7 +53,7 @@ const TunnelDNSModal = forwardRef<TunnelDNSModalRef>((_, ref) => {
                             </CopyableValue>
                         </div>
 
-                        <div className="italic text-slate-500">
+                        <div className="text-slate-500 italic">
                             After updating your DNS, it may take some time for the changes to propagate.
                         </div>
                     </div>
@@ -62,7 +62,7 @@ const TunnelDNSModal = forwardRef<TunnelDNSModalRef>((_, ref) => {
                 <ModalFooter>
                     <div className="flex justify-end pb-0.5">
                         <Button className="slate-button" color="default" variant="flat" onPress={onClose}>
-                            <div className="text-sm font-medium">Close</div>
+                            <div className="compact">Close</div>
                         </Button>
                     </div>
                 </ModalFooter>

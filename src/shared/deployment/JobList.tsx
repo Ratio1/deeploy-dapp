@@ -51,7 +51,7 @@ export default function JobList({
                     <div className="row gap-2">
                         {cardHeader}
 
-                        <div className="center-all h-5 w-5 rounded-full bg-light">
+                        <div className="center-all bg-light h-5 w-5 rounded-full">
                             <div className="text-xs font-medium text-slate-600">{jobs.length}</div>
                         </div>
                     </div>
@@ -59,14 +59,14 @@ export default function JobList({
                     <div className="-mr-1.5 cursor-pointer px-1.5 py-1 hover:opacity-60" onClick={onAddJob}>
                         <div className="row gap-0.5 text-slate-600">
                             <RiAddLine className="text-[17px]" />
-                            <div className="text-sm font-medium">Add</div>
+                            <div className="compact">Add</div>
                         </div>
                     </div>
                 </div>
             }
         >
             {/* Table Header */}
-            <div className="row justify-between px-4 py-3 text-sm font-medium text-slate-500">
+            <div className="row compact justify-between px-4 py-3 text-slate-500">
                 {tableHeader}
 
                 {/* Accounts for the context menu button */}

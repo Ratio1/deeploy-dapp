@@ -176,7 +176,7 @@ export default function TunnelPage() {
                         >
                             <div className="row gap-1.5">
                                 <RiEdit2Line className="text-lg" />
-                                <div className="text-sm font-medium">Rename</div>
+                                <div className="compact">Rename</div>
                             </div>
                         </ActionButton>
 
@@ -188,7 +188,7 @@ export default function TunnelPage() {
                                     openTunnelTokenModal(tunnel.token as string);
                                 }}
                             >
-                                <div className="text-sm font-medium">View Token</div>
+                                <div className="compact">View Token</div>
                             </ActionButton>
                         )}
 
@@ -205,7 +205,7 @@ export default function TunnelPage() {
                     header={
                         <div className="row gap-1.5">
                             <RiLinkM className="text-primary-500 text-lg" />
-                            <div className="text-sm font-medium">Linked Domains</div>
+                            <div className="compact">Linked Domains</div>
                         </div>
                     }
                     footer={
@@ -246,7 +246,7 @@ export default function TunnelPage() {
                         <>
                             {tunnel.custom_hostnames.map((h) => (
                                 <div key={h.id} className="row justify-between border-t-2 border-slate-200/65 px-4 py-3">
-                                    <div className="text-sm font-medium">{h.hostname}</div>
+                                    <div className="compact">{h.hostname}</div>
 
                                     <div className="row gap-1">
                                         <div

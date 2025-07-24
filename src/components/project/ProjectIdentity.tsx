@@ -9,7 +9,7 @@ export default function ProjectIdentity({ project }: { project: Project }) {
             </div>
 
             <div className="row gap-1.5 text-slate-500">
-                <div className="text-sm font-medium">
+                <div className="compact">
                     {new Date(project.createdAt).toLocaleString('en-US', {
                         month: 'short',
                         day: 'numeric',

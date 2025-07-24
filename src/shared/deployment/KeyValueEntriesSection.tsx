@@ -35,7 +35,7 @@ export default function KeyValueEntriesSection({
             <div className="col w-full gap-2">
                 {!!label && (
                     <div className="row">
-                        <div className="text-sm font-medium text-slate-500">{label}</div>
+                        <div className="compact text-slate-500">{label}</div>
                     </div>
                 )}
 
@@ -60,7 +60,7 @@ export default function KeyValueEntriesSection({
                     )}
 
                     {fields.length === 0 ? (
-                        <div className="text-sm italic text-slate-500">No {displayLabel} added yet.</div>
+                        <div className="text-sm text-slate-500 italic">No {displayLabel} added yet.</div>
                     ) : (
                         fields.map((field, index) => {
                             // Get the error for this specific entry
@@ -144,7 +144,7 @@ export default function KeyValueEntriesSection({
 
             {(maxEntries === undefined || fields.length < maxEntries) && (
                 <div
-                    className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50"
+                    className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
                     onClick={() => append({ key: '', value: '' })}
                 >
                     <RiAddLine className="text-lg" /> Add

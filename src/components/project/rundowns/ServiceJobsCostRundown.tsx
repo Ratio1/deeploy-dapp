@@ -10,7 +10,7 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
             cardHeader={
                 <div className="row gap-1.5">
                     <RiDatabase2Line className="text-lg text-purple-500" />
-                    <div className="text-sm font-medium">Services</div>
+                    <div className="compact">Services</div>
                 </div>
             }
             jobs={jobs}

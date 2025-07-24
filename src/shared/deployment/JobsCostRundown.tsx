@@ -23,16 +23,14 @@ export default function JobsCostRundown({
                         </div>
                     </div>
 
-                    {/* TODO: text-sm font-medium = COMPACT */}
-
                     <div className="row gap-4">
-                        <div className="min-w-[90px] text-sm font-medium">Duration (m.)</div>
-                        <div className="min-w-16 text-right text-sm font-medium">Cost ($)</div>
+                        <div className="compact min-w-[90px]">Duration (m.)</div>
+                        <div className="compact min-w-16 text-right">Cost ($)</div>
                     </div>
                 </div>
             }
             footer={
-                <div className="row justify-between text-sm font-medium">
+                <div className="row compact justify-between">
                     <div>Total Cost ($)</div>
 
                     <div className="text-primary">${parseFloat(getJobsTotalCost(jobs).toFixed(2))}</div>
@@ -45,8 +43,8 @@ export default function JobsCostRundown({
                         {renderJob(job)}
 
                         <div className="row gap-4">
-                            <div className="min-w-[90px] text-sm font-medium">{job.paymentAndDuration.duration}</div>
-                            <div className="text-primary min-w-16 text-right text-sm font-medium">
+                            <div className="compact min-w-[90px]">{job.paymentAndDuration.duration}</div>
+                            <div className="text-primary compact min-w-16 text-right">
                                 ${parseFloat(getJobCost(job).toFixed(2))}
                             </div>
                         </div>

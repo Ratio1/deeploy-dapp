@@ -8,8 +8,8 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
         <JobsCostRundown
             cardHeader={
                 <div className="row gap-1.5">
-                    <RiBox3Line className="text-lg text-primary-500" />
-                    <div className="text-sm font-medium">Generic Apps</div>
+                    <RiBox3Line className="text-primary-500 text-lg" />
+                    <div className="compact">Generic Apps</div>
                 </div>
             }
             jobs={jobs}

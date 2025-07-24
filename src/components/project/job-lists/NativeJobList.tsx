@@ -11,7 +11,7 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
             cardHeader={
                 <div className="row gap-1.5">
                     <RiTerminalBoxLine className="text-lg text-green-600" />
-                    <div className="text-sm font-medium">Native Apps</div>
+                    <div className="compact">Native Apps</div>
                 </div>
             }
             tableHeader={

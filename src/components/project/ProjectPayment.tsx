@@ -36,7 +36,7 @@ export default function ProjectPayment({ project, jobs }: { project: Project; jo
                         >
                             <div className="row gap-1.5">
                                 <RiArrowLeftLine className="text-lg" />
-                                <div className="text-sm font-medium">Project</div>
+                                <div className="compact">Project</div>
                             </div>
                         </ActionButton>
 

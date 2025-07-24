@@ -26,11 +26,11 @@ function NetworkAndStatus() {
                     )}
                 </div>
 
-                <div className="text-sm font-medium text-slate-600">API Status</div>
+                <div className="compact text-slate-600">API Status</div>
             </div>
 
             {!!import.meta.env.VITE_APP_VERSION && (
-                <div className="pt-1 text-center text-sm font-medium text-slate-500">v{import.meta.env.VITE_APP_VERSION}</div>
+                <div className="compact pt-1 text-center text-slate-500">v{import.meta.env.VITE_APP_VERSION}</div>
             )}
         </div>
     );

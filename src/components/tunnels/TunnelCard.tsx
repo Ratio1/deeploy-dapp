@@ -42,7 +42,7 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
                 <div className="row justify-between gap-3 bg-white lg:gap-6">
                     <SmallTag variant="green">
                         <div className="row gap-0.5">
-                            <div className="text-sm font-medium">{tunnel.status}</div>
+                            <div className="compact">{tunnel.status}</div>
                         </div>
                     </SmallTag>
 
@@ -69,7 +69,7 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
                             <SmallTag>
                                 <div className="row gap-0.5">
                                     <RiLinkM className="text-lg" />
-                                    <div className="text-sm font-medium">
+                                    <div className="compact">
                                         {tunnel.custom_hostnames.length}{' '}
                                         {tunnel.custom_hostnames.length === 1 ? 'Domain' : 'Domains'}
                                     </div>

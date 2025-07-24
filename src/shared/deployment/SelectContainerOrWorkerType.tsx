@@ -105,7 +105,7 @@ export default function SelectContainerOrWorkerType({ type, name, label, options
                     <div className="row gap-1.5">
                         <Label value={type === 'service' ? 'Database:' : 'GPU Support'} />
                         <div
-                            className={clsx('text-sm font-medium', {
+                            className={clsx('compact', {
                                 'text-red-600': containerOrWorkerType.notesColor === 'red',
                                 'text-orange-600': containerOrWorkerType.notesColor === 'orange',
                                 'text-green-600': containerOrWorkerType.notesColor === 'green',
@@ -118,7 +118,7 @@ export default function SelectContainerOrWorkerType({ type, name, label, options
 
                     <div className="row gap-1.5">
                         <Label value="Minimal Balancing:" />
-                        <div className="text-sm font-medium">
+                        <div className="compact">
                             {containerOrWorkerType.minimalBalancing > 1
                                 ? `${containerOrWorkerType.minimalBalancing} nodes`
                                 : 'No minimal balancing'}
@@ -127,7 +127,7 @@ export default function SelectContainerOrWorkerType({ type, name, label, options
 
                     <div className="row gap-1.5">
                         <Label value="Monthly Budget per Worker:" />
-                        <div className="text-sm font-medium">${containerOrWorkerType.monthlyBudgetPerWorker}</div>
+                        <div className="compact">${containerOrWorkerType.monthlyBudgetPerWorker}</div>
                     </div>
                 </div>
             )}

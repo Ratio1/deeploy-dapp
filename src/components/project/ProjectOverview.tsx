@@ -87,7 +87,7 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                             as={Link}
                             to={`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`}
                         >
-                            <div className="text-sm font-medium">Cancel</div>
+                            <div className="compact">Cancel</div>
                         </ActionButton>
 
                         <ActionButton className="bg-red-500" color="danger" onPress={() => onDeleteProject()}>
@@ -107,7 +107,7 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                         >
                             <div className="row gap-1.5">
                                 <RiWalletLine className="text-lg" />
-                                <div className="text-sm font-medium">Payment</div>
+                                <div className="compact">Payment</div>
                             </div>
                         </ActionButton>
                     </div>

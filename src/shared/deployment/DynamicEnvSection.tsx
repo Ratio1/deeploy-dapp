@@ -23,7 +23,7 @@ export default function DynamicEnvSection() {
         <div className="col gap-4">
             <div className="col gap-4">
                 {fields.length === 0 ? (
-                    <div className="text-sm italic text-slate-500">No dynamic environment variables added yet.</div>
+                    <div className="text-sm text-slate-500 italic">No dynamic environment variables added yet.</div>
                 ) : (
                     fields.map((field, index) => {
                         // Get the error for this specific dynamic env entry
@@ -135,7 +135,7 @@ export default function DynamicEnvSection() {
                                         </div>
 
                                         {/* Hidden, used only for styling */}
-                                        <div className="invisible h-10 text-sm font-medium text-slate-500">Remove</div>
+                                        <div className="compact invisible h-10 text-slate-500">Remove</div>
                                     </div>
                                 ))}
                             </div>
@@ -146,7 +146,7 @@ export default function DynamicEnvSection() {
 
             {fields.length < 50 && (
                 <div
-                    className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50"
+                    className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
                     onClick={() =>
                         append({
                             key: '',

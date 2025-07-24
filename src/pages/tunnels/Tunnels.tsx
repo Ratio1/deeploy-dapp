@@ -7,7 +7,7 @@ import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { deepSort } from '@lib/utils';
 import EmptyData from '@shared/EmptyData';
 import { Tunnel } from '@typedefs/tunnels';
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { RiAddLine, RiDraftLine } from 'react-icons/ri';
 import { useAccount, useSignMessage } from 'wagmi';
 
@@ -103,7 +103,7 @@ function Tunnels() {
                         <Button color="primary" variant="solid" onPress={() => openTunnelCreateModal(() => fetchTunnels())}>
                             <div className="row gap-1">
                                 <RiAddLine className="text-lg" />
-                                <div className="text-sm font-medium">Add Tunnel</div>
+                                <div className="compact">Add Tunnel</div>
                             </div>
                         </Button>
                     </div>
@@ -149,7 +149,7 @@ function Tunnels() {
             ) : (
                 <Button color="primary" variant="solid" onPress={() => requestSecrets()}>
                     <div className="row gap-1">
-                        <div className="text-sm font-medium">Request Secrets</div>
+                        <div className="compact">Request Secrets</div>
                     </div>
                 </Button>
             )}

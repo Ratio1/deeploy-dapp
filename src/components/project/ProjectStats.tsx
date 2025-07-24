@@ -33,7 +33,7 @@ export default function ProjectStats({ jobs, project }: { jobs: Job[] | undefine
 function Item({ label, value }: { label: string; value: string | React.ReactNode }) {
     return (
         <div className="col gap-1">
-            <div className="text-sm font-medium text-slate-500">{label}</div>
+            <div className="compact text-slate-500">{label}</div>
             <div className="text-xl font-semibold">{value}</div>
         </div>
     );

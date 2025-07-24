@@ -20,13 +20,13 @@ export default function TargetNodesSection() {
     return (
         <div className="col gap-4" key={fields.length}>
             <div className="text-sm text-slate-500">
-                Your app will be deployed to <span className="font-medium text-primary">{targetNodesCount}</span> random nodes,
+                Your app will be deployed to <span className="text-primary font-medium">{targetNodesCount}</span> random nodes,
                 or to the nodes you specify below.
             </div>
 
             <div className="col gap-2">
                 {fields.length === 0 ? (
-                    <div className="text-sm italic text-slate-500">No target nodes added yet.</div>
+                    <div className="text-sm text-slate-500 italic">No target nodes added yet.</div>
                 ) : (
                     fields.map((field, index) => {
                         // Get the error for this specific entry
@@ -78,7 +78,7 @@ export default function TargetNodesSection() {
 
             {fields.length < targetNodesCount && (
                 <div
-                    className="row cursor-pointer gap-0.5 text-sm font-medium text-primary hover:opacity-50"
+                    className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
                     onClick={() => append({ address: '' })}
                 >
                     <RiAddLine className="text-lg" /> Add Node
