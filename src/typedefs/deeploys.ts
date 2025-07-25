@@ -58,10 +58,20 @@ type BaseJobDeployment = {
 
 type GenericJobDeployment = BaseJobDeployment & {
     appAlias: string;
-    containerImage: string;
-    containerRegistry: string;
-    crUsername: string;
-    crPassword: string;
+    container:
+        | {
+              type: 'image';
+              containerImage: string;
+              containerRegistry: string;
+              crUsername: string;
+              crPassword: string;
+          }
+        | {
+              type: 'worker';
+              githubUrl: string;
+              accessToken?: string;
+              workerCommands: { command: string }[];
+          };
     port: number;
     envVars: Array<{
         key: string;

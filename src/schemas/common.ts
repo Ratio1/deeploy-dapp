@@ -147,3 +147,29 @@ export const dynamicEnvEntrySchema = z
             path: ['values', 2, 'value'],
         },
     );
+
+export const getStringSchema = (minLength: number, maxLength: number) => {
+    return z
+        .string()
+        .min(minLength, `Value must be at least ${minLength} characters`)
+        .max(maxLength, `Value cannot exceed ${maxLength} characters`)
+        .refine(
+            (val) => val === '' || /^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/.test(val),
+            'Only letters, numbers and special characters allowed',
+        );
+};
+
+export const getStringWithSpacesSchema = (minLength: number, maxLength: number) => {
+    return z
+        .string()
+        .min(minLength, `Value must be at least ${minLength} characters`)
+        .max(maxLength, `Value cannot exceed ${maxLength} characters`)
+        .regex(
+            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
+            'Only letters, numbers, spaces and special characters allowed',
+        );
+};
+
+export const workerCommandSchema = z.object({
+    command: getStringWithSpacesSchema(2, 512),
+});

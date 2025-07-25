@@ -29,7 +29,13 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
                     { label: 'Container Type', value: `${containerType.name} (${containerType.description})` },
 
                     // Deployment
-                    { label: 'Container Image', value: genericJob.deployment.containerImage },
+                    {
+                        label: 'Container Source',
+                        value:
+                            genericJob.deployment.container.type === 'image'
+                                ? genericJob.deployment.container.containerImage
+                                : genericJob.deployment.container.githubUrl,
+                    },
                     { label: 'Port', value: genericJob.deployment.port },
                     { label: 'Tunneling', value: genericJob.deployment.enableTunneling },
                     ...(genericJob.deployment.enableTunneling === 'True' && genericJob.deployment.tunnelingLabel

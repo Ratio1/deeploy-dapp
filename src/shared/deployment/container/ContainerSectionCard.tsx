@@ -2,11 +2,37 @@ import { Switch } from '@heroui/switch';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
 import { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import ImageContainerSection from './ImageContainerSection';
 import WorkerContainerSection from './WorkerContainerSection';
 
 function ContainerSectionCard() {
-    const [containerType, setContainerType] = useState<'worker' | 'image'>('image');
+    const { setValue, watch } = useFormContext();
+    const container = watch('deployment.container');
+
+    const [containerType, setContainerType] = useState<'worker' | 'image'>(container.type);
+
+    const onContainerTypeChange = (isImage: boolean) => {
+        const type = isImage ? 'image' : 'worker';
+        setContainerType(type);
+
+        if (type === 'image') {
+            setValue('deployment.container', {
+                type: 'image',
+                containerImage: '',
+                containerRegistry: '',
+                crUsername: '',
+                crPassword: '',
+            });
+        } else {
+            setValue('deployment.container', {
+                type: 'worker',
+                githubUrl: '',
+                accessToken: '',
+                workerCommands: [{ command: '' }],
+            });
+        }
+    };
 
     return (
         <SlateCard
@@ -17,7 +43,7 @@ function ContainerSectionCard() {
 
                     <Switch
                         isSelected={containerType === 'image'}
-                        onValueChange={(value) => setContainerType(value ? 'image' : 'worker')}
+                        onValueChange={onContainerTypeChange}
                         size="sm"
                         classNames={{
                             wrapper: 'bg-emerald-200 group-data-[selected=true]:bg-purple-300',

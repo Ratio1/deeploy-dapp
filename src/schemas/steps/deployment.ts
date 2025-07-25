@@ -2,20 +2,21 @@ import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { SERVICE_TYPES } from '@data/serviceTypes';
-import { dynamicEnvEntrySchema, enabledBooleanTypeValue, getKeyValueEntriesArraySchema, nodeSchema } from '@schemas/common';
+import {
+    dynamicEnvEntrySchema,
+    enabledBooleanTypeValue,
+    getKeyValueEntriesArraySchema,
+    getStringSchema,
+    getStringWithSpacesSchema,
+    nodeSchema,
+    workerCommandSchema,
+} from '@schemas/common';
 import { z } from 'zod';
 
 // Common validation patterns
-const commonValidations = {
+const validations = {
     // String patterns
-    appAlias: z
-        .string({ required_error: 'Value is required' })
-        .min(3, 'Value must be at least 3 characters')
-        .max(36, 'Value cannot exceed 36 characters')
-        .regex(
-            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
-            'Only letters, numbers, spaces and special characters allowed',
-        ),
+    appAlias: getStringWithSpacesSchema(3, 36),
 
     containerImage: z
         .string({ required_error: 'Value is required' })
@@ -28,17 +29,9 @@ const commonValidations = {
         .max(128, 'Value cannot exceed 128 characters')
         .regex(/^[^/]+\.[^/]+$/, 'Must be a valid domain format'),
 
-    crUsername: z
-        .string({ required_error: 'Value is required' })
-        .min(3, 'Value must be at least 3 characters')
-        .max(128, 'Value cannot exceed 128 characters')
-        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed'),
+    crUsername: getStringSchema(3, 128),
 
-    crPassword: z
-        .string({ required_error: 'Value is required' })
-        .min(3, 'Value must be at least 3 characters')
-        .max(64, 'Value cannot exceed 64 characters')
-        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed'),
+    crPassword: getStringSchema(3, 64),
 
     pipelineInputType: z
         .string({ required_error: 'Value is required' })
@@ -148,38 +141,66 @@ const baseDeploymentSchema = z.object({
         .optional(),
 });
 
+const imageContainerSchema = z.object({
+    type: z.literal('image'),
+    containerImage: validations.containerImage,
+    containerRegistry: validations.containerRegistry,
+    crUsername: validations.crUsername,
+    crPassword: validations.crPassword,
+});
+
+const workerContainerSchema = z.object({
+    type: z.literal('worker'),
+    githubUrl: validations.uri,
+    accessToken: z
+        .string()
+        .max(512, 'Value cannot exceed 512 characters')
+        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
+        .optional(),
+    workerCommands: z.array(workerCommandSchema).refine(
+        (workerCommand) => {
+            const commands = workerCommand.map((node) => node.command?.trim()).filter((command) => command && command !== ''); // Only non-empty commands
+
+            const uniqueCommands = new Set(commands);
+            return uniqueCommands.size === commands.length;
+        },
+        {
+            message: 'Duplicate commands are not allowed',
+        },
+    ),
+});
+
+const dualContainerSchema = z.discriminatedUnion('type', [imageContainerSchema, workerContainerSchema]);
+
 export const genericAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
-        appAlias: commonValidations.appAlias,
-        containerImage: commonValidations.containerImage,
-        containerRegistry: commonValidations.containerRegistry,
-        crUsername: commonValidations.crUsername,
-        crPassword: commonValidations.crPassword,
-        port: commonValidations.port,
-        envVars: commonValidations.envVars,
-        dynamicEnvVars: commonValidations.dynamicEnvVars,
-        restartPolicy: commonValidations.restartPolicy,
-        imagePullPolicy: commonValidations.imagePullPolicy,
+        appAlias: validations.appAlias,
+        container: dualContainerSchema,
+        port: validations.port,
+        envVars: validations.envVars,
+        dynamicEnvVars: validations.dynamicEnvVars,
+        restartPolicy: validations.restartPolicy,
+        imagePullPolicy: validations.imagePullPolicy,
     }),
 );
 
 export const nativeAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
-        appAlias: commonValidations.appAlias,
-        pluginSignature: commonValidations.pluginSignature,
-        customParams: commonValidations.customParams,
-        pipelineParams: commonValidations.pipelineParams,
-        pipelineInputType: commonValidations.pipelineInputType,
-        pipelineInputUri: commonValidations.uri,
-        chainstoreResponse: commonValidations.chainstoreResponse,
+        appAlias: validations.appAlias,
+        pluginSignature: validations.pluginSignature,
+        customParams: validations.customParams,
+        pipelineParams: validations.pipelineParams,
+        pipelineInputType: validations.pipelineInputType,
+        pipelineInputUri: validations.uri,
+        chainstoreResponse: validations.chainstoreResponse,
     }),
 );
 
 export const serviceAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
-        serviceType: commonValidations.serviceType,
-        envVars: commonValidations.envVars,
-        dynamicEnvVars: commonValidations.dynamicEnvVars,
+        serviceType: validations.serviceType,
+        envVars: validations.envVars,
+        dynamicEnvVars: validations.dynamicEnvVars,
         serviceReplica: nodeSchema.shape.address,
     }),
 );

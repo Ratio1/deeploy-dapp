@@ -51,6 +51,13 @@ function JobFormWrapper() {
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
+            container: {
+                type: 'image',
+                containerImage: '',
+                containerRegistry: '',
+                crUsername: '',
+                crPassword: '',
+            },
             port: '',
             restartPolicy: POLICY_TYPES[0],
             imagePullPolicy: POLICY_TYPES[0],
@@ -118,7 +125,7 @@ function JobFormWrapper() {
     }, [jobType, form]);
 
     const onSubmit = async (data: z.infer<typeof jobSchema>) => {
-        console.log('[JobFormWrapper] onSubmit');
+        console.log('[JobFormWrapper] onSubmit', data);
 
         if (!isValidId(projectId)) {
             console.error('[JobFormWrapper] Invalid project ID');

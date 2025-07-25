@@ -10,11 +10,11 @@ export default function WorkerContainerCommandsSection() {
     const { control, formState, trigger } = useFormContext();
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'deployment.workerCommands',
+        name: 'deployment.container.workerCommands',
     });
 
     // Get array-level errors
-    const errors = (formState.errors.deployment as any)?.workerCommands;
+    const errors = (formState.errors.deployment as any)?.container?.workerCommands;
 
     return (
         <div className="col gap-4">
@@ -33,7 +33,7 @@ export default function WorkerContainerCommandsSection() {
                                 <VariableSectionIndex index={index} />
 
                                 <Controller
-                                    name={`deployment.workerCommands.${index}.command`}
+                                    name={`deployment.container.workerCommands.${index}.command`}
                                     control={control}
                                     render={({ field, fieldState }) => {
                                         const specificError = entryError?.command;
@@ -49,7 +49,7 @@ export default function WorkerContainerCommandsSection() {
 
                                                     // Trigger validation for the entire array to check for duplicate addresses
                                                     if (fields.length > 1) {
-                                                        await trigger('deployment.workerCommands');
+                                                        await trigger('deployment.container.workerCommands');
                                                     }
                                                 }}
                                                 isInvalid={hasError}

@@ -22,7 +22,7 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
                     <div className="min-w-[90px]">Duration (m.)</div>
                     <div className="min-w-[90px]">Target Nodes</div>
                     <div className="min-w-[214px]">Container Type</div>
-                    <div className="min-w-[264px]">Container Image</div>
+                    <div className="min-w-[264px]">Container Source</div>
                 </>
             }
             jobs={jobs}
@@ -43,7 +43,9 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
                         </div>
                         <div className="flex min-w-[264px]">
                             <div className="rounded-md border-2 border-slate-200 bg-slate-50 px-2 py-1">
-                                {genericJob.deployment.containerImage}
+                                {genericJob.deployment.container.type === 'image'
+                                    ? genericJob.deployment.container.containerImage
+                                    : genericJob.deployment.container.githubUrl}
                             </div>
                         </div>
                     </>
