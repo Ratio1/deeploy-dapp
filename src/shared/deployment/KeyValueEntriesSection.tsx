@@ -1,3 +1,4 @@
+import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine } from 'react-icons/ri';
@@ -35,7 +36,7 @@ export default function KeyValueEntriesSection({
             <div className="col w-full gap-2">
                 {!!label && (
                     <div className="row">
-                        <div className="compact text-slate-500">{label}</div>
+                        <Label value={label} />
                     </div>
                 )}
 

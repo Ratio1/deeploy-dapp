@@ -3,7 +3,7 @@ import { SERVICE_TYPES } from '@data/serviceTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import DynamicEnvSection from '@shared/deployment/DynamicEnvSection';
 import KeyValueEntriesSection from '@shared/deployment/KeyValueEntriesSection';
-import TargetNodesCard from '@shared/deployment/TargetNodesCard';
+import TargetNodesCard from '@shared/deployment/target-nodes/TargetNodesCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';

@@ -3,6 +3,7 @@ import { Slider } from '@heroui/slider';
 import { getContainerOrWorkerType, getDiscountPercentage } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { SlateCard } from '@shared/cards/SlateCard';
+import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import { JobPaymentAndDuration, JobSpecifications, JobType } from '@typedefs/deeploys';
 import { addMonths } from 'date-fns';
@@ -81,7 +82,7 @@ function PaymentAndDuration() {
                     <SlateCard key={item.label}>
                         <div className="col justify-center gap-1 py-2 text-center">
                             <div className="text-[17px] font-semibold">{item.value}</div>
-                            <div className="compact text-slate-500">{item.label}</div>
+                            <Label value={item.label} />
                         </div>
                     </SlateCard>
                 ))}

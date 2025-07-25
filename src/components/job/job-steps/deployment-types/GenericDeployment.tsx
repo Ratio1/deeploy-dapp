@@ -1,9 +1,9 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
-import ContainerSection from '@shared/deployment/ContainerSection';
+import ContainerSectionCard from '@shared/deployment/container/ContainerSectionCard';
 import DynamicEnvSection from '@shared/deployment/DynamicEnvSection';
 import KeyValueEntriesSection from '@shared/deployment/KeyValueEntriesSection';
-import TargetNodesCard from '@shared/deployment/TargetNodesCard';
+import TargetNodesCard from '@shared/deployment/target-nodes/TargetNodesCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
@@ -23,7 +23,7 @@ function GenericDeployment() {
 
             <TargetNodesCard />
 
-            <ContainerSection />
+            <ContainerSectionCard />
 
             <SlateCard title="App Parameters">
                 <div className="col gap-4">

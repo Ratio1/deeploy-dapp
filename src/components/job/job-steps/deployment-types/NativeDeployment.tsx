@@ -3,7 +3,7 @@ import { pluginSignaturesCustomParams } from '@data/default-values/customParams'
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import KeyValueEntriesSection from '@shared/deployment/KeyValueEntriesSection';
-import TargetNodesCard from '@shared/deployment/TargetNodesCard';
+import TargetNodesCard from '@shared/deployment/target-nodes/TargetNodesCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';

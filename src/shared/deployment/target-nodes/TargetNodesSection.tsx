@@ -1,8 +1,8 @@
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine } from 'react-icons/ri';
-import VariableSectionIndex from './VariableSectionIndex';
-import VariableSectionRemove from './VariableSectionRemove';
+import VariableSectionIndex from '../VariableSectionIndex';
+import VariableSectionRemove from '../VariableSectionRemove';
 
 // This component assumes it's being used in the deployment step
 export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean }) {
@@ -46,10 +46,8 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                         name={`deployment.targetNodes.${index}.address`}
                                         control={control}
                                         render={({ field, fieldState }) => {
-                                            // Check for specific error on this address input or array-level error
-                                            const specificAddressError = entryError?.address;
-                                            const hasError =
-                                                !!fieldState.error || !!specificAddressError || !!errors?.root?.message;
+                                            const specificError = entryError?.address;
+                                            const hasError = !!fieldState.error || !!specificError || !!errors?.root?.message;
 
                                             return (
                                                 <StyledInput
@@ -67,7 +65,7 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                                     isInvalid={hasError}
                                                     errorMessage={
                                                         fieldState.error?.message ||
-                                                        specificAddressError?.message ||
+                                                        specificError?.message ||
                                                         (errors?.root?.message && index === 0 ? errors.root.message : undefined)
                                                     }
                                                 />

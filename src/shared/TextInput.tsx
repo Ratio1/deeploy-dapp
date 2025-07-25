@@ -1,3 +1,4 @@
+import Label from './Label';
 import StyledInput from './StyledInput';
 
 interface Props {
@@ -9,7 +10,7 @@ export default function TextInput({ label, placeholder }: Props) {
     return (
         <div className="col w-full gap-2">
             <div className="row">
-                <div className="compact text-slate-500">{label}</div>
+                <Label value={label} />
             </div>
 
             <StyledInput placeholder={placeholder} />

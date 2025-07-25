@@ -1,6 +1,6 @@
 import { Switch } from '@heroui/switch';
 import { SlateCard } from '@shared/cards/SlateCard';
-import TargetNodesSection from '@shared/deployment/TargetNodesSection';
+import TargetNodesSection from '@shared/deployment/target-nodes/TargetNodesSection';
 import { SmallTag } from '@shared/SmallTag';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';

@@ -45,7 +45,7 @@ const commonValidations = {
         .min(2, 'Value must be at least 2 characters')
         .max(256, 'Value cannot exceed 256 characters'),
 
-    pipelineInputUri: z
+    uri: z
         .string({ required_error: 'Value is required' })
         .min(2, 'Value must be at least 2 characters')
         .max(256, 'Value cannot exceed 256 characters')
@@ -170,7 +170,7 @@ export const nativeAppDeploymentSchema = applyTunnelingRefinements(
         customParams: commonValidations.customParams,
         pipelineParams: commonValidations.pipelineParams,
         pipelineInputType: commonValidations.pipelineInputType,
-        pipelineInputUri: commonValidations.pipelineInputUri,
+        pipelineInputUri: commonValidations.uri,
         chainstoreResponse: commonValidations.chainstoreResponse,
     }),
 );
