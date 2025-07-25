@@ -154,3 +154,20 @@ export function deepSort(obj: any): any {
     }
     return obj;
 }
+
+// Helper function to get minimal balancing for a container/worker type
+export const getMinimalBalancing = (type: string, containerOrWorkerType: string | undefined): number => {
+    if (type === 'Generic' && containerOrWorkerType) {
+        const found = genericContainerTypes.find((t) => t.name === containerOrWorkerType);
+        return found?.minimalBalancing || 1;
+    }
+    if (type === 'Native' && containerOrWorkerType) {
+        const found = nativeWorkerTypes.find((t) => t.name === containerOrWorkerType);
+        return found?.minimalBalancing || 1;
+    }
+    if (type === 'Service' && containerOrWorkerType) {
+        const found = serviceContainerTypes.find((t) => t.name === containerOrWorkerType);
+        return found?.minimalBalancing || 1;
+    }
+    return 1;
+};

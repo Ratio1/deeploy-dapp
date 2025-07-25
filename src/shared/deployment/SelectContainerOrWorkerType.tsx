@@ -117,7 +117,7 @@ export default function SelectContainerOrWorkerType({ type, name, label, options
                     </div>
 
                     <div className="row gap-1.5">
-                        <Label value="Minimal Balancing:" />
+                        <Label value="Minimal Recommended Balancing:" />
                         <div className="compact">
                             {containerOrWorkerType.minimalBalancing > 1
                                 ? `${containerOrWorkerType.minimalBalancing} nodes`

@@ -66,10 +66,12 @@ export default function TunnelPage() {
         if (!tunnel) return;
 
         try {
-            await confirm(<div>Are you sure you want to delete this tunnel?</div>, async () => {
-                await deleteTunnel(tunnel.id);
-                navigate(routePath.tunnels);
-                toast.success('Tunnel deleted successfully.');
+            await confirm(<div>Are you sure you want to delete this tunnel?</div>, {
+                onConfirm: async () => {
+                    await deleteTunnel(tunnel.id);
+                    toast.success('Tunnel deleted successfully.');
+                    navigate(routePath.tunnels);
+                },
             });
         } catch (error) {
             console.error('Error deleting tunnel:', error);
@@ -113,10 +115,12 @@ export default function TunnelPage() {
                     <div>Are you sure you want to delete the following domain?</div>
                     <div className="font-medium">{hostname}</div>
                 </div>,
-                async () => {
-                    await removeTunnelHostname(tunnel.id, hostnameId);
-                    toast.success('Domain deleted successfully.');
-                    fetchTunnel(id);
+                {
+                    onConfirm: async () => {
+                        await removeTunnelHostname(tunnel.id, hostnameId);
+                        toast.success('Domain deleted successfully.');
+                        fetchTunnel(id);
+                    },
                 },
             );
         } catch (error) {

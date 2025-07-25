@@ -1,8 +1,10 @@
 import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { downloadDataAsJson } from '@lib/utils';
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
+import { downloadDataAsJson, getMinimalBalancing } from '@lib/utils';
 import { useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import { RiErrorWarningLine } from 'react-icons/ri';
 import SubmitButton from '../../shared/SubmitButton';
 
 interface Props {
@@ -11,14 +13,14 @@ interface Props {
 
 function JobFormButtons({ steps }: Props) {
     const { step, setStep, setJobType } = useDeploymentContext() as DeploymentContextType;
+    const confirm = useInteractionContext() as InteractionContextType;
+
     const { trigger, getValues, formState } = useFormContext();
 
-    const isSpecificationsStepValid: () => Promise<boolean> = async () => {
-        const values = getValues();
-
+    const isSpecificationsStepValid = async (): Promise<boolean> => {
         const isValid = await trigger('specifications.targetNodesCount');
 
-        console.log(`Specifications step valid: ${isValid}`, values);
+        console.log(`Specifications step valid: ${isValid}`);
 
         if (formState.errors.specifications) {
             console.log('Specifications errors:', formState.errors.specifications);
@@ -34,6 +36,40 @@ function JobFormButtons({ steps }: Props) {
 
             if (!isValid) {
                 return;
+            }
+
+            const formValues = getValues();
+            const containerOrWorkerType = formValues.specifications.containerType || formValues.specifications.workerType;
+
+            const targetNodesCount = formValues.specifications.targetNodesCount;
+            const minimalBalancing = getMinimalBalancing(formValues.jobType, containerOrWorkerType);
+
+            if (targetNodesCount < minimalBalancing) {
+                const confirmed = await confirm(
+                    <div className="text-warning-700 bg-warning-50 col gap-3 rounded-md p-3 text-[15px]">
+                        <div className="row gap-1">
+                            <RiErrorWarningLine className="mb-px text-[20px]" />
+
+                            <div>
+                                The minimal recommended balancing is{' '}
+                                <span className="font-medium">{minimalBalancing} nodes</span>.
+                            </div>
+                        </div>
+
+                        <div>
+                            A target nodes count of <span className="font-medium">{targetNodesCount}</span> is neither
+                            recommended nor supported. Proceed at your own risk.
+                        </div>
+                    </div>,
+                    {
+                        modalSize: 'md',
+                        confirmButtonClassNames: 'bg-primary-500',
+                    },
+                );
+
+                if (!confirmed) {
+                    return;
+                }
             }
         }
 

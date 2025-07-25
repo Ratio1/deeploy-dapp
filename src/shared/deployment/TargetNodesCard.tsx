@@ -11,7 +11,6 @@ function TargetNodesCard() {
 
     useEffect(() => {
         if (autoAssign) {
-            // Set the value of the targetNodes array in the form as [{ address: '' }]
             setValue('deployment.targetNodes', [{ address: '' }]);
         }
     }, [autoAssign]);
@@ -21,7 +20,7 @@ function TargetNodesCard() {
             title="Target Nodes"
             label={
                 <Switch isSelected={autoAssign} onValueChange={setAutoAssign} size="sm">
-                    <SmallTag variant="blue">Auto-Assignment</SmallTag>
+                    <SmallTag variant={autoAssign ? 'blue' : 'default'}>Auto-Assignment</SmallTag>
                 </Switch>
             }
         >

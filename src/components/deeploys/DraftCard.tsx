@@ -28,7 +28,9 @@ export default function DraftCard({ project }: { project: Project }) {
                 </div>,
             );
 
-            if (!confirmed) return;
+            if (!confirmed) {
+                return;
+            }
 
             await db.projects.delete(project.id);
             toast.success('Project draft deleted successfully.');

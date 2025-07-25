@@ -24,10 +24,12 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
                     <div>Are you sure you want to delete the following tunnel?</div>
                     <div className="font-medium">{tunnel.alias}</div>
                 </div>,
-                async () => {
-                    await deleteTunnel(tunnel.id);
-                    fetchTunnels();
-                    toast.success('Tunnel deleted successfully.');
+                {
+                    onConfirm: async () => {
+                        await deleteTunnel(tunnel.id);
+                        fetchTunnels();
+                        toast.success('Tunnel deleted successfully.');
+                    },
                 },
             );
         } catch (error) {

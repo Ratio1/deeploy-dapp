@@ -34,7 +34,9 @@ export default function JobList({
         try {
             const confirmed = await confirm(<div>Are you sure you want to delete this job?</div>);
 
-            if (!confirmed) return;
+            if (!confirmed) {
+                return;
+            }
 
             await db.jobs.delete(job.id);
             toast.success('Job deleted successfully.');

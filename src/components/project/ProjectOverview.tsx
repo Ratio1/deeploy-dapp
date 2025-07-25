@@ -62,7 +62,9 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
         try {
             const confirmed = await confirm(<div>Are you sure you want to delete this project draft?</div>);
 
-            if (!confirmed) return;
+            if (!confirmed) {
+                return;
+            }
 
             await db.projects.delete(project.id);
             toast.success('Project draft deleted successfully.');
