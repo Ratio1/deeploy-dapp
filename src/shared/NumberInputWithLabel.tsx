@@ -8,9 +8,10 @@ interface Props {
     label: string;
     placeholder?: string;
     tag?: string;
+    hasWarning?: boolean;
 }
 
-export default function NumberInputWithLabel({ name, label, placeholder, tag }: Props) {
+export default function NumberInputWithLabel({ name, label, placeholder, tag, hasWarning }: Props) {
     const { control } = useFormContext();
 
     return (
@@ -36,6 +37,7 @@ export default function NumberInputWithLabel({ name, label, placeholder, tag }: 
                             onBlur={field.onBlur}
                             isInvalid={!!fieldState.error}
                             errorMessage={fieldState.error?.message}
+                            showsWarning={hasWarning}
                         />
                     );
                 }}

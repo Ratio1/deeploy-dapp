@@ -1,5 +1,5 @@
 import { ContainerOrWorkerType, genericContainerTypes } from '@data/containerAndWorkerTypes';
-import JobsCostRundown from '@shared/deployment/JobsCostRundown';
+import JobsCostRundown from '@shared/jobs/JobsCostRundown';
 import { GenericJob } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
 

@@ -8,7 +8,7 @@ export default function ImageContainerSection() {
                 <InputWithLabel
                     name="deployment.container.containerRegistry"
                     label="Container Registry"
-                    placeholder="docker.io"
+                    placeholder="docker.com"
                 />
             </div>
 

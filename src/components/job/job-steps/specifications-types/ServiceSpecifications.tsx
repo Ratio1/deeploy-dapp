@@ -1,7 +1,7 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { serviceContainerTypes } from '@data/containerAndWorkerTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
-import SelectContainerOrWorkerType from '@shared/deployment/SelectContainerOrWorkerType';
+import SelectContainerOrWorkerType from '@shared/jobs/SelectContainerOrWorkerType';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 

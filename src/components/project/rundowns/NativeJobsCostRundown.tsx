@@ -1,5 +1,5 @@
 import { ContainerOrWorkerType, nativeWorkerTypes } from '@data/containerAndWorkerTypes';
-import JobsCostRundown from '@shared/deployment/JobsCostRundown';
+import JobsCostRundown from '@shared/jobs/JobsCostRundown';
 import { NativeJob } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 

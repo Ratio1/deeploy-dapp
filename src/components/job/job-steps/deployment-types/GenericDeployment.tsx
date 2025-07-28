@@ -1,10 +1,10 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
-import ContainerSectionCard from '@shared/deployment/container/ContainerSectionCard';
-import DynamicEnvSection from '@shared/deployment/DynamicEnvSection';
-import KeyValueEntriesSection from '@shared/deployment/KeyValueEntriesSection';
-import TargetNodesCard from '@shared/deployment/target-nodes/TargetNodesCard';
 import InputWithLabel from '@shared/InputWithLabel';
+import ContainerSectionCard from '@shared/jobs/container/ContainerSectionCard';
+import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';
+import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
+import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
