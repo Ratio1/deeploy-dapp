@@ -7,7 +7,7 @@ import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import { JobPaymentAndDuration, JobSpecifications, JobType } from '@typedefs/deeploys';
 import { addMonths } from 'date-fns';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 function PaymentAndDuration() {
@@ -28,12 +28,26 @@ function PaymentAndDuration() {
     const handleDurationChange = (value: number) => {
         setDuration(value);
         setValue('paymentAndDuration.duration', value);
+
+        // If payment months count exceeds the new duration, adjust it
+        if (paymentMonthsCount > value) {
+            setPaymentMonthsCount(value);
+            setValue('paymentAndDuration.paymentMonthsCount', value);
+        }
     };
 
     const handlePaymentMonthsCountChange = (value: number) => {
         setPaymentMonthsCount(value);
         setValue('paymentAndDuration.paymentMonthsCount', value);
     };
+
+    // Ensure payment months count doesn't exceed duration when component mounts or duration changes
+    useEffect(() => {
+        if (paymentMonthsCount > duration) {
+            setPaymentMonthsCount(duration);
+            setValue('paymentAndDuration.paymentMonthsCount', duration);
+        }
+    }, [duration, paymentMonthsCount, setValue]);
 
     const summaryItems = [
         {
@@ -120,7 +134,7 @@ function PaymentAndDuration() {
                         aria-label="Payment (in advance)"
                         label="Payment (in advance)"
                         defaultValue={12}
-                        maxValue={24}
+                        maxValue={duration}
                         minValue={1}
                         size="sm"
                         step={1}

@@ -134,7 +134,10 @@ export default function RunningProjectCard({
                                 label="Usage"
                                 value={
                                     <Usage
-                                        used={3 + differenceInMonths(new Date(), new Date(project.createdAt))}
+                                        used={
+                                            (process.env.NODE_ENV === 'development' ? 3 : 0) +
+                                            differenceInMonths(new Date(), new Date(project.createdAt))
+                                        }
                                         total={
                                             _(jobs)
                                                 .map((job) => job.paymentAndDuration.duration)
@@ -221,7 +224,10 @@ export default function RunningProjectCard({
                                         <div className="w-[200px]">
                                             {/* TODO: Remove hardcoded values */}
                                             <Usage
-                                                used={3 + differenceInMonths(new Date(), new Date(project.createdAt))}
+                                                used={
+                                                    (process.env.NODE_ENV === 'development' ? 3 : 0) +
+                                                    differenceInMonths(new Date(), new Date(project.createdAt))
+                                                }
                                                 total={job.paymentAndDuration.duration}
                                                 isColored
                                             />
@@ -229,10 +235,10 @@ export default function RunningProjectCard({
                                     </div>
 
                                     <div className="row min-w-[114px]">
-                                        {getMonthsLeftUntilNextPayment(job) <= 0 ? (
-                                            <SmallTag variant="red">Payment overdue</SmallTag>
-                                        ) : job.paymentAndDuration.paymentMonthsCount === job.paymentAndDuration.duration ? (
+                                        {job.paymentAndDuration.paymentMonthsCount === job.paymentAndDuration.duration ? (
                                             <SmallTag variant="green">Paid in full</SmallTag>
+                                        ) : getMonthsLeftUntilNextPayment(job) <= 0 ? (
+                                            <SmallTag variant="red">Payment overdue</SmallTag>
                                         ) : (
                                             <SmallTag variant={getMonthsLeftUntilNextPayment(job) <= 1 ? 'orange' : 'default'}>
                                                 {getNextPaymentDueIn(job)}
