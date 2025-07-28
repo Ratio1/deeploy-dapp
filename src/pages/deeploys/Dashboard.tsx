@@ -1,17 +1,18 @@
 import Drafts from '@components/deeploys/Drafts';
-import Running from '@components/deeploys/Running';
+import Running, { RunningRef } from '@components/deeploys/Running';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import ActionButton from '@shared/ActionButton';
 import CustomTabs from '@shared/CustomTabs';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { RiBox3Line, RiFileTextLine } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
 
 function Dashboard() {
     const [selectedTab, setSelectedTab] = useState<'running' | 'drafts'>('running');
     const drafts = useLiveQuery(() => db.projects.toArray());
+    const runningRef = useRef<RunningRef>(null);
 
     const navigate = useNavigate();
 
@@ -23,6 +24,14 @@ function Dashboard() {
             setSelectedTab(tab);
         }
     }, [window.location.search]);
+
+    const handleExpandAll = () => {
+        runningRef.current?.expandAll();
+    };
+
+    const handleCollapseAll = () => {
+        runningRef.current?.collapseAll();
+    };
 
     return (
         <div className="col w-full flex-1 gap-5">
@@ -50,18 +59,18 @@ function Dashboard() {
 
                 {selectedTab === 'running' && (
                     <div className="row gap-2">
-                        <ActionButton className="slate-button" onPress={() => {}}>
+                        <ActionButton className="slate-button" onPress={handleExpandAll}>
                             <div className="compact">Expand all</div>
                         </ActionButton>
 
-                        <ActionButton className="slate-button" onPress={() => {}}>
+                        <ActionButton className="slate-button" onPress={handleCollapseAll}>
                             <div className="compact">Collapse all</div>
                         </ActionButton>
                     </div>
                 )}
             </div>
 
-            {selectedTab === 'running' ? <Running /> : <Drafts />}
+            {selectedTab === 'running' ? <Running ref={runningRef} /> : <Drafts />}
         </div>
     );
 }

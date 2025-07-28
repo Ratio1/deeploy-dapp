@@ -134,7 +134,7 @@ export default function RunningProjectCard({
             </div>
 
             {expanded && (
-                <div className="col gap-0 text-sm">
+                <div className="col rounded-lg bg-slate-50 py-3 text-sm">
                     {jobs?.map((job, index, array) => {
                         const jobTypeOption = jobTypeOptions.find(
                             (option) => option.id === job.jobType.toLowerCase(),
@@ -149,7 +149,7 @@ export default function RunningProjectCard({
                                         <div className="h-0.5 w-5 bg-slate-200"></div>
 
                                         {index === array.length - 1 && (
-                                            <div className="absolute bottom-0 left-0 h-[15px] w-0.5 bg-[#fdfdfd]"></div>
+                                            <div className="absolute bottom-0 left-0 h-[15px] w-0.5 bg-slate-50"></div>
                                         )}
                                     </div>
 

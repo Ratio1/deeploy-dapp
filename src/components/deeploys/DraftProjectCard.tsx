@@ -4,6 +4,7 @@ import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
+import { SmallTag } from '@shared/SmallTag';
 import { Job, Project } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { toast } from 'react-hot-toast';
@@ -64,8 +65,8 @@ export default function DraftProjectCard({ project }: { project: Project }) {
                         />
                     </div>
 
-                    <div className="min-w-[90px]">
-                        <CardItem label="Jobs" value={<>{jobs?.length ?? 0}</>} />
+                    <div className="min-w-[110px]">
+                        {!!jobs && <CardItem label="Jobs" value={<SmallTag>{jobs.length} jobs</SmallTag>} />}
                     </div>
 
                     <div className="min-w-[212px]">

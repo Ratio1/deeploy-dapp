@@ -14,7 +14,7 @@ function Drafts() {
             <ListHeader>
                 <div className="min-w-[82px]">ID</div>
                 <div className="min-w-[212px]">Name</div>
-                <div className="min-w-[90px]">Jobs</div>
+                <div className="min-w-[110px]">Jobs</div>
                 <div className="min-w-[212px]">Created</div>
 
                 {/* Accounts for the context menu button */}

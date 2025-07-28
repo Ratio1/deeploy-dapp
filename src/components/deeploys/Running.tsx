@@ -4,10 +4,15 @@ import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
 import { Project } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { RiDraftLine } from 'react-icons/ri';
 
-function Running() {
+export interface RunningRef {
+    expandAll: () => void;
+    collapseAll: () => void;
+}
+
+const Running = forwardRef<RunningRef>((_props, ref) => {
     // TODO: Replace with API call
     const projects: Project[] | undefined = useLiveQuery(() => db.projects.toArray());
 
@@ -24,6 +29,31 @@ function Running() {
             setExpanded(obj);
         }
     }, [projects]);
+
+    const expandAll = () => {
+        if (projects) {
+            const expandedState = {};
+            projects.forEach((project) => {
+                expandedState[project.id] = true;
+            });
+            setExpanded(expandedState);
+        }
+    };
+
+    const collapseAll = () => {
+        if (projects) {
+            const collapsedState = {};
+            projects.forEach((project) => {
+                collapsedState[project.id] = false;
+            });
+            setExpanded(collapsedState);
+        }
+    };
+
+    useImperativeHandle(ref, () => ({
+        expandAll,
+        collapseAll,
+    }));
 
     return (
         <div className="list">
@@ -61,6 +91,8 @@ function Running() {
             )}
         </div>
     );
-}
+});
+
+Running.displayName = 'Running';
 
 export default Running;
