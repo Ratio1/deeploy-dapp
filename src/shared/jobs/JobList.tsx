@@ -76,7 +76,7 @@ export default function JobList({
             </div>
 
             {jobs.map((job) => (
-                <div key={job.id} className="row justify-between gap-2 border-t-2 border-slate-200/65 px-4 py-3 text-sm">
+                <div key={job.id} className="row justify-between gap-2 border-t-2 border-slate-200/65 px-4 py-3 text-[13px]">
                     {renderJob(job)}
 
                     <ContextMenuWithTrigger

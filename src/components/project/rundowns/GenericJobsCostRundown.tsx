@@ -46,7 +46,7 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
                 ];
 
                 return (
-                    <div className="text-sm">
+                    <div>
                         {entries.map((entry, index) => (
                             <span key={entry.label}>
                                 <span className="text-slate-500">{entry.label}: </span>

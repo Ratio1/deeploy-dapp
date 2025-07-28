@@ -65,7 +65,7 @@ const Running = forwardRef<RunningRef>((_props, ref) => {
                     <div className="min-w-[200px]">Usage</div>
                 </div>
 
-                <div className="text-right">Next payment due</div>
+                <div className="min-w-[124px]">Next payment due</div>
             </ListHeader>
 
             {projects?.map((project, index) => (

@@ -40,7 +40,10 @@ export default function JobsCostRundown({
         >
             {jobs.map((job) => {
                 return (
-                    <div key={job.id} className="row justify-between gap-12 border-t-2 border-slate-200/65 px-4 py-3 text-sm">
+                    <div
+                        key={job.id}
+                        className="row justify-between gap-12 border-t-2 border-slate-200/65 px-4 py-3 text-[13px]"
+                    >
                         {renderJob(job)}
 
                         <div className="row gap-4">

@@ -1,4 +1,5 @@
 import { Skeleton } from '@heroui/skeleton';
+import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
@@ -11,6 +12,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { RiArrowRightSLine, RiCalendarLine } from 'react-icons/ri';
+import { Link } from 'react-router-dom';
 
 export default function RunningProjectCard({
     project,
@@ -55,185 +57,198 @@ export default function RunningProjectCard({
     }
 
     return (
-        <BorderedCard onClick={toggle} isHoverable>
-            <div className="row justify-between">
-                <div className="row gap-8">
-                    <div className="min-w-[232px]">
-                        <CardItem
-                            label="Name"
-                            value={
-                                <div className="row gap-2">
-                                    <RiArrowRightSLine
-                                        className={`text-[22px] text-slate-400 transition-all ${expanded ? 'rotate-90' : ''}`}
-                                    />
-                                    <div
-                                        className="mt-px h-2.5 w-2.5 rounded-full"
-                                        style={{ backgroundColor: project.color }}
-                                    ></div>
-                                    <div>{project.name}</div>
-                                </div>
-                            }
-                            isBold
-                        />
-                    </div>
-
-                    <div className="min-w-[80px]">
-                        {
+        <Link to={`${routePath.deeploys}/${routePath.draft}/${project.id}`}>
+            <BorderedCard isHoverable>
+                <div className="row justify-between">
+                    <div className="row gap-8">
+                        <div className="min-w-[232px]">
                             <CardItem
-                                label="Jobs"
+                                label="Name"
                                 value={
-                                    <div className="text-[13px]">
-                                        {jobs.length} job{jobs.length > 1 ? 's' : ''}
+                                    <div className="row gap-2">
+                                        <div
+                                            className="-m-1 rounded-md p-1 hover:bg-slate-100"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                e.preventDefault();
+                                                toggle();
+                                            }}
+                                        >
+                                            <RiArrowRightSLine
+                                                className={`text-[22px] text-slate-400 transition-all ${expanded ? 'rotate-90' : ''}`}
+                                            />
+                                        </div>
+
+                                        <div
+                                            className="mt-px ml-1 h-2.5 w-2.5 rounded-full"
+                                            style={{ backgroundColor: project.color }}
+                                        ></div>
+
+                                        <div>{project.name}</div>
                                     </div>
                                 }
+                                isBold
                             />
-                        }
-                    </div>
+                        </div>
 
-                    <div className="min-w-[164px]">
-                        <CardItem
-                            label="Expiration Date"
-                            value={
-                                <SmallTag>
-                                    <div className="row gap-1">
-                                        <RiCalendarLine className="text-sm" />
-
-                                        {addMonths(
-                                            new Date(project.createdAt),
-                                            _(jobs)
-                                                .map((job) => job.paymentAndDuration.duration)
-                                                .max() as number,
-                                        ).toLocaleString(undefined, {
-                                            month: 'short',
-                                            day: 'numeric',
-                                            year: 'numeric',
-                                        })}
-                                    </div>
-                                </SmallTag>
-                            }
-                        />
-                    </div>
-
-                    {/* TODO: Remove hardcoded values */}
-                    <div className="min-w-[200px]">
-                        <CardItem
-                            label="Usage"
-                            value={
-                                <Usage
-                                    used={3 + differenceInMonths(new Date(), new Date(project.createdAt))}
-                                    total={
-                                        _(jobs)
-                                            .map((job) => job.paymentAndDuration.duration)
-                                            .max() as number
+                        <div className="min-w-[80px]">
+                            {
+                                <CardItem
+                                    label="Jobs"
+                                    value={
+                                        <div className="text-[13px]">
+                                            {jobs.length} job{jobs.length > 1 ? 's' : ''}
+                                        </div>
                                     }
                                 />
                             }
-                            isBold
+                        </div>
+
+                        <div className="min-w-[164px]">
+                            <CardItem
+                                label="Expiration Date"
+                                value={
+                                    <SmallTag>
+                                        <div className="row gap-1">
+                                            <RiCalendarLine className="text-sm" />
+
+                                            {addMonths(
+                                                new Date(project.createdAt),
+                                                _(jobs)
+                                                    .map((job) => job.paymentAndDuration.duration)
+                                                    .max() as number,
+                                            ).toLocaleString(undefined, {
+                                                month: 'short',
+                                                day: 'numeric',
+                                                year: 'numeric',
+                                            })}
+                                        </div>
+                                    </SmallTag>
+                                }
+                            />
+                        </div>
+
+                        {/* TODO: Remove hardcoded values */}
+                        <div className="min-w-[200px]">
+                            <CardItem
+                                label="Usage"
+                                value={
+                                    <Usage
+                                        used={3 + differenceInMonths(new Date(), new Date(project.createdAt))}
+                                        total={
+                                            _(jobs)
+                                                .map((job) => job.paymentAndDuration.duration)
+                                                .max() as number
+                                        }
+                                    />
+                                }
+                                isBold
+                            />
+                        </div>
+                    </div>
+
+                    <div className="row min-w-[124px]">
+                        <CardItem
+                            label="Next payment due"
+                            value={
+                                <>
+                                    {earliestPaymentJob && (
+                                        <>
+                                            {getMonthsLeftUntilNextPayment(earliestPaymentJob) <= 0 ? (
+                                                <SmallTag variant="red">Payment overdue</SmallTag>
+                                            ) : (
+                                                <SmallTag
+                                                    variant={
+                                                        getMonthsLeftUntilNextPayment(earliestPaymentJob) <= 1
+                                                            ? 'orange'
+                                                            : 'default'
+                                                    }
+                                                >
+                                                    {getNextPaymentDueIn(earliestPaymentJob)}
+                                                </SmallTag>
+                                            )}
+                                        </>
+                                    )}
+                                </>
+                            }
                         />
                     </div>
                 </div>
 
-                <div className="row justify-end">
-                    <CardItem
-                        label="Next payment due"
-                        value={
-                            <>
-                                {earliestPaymentJob && (
-                                    <>
-                                        {getMonthsLeftUntilNextPayment(earliestPaymentJob) <= 0 ? (
+                {expanded && (
+                    <div className="col rounded-lg bg-slate-50 py-2 pr-2.5 text-sm">
+                        {jobs?.map((job, index, array) => {
+                            const jobTypeOption = jobTypeOptions.find(
+                                (option) => option.id === job.jobType.toLowerCase(),
+                            ) as JobTypeOption;
+
+                            return (
+                                <div key={job.id} className="row">
+                                    <div className="row flex-1 gap-8">
+                                        <div className="row gap-1.5">
+                                            {/* Tree Line */}
+                                            <div className="row relative mr-2 ml-2.5">
+                                                <div className="h-10 w-0.5 bg-slate-300"></div>
+                                                <div className="h-0.5 w-5 bg-slate-300"></div>
+
+                                                {index === array.length - 1 && (
+                                                    <div className="absolute bottom-0 left-0 h-[19px] w-0.5 bg-slate-50"></div>
+                                                )}
+                                            </div>
+
+                                            <div className={`text-[17px] ${jobTypeOption.color}`}>{jobTypeOption.icon}</div>
+
+                                            <div className="w-[275px] truncate font-medium">
+                                                {job.jobType === JobType.Service
+                                                    ? (job as ServiceJob).deployment.serviceType
+                                                    : (job as GenericJob | NativeJob).deployment.appAlias}
+                                            </div>
+                                        </div>
+
+                                        <div className="min-w-[164px]">
+                                            <SmallTag>
+                                                <div className="row gap-1">
+                                                    <RiCalendarLine className="text-sm" />
+
+                                                    {addMonths(
+                                                        new Date(project.createdAt),
+                                                        job.paymentAndDuration.duration,
+                                                    ).toLocaleString(undefined, {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric',
+                                                    })}
+                                                </div>
+                                            </SmallTag>
+                                        </div>
+
+                                        <div className="w-[200px]">
+                                            {/* TODO: Remove hardcoded values */}
+                                            <Usage
+                                                used={3 + differenceInMonths(new Date(), new Date(project.createdAt))}
+                                                total={job.paymentAndDuration.duration}
+                                                isColored
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="row min-w-[114px]">
+                                        {getMonthsLeftUntilNextPayment(job) <= 0 ? (
                                             <SmallTag variant="red">Payment overdue</SmallTag>
+                                        ) : job.paymentAndDuration.paymentMonthsCount === job.paymentAndDuration.duration ? (
+                                            <SmallTag variant="green">Paid in full</SmallTag>
                                         ) : (
-                                            <SmallTag
-                                                variant={
-                                                    getMonthsLeftUntilNextPayment(earliestPaymentJob) <= 1
-                                                        ? 'orange'
-                                                        : 'default'
-                                                }
-                                            >
-                                                {getNextPaymentDueIn(earliestPaymentJob)}
+                                            <SmallTag variant={getMonthsLeftUntilNextPayment(job) <= 1 ? 'orange' : 'default'}>
+                                                {getNextPaymentDueIn(job)}
                                             </SmallTag>
                                         )}
-                                    </>
-                                )}
-                            </>
-                        }
-                    />
-                </div>
-            </div>
-
-            {expanded && (
-                <div className="col rounded-lg bg-slate-50 py-2 text-sm">
-                    {jobs?.map((job, index, array) => {
-                        const jobTypeOption = jobTypeOptions.find(
-                            (option) => option.id === job.jobType.toLowerCase(),
-                        ) as JobTypeOption;
-
-                        return (
-                            <div key={job.id} className="row">
-                                <div className="row flex-1 gap-8">
-                                    <div className="row gap-1.5">
-                                        {/* Tree Line */}
-                                        <div className="row relative mr-2 ml-[10px]">
-                                            <div className="h-10 w-0.5 bg-slate-200"></div>
-                                            <div className="h-0.5 w-5 bg-slate-200"></div>
-
-                                            {index === array.length - 1 && (
-                                                <div className="absolute bottom-0 left-0 h-[19px] w-0.5 bg-slate-50"></div>
-                                            )}
-                                        </div>
-
-                                        <div className={`text-[17px] ${jobTypeOption.color}`}>{jobTypeOption.icon}</div>
-
-                                        <div className="w-[275px] truncate font-medium">
-                                            {job.jobType === JobType.Service
-                                                ? (job as ServiceJob).deployment.serviceType
-                                                : (job as GenericJob | NativeJob).deployment.appAlias}
-                                        </div>
-                                    </div>
-
-                                    <div className="min-w-[164px]">
-                                        <SmallTag>
-                                            <div className="row gap-1">
-                                                <RiCalendarLine className="text-sm" />
-
-                                                {addMonths(
-                                                    new Date(project.createdAt),
-                                                    job.paymentAndDuration.duration,
-                                                ).toLocaleString(undefined, {
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    year: 'numeric',
-                                                })}
-                                            </div>
-                                        </SmallTag>
-                                    </div>
-
-                                    <div className="w-[200px]">
-                                        {/* TODO: Remove hardcoded values */}
-                                        <Usage
-                                            used={3 + differenceInMonths(new Date(), new Date(project.createdAt))}
-                                            total={job.paymentAndDuration.duration}
-                                            isColored
-                                        />
                                     </div>
                                 </div>
-
-                                <div className="row justify-end">
-                                    {getMonthsLeftUntilNextPayment(job) <= 0 ? (
-                                        <SmallTag variant="red">Payment overdue</SmallTag>
-                                    ) : job.paymentAndDuration.paymentMonthsCount === job.paymentAndDuration.duration ? (
-                                        <SmallTag variant="green">Paid in full</SmallTag>
-                                    ) : (
-                                        <SmallTag variant={getMonthsLeftUntilNextPayment(job) <= 1 ? 'orange' : 'default'}>
-                                            {getNextPaymentDueIn(job)}
-                                        </SmallTag>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
-        </BorderedCard>
+                            );
+                        })}
+                    </div>
+                )}
+            </BorderedCard>
+        </Link>
     );
 }
