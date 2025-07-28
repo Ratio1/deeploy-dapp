@@ -1,7 +1,6 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
-import { SERVICE_TYPES } from '@data/serviceTypes';
 import {
     dynamicEnvEntrySchema,
     enabledBooleanTypeValue,
@@ -16,7 +15,7 @@ import { z } from 'zod';
 // Common validation patterns
 const validations = {
     // String patterns
-    appAlias: getStringWithSpacesSchema(3, 36),
+    jobAlias: getStringWithSpacesSchema(3, 36),
 
     containerImage: z
         .string({ required_error: 'Value is required' })
@@ -79,7 +78,6 @@ const validations = {
     restartPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
     imagePullPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
     pluginSignature: z.enum(PLUGIN_SIGNATURE_TYPES, { required_error: 'Value is required' }),
-    serviceType: z.enum(SERVICE_TYPES, { required_error: 'Value is required' }),
     chainstoreResponse: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
 };
 
@@ -174,7 +172,7 @@ const dualContainerSchema = z.discriminatedUnion('type', [imageContainerSchema, 
 
 export const genericAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
-        appAlias: validations.appAlias,
+        jobAlias: validations.jobAlias,
         container: dualContainerSchema,
         port: validations.port,
         envVars: validations.envVars,
@@ -186,7 +184,7 @@ export const genericAppDeploymentSchema = applyTunnelingRefinements(
 
 export const nativeAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
-        appAlias: validations.appAlias,
+        jobAlias: validations.jobAlias,
         pluginSignature: validations.pluginSignature,
         customParams: validations.customParams,
         pipelineParams: validations.pipelineParams,
@@ -198,7 +196,7 @@ export const nativeAppDeploymentSchema = applyTunnelingRefinements(
 
 export const serviceAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
-        serviceType: validations.serviceType,
+        jobAlias: validations.jobAlias,
         envVars: validations.envVars,
         dynamicEnvVars: validations.dynamicEnvVars,
         serviceReplica: nodeSchema.shape.address,

@@ -21,7 +21,7 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
 
                 const entries = [
                     // Alias
-                    { label: 'Alias', value: genericJob.deployment.appAlias },
+                    { label: 'Alias', value: genericJob.deployment.jobAlias },
 
                     // Specifications
                     { label: 'App Type', value: genericJob.specifications.applicationType },

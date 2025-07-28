@@ -29,6 +29,7 @@ layer(base);
     --color-light: #fcfcfd;
     --color-primary: #1b47f7;
 
+    --color-slate-75: oklch(97.8% 0.004 247.9);
     --color-slate-150: #e9edf2;
 
     --outline-width-3: 3px;

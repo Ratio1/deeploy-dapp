@@ -36,7 +36,7 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
 
                 return (
                     <>
-                        <div className="min-w-[128px]">{nativeJob.deployment.appAlias}</div>
+                        <div className="min-w-[128px]">{nativeJob.deployment.jobAlias}</div>
                         <div className="min-w-[90px]">
                             <SmallTag>{nativeJob.paymentAndDuration.duration} months</SmallTag>
                         </div>

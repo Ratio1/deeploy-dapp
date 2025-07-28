@@ -36,7 +36,7 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
 
                 return (
                     <>
-                        <div className="min-w-[128px]">{genericJob.deployment.appAlias}</div>
+                        <div className="min-w-[128px]">{genericJob.deployment.jobAlias}</div>
                         <div className="min-w-[90px]">
                             <SmallTag>{genericJob.paymentAndDuration.duration} months</SmallTag>
                         </div>

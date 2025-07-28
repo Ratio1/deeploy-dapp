@@ -21,7 +21,7 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeJob[] }) {
 
                 const entries = [
                     // Alias
-                    { label: 'Alias', value: nativeJob.deployment.appAlias },
+                    { label: 'Alias', value: nativeJob.deployment.jobAlias },
 
                     // Specifications
                     { label: 'App Type', value: nativeJob.specifications.applicationType },

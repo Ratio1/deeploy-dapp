@@ -4,7 +4,6 @@ import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from 
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
-import { SERVICE_TYPES } from '@data/serviceTypes';
 import { R1Address } from './blockchain';
 
 enum JobType {
@@ -57,7 +56,7 @@ type BaseJobDeployment = {
 };
 
 type GenericJobDeployment = BaseJobDeployment & {
-    appAlias: string;
+    jobAlias: string;
     container:
         | {
               type: 'image';
@@ -89,7 +88,7 @@ type GenericJobDeployment = BaseJobDeployment & {
 };
 
 type NativeJobDeployment = BaseJobDeployment & {
-    appAlias: string;
+    jobAlias: string;
     pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
     customParams: Array<{
         key: string;
@@ -105,7 +104,7 @@ type NativeJobDeployment = BaseJobDeployment & {
 };
 
 type ServiceJobDeployment = BaseJobDeployment & {
-    serviceType: (typeof SERVICE_TYPES)[number];
+    jobAlias: string;
     envVars: Array<{
         key: string;
         value: string;

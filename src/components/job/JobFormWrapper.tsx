@@ -8,7 +8,6 @@ import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerAndWorkerTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
-import { SERVICE_TYPES } from '@data/serviceTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import db from '@lib/storage/db';
@@ -88,7 +87,6 @@ function JobFormWrapper() {
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            serviceType: SERVICE_TYPES[0],
         },
     });
 

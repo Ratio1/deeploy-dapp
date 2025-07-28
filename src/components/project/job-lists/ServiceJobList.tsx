@@ -19,7 +19,7 @@ export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
             }
             tableHeader={
                 <>
-                    <div className="min-w-[128px]">Type</div>
+                    <div className="min-w-[128px]">Alias</div>
                     <div className="min-w-[90px]">Duration</div>
                     <div className="min-w-[106px]">Target Nodes</div>
                     <div className="min-w-[234px]">Container Type</div>
@@ -36,7 +36,7 @@ export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
 
                 return (
                     <>
-                        <div className="min-w-[128px]">{serviceJob.deployment.serviceType}</div>
+                        <div className="min-w-[128px]">{serviceJob.deployment.jobAlias}</div>
                         <div className="min-w-[90px]">
                             <SmallTag>{serviceJob.paymentAndDuration.duration} months</SmallTag>
                         </div>

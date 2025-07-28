@@ -5,7 +5,7 @@ import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
 import Usage from '@shared/projects/Usage';
 import { SmallTag } from '@shared/SmallTag';
-import { GenericJob, Job, JobType, NativeJob, Project, ServiceJob } from '@typedefs/deeploys';
+import { Job, Project } from '@typedefs/deeploys';
 import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
 import { addMonths, differenceInMonths, formatDistanceToNowStrict } from 'date-fns';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -176,7 +176,7 @@ export default function RunningProjectCard({
                 </div>
 
                 {expanded && (
-                    <div className="col rounded-lg bg-slate-50 py-2 pr-2.5 text-sm">
+                    <div className="col bg-slate-75 rounded-lg py-2 pr-2.5 text-sm">
                         {jobs?.map((job, index, array) => {
                             const jobTypeOption = jobTypeOptions.find(
                                 (option) => option.id === job.jobType.toLowerCase(),
@@ -192,17 +192,13 @@ export default function RunningProjectCard({
                                                 <div className="h-0.5 w-5 bg-slate-300"></div>
 
                                                 {index === array.length - 1 && (
-                                                    <div className="absolute bottom-0 left-0 h-[19px] w-0.5 bg-slate-50"></div>
+                                                    <div className="bg-slate-75 absolute bottom-0 left-0 h-[19px] w-0.5"></div>
                                                 )}
                                             </div>
 
                                             <div className={`text-[17px] ${jobTypeOption.color}`}>{jobTypeOption.icon}</div>
 
-                                            <div className="w-[275px] truncate font-medium">
-                                                {job.jobType === JobType.Service
-                                                    ? (job as ServiceJob).deployment.serviceType
-                                                    : (job as GenericJob | NativeJob).deployment.appAlias}
-                                            </div>
+                                            <div className="w-[275px] truncate font-medium">{job.deployment.jobAlias}</div>
                                         </div>
 
                                         <div className="min-w-[164px]">

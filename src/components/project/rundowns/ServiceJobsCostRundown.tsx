@@ -21,8 +21,8 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
                 ) as ContainerOrWorkerType;
 
                 const entries = [
-                    // Service Type
-                    { label: 'Service Type', value: serviceJob.deployment.serviceType },
+                    // Alias
+                    { label: 'Alias', value: serviceJob.deployment.jobAlias },
                     // Specifications
                     { label: 'App Type', value: serviceJob.specifications.applicationType },
                     { label: 'Target Nodes', value: serviceJob.specifications.targetNodesCount },

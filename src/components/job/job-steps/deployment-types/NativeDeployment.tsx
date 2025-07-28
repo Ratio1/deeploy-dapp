@@ -18,7 +18,7 @@ function NativeDeployment() {
         <div className="col gap-6">
             <SlateCard title="App Identity">
                 <div className="flex gap-4">
-                    <InputWithLabel name="deployment.appAlias" label="Alias" placeholder="My App" />
+                    <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="My App" />
                     <SelectWithLabel
                         name="deployment.pluginSignature"
                         label="Plugin Signature"
