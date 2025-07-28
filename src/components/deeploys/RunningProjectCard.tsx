@@ -25,6 +25,8 @@ export default function RunningProjectCard({
     const [earliestPaymentJob, setEarliestPaymentJob] = useState<Job>();
 
     useEffect(() => {
+        console.log(project.name, jobs);
+
         if (jobs) {
             setEarliestPaymentJob(
                 _(jobs)
@@ -134,22 +136,22 @@ export default function RunningProjectCard({
             </div>
 
             {expanded && (
-                <div className="col rounded-lg bg-slate-50 py-3 text-sm">
+                <div className="col rounded-lg bg-slate-50 py-2 text-sm">
                     {jobs?.map((job, index, array) => {
                         const jobTypeOption = jobTypeOptions.find(
                             (option) => option.id === job.jobType.toLowerCase(),
                         ) as JobTypeOption;
 
                         return (
-                            <div key={job.id} className="row gap-6">
+                            <div key={job.id} className="row gap-48">
                                 <div className="row gap-1.5">
                                     {/* Tree Line */}
                                     <div className="row relative mr-2 ml-[10px]">
-                                        <div className="h-8 w-0.5 bg-slate-200"></div>
+                                        <div className="h-9 w-0.5 bg-slate-200"></div>
                                         <div className="h-0.5 w-5 bg-slate-200"></div>
 
                                         {index === array.length - 1 && (
-                                            <div className="absolute bottom-0 left-0 h-[15px] w-0.5 bg-slate-50"></div>
+                                            <div className="absolute bottom-0 left-0 h-[17px] w-0.5 bg-slate-50"></div>
                                         )}
                                     </div>
 
@@ -162,7 +164,7 @@ export default function RunningProjectCard({
                                     </div>
                                 </div>
 
-                                <div className="min-w-[104px]">
+                                <div className="ml-2 min-w-[104px]">
                                     <SmallTag>
                                         <div className="row gap-1">
                                             <RiCalendarLine className="text-sm" />
@@ -180,7 +182,7 @@ export default function RunningProjectCard({
                                     </SmallTag>
                                 </div>
 
-                                <div className="center-all relative w-[124px] rounded-md bg-slate-100 py-1">
+                                {/* <div className="center-all relative w-[124px] rounded-md bg-slate-100 py-1">
                                     <div className="z-10 text-[12px] font-medium">
                                         {job.paymentAndDuration.paymentMonthsCount < job.paymentAndDuration.duration ? (
                                             <div className="text-slate-600">
@@ -198,20 +200,20 @@ export default function RunningProjectCard({
                                             width: `${(job.paymentAndDuration.paymentMonthsCount / job.paymentAndDuration.duration) * 100}%`,
                                         }}
                                     ></div>
-                                </div>
+                                </div> */}
 
-                                {job.paymentAndDuration.paymentMonthsCount < job.paymentAndDuration.duration && (
-                                    <div className="row gap-1.5">
-                                        {/* TODO: Remove hardcoded job id */}
-                                        {job.id === 9 ? (
-                                            <SmallTag variant="red">Payment overdue</SmallTag>
-                                        ) : (
-                                            <SmallTag variant={getMonthsLeftUntilNextPayment(job) <= 1 ? 'orange' : 'default'}>
-                                                Next payment due in {getNextPaymentDueIn(job)}
-                                            </SmallTag>
-                                        )}
-                                    </div>
-                                )}
+                                <div className="row ml-[51px] gap-1.5">
+                                    {/* TODO: Remove hardcoded job id */}
+                                    {job.id === 9 ? (
+                                        <SmallTag variant="red">Payment overdue</SmallTag>
+                                    ) : job.paymentAndDuration.paymentMonthsCount === job.paymentAndDuration.duration ? (
+                                        <SmallTag variant="green">Paid in full</SmallTag>
+                                    ) : (
+                                        <SmallTag variant={getMonthsLeftUntilNextPayment(job) <= 1 ? 'orange' : 'default'}>
+                                            {getNextPaymentDueIn(job)}
+                                        </SmallTag>
+                                    )}
+                                </div>
                             </div>
                         );
                     })}

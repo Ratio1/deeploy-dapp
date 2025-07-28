@@ -61,7 +61,7 @@ const Running = forwardRef<RunningRef>((_props, ref) => {
                 <div className="row gap-2">
                     <div className="min-w-[232px]">Name</div>
                     <div className="min-w-[110px]">Jobs</div>
-                    <div className="min-w-[212px]">Created</div>
+                    <div className="min-w-[212px]">Expiration Date</div>
                 </div>
 
                 <div className="min-w-[150px]">Next payment due</div>
