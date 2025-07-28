@@ -27,8 +27,9 @@ export default function SpecsCardWithBalancingWarning({ jobType }: { jobType: Jo
         );
     }, [containerOrWorkerTypeName]);
 
-    const hasWarning =
-        !!targetNodesCount && targetNodesCount < (containerOrWorkerType as ContainerOrWorkerType).minimalBalancing;
+    const hasWarning = !containerOrWorkerType
+        ? false
+        : !!targetNodesCount && targetNodesCount < containerOrWorkerType.minimalBalancing;
 
     return (
         <SlateCard>

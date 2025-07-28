@@ -9,44 +9,13 @@ import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import SupportFooter from '@shared/SupportFooter';
 import { Job, JobType, ProjectPage, type Project } from '@typedefs/deeploys';
+import { jobTypeOptions } from '@typedefs/jobType';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { RiAddLine, RiBox3Line, RiDatabase2Line, RiDeleteBin2Line, RiTerminalBoxLine, RiWalletLine } from 'react-icons/ri';
+import { RiAddLine, RiDeleteBin2Line, RiWalletLine } from 'react-icons/ri';
 import { Link, useNavigate } from 'react-router-dom';
 import ProjectIdentity from './ProjectIdentity';
 import ProjectStats from './ProjectStats';
-
-type DeploymentOption = {
-    id: string;
-    title: string;
-    icon: React.ReactNode;
-    color: string;
-    jobType: JobType;
-};
-
-const options: DeploymentOption[] = [
-    {
-        id: 'generic',
-        title: 'Generic App',
-        icon: <RiBox3Line />,
-        color: 'text-primary-500',
-        jobType: JobType.Generic,
-    },
-    {
-        id: 'native',
-        title: 'Native App',
-        icon: <RiTerminalBoxLine />,
-        color: 'text-green-600',
-        jobType: JobType.Native,
-    },
-    {
-        id: 'service',
-        title: 'Service',
-        icon: <RiDatabase2Line />,
-        color: 'text-purple-500',
-        jobType: JobType.Service,
-    },
-];
 
 export default function ProjectOverview({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
     const confirm = useInteractionContext() as InteractionContextType;
@@ -127,7 +96,7 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                         </div>
 
                         <div className="row gap-2">
-                            {options.map((option) => (
+                            {jobTypeOptions.map((option) => (
                                 <ActionButton
                                     key={option.id}
                                     className="slate-button"

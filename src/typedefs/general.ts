@@ -1,13 +1,3 @@
-// TODO: Deprecated | to be replaced
-type RunningProject = {
-    alias: string;
-    pluginSignature: string;
-    nodes: number;
-    processor: 'GPU' | 'CPU';
-    runningNodes: string;
-    expiresAt: string;
-};
-
 type Invoice = {
     id: string;
     amount: number;
@@ -24,4 +14,4 @@ type BillingInfo = {
     city: string;
 };
 
-export type { BillingInfo, Invoice, RunningProject };
+export type { BillingInfo, Invoice };

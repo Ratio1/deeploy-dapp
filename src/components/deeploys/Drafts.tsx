@@ -7,7 +7,7 @@ import { RiDraftLine } from 'react-icons/ri';
 import DraftProjectCard from './DraftProjectCard';
 
 function Drafts() {
-    const drafts: Project[] | undefined = useLiveQuery(() => db.projects.toArray());
+    const projects: Project[] | undefined = useLiveQuery(() => db.projects.toArray());
 
     return (
         <div className="list">
@@ -21,13 +21,13 @@ function Drafts() {
                 <div className="min-w-[32px]"></div>
             </ListHeader>
 
-            {drafts?.map((project) => (
+            {projects?.map((project) => (
                 <div key={project.id}>
                     <DraftProjectCard project={project} />
                 </div>
             ))}
 
-            {!drafts?.length && (
+            {!projects?.length && (
                 <div className="center-all w-full p-14">
                     <EmptyData
                         title="No drafts found"

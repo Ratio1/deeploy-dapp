@@ -1,6 +1,5 @@
 import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { downloadDataAsJson } from '@lib/utils';
 import { useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -12,14 +11,14 @@ interface Props {
 
 function JobFormButtons({ steps }: Props) {
     const { step, setStep, setJobType } = useDeploymentContext() as DeploymentContextType;
-    const confirm = useInteractionContext() as InteractionContextType;
 
     const { trigger, getValues, formState } = useFormContext();
 
     const isSpecificationsStepValid = async (): Promise<boolean> => {
         const isValid = await trigger('specifications.targetNodesCount');
+        const formData = getValues();
 
-        console.log(`Specifications step valid: ${isValid}`);
+        console.log(`Specifications step valid: ${isValid}`, formData);
 
         if (formState.errors.specifications) {
             console.log('Specifications errors:', formState.errors.specifications);

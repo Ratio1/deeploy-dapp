@@ -2,6 +2,7 @@ import Drafts from '@components/deeploys/Drafts';
 import Running from '@components/deeploys/Running';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
+import ActionButton from '@shared/ActionButton';
 import CustomTabs from '@shared/CustomTabs';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
@@ -46,6 +47,18 @@ function Dashboard() {
                         navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=${key}`);
                     }}
                 />
+
+                {selectedTab === 'running' && (
+                    <div className="row gap-2">
+                        <ActionButton className="slate-button" onPress={() => {}}>
+                            <div className="compact">Expand all</div>
+                        </ActionButton>
+
+                        <ActionButton className="slate-button" onPress={() => {}}>
+                            <div className="compact">Collapse all</div>
+                        </ActionButton>
+                    </div>
+                )}
             </div>
 
             {selectedTab === 'running' ? <Running /> : <Drafts />}

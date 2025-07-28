@@ -5,16 +5,18 @@ export const BorderedCard: FunctionComponent<
     PropsWithChildren<{
         isHoverable?: boolean;
         isLight?: boolean;
+        onClick?: () => void;
     }>
-> = ({ children, isHoverable, isLight = true }) => {
+> = ({ children, isHoverable, isLight = true, onClick }) => {
     return (
         <div
             className={clsx('flex w-full overflow-hidden rounded-xl border-2 border-slate-100 bg-slate-100', {
                 'cursor-pointer hover:border-slate-200': isHoverable,
             })}
+            onClick={onClick}
         >
             <div
-                className={clsx('col w-full gap-4 px-4 py-4 lg:gap-5 lg:px-6', {
+                className={clsx('col w-full gap-4 px-4 py-4 lg:px-6', {
                     'bg-[#fdfdfd]': isLight,
                 })}
             >

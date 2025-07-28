@@ -1,52 +1,222 @@
+import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
+import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { SmallTag } from '@shared/SmallTag';
-import { RunningProject } from '@typedefs/general';
+import { GenericJob, Job, JobType, NativeJob, Project, ServiceJob } from '@typedefs/deeploys';
+import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
+import { addMonths, differenceInMonths, formatDistanceToNowStrict } from 'date-fns';
+import { useLiveQuery } from 'dexie-react-hooks';
+import _ from 'lodash';
+import { useEffect, useState } from 'react';
+import { RiArrowRightSLine, RiCalendarLine, RiSecurePaymentLine } from 'react-icons/ri';
 
-export default function RunningProjectCard({ project }: { project: RunningProject }) {
+export default function RunningProjectCard({
+    project,
+    expanded,
+    toggle,
+}: {
+    project: Project;
+    expanded: boolean | undefined;
+    toggle: () => void;
+}) {
+    const jobs: Job[] | undefined = useLiveQuery(() => db.jobs.where('projectId').equals(project.id).toArray(), [project]);
+
+    const [earliestPaymentJob, setEarliestPaymentJob] = useState<Job>();
+
+    useEffect(() => {
+        if (jobs) {
+            setEarliestPaymentJob(
+                _(jobs)
+                    .filter((job) => getMonthsLeftUntilNextPayment(job) !== -1)
+                    .minBy((job) => getMonthsLeftUntilNextPayment(job)) as Job,
+            );
+        }
+    }, [jobs]);
+
+    const getMonthsLeftUntilNextPayment = (job: Job) => {
+        return job.paymentAndDuration.paymentMonthsCount === job.paymentAndDuration.duration
+            ? -1
+            : differenceInMonths(
+                  addMonths(new Date(project.createdAt), job.paymentAndDuration.paymentMonthsCount),
+                  new Date(project.createdAt),
+              );
+    };
+
+    const getNextPaymentDueIn = (job: Job) => {
+        return formatDistanceToNowStrict(addMonths(new Date(project.createdAt), job.paymentAndDuration.paymentMonthsCount));
+    };
+
     return (
-        <BorderedCard>
+        <BorderedCard onClick={toggle} isHoverable>
             <div className="row justify-between gap-3 lg:gap-6">
-                <div className="min-w-[168px]">
-                    <CardItem label="Alias" value={<>{project.alias}</>} isBold />
+                <div className="row gap-2">
+                    <div className="min-w-[232px]">
+                        <CardItem
+                            label="Name"
+                            value={
+                                <div className="row gap-2">
+                                    <RiArrowRightSLine
+                                        className={`text-[22px] text-slate-400 transition-all ${expanded ? 'rotate-90' : ''}`}
+                                    />
+                                    <div
+                                        className="mt-px h-2.5 w-2.5 rounded-full"
+                                        style={{ backgroundColor: project.color }}
+                                    ></div>
+                                    <div>{project.name}</div>
+                                </div>
+                            }
+                            isBold
+                        />
+                    </div>
+
+                    <div className="min-w-[110px]">
+                        {!!jobs && <CardItem label="Jobs" value={<SmallTag>{jobs.length} jobs</SmallTag>} />}
+                    </div>
+
+                    <div className="min-w-[212px]">
+                        <CardItem
+                            label="Created"
+                            value={
+                                <>
+                                    {new Date(project.createdAt).toLocaleString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric',
+                                        hour: 'numeric',
+                                        minute: 'numeric',
+                                    })}
+                                </>
+                            }
+                        />
+                    </div>
                 </div>
 
-                <div className="min-w-[168px]">
-                    <CardItem label="Plugin Signature" value={<>{project.pluginSignature}</>} />
-                </div>
-
-                <div className="min-w-[64px]">
-                    <CardItem label="Nodes" value={<>{project.nodes}</>} />
-                </div>
-
-                <div className="min-w-[64px]">
+                <div className="min-w-[150px]">
                     <CardItem
-                        label="GPU/CPU"
-                        value={
-                            <SmallTag variant={project.processor === 'GPU' ? 'green' : 'blue'}>{project.processor}</SmallTag>
-                        }
-                    />
-                </div>
-
-                <div className="min-w-[112px]">
-                    <CardItem label="Running Nodes" value={<>{project.runningNodes}</>} />
-                </div>
-
-                <div className="min-w-[112px]">
-                    <CardItem
-                        label="Expiration Date"
+                        label="Next payment due"
                         value={
                             <>
-                                {new Date(project.expiresAt).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric',
-                                })}
+                                {!!jobs && earliestPaymentJob && (
+                                    <>
+                                        {/* TODO: Remove hardcoded project id */}
+                                        {project.id === 3 ? (
+                                            <SmallTag variant="red">Payment overdue</SmallTag>
+                                        ) : (
+                                            <SmallTag
+                                                variant={
+                                                    getMonthsLeftUntilNextPayment(earliestPaymentJob) <= 1
+                                                        ? 'orange'
+                                                        : 'default'
+                                                }
+                                            >
+                                                {getNextPaymentDueIn(earliestPaymentJob)}
+                                            </SmallTag>
+                                        )}
+                                    </>
+                                )}
                             </>
                         }
                     />
                 </div>
+
+                <ContextMenuWithTrigger
+                    items={[
+                        {
+                            key: 'payment',
+                            label: 'Payment',
+                            description: 'Manage project payments',
+                            icon: <RiSecurePaymentLine />,
+                            onPress: () => {},
+                        },
+                    ]}
+                />
             </div>
+
+            {expanded && (
+                <div className="col gap-0 text-sm">
+                    {jobs?.map((job, index, array) => {
+                        const jobTypeOption = jobTypeOptions.find(
+                            (option) => option.id === job.jobType.toLowerCase(),
+                        ) as JobTypeOption;
+
+                        return (
+                            <div key={job.id} className="row gap-6">
+                                <div className="row gap-1.5">
+                                    {/* Tree Line */}
+                                    <div className="row relative mr-2 ml-[10px]">
+                                        <div className="h-8 w-0.5 bg-slate-200"></div>
+                                        <div className="h-0.5 w-5 bg-slate-200"></div>
+
+                                        {index === array.length - 1 && (
+                                            <div className="absolute bottom-0 left-0 h-[15px] w-0.5 bg-[#fdfdfd]"></div>
+                                        )}
+                                    </div>
+
+                                    <div className={`text-[17px] ${jobTypeOption.color}`}>{jobTypeOption.icon}</div>
+
+                                    <div className="w-[88px] truncate font-medium">
+                                        {job.jobType === JobType.Service
+                                            ? (job as ServiceJob).deployment.serviceType
+                                            : (job as GenericJob | NativeJob).deployment.appAlias}
+                                    </div>
+                                </div>
+
+                                <div className="min-w-[104px]">
+                                    <SmallTag>
+                                        <div className="row gap-1">
+                                            <RiCalendarLine className="text-sm" />
+
+                                            {/* TODO: Replace with expiration date from the API */}
+                                            {addMonths(
+                                                new Date(project.createdAt),
+                                                job.paymentAndDuration.duration,
+                                            ).toLocaleString('en-US', {
+                                                month: 'short',
+                                                day: 'numeric',
+                                                year: 'numeric',
+                                            })}
+                                        </div>
+                                    </SmallTag>
+                                </div>
+
+                                <div className="center-all relative w-[124px] rounded-md bg-slate-100 py-1">
+                                    <div className="z-10 text-[12px] font-medium">
+                                        {job.paymentAndDuration.paymentMonthsCount < job.paymentAndDuration.duration ? (
+                                            <div className="text-slate-600">
+                                                {job.paymentAndDuration.paymentMonthsCount} of {job.paymentAndDuration.duration}{' '}
+                                                months
+                                            </div>
+                                        ) : (
+                                            <div className="text-emerald-700">Paid in full</div>
+                                        )}
+                                    </div>
+
+                                    <div
+                                        className="absolute top-0 bottom-0 left-0 rounded-md bg-emerald-200"
+                                        style={{
+                                            width: `${(job.paymentAndDuration.paymentMonthsCount / job.paymentAndDuration.duration) * 100}%`,
+                                        }}
+                                    ></div>
+                                </div>
+
+                                {job.paymentAndDuration.paymentMonthsCount < job.paymentAndDuration.duration && (
+                                    <div className="row gap-1.5">
+                                        {/* TODO: Remove hardcoded job id */}
+                                        {job.id === 9 ? (
+                                            <SmallTag variant="red">Payment overdue</SmallTag>
+                                        ) : (
+                                            <SmallTag variant={getMonthsLeftUntilNextPayment(job) <= 1 ? 'orange' : 'default'}>
+                                                Next payment due in {getNextPaymentDueIn(job)}
+                                            </SmallTag>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </BorderedCard>
     );
 }
