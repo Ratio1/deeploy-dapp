@@ -2,6 +2,7 @@ import { ContainerOrWorkerType } from '@data/containerAndWorkerTypes';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getContainerOrWorkerType } from '@lib/utils';
 import JobList from '@shared/jobs/JobList';
+import { SmallTag } from '@shared/SmallTag';
 import { GenericJob, JobType } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
 
@@ -19,9 +20,9 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
             tableHeader={
                 <>
                     <div className="min-w-[128px]">Alias</div>
-                    <div className="min-w-[90px]">Duration (m.)</div>
+                    <div className="min-w-[90px]">Duration</div>
                     <div className="min-w-[90px]">Target Nodes</div>
-                    <div className="min-w-[214px]">Container Type</div>
+                    <div className="min-w-[234px]">Container Type</div>
                     <div className="min-w-[264px]">Container Source</div>
                 </>
             }
@@ -36,9 +37,11 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
                 return (
                     <>
                         <div className="min-w-[128px]">{genericJob.deployment.appAlias}</div>
-                        <div className="min-w-[90px]">{genericJob.paymentAndDuration.duration}</div>
+                        <div className="min-w-[90px]">
+                            <SmallTag>{genericJob.paymentAndDuration.duration} months</SmallTag>
+                        </div>
                         <div className="min-w-[90px]">{genericJob.specifications.targetNodesCount}</div>
-                        <div className="min-w-[214px]">
+                        <div className="min-w-[234px]">
                             {containerOrWorkerType.name} ({containerOrWorkerType.description})
                         </div>
                         <div className="flex min-w-[264px]">

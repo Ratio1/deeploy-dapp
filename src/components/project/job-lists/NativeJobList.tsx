@@ -2,6 +2,7 @@ import { ContainerOrWorkerType } from '@data/containerAndWorkerTypes';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getContainerOrWorkerType } from '@lib/utils';
 import JobList from '@shared/jobs/JobList';
+import { SmallTag } from '@shared/SmallTag';
 import { JobType, NativeJob } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
@@ -19,9 +20,9 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
             tableHeader={
                 <>
                     <div className="min-w-[128px]">Alias</div>
-                    <div className="min-w-[90px]">Duration (m.)</div>
+                    <div className="min-w-[90px]">Duration</div>
                     <div className="min-w-[106px]">Target Nodes</div>
-                    <div className="min-w-[214px]">Worker Type</div>
+                    <div className="min-w-[234px]">Worker Type</div>
                     <div className="min-w-[264px]">Pipeline Input URI</div>
                 </>
             }
@@ -36,9 +37,11 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
                 return (
                     <>
                         <div className="min-w-[128px]">{nativeJob.deployment.appAlias}</div>
-                        <div className="min-w-[90px]">{nativeJob.paymentAndDuration.duration}</div>
+                        <div className="min-w-[90px]">
+                            <SmallTag>{nativeJob.paymentAndDuration.duration} months</SmallTag>
+                        </div>
                         <div className="min-w-[106px]">{nativeJob.specifications.targetNodesCount}</div>
-                        <div className="min-w-[214px]">
+                        <div className="min-w-[234px]">
                             {containerOrWorkerType.name} ({containerOrWorkerType.description})
                         </div>
                         <div className="flex min-w-[264px]">

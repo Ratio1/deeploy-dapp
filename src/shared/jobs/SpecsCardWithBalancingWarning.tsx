@@ -27,10 +27,6 @@ export default function SpecsCardWithBalancingWarning({ jobType }: { jobType: Jo
         );
     }, [containerOrWorkerTypeName]);
 
-    useEffect(() => {
-        console.log('targetNodesCount', targetNodesCount);
-    }, [targetNodesCount]);
-
     const hasWarning =
         !!targetNodesCount && targetNodesCount < (containerOrWorkerType as ContainerOrWorkerType).minimalBalancing;
 
