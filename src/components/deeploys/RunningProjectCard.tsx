@@ -1,7 +1,7 @@
+import { Skeleton } from '@heroui/skeleton';
 import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
-import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { SmallTag } from '@shared/SmallTag';
 import { GenericJob, Job, JobType, NativeJob, Project, ServiceJob } from '@typedefs/deeploys';
 import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
@@ -9,7 +9,7 @@ import { addMonths, differenceInMonths, formatDistanceToNowStrict } from 'date-f
 import { useLiveQuery } from 'dexie-react-hooks';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { RiArrowRightSLine, RiCalendarLine, RiSecurePaymentLine } from 'react-icons/ri';
+import { RiArrowRightSLine, RiCalendarLine } from 'react-icons/ri';
 
 export default function RunningProjectCard({
     project,
@@ -49,10 +49,14 @@ export default function RunningProjectCard({
         return formatDistanceToNowStrict(addMonths(new Date(project.createdAt), job.paymentAndDuration.paymentMonthsCount));
     };
 
+    if (!jobs) {
+        return <Skeleton className="min-h-[60px] w-full rounded-xl" />;
+    }
+
     return (
         <BorderedCard onClick={toggle} isHoverable>
-            <div className="row justify-between gap-3 lg:gap-6">
-                <div className="row gap-2">
+            <div className="row justify-between">
+                <div className="row gap-8">
                     <div className="min-w-[232px]">
                         <CardItem
                             label="Name"
@@ -72,37 +76,56 @@ export default function RunningProjectCard({
                         />
                     </div>
 
-                    <div className="min-w-[110px]">
-                        {!!jobs && <CardItem label="Jobs" value={<SmallTag>{jobs.length} jobs</SmallTag>} />}
+                    <div className="min-w-[80px]">
+                        {
+                            <CardItem
+                                label="Jobs"
+                                value={
+                                    <div className="text-[13px]">
+                                        {jobs.length} job{jobs.length > 1 ? 's' : ''}
+                                    </div>
+                                }
+                            />
+                        }
                     </div>
 
-                    <div className="min-w-[212px]">
+                    <div className="min-w-[140px]">
                         <CardItem
-                            label="Created"
+                            label="Expiration Date"
                             value={
-                                <>
-                                    {new Date(project.createdAt).toLocaleString('en-US', {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        year: 'numeric',
-                                        hour: 'numeric',
-                                        minute: 'numeric',
-                                    })}
-                                </>
+                                <SmallTag>
+                                    <div className="row gap-1">
+                                        <RiCalendarLine className="text-sm" />
+
+                                        {addMonths(
+                                            new Date(project.createdAt),
+                                            _(jobs)
+                                                .map((job) => job.paymentAndDuration.duration)
+                                                .max() as number,
+                                        ).toLocaleString(undefined, {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric',
+                                        })}
+                                    </div>
+                                </SmallTag>
                             }
                         />
                     </div>
+
+                    <div className="min-w-[232px]">
+                        <CardItem label="Usage" value={<>Usage</>} isBold />
+                    </div>
                 </div>
 
-                <div className="min-w-[150px]">
+                <div className="row justify-end">
                     <CardItem
                         label="Next payment due"
                         value={
                             <>
-                                {!!jobs && earliestPaymentJob && (
+                                {earliestPaymentJob && (
                                     <>
-                                        {/* TODO: Remove hardcoded project id */}
-                                        {project.id === 3 ? (
+                                        {getMonthsLeftUntilNextPayment(earliestPaymentJob) <= 0 ? (
                                             <SmallTag variant="red">Payment overdue</SmallTag>
                                         ) : (
                                             <SmallTag
@@ -121,18 +144,6 @@ export default function RunningProjectCard({
                         }
                     />
                 </div>
-
-                <ContextMenuWithTrigger
-                    items={[
-                        {
-                            key: 'payment',
-                            label: 'Payment',
-                            description: 'Manage project payments',
-                            icon: <RiSecurePaymentLine />,
-                            onPress: () => {},
-                        },
-                    ]}
-                />
             </div>
 
             {expanded && (
@@ -143,68 +154,48 @@ export default function RunningProjectCard({
                         ) as JobTypeOption;
 
                         return (
-                            <div key={job.id} className="row gap-48">
-                                <div className="row gap-1.5">
-                                    {/* Tree Line */}
-                                    <div className="row relative mr-2 ml-[10px]">
-                                        <div className="h-9 w-0.5 bg-slate-200"></div>
-                                        <div className="h-0.5 w-5 bg-slate-200"></div>
+                            <div key={job.id} className="row">
+                                <div className="row flex-1 gap-8">
+                                    <div className="row gap-1.5">
+                                        {/* Tree Line */}
+                                        <div className="row relative mr-2 ml-[10px]">
+                                            <div className="h-9 w-0.5 bg-slate-200"></div>
+                                            <div className="h-0.5 w-5 bg-slate-200"></div>
 
-                                        {index === array.length - 1 && (
-                                            <div className="absolute bottom-0 left-0 h-[17px] w-0.5 bg-slate-50"></div>
-                                        )}
+                                            {index === array.length - 1 && (
+                                                <div className="absolute bottom-0 left-0 h-[17px] w-0.5 bg-slate-50"></div>
+                                            )}
+                                        </div>
+
+                                        <div className={`text-[17px] ${jobTypeOption.color}`}>{jobTypeOption.icon}</div>
+
+                                        <div className="w-[251px] truncate font-medium">
+                                            {job.jobType === JobType.Service
+                                                ? (job as ServiceJob).deployment.serviceType
+                                                : (job as GenericJob | NativeJob).deployment.appAlias}
+                                        </div>
                                     </div>
 
-                                    <div className={`text-[17px] ${jobTypeOption.color}`}>{jobTypeOption.icon}</div>
-
-                                    <div className="w-[88px] truncate font-medium">
-                                        {job.jobType === JobType.Service
-                                            ? (job as ServiceJob).deployment.serviceType
-                                            : (job as GenericJob | NativeJob).deployment.appAlias}
-                                    </div>
-                                </div>
-
-                                <div className="ml-2 min-w-[104px]">
                                     <SmallTag>
                                         <div className="row gap-1">
                                             <RiCalendarLine className="text-sm" />
 
-                                            {/* TODO: Replace with expiration date from the API */}
                                             {addMonths(
                                                 new Date(project.createdAt),
                                                 job.paymentAndDuration.duration,
-                                            ).toLocaleString('en-US', {
+                                            ).toLocaleString(undefined, {
                                                 month: 'short',
                                                 day: 'numeric',
                                                 year: 'numeric',
                                             })}
                                         </div>
                                     </SmallTag>
+
+                                    {/* USAGE */}
                                 </div>
 
-                                {/* <div className="center-all relative w-[124px] rounded-md bg-slate-100 py-1">
-                                    <div className="z-10 text-[12px] font-medium">
-                                        {job.paymentAndDuration.paymentMonthsCount < job.paymentAndDuration.duration ? (
-                                            <div className="text-slate-600">
-                                                {job.paymentAndDuration.paymentMonthsCount} of {job.paymentAndDuration.duration}{' '}
-                                                months
-                                            </div>
-                                        ) : (
-                                            <div className="text-emerald-700">Paid in full</div>
-                                        )}
-                                    </div>
-
-                                    <div
-                                        className="absolute top-0 bottom-0 left-0 rounded-md bg-emerald-200"
-                                        style={{
-                                            width: `${(job.paymentAndDuration.paymentMonthsCount / job.paymentAndDuration.duration) * 100}%`,
-                                        }}
-                                    ></div>
-                                </div> */}
-
-                                <div className="row ml-[51px] gap-1.5">
-                                    {/* TODO: Remove hardcoded job id */}
-                                    {job.id === 9 ? (
+                                <div className="row justify-end">
+                                    {getMonthsLeftUntilNextPayment(job) <= 0 ? (
                                         <SmallTag variant="red">Payment overdue</SmallTag>
                                     ) : job.paymentAndDuration.paymentMonthsCount === job.paymentAndDuration.duration ? (
                                         <SmallTag variant="green">Paid in full</SmallTag>

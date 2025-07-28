@@ -58,16 +58,14 @@ const Running = forwardRef<RunningRef>((_props, ref) => {
     return (
         <div className="list">
             <ListHeader>
-                <div className="row gap-2">
+                <div className="row gap-8">
                     <div className="min-w-[232px]">Name</div>
-                    <div className="min-w-[110px]">Jobs</div>
-                    <div className="min-w-[212px]">Expiration Date</div>
+                    <div className="min-w-[80px]">Jobs</div>
+                    <div className="min-w-[140px]">Expiration Date</div>
+                    <div className="min-w-[232px]">Usage</div>
                 </div>
 
-                <div className="min-w-[150px]">Next payment due</div>
-
-                {/* Accounts for the context menu button */}
-                <div className="min-w-[32px]"></div>
+                <div className="text-right">Next payment due</div>
             </ListHeader>
 
             {projects?.map((project, index) => (
