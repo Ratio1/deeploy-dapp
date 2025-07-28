@@ -2,6 +2,7 @@ import { Skeleton } from '@heroui/skeleton';
 import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
+import Usage from '@shared/projects/Usage';
 import { SmallTag } from '@shared/SmallTag';
 import { GenericJob, Job, JobType, NativeJob, Project, ServiceJob } from '@typedefs/deeploys';
 import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
@@ -89,7 +90,7 @@ export default function RunningProjectCard({
                         }
                     </div>
 
-                    <div className="min-w-[140px]">
+                    <div className="min-w-[164px]">
                         <CardItem
                             label="Expiration Date"
                             value={
@@ -113,8 +114,22 @@ export default function RunningProjectCard({
                         />
                     </div>
 
-                    <div className="min-w-[232px]">
-                        <CardItem label="Usage" value={<>Usage</>} isBold />
+                    {/* TODO: Remove hardcoded values */}
+                    <div className="min-w-[200px]">
+                        <CardItem
+                            label="Usage"
+                            value={
+                                <Usage
+                                    used={3 + differenceInMonths(new Date(), new Date(project.createdAt))}
+                                    total={
+                                        _(jobs)
+                                            .map((job) => job.paymentAndDuration.duration)
+                                            .max() as number
+                                    }
+                                />
+                            }
+                            isBold
+                        />
                     </div>
                 </div>
 
@@ -159,39 +174,48 @@ export default function RunningProjectCard({
                                     <div className="row gap-1.5">
                                         {/* Tree Line */}
                                         <div className="row relative mr-2 ml-[10px]">
-                                            <div className="h-9 w-0.5 bg-slate-200"></div>
+                                            <div className="h-10 w-0.5 bg-slate-200"></div>
                                             <div className="h-0.5 w-5 bg-slate-200"></div>
 
                                             {index === array.length - 1 && (
-                                                <div className="absolute bottom-0 left-0 h-[17px] w-0.5 bg-slate-50"></div>
+                                                <div className="absolute bottom-0 left-0 h-[19px] w-0.5 bg-slate-50"></div>
                                             )}
                                         </div>
 
                                         <div className={`text-[17px] ${jobTypeOption.color}`}>{jobTypeOption.icon}</div>
 
-                                        <div className="w-[251px] truncate font-medium">
+                                        <div className="w-[275px] truncate font-medium">
                                             {job.jobType === JobType.Service
                                                 ? (job as ServiceJob).deployment.serviceType
                                                 : (job as GenericJob | NativeJob).deployment.appAlias}
                                         </div>
                                     </div>
 
-                                    <SmallTag>
-                                        <div className="row gap-1">
-                                            <RiCalendarLine className="text-sm" />
+                                    <div className="min-w-[164px]">
+                                        <SmallTag>
+                                            <div className="row gap-1">
+                                                <RiCalendarLine className="text-sm" />
 
-                                            {addMonths(
-                                                new Date(project.createdAt),
-                                                job.paymentAndDuration.duration,
-                                            ).toLocaleString(undefined, {
-                                                month: 'short',
-                                                day: 'numeric',
-                                                year: 'numeric',
-                                            })}
-                                        </div>
-                                    </SmallTag>
+                                                {addMonths(
+                                                    new Date(project.createdAt),
+                                                    job.paymentAndDuration.duration,
+                                                ).toLocaleString(undefined, {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric',
+                                                })}
+                                            </div>
+                                        </SmallTag>
+                                    </div>
 
-                                    {/* USAGE */}
+                                    <div className="w-[200px]">
+                                        {/* TODO: Remove hardcoded values */}
+                                        <Usage
+                                            used={3 + differenceInMonths(new Date(), new Date(project.createdAt))}
+                                            total={job.paymentAndDuration.duration}
+                                            isColored
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="row justify-end">
