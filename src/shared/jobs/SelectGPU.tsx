@@ -93,9 +93,9 @@ export default function SelectGPU({ jobType }: Props) {
                                                     ) && <SmallTag>Minimal Balancing: {gpuType.minimalBalancing}</SmallTag>}
                                             </div>
 
-                                            <div className="row min-w-11 gap-0.5 py-0.5 font-medium">
+                                            <div className="row min-w-11 py-0.5 font-medium">
                                                 <span className="text-slate-500">$</span>
-                                                <div>{gpuType.monthlyBudgetPerWorker}</div>
+                                                <div className="ml-px">{gpuType.monthlyBudgetPerWorker}</div>
                                             </div>
                                         </div>
                                     </SelectItem>

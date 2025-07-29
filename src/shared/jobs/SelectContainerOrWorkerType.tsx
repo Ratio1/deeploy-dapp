@@ -3,26 +3,21 @@ import { SelectItem } from '@heroui/select';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import StyledSelect from '@shared/StyledSelect';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 interface Props {
-    type: 'generic' | 'native' | 'service';
     name: string;
     label: string;
     options: ContainerOrWorkerType[];
 }
 
-export default function SelectContainerOrWorkerType({ type, name, label, options }: Props) {
+export default function SelectContainerOrWorkerType({ name, label, options }: Props) {
     const { control, watch, trigger } = useFormContext();
     const containerOrWorkerTypeName: string = watch(name);
     const targetNodesCount: number = watch('specifications.targetNodesCount');
 
-    const [containerOrWorkerType, setContainerOrWorkerType] = useState<ContainerOrWorkerType>();
-
     useEffect(() => {
-        setContainerOrWorkerType(options.find((option) => option.name === containerOrWorkerTypeName));
-
         // Trigger validation of specifications when container/worker type changes and target nodes count is set
         if (containerOrWorkerTypeName && targetNodesCount) {
             trigger('specifications.targetNodesCount');
@@ -76,9 +71,9 @@ export default function SelectContainerOrWorkerType({ type, name, label, options
                                                     )}
                                             </div>
 
-                                            <div className="row min-w-11 gap-0.5 py-0.5 font-medium">
+                                            <div className="row min-w-11 py-0.5 font-medium">
                                                 <span className="text-slate-500">$</span>
-                                                <div>{containerType.monthlyBudgetPerWorker}</div>
+                                                <div className="ml-px">{containerType.monthlyBudgetPerWorker}</div>
                                             </div>
                                         </div>
                                     </SelectItem>
@@ -88,24 +83,6 @@ export default function SelectContainerOrWorkerType({ type, name, label, options
                     );
                 }}
             />
-
-            {!!containerOrWorkerType && (
-                <div className="col gap-1 pt-1">
-                    <div className="row gap-1.5">
-                        <Label value="Minimal Recommended Balancing:" />
-                        <div className="compact">
-                            {containerOrWorkerType.minimalBalancing > 1
-                                ? `${containerOrWorkerType.minimalBalancing} nodes`
-                                : 'No minimal balancing'}
-                        </div>
-                    </div>
-
-                    <div className="row gap-1.5">
-                        <Label value="Monthly Budget per Worker:" />
-                        <div className="compact">${containerOrWorkerType.monthlyBudgetPerWorker}</div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

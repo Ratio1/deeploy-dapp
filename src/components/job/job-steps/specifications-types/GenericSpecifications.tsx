@@ -1,5 +1,6 @@
 import { genericContainerTypes } from '@data/containerResources';
 import { SlateCard } from '@shared/cards/SlateCard';
+import ContainerResourcesInfo from '@shared/jobs/ContainerResourcesInfo';
 import SelectContainerOrWorkerType from '@shared/jobs/SelectContainerOrWorkerType';
 import SelectGPU from '@shared/jobs/SelectGPU';
 import SpecsCardWithBalancingWarning from '@shared/jobs/SpecsCardWithBalancingWarning';
@@ -10,13 +11,14 @@ export default function GenericSpecifications() {
         <div className="col gap-6">
             <SlateCard title="Container Resources">
                 <SelectContainerOrWorkerType
-                    type="generic"
                     name="specifications.containerType"
                     label="Container Type"
                     options={genericContainerTypes}
                 />
 
                 <SelectGPU jobType={JobType.Generic} />
+
+                <ContainerResourcesInfo jobType={JobType.Generic} />
             </SlateCard>
 
             <SpecsCardWithBalancingWarning jobType={JobType.Generic} />
