@@ -1,6 +1,6 @@
 import { ContainerOrWorkerType, GpuType, gpuTypes, serviceContainerTypes } from '@data/containerResources';
 import { getShortAddress } from '@lib/utils';
-import JobsCostRundown from '@shared/jobs/JobsCostRundown';
+import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
 import { ServiceJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
 

@@ -5,12 +5,12 @@ import Sider from './Sider';
 
 function Layout() {
     return (
-        <div className="flex min-h-dvh items-stretch bg-light">
-            <div className="hidden larger:block">
+        <div className="bg-light flex min-h-dvh items-stretch">
+            <div className="larger:block hidden">
                 <Sider />
             </div>
 
-            <div className="larger:ml-small-sider-with-padding break:block relative mb-[88px] hidden min-h-dvh w-full py-10 lg:py-12 larger:mb-0 xl:ml-sider-with-padding">
+            <div className="larger:ml-small-sider-with-padding larger:mb-0 xl:ml-sider-with-padding relative mb-[88px] hidden min-h-dvh w-full py-10 lg:block lg:py-12">
                 <Content />
 
                 <div className="larger:hidden">
@@ -18,8 +18,8 @@ function Layout() {
                 </div>
             </div>
 
-            <div className="break:hidden">
-                <div className="center-all col fixed bottom-0 left-0 right-0 top-0 gap-6 bg-slate-50 p-8">
+            <div className="lg:hidden">
+                <div className="center-all col fixed top-0 right-0 bottom-0 left-0 gap-6 bg-slate-50 p-8">
                     <div className="center-all">
                         <img src={Logo} alt="Logo" className="h-6" />
                     </div>

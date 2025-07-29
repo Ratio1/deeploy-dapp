@@ -46,7 +46,7 @@ export default function DraftCard({ project }: { project: Project }) {
             <BorderedCard isHoverable>
                 <div className="row justify-between gap-3 lg:gap-6">
                     <div className="min-w-[82px]">
-                        <CardItem label="ID" value={<>#{project.id}</>} isBold />
+                        <CardItem label="ID" value={<SmallTag>{project.id}</SmallTag>} isBold />
                     </div>
 
                     <div className="min-w-[212px]">

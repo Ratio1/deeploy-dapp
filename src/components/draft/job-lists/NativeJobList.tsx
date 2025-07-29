@@ -1,7 +1,7 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getContainerOrWorkerType } from '@lib/utils';
-import JobList from '@shared/jobs/JobList';
+import JobList from '@shared/jobs/drafts/JobList';
 import { SmallTag } from '@shared/SmallTag';
 import { JobType, NativeJob } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';

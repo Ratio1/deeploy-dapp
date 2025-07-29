@@ -2,8 +2,8 @@ import clsx from 'clsx';
 
 export default function Usage({ used, total, isColored = false }: { used: number; total: number; isColored?: boolean }) {
     return (
-        <div className="col w-full gap-0.5 text-[13px] font-medium">
-            <div className="row justify-between">
+        <div className="col w-full gap-1.5 text-xs font-medium">
+            <div className="row justify-between leading-none">
                 <div>
                     {used}/{total} months
                 </div>
@@ -11,7 +11,7 @@ export default function Usage({ used, total, isColored = false }: { used: number
                 <div>{parseFloat(((used / total) * 100).toFixed(2))}%</div>
             </div>
 
-            <div className="flex h-1 w-full overflow-hidden rounded-full bg-gray-300">
+            <div className="flex h-[5px] w-full overflow-hidden rounded-full bg-gray-300">
                 <div
                     className={clsx('bg-primary rounded-full transition-all', {
                         'bg-emerald-500!': isColored && used < total / 2,

@@ -1,7 +1,7 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getContainerOrWorkerType, getShortAddress } from '@lib/utils';
-import JobList from '@shared/jobs/JobList';
+import JobList from '@shared/jobs/drafts/JobList';
 import { SmallTag } from '@shared/SmallTag';
 import { JobType, ServiceJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';

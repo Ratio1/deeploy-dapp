@@ -12,8 +12,7 @@ layer(base);
     --breakpoint-xs: 400px;
     --breakpoint-sm: 480px;
     --breakpoint-md: 768px;
-    --breakpoint-break: 900px;
-    --breakpoint-lg: 1024px;
+    --breakpoint-lg: 1024px; /* Min. allowed width */
     --breakpoint-larger: 1260px;
     --breakpoint-xl: 1320px;
 

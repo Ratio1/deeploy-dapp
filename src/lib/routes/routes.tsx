@@ -66,11 +66,11 @@ export const routeInfo = {
     },
     [`${routePath.deeploys}/${routePath.draft}`]: {
         title: 'Project Draft',
-        description: 'Edit, pay and deploy your project',
+        description: 'Edit, pay and deploy your project draft',
     },
     [`${routePath.deeploys}/${routePath.project}`]: {
         title: 'Project',
-        description: 'View and manage your project',
+        description: 'View and manage your project and its jobs',
     },
     [`${routePath.deeploys}/${routePath.legacyRequester}`]: {
         title: 'Legacy Requester',
