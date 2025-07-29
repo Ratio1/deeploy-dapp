@@ -1,4 +1,4 @@
-import RunningProjectCard from '@components/deeploys/RunningProjectCard';
+import ProjectCard from '@components/deeploys/ProjectCard';
 import db from '@lib/storage/db';
 import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
@@ -12,7 +12,7 @@ export interface RunningRef {
     collapseAll: () => void;
 }
 
-const Running = forwardRef<RunningRef>((_props, ref) => {
+const Projects = forwardRef<RunningRef>((_props, ref) => {
     // TODO: Replace with API call
     const projects: Project[] | undefined = useLiveQuery(() => db.projects.toArray());
 
@@ -70,7 +70,7 @@ const Running = forwardRef<RunningRef>((_props, ref) => {
 
             {projects?.map((project, index) => (
                 <div key={index}>
-                    <RunningProjectCard
+                    <ProjectCard
                         project={project}
                         expanded={expanded[project.id]}
                         toggle={() => setExpanded({ ...expanded, [project.id]: !expanded[project.id] })}
@@ -91,6 +91,6 @@ const Running = forwardRef<RunningRef>((_props, ref) => {
     );
 });
 
-Running.displayName = 'Running';
+Projects.displayName = 'Projects';
 
-export default Running;
+export default Projects;

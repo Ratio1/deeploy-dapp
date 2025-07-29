@@ -1,6 +1,3 @@
-import GenericJobList from '@components/project/job-lists/GenericJobList';
-import NativeJobList from '@components/project/job-lists/NativeJobList';
-import ServiceJobList from '@components/project/job-lists/ServiceJobList';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { routePath } from '@lib/routes/route-paths';
@@ -14,10 +11,13 @@ import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { RiAddLine, RiDeleteBin2Line, RiWalletLine } from 'react-icons/ri';
 import { Link, useNavigate } from 'react-router-dom';
-import ProjectIdentity from './ProjectIdentity';
-import ProjectStats from './ProjectStats';
+import JobsStats from '../../shared/projects/JobsStats';
+import ProjectIdentity from '../../shared/projects/ProjectIdentity';
+import GenericJobList from './job-lists/GenericJobList';
+import NativeJobList from './job-lists/NativeJobList';
+import ServiceJobList from './job-lists/ServiceJobList';
 
-export default function ProjectOverview({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
+export default function DraftOverview({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
     const confirm = useInteractionContext() as InteractionContextType;
     const { setJobType, setStep, setProjectPage } = useDeploymentContext() as DeploymentContextType;
 
@@ -85,7 +85,7 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                 </div>
 
                 {/* Stats */}
-                <ProjectStats jobs={jobs} project={project} />
+                <JobsStats jobs={jobs} />
 
                 {/* Add Job */}
                 <BorderedCard>

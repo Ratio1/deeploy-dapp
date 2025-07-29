@@ -5,8 +5,8 @@ import Account from '@pages/Account';
 import CSP from '@pages/CSP';
 import CreateProject from '@pages/deeploys/CreateProject';
 import Dashboard from '@pages/deeploys/Dashboard';
+import Draft from '@pages/deeploys/Draft';
 import LegacyRequester from '@pages/deeploys/LegacyRequester';
-import Project from '@pages/deeploys/Project';
 import Docs from '@pages/Docs';
 import Home from '@pages/Home';
 import Support from '@pages/Support';
@@ -154,7 +154,7 @@ export const routes: AppRoute[] = [
         path: `${routePath.deeploys}/${routePath.draft}/:id`,
         page: () => (
             <DeploymentProvider>
-                <Project />
+                <Draft />
             </DeploymentProvider>
         ),
     },

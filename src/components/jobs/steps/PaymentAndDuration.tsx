@@ -159,9 +159,9 @@ function PaymentAndDuration() {
 
             <SlateCard>
                 <div className="row justify-between gap-8 p-2">
-                    <div className="text-[15px] font-semibold text-slate-500">Amount due</div>
+                    <div className="text-[15px] font-medium text-slate-500">Amount due</div>
 
-                    <div className="row gap-1.5 text-xl font-semibold">
+                    <div className="row gap-1.5 text-[19px] font-semibold">
                         <div className="text-slate-500">$USDC</div>
 
                         {paymentMonthsCount > 1 && (

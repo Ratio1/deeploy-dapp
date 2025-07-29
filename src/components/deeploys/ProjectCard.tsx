@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 import { RiArrowRightSLine, RiCalendarLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
 
-export default function RunningProjectCard({
+export default function ProjectCard({
     project,
     expanded,
     toggle,

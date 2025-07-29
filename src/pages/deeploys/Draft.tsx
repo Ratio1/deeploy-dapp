@@ -1,5 +1,5 @@
-import ProjectOverview from '@components/project/ProjectOverview';
-import ProjectPayment from '@components/project/ProjectPayment';
+import DraftOverview from '@components/drafts/DraftOverview';
+import DraftPayment from '@components/drafts/DraftPayment';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
@@ -8,9 +8,9 @@ import { Job, ProjectPage, type Project } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import JobFormWrapper from '../../components/job/JobFormWrapper';
+import JobFormWrapper from '../../components/jobs/JobFormWrapper';
 
-export default function Project() {
+export default function Draft() {
     const { jobType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
@@ -50,9 +50,9 @@ export default function Project() {
     return !jobType ? (
         <>
             {projectPage === ProjectPage.Payment ? (
-                <ProjectPayment project={project} jobs={jobs} />
+                <DraftPayment project={project} jobs={jobs} />
             ) : (
-                <ProjectOverview project={project} jobs={jobs} />
+                <DraftOverview project={project} jobs={jobs} />
             )}
         </>
     ) : (

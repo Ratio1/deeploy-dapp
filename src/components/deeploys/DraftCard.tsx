@@ -11,7 +11,7 @@ import { toast } from 'react-hot-toast';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
 
-export default function DraftProjectCard({ project }: { project: Project }) {
+export default function DraftCard({ project }: { project: Project }) {
     const confirm = useInteractionContext() as InteractionContextType;
 
     const jobs: Job[] | undefined = useLiveQuery(() => db.jobs.where('projectId').equals(project.id).toArray(), [project]);

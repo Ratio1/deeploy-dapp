@@ -7,16 +7,16 @@ import SupportFooter from '@shared/SupportFooter';
 import { Job, JobType, ProjectPage, type Project } from '@typedefs/deeploys';
 import { useEffect } from 'react';
 import { RiArrowLeftLine, RiBox3Line, RiDraftLine } from 'react-icons/ri';
-import ProjectIdentity from './ProjectIdentity';
-import GenericJobsCostRundown from './rundowns/GenericJobsCostRundown';
-import NativeJobsCostRundown from './rundowns/NativeJobsCostRundown';
-import ServiceJobsCostRundown from './rundowns/ServiceJobsCostRundown';
+import ProjectIdentity from '../../shared/projects/ProjectIdentity';
+import GenericJobsCostRundown from './job-rundowns/GenericJobsCostRundown';
+import NativeJobsCostRundown from './job-rundowns/NativeJobsCostRundown';
+import ServiceJobsCostRundown from './job-rundowns/ServiceJobsCostRundown';
 
-export default function ProjectPayment({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
+export default function DraftPayment({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
     const { setProjectPage } = useDeploymentContext() as DeploymentContextType;
 
     useEffect(() => {
-        console.log('[ProjectPayment] jobs', jobs);
+        console.log('[DraftPayment] jobs', jobs);
     }, [jobs]);
 
     return (
@@ -36,7 +36,7 @@ export default function ProjectPayment({ project, jobs }: { project: Project; jo
                         >
                             <div className="row gap-1.5">
                                 <RiArrowLeftLine className="text-lg" />
-                                <div className="compact">Project</div>
+                                <div className="compact">Overview</div>
                             </div>
                         </ActionButton>
 
@@ -60,9 +60,9 @@ export default function ProjectPayment({ project, jobs }: { project: Project; jo
                 {!!jobs && !!jobs.length && (
                     <BorderedCard isLight={false}>
                         <div className="row justify-between py-2">
-                            <div className="text-[15px] font-semibold text-slate-500">Total Amount Due</div>
+                            <div className="text-[15px] font-medium text-slate-500">Total Amount Due</div>
 
-                            <div className="text-primary text-xl font-semibold">
+                            <div className="text-primary text-[19px] font-semibold">
                                 <span className="text-slate-500">$USDC</span> {parseFloat(getJobsTotalCost(jobs).toFixed(2))}
                             </div>
                         </div>

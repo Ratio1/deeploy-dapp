@@ -1,8 +1,8 @@
 import { JobType } from '@typedefs/deeploys';
 import { useFormContext } from 'react-hook-form';
-import GenericDeployment from './deployment-types/GenericDeployment';
-import NativeDeployment from './deployment-types/NativeDeployment';
-import ServiceDeployment from './deployment-types/ServiceDeployment';
+import GenericDeployment from './deployment/GenericDeployment';
+import NativeDeployment from './deployment/NativeDeployment';
+import ServiceDeployment from './deployment/ServiceDeployment';
 
 function Deployment() {
     const { watch } = useFormContext();

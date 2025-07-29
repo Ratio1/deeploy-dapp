@@ -4,7 +4,7 @@ import ListHeader from '@shared/ListHeader';
 import { Project } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { RiDraftLine } from 'react-icons/ri';
-import DraftProjectCard from './DraftProjectCard';
+import DraftCard from './DraftCard';
 
 function Drafts() {
     const projects: Project[] | undefined = useLiveQuery(() => db.projects.toArray());
@@ -23,7 +23,7 @@ function Drafts() {
 
             {projects?.map((project) => (
                 <div key={project.id}>
-                    <DraftProjectCard project={project} />
+                    <DraftCard project={project} />
                 </div>
             ))}
 

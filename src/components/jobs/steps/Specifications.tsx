@@ -1,8 +1,8 @@
 import { JobType } from '@typedefs/deeploys';
 import { useFormContext } from 'react-hook-form';
-import GenericSpecifications from './specifications-types/GenericSpecifications';
-import NativeSpecifications from './specifications-types/NativeSpecifications';
-import ServiceSpecifications from './specifications-types/ServiceSpecifications';
+import GenericSpecifications from './specifications/GenericSpecifications';
+import NativeSpecifications from './specifications/NativeSpecifications';
+import ServiceSpecifications from './specifications/ServiceSpecifications';
 
 function Specifications() {
     const { watch } = useFormContext();

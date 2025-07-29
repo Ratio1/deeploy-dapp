@@ -1,8 +1,8 @@
-import Deployment from '@components/job/job-steps/Deployment';
-import PaymentAndDuration from '@components/job/job-steps/PaymentAndDuration';
-import Specifications from '@components/job/job-steps/Specifications';
-import JobFormButtons from '@components/job/JobFormButtons';
-import JobFormHeader from '@components/job/JobFormHeader';
+import JobFormButtons from '@components/jobs/JobFormButtons';
+import JobFormHeader from '@components/jobs/JobFormHeader';
+import Deployment from '@components/jobs/steps/Deployment';
+import PaymentAndDuration from '@components/jobs/steps/PaymentAndDuration';
+import Specifications from '@components/jobs/steps/Specifications';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerResources';

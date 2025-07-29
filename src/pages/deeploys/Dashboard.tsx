@@ -1,5 +1,5 @@
 import Drafts from '@components/deeploys/Drafts';
-import Running, { RunningRef } from '@components/deeploys/Running';
+import Projects, { RunningRef } from '@components/deeploys/Projects';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import ActionButton from '@shared/ActionButton';
@@ -70,7 +70,7 @@ function Dashboard() {
                 )}
             </div>
 
-            {selectedTab === 'running' ? <Running ref={runningRef} /> : <Drafts />}
+            {selectedTab === 'running' ? <Projects ref={runningRef} /> : <Drafts />}
         </div>
     );
 }

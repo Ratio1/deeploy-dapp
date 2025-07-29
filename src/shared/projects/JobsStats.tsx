@@ -1,9 +1,9 @@
 import { getJobsTotalCost } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
-import { Job, Project } from '@typedefs/deeploys';
+import { Job } from '@typedefs/deeploys';
 import clsx from 'clsx';
 
-export default function ProjectStats({ jobs, project }: { jobs: Job[] | undefined; project: Project }) {
+export default function JobsStats({ jobs }: { jobs: Job[] | undefined }) {
     if (!jobs || jobs.length === 0) {
         return null;
     }
@@ -34,9 +34,9 @@ export default function ProjectStats({ jobs, project }: { jobs: Job[] | undefine
 
 function Item({ label, value, isLast = false }: { label: string; value: string | React.ReactNode; isLast?: boolean }) {
     return (
-        <div className="col gap-1">
-            <div className={clsx('compact text-slate-500', isLast && 'text-right')}>{label}</div>
-            <div className="text-xl font-semibold">{value}</div>
+        <div className="col gap-0.5">
+            <div className={clsx('text-[15px] font-medium text-slate-500', isLast && 'text-right')}>{label}</div>
+            <div className="text-[19px] font-semibold">{value}</div>
         </div>
     );
 }
