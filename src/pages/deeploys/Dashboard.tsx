@@ -42,7 +42,7 @@ function Dashboard() {
                             key: 'running',
                             title: 'Running',
                             icon: <RiBox3Line />,
-                            count: 3, // TODO: Get from API
+                            count: drafts?.length ?? 0, // TODO: Get from API
                         },
                         {
                             key: 'drafts',

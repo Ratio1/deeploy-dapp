@@ -23,7 +23,11 @@ export default function RunningProjectCard({
     expanded: boolean | undefined;
     toggle: () => void;
 }) {
-    const jobs: Job[] | undefined = useLiveQuery(() => db.jobs.where('projectId').equals(project.id).toArray(), [project]);
+    const jobs: Job[] | undefined | null = useLiveQuery(
+        () => db.jobs.where('projectId').equals(project.id).toArray(),
+        [project],
+        null, // Default value returned while data is loading
+    );
 
     const [earliestPaymentJob, setEarliestPaymentJob] = useState<Job>();
 
@@ -52,8 +56,12 @@ export default function RunningProjectCard({
         return formatDistanceToNowStrict(addMonths(new Date(project.createdAt), job.paymentAndDuration.paymentMonthsCount));
     };
 
-    if (!jobs) {
+    if (jobs === null) {
         return <Skeleton className="min-h-[60px] w-full rounded-xl" />;
+    }
+
+    if (jobs && !jobs.length) {
+        return null;
     }
 
     return (
