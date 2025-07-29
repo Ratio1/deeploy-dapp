@@ -1,4 +1,4 @@
-import { ContainerOrWorkerType, nativeWorkerTypes } from '@data/containerResources';
+import { ContainerOrWorkerType, GpuType, gpuTypes, nativeWorkerTypes } from '@data/containerResources';
 import JobsCostRundown from '@shared/jobs/JobsCostRundown';
 import { NativeJob } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
@@ -19,6 +19,10 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeJob[] }) {
                     (type) => type.name === nativeJob.specifications.workerType,
                 ) as ContainerOrWorkerType;
 
+                const gpuType: GpuType | undefined = nativeJob.specifications.gpuType
+                    ? gpuTypes.find((type) => type.name === nativeJob.specifications.gpuType)
+                    : undefined;
+
                 const entries = [
                     // Alias
                     { label: 'Alias', value: nativeJob.deployment.jobAlias },
@@ -27,6 +31,7 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeJob[] }) {
                     { label: 'App Type', value: nativeJob.specifications.applicationType },
                     { label: 'Target Nodes', value: nativeJob.specifications.targetNodesCount },
                     { label: 'Worker Type', value: `${workerType.name} (${workerType.description})` },
+                    ...(gpuType ? [{ label: 'GPU Type', value: `${gpuType.name} (${gpuType.gpus.join(', ')})` }] : []),
 
                     // Deployment
                     { label: 'Plugin Signature', value: nativeJob.deployment.pluginSignature },

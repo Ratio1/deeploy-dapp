@@ -1,4 +1,4 @@
-import { ContainerOrWorkerType, serviceContainerTypes } from '@data/containerResources';
+import { ContainerOrWorkerType, GpuType, gpuTypes, serviceContainerTypes } from '@data/containerResources';
 import { getShortAddress } from '@lib/utils';
 import JobsCostRundown from '@shared/jobs/JobsCostRundown';
 import { ServiceJob } from '@typedefs/deeploys';
@@ -20,6 +20,10 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
                     (type) => type.name === serviceJob.specifications.containerType,
                 ) as ContainerOrWorkerType;
 
+                const gpuType: GpuType | undefined = serviceJob.specifications.gpuType
+                    ? gpuTypes.find((type) => type.name === serviceJob.specifications.gpuType)
+                    : undefined;
+
                 const entries = [
                     // Alias
                     { label: 'Alias', value: serviceJob.deployment.jobAlias },
@@ -27,6 +31,7 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
                     { label: 'App Type', value: serviceJob.specifications.applicationType },
                     { label: 'Target Nodes', value: serviceJob.specifications.targetNodesCount },
                     { label: 'Container Type', value: `${containerType.name} (${containerType.description})` },
+                    ...(gpuType ? [{ label: 'GPU Type', value: `${gpuType.name} (${gpuType.gpus.join(', ')})` }] : []),
 
                     // Deployment
                     { label: 'Tunneling', value: serviceJob.deployment.enableTunneling },

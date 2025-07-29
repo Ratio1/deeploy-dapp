@@ -1,4 +1,4 @@
-import { ContainerOrWorkerType, genericContainerTypes } from '@data/containerResources';
+import { ContainerOrWorkerType, genericContainerTypes, GpuType, gpuTypes } from '@data/containerResources';
 import JobsCostRundown from '@shared/jobs/JobsCostRundown';
 import { GenericJob } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
@@ -19,6 +19,10 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
                     (type) => type.name === genericJob.specifications.containerType,
                 ) as ContainerOrWorkerType;
 
+                const gpuType: GpuType | undefined = genericJob.specifications.gpuType
+                    ? gpuTypes.find((type) => type.name === genericJob.specifications.gpuType)
+                    : undefined;
+
                 const entries = [
                     // Alias
                     { label: 'Alias', value: genericJob.deployment.jobAlias },
@@ -27,10 +31,11 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
                     { label: 'App Type', value: genericJob.specifications.applicationType },
                     { label: 'Target Nodes', value: genericJob.specifications.targetNodesCount },
                     { label: 'Container Type', value: `${containerType.name} (${containerType.description})` },
+                    ...(gpuType ? [{ label: 'GPU Type', value: `${gpuType.name} (${gpuType.gpus.join(', ')})` }] : []),
 
                     // Deployment
                     {
-                        label: 'Container Source',
+                        label: 'Container Image/Repo',
                         value:
                             genericJob.deployment.container.type === 'image'
                                 ? genericJob.deployment.container.containerImage

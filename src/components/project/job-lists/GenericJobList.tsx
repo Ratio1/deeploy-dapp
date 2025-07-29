@@ -23,7 +23,7 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
                     <div className="min-w-[90px]">Duration</div>
                     <div className="min-w-[90px]">Target Nodes</div>
                     <div className="min-w-[234px]">Container Type</div>
-                    <div className="min-w-[264px]">Container Source</div>
+                    <div className="min-w-[264px]">Container Image/Repo</div>
                 </>
             }
             jobs={jobs}
