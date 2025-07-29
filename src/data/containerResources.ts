@@ -212,7 +212,7 @@ export const gpuTypes: GpuType[] = [
     {
         name: 'G-ENTRY',
         gpus: ['RTX 2060 - 3070'],
-        availability: 'MED1+/N-ENTRY',
+        availability: 'MED1+/N-ENTRY+',
         support: {
             [JobType.Generic]: 4,
             [JobType.Native]: 1,

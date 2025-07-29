@@ -1,4 +1,4 @@
-import { ContainerOrWorkerType, genericContainerTypes, GpuType, gpuTypes, nativeWorkerTypes } from '@data/containerResources';
+import { ContainerOrWorkerType, GpuType, gpuTypes } from '@data/containerResources';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import { JobType } from '@typedefs/deeploys';
@@ -7,25 +7,21 @@ import { useFormContext } from 'react-hook-form';
 
 interface Props {
     jobType: JobType;
+    name: string;
+    options: ContainerOrWorkerType[];
 }
 
-export default function ContainerResourcesInfo({ jobType }: Props) {
+export default function ContainerResourcesInfo({ jobType, name, options }: Props) {
     const { watch } = useFormContext();
 
-    const containerOrWorkerTypeName: string = watch(
-        `specifications.${jobType === JobType.Generic ? 'containerType' : 'workerType'}`,
-    );
+    const containerOrWorkerTypeName: string = watch(name);
     const gpuTypeName: string = watch('specifications.gpuType');
 
     const [containerOrWorkerType, setContainerOrWorkerType] = useState<ContainerOrWorkerType>();
     const [gpuType, setGpuType] = useState<GpuType>();
 
     useEffect(() => {
-        setContainerOrWorkerType(
-            (jobType === JobType.Generic ? genericContainerTypes : nativeWorkerTypes).find(
-                (item) => item.name === containerOrWorkerTypeName,
-            ),
-        );
+        setContainerOrWorkerType(options.find((item) => item.name === containerOrWorkerTypeName));
     }, [containerOrWorkerTypeName]);
 
     useEffect(() => {

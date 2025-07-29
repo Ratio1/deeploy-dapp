@@ -1,5 +1,5 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
-import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerResources';
+import { genericContainerTypes, gpuTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerResources';
 import { z } from 'zod';
 
 // Common number validation pattern
@@ -18,6 +18,7 @@ const createNumberField = (max: number) => {
 };
 
 const baseSpecificationsSchema = z.object({
+    gpuType: z.enum(gpuTypes.map((type) => type.name) as [string, ...string[]]).optional(),
     applicationType: z.enum(APPLICATION_TYPES, { required_error: 'Application type is required' }),
     targetNodesCount: createNumberField(100),
 });

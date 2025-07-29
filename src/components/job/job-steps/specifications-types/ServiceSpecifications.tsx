@@ -1,18 +1,25 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { serviceContainerTypes } from '@data/containerResources';
 import { SlateCard } from '@shared/cards/SlateCard';
+import ContainerResourcesInfo from '@shared/jobs/ContainerResourcesInfo';
 import SelectContainerOrWorkerType from '@shared/jobs/SelectContainerOrWorkerType';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
+import { JobType } from '@typedefs/deeploys';
 
 export default function ServiceSpecifications() {
     return (
         <div className="col gap-6">
             <SlateCard title="Service Resources">
                 <SelectContainerOrWorkerType
-                    type="service"
                     name="specifications.containerType"
                     label="Container Type"
+                    options={serviceContainerTypes}
+                />
+
+                <ContainerResourcesInfo
+                    jobType={JobType.Service}
+                    name="specifications.containerType"
                     options={serviceContainerTypes}
                 />
             </SlateCard>

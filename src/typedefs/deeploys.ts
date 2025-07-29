@@ -1,6 +1,6 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerResources';
+import { genericContainerTypes, gpuTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerResources';
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
@@ -19,6 +19,7 @@ enum ProjectPage {
 
 // Specifications
 type BaseJobSpecifications = {
+    gpuType?: (typeof gpuTypes)[number]['name'];
     applicationType: (typeof APPLICATION_TYPES)[number];
     targetNodesCount: number;
 };

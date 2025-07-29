@@ -14,7 +14,7 @@ export default function NativeSpecifications() {
 
                 <SelectGPU jobType={JobType.Native} />
 
-                <ContainerResourcesInfo jobType={JobType.Native} />
+                <ContainerResourcesInfo jobType={JobType.Native} name="specifications.workerType" options={nativeWorkerTypes} />
             </SlateCard>
 
             <SpecsCardWithBalancingWarning jobType={JobType.Native} />

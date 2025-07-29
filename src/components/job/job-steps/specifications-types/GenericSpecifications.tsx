@@ -18,7 +18,11 @@ export default function GenericSpecifications() {
 
                 <SelectGPU jobType={JobType.Generic} />
 
-                <ContainerResourcesInfo jobType={JobType.Generic} />
+                <ContainerResourcesInfo
+                    jobType={JobType.Generic}
+                    name="specifications.containerType"
+                    options={genericContainerTypes}
+                />
             </SlateCard>
 
             <SpecsCardWithBalancingWarning jobType={JobType.Generic} />
