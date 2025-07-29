@@ -1,20 +1,18 @@
-import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getJobsTotalCost } from '@lib/utils';
 import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import EmptyData from '@shared/EmptyData';
+import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import SupportFooter from '@shared/SupportFooter';
-import { Job, JobType, ProjectPage, type Project } from '@typedefs/deeploys';
+import { Job, JobType, type Project } from '@typedefs/deeploys';
 import { useEffect } from 'react';
-import { RiArrowLeftLine, RiBox3Line, RiDraftLine } from 'react-icons/ri';
+import { RiBox3Line, RiDraftLine } from 'react-icons/ri';
 import ProjectIdentity from '../../shared/projects/ProjectIdentity';
 import GenericJobsCostRundown from './job-rundowns/GenericJobsCostRundown';
 import NativeJobsCostRundown from './job-rundowns/NativeJobsCostRundown';
 import ServiceJobsCostRundown from './job-rundowns/ServiceJobsCostRundown';
 
 export default function DraftPayment({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
-    const { setProjectPage } = useDeploymentContext() as DeploymentContextType;
-
     useEffect(() => {
         console.log('[DraftPayment] jobs', jobs);
     }, [jobs]);
@@ -27,18 +25,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                     <ProjectIdentity project={project} />
 
                     <div className="row gap-2">
-                        <ActionButton
-                            className="slate-button"
-                            color="default"
-                            onPress={() => {
-                                setProjectPage(ProjectPage.Overview);
-                            }}
-                        >
-                            <div className="row gap-1.5">
-                                <RiArrowLeftLine className="text-lg" />
-                                <div className="compact">Overview</div>
-                            </div>
-                        </ActionButton>
+                        <OverviewButton />
 
                         <ActionButton
                             color="primary"
@@ -63,7 +50,8 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                             <div className="text-[15px] font-medium text-slate-500">Total Amount Due</div>
 
                             <div className="text-primary text-[19px] font-semibold">
-                                <span className="text-slate-500">$USDC</span> {parseFloat(getJobsTotalCost(jobs).toFixed(2))}
+                                <span className="text-slate-500">$USDC</span>{' '}
+                                {parseFloat(getJobsTotalCost(jobs).toFixed(2)).toLocaleString()}
                             </div>
                         </div>
                     </BorderedCard>

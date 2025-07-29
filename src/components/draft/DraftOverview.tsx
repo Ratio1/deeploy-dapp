@@ -4,13 +4,15 @@ import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
+import CancelButton from '@shared/projects/buttons/CancelButton';
+import PaymentButton from '@shared/projects/buttons/PaymentButton';
 import SupportFooter from '@shared/SupportFooter';
-import { Job, JobType, ProjectPage, type Project } from '@typedefs/deeploys';
+import { Job, JobType, type Project } from '@typedefs/deeploys';
 import { jobTypeOptions } from '@typedefs/jobType';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { RiAddLine, RiDeleteBin2Line, RiWalletLine } from 'react-icons/ri';
-import { Link, useNavigate } from 'react-router-dom';
+import { RiAddLine, RiDeleteBin2Line } from 'react-icons/ri';
+import { useNavigate } from 'react-router-dom';
 import JobsStats from '../../shared/projects/JobsStats';
 import ProjectIdentity from '../../shared/projects/ProjectIdentity';
 import GenericJobList from './job-lists/GenericJobList';
@@ -19,12 +21,12 @@ import ServiceJobList from './job-lists/ServiceJobList';
 
 export default function DraftOverview({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
     const confirm = useInteractionContext() as InteractionContextType;
-    const { setJobType, setStep, setProjectPage } = useDeploymentContext() as DeploymentContextType;
+    const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
 
     useEffect(() => {
-        console.log('[ProjectOverview]', project);
+        console.log('[DraftOverview]', project);
     }, [project]);
 
     const onDeleteProject = async () => {
@@ -52,14 +54,7 @@ export default function DraftOverview({ project, jobs }: { project: Project; job
                     <ProjectIdentity project={project} />
 
                     <div className="row gap-2">
-                        <ActionButton
-                            className="slate-button"
-                            color="default"
-                            as={Link}
-                            to={`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`}
-                        >
-                            <div className="compact">Cancel</div>
-                        </ActionButton>
+                        <CancelButton tab="drafts" />
 
                         <ActionButton className="bg-red-500" color="danger" onPress={() => onDeleteProject()}>
                             <div className="row gap-1.5">
@@ -68,19 +63,7 @@ export default function DraftOverview({ project, jobs }: { project: Project; job
                             </div>
                         </ActionButton>
 
-                        <ActionButton
-                            color="success"
-                            variant="solid"
-                            isDisabled={jobs?.length === 0}
-                            onPress={() => {
-                                setProjectPage(ProjectPage.Payment);
-                            }}
-                        >
-                            <div className="row gap-1.5">
-                                <RiWalletLine className="text-lg" />
-                                <div className="compact">Payment</div>
-                            </div>
-                        </ActionButton>
+                        <PaymentButton isDisabled={jobs?.length === 0} />
                     </div>
                 </div>
 

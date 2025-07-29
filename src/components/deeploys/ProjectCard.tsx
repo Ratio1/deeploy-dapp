@@ -65,7 +65,7 @@ export default function ProjectCard({
     }
 
     return (
-        <Link to={`${routePath.deeploys}/${routePath.draft}/${project.id}`}>
+        <Link to={`${routePath.deeploys}/${routePath.project}/${project.id}`}>
             <BorderedCard isHoverable>
                 <div className="row justify-between">
                     <div className="row gap-8">

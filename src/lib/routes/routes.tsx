@@ -7,6 +7,7 @@ import CreateProject from '@pages/deeploys/CreateProject';
 import Dashboard from '@pages/deeploys/Dashboard';
 import Draft from '@pages/deeploys/Draft';
 import LegacyRequester from '@pages/deeploys/LegacyRequester';
+import Project from '@pages/deeploys/Project';
 import Docs from '@pages/Docs';
 import Home from '@pages/Home';
 import Support from '@pages/Support';
@@ -66,6 +67,10 @@ export const routeInfo = {
     [`${routePath.deeploys}/${routePath.draft}`]: {
         title: 'Project Draft',
         description: 'Edit, pay and deploy your project',
+    },
+    [`${routePath.deeploys}/${routePath.project}`]: {
+        title: 'Project',
+        description: 'View and manage your project',
     },
     [`${routePath.deeploys}/${routePath.legacyRequester}`]: {
         title: 'Legacy Requester',
@@ -155,6 +160,14 @@ export const routes: AppRoute[] = [
         page: () => (
             <DeploymentProvider>
                 <Draft />
+            </DeploymentProvider>
+        ),
+    },
+    {
+        path: `${routePath.deeploys}/${routePath.project}/:id`,
+        page: () => (
+            <DeploymentProvider>
+                <Project />
             </DeploymentProvider>
         ),
     },

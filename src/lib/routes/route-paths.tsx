@@ -7,6 +7,7 @@ export const routePath = {
     legacyRequester: 'legacy-requester',
     createProject: 'create-project',
     draft: 'draft',
+    project: 'project',
     //
     tunnels: '/tunnels',
     account: '/account',

@@ -1,6 +1,8 @@
 import {
     ContainerOrWorkerType,
     genericContainerTypes,
+    GpuType,
+    gpuTypes,
     nativeWorkerTypes,
     serviceContainerTypes,
 } from '@data/containerResources';
@@ -95,11 +97,12 @@ export const getDiscountPercentage = (paymentMonthsCount: number): number => {
 
 export const getJobCost = (job: Job): number => {
     const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+    const gpuType: GpuType | undefined = getGpuType(job.specifications);
 
     return (
         job.paymentAndDuration.paymentMonthsCount *
         job.specifications.targetNodesCount *
-        containerOrWorkerType.monthlyBudgetPerWorker *
+        (containerOrWorkerType.monthlyBudgetPerWorker + (gpuType?.monthlyBudgetPerWorker ?? 0)) *
         (1 - getDiscountPercentage(job.paymentAndDuration.paymentMonthsCount) / 100)
     );
 };
@@ -120,6 +123,10 @@ export const getContainerOrWorkerType = (jobType: JobType, specifications: JobSp
     ) as ContainerOrWorkerType;
 
     return containerOrWorkerType;
+};
+
+export const getGpuType = (specifications: JobSpecifications): GpuType | undefined => {
+    return specifications.gpuType ? gpuTypes.find((type) => type.name === specifications.gpuType) : undefined;
 };
 
 export const downloadDataAsJson = (data: any, filename: string) => {

@@ -1,4 +1,5 @@
-import { getJobsTotalCost } from '@lib/utils';
+import { ContainerOrWorkerType } from '@data/containerResources';
+import { getContainerOrWorkerType, getGpuType } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { Job } from '@typedefs/deeploys';
 import clsx from 'clsx';
@@ -8,21 +9,32 @@ export default function JobsStats({ jobs }: { jobs: Job[] | undefined }) {
         return null;
     }
 
+    const getJobMonthlyCost = (job: Job) => {
+        const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+        const gpuType = getGpuType(job.specifications);
+
+        return (
+            job.specifications.targetNodesCount *
+            (containerOrWorkerType.monthlyBudgetPerWorker + (gpuType?.monthlyBudgetPerWorker ?? 0))
+        );
+    };
+
     return (
         <BorderedCard isLight={false}>
             <div className="row justify-between">
-                <Item label="Total Jobs" value={jobs.length.toString()} />
+                <Item label="Total Jobs" value={jobs.length} />
 
                 <Item
                     label="Total Target Nodes"
-                    value={jobs.reduce((acc, job) => acc + job.specifications.targetNodesCount, 0).toString()}
+                    value={jobs.reduce((acc, job) => acc + job.specifications.targetNodesCount, 0)}
                 />
 
                 <Item
-                    label="Total Cost"
+                    label="Monthly Cost"
                     value={
                         <div className="text-primary">
-                            <span className="text-slate-500">$USDC</span> {parseFloat(getJobsTotalCost(jobs).toFixed(2))}
+                            <span className="text-slate-500">$USDC</span>{' '}
+                            {jobs.reduce((acc, job) => acc + getJobMonthlyCost(job), 0)}
                         </div>
                     }
                     isLast
