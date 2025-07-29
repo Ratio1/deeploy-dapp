@@ -30,7 +30,10 @@ function Item({ label, value, color }: { label: string; value: number; color: st
             <div className={clsx('h-2 w-2 rounded-full', color)} />
 
             <div className="leading-none">
-                <span className="text-slate-500">{label}:</span> <span className="font-medium">{value} months</span>
+                <span className="text-slate-500">{label}:</span>{' '}
+                <span className="font-medium">
+                    {value} month{value > 1 ? 's' : ''}
+                </span>
             </div>
         </div>
     );

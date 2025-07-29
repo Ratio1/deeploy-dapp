@@ -56,7 +56,7 @@ export default function JobList({
                                 {
                                     key: 'edit',
                                     label: 'Edit',
-                                    description: 'Edit the job parameters',
+                                    description: 'Modify the parameters of the job',
                                     icon: <RiEditLine />,
                                     onPress: () => {},
                                 },
