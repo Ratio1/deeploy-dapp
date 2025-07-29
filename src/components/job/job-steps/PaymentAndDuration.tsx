@@ -1,4 +1,4 @@
-import { ContainerOrWorkerType } from '@data/containerAndWorkerTypes';
+import { ContainerOrWorkerType } from '@data/containerResources';
 import { Slider } from '@heroui/slider';
 import { getContainerOrWorkerType, getDiscountPercentage } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';

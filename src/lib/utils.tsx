@@ -3,7 +3,7 @@ import {
     genericContainerTypes,
     nativeWorkerTypes,
     serviceContainerTypes,
-} from '@data/containerAndWorkerTypes';
+} from '@data/containerResources';
 import { ClosableToastContent } from '@shared/ClosableToastContent';
 import {
     GenericJobSpecifications,

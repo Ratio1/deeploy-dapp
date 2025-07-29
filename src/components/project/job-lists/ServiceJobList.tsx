@@ -1,4 +1,4 @@
-import { ContainerOrWorkerType } from '@data/containerAndWorkerTypes';
+import { ContainerOrWorkerType } from '@data/containerResources';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getContainerOrWorkerType, getShortAddress } from '@lib/utils';
 import JobList from '@shared/jobs/JobList';

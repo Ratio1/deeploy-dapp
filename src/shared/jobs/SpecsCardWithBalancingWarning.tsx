@@ -1,5 +1,5 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
-import { ContainerOrWorkerType, genericContainerTypes, nativeWorkerTypes } from '@data/containerAndWorkerTypes';
+import { ContainerOrWorkerType, genericContainerTypes, nativeWorkerTypes } from '@data/containerResources';
 import { SlateCard } from '@shared/cards/SlateCard';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';

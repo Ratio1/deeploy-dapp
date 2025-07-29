@@ -1,4 +1,4 @@
-import { ContainerOrWorkerType, serviceContainerTypes } from '@data/containerAndWorkerTypes';
+import { ContainerOrWorkerType, serviceContainerTypes } from '@data/containerResources';
 import { getShortAddress } from '@lib/utils';
 import JobsCostRundown from '@shared/jobs/JobsCostRundown';
 import { ServiceJob } from '@typedefs/deeploys';

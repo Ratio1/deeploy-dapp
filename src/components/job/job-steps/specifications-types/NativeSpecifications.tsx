@@ -1,6 +1,7 @@
-import { nativeWorkerTypes } from '@data/containerAndWorkerTypes';
+import { nativeWorkerTypes } from '@data/containerResources';
 import { SlateCard } from '@shared/cards/SlateCard';
 import SelectContainerOrWorkerType from '@shared/jobs/SelectContainerOrWorkerType';
+import SelectGPU from '@shared/jobs/SelectGPU';
 import SpecsCardWithBalancingWarning from '@shared/jobs/SpecsCardWithBalancingWarning';
 import { JobType } from '@typedefs/deeploys';
 
@@ -14,6 +15,8 @@ export default function NativeSpecifications() {
                     label="Worker Type"
                     options={nativeWorkerTypes}
                 />
+
+                <SelectGPU jobType={JobType.Native} />
             </SlateCard>
 
             <SpecsCardWithBalancingWarning jobType={JobType.Native} />

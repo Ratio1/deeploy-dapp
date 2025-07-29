@@ -1,5 +1,5 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { ContainerOrWorkerType } from '@data/containerAndWorkerTypes';
+import { ContainerOrWorkerType } from '@data/containerResources';
 import { getContainerOrWorkerType } from '@lib/utils';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';

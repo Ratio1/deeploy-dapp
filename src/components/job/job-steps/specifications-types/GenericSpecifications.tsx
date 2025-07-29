@@ -1,6 +1,7 @@
-import { genericContainerTypes } from '@data/containerAndWorkerTypes';
+import { genericContainerTypes } from '@data/containerResources';
 import { SlateCard } from '@shared/cards/SlateCard';
 import SelectContainerOrWorkerType from '@shared/jobs/SelectContainerOrWorkerType';
+import SelectGPU from '@shared/jobs/SelectGPU';
 import SpecsCardWithBalancingWarning from '@shared/jobs/SpecsCardWithBalancingWarning';
 import { JobType } from '@typedefs/deeploys';
 
@@ -14,6 +15,8 @@ export default function GenericSpecifications() {
                     label="Container Type"
                     options={genericContainerTypes}
                 />
+
+                <SelectGPU jobType={JobType.Generic} />
             </SlateCard>
 
             <SpecsCardWithBalancingWarning jobType={JobType.Generic} />

@@ -1,9 +1,8 @@
-import { ContainerOrWorkerType } from '@data/containerAndWorkerTypes';
+import { ContainerOrWorkerType } from '@data/containerResources';
 import { SelectItem } from '@heroui/select';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import StyledSelect from '@shared/StyledSelect';
-import clsx from 'clsx';
 import { useEffect, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
@@ -26,7 +25,6 @@ export default function SelectContainerOrWorkerType({ type, name, label, options
 
         // Trigger validation of specifications when container/worker type changes and target nodes count is set
         if (containerOrWorkerTypeName && targetNodesCount) {
-            console.log('triggering');
             trigger('specifications.targetNodesCount');
         }
     }, [containerOrWorkerTypeName, trigger]);
@@ -65,31 +63,22 @@ export default function SelectContainerOrWorkerType({ type, name, label, options
 
                                 return (
                                     <SelectItem key={containerType.name} textValue={containerType.name}>
-                                        <div className="row justify-between">
-                                            <div className="col gap-1 py-1">
-                                                <div className="row gap-1">
-                                                    <SmallTag variant="blue">{containerType.name}</SmallTag>
-                                                    <SmallTag>{containerType.description}</SmallTag>
-                                                    <SmallTag variant={containerType.notesColor}>
-                                                        {containerType.notes}
-                                                    </SmallTag>
+                                        <div className="row justify-between py-1">
+                                            <div className="row gap-1">
+                                                <SmallTag variant="blue">{containerType.name}</SmallTag>
+                                                <SmallTag>{containerType.description}</SmallTag>
+                                                <SmallTag variant={containerType.notesColor}>{containerType.notes}</SmallTag>
 
-                                                    {containerType.minimalBalancing > 1 &&
-                                                        options.some(
-                                                            (o) => o.minimalBalancing !== options[0].minimalBalancing,
-                                                        ) && (
-                                                            <SmallTag>
-                                                                Minimal Balancing: {containerType.minimalBalancing}
-                                                            </SmallTag>
-                                                        )}
-                                                </div>
+                                                {/* Only rendered when not all options are the same */}
+                                                {containerType.minimalBalancing > 1 &&
+                                                    options.some((o) => o.minimalBalancing !== options[0].minimalBalancing) && (
+                                                        <SmallTag>Minimal Balancing: {containerType.minimalBalancing}</SmallTag>
+                                                    )}
                                             </div>
 
-                                            <div className="col py-0.5">
-                                                <div className="row min-w-11 gap-0.5 font-medium">
-                                                    <span className="text-slate-500">$</span>
-                                                    <div>{containerType.monthlyBudgetPerWorker}</div>
-                                                </div>
+                                            <div className="row min-w-11 gap-0.5 py-0.5 font-medium">
+                                                <span className="text-slate-500">$</span>
+                                                <div>{containerType.monthlyBudgetPerWorker}</div>
                                             </div>
                                         </div>
                                     </SelectItem>
@@ -102,20 +91,6 @@ export default function SelectContainerOrWorkerType({ type, name, label, options
 
             {!!containerOrWorkerType && (
                 <div className="col gap-1 pt-1">
-                    <div className="row gap-1.5">
-                        <Label value={type === 'service' ? 'Database:' : 'GPU Support:'} />
-                        <div
-                            className={clsx('compact', {
-                                'text-red-600': containerOrWorkerType.notesColor === 'red',
-                                'text-orange-600': containerOrWorkerType.notesColor === 'orange',
-                                'text-green-600': containerOrWorkerType.notesColor === 'green',
-                                'text-blue-600': containerOrWorkerType.notesColor === 'blue',
-                            })}
-                        >
-                            {containerOrWorkerType.notes}
-                        </div>
-                    </div>
-
                     <div className="row gap-1.5">
                         <Label value="Minimal Recommended Balancing:" />
                         <div className="compact">
