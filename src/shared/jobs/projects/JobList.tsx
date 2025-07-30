@@ -4,7 +4,7 @@ import DetailedUsage from '@shared/projects/DetailedUsage';
 import { SmallTag } from '@shared/SmallTag';
 import { Project } from '@typedefs/deeploys';
 import { addMonths, differenceInMonths } from 'date-fns';
-import { RiCalendarLine, RiEditLine } from 'react-icons/ri';
+import { RiEditLine } from 'react-icons/ri';
 
 interface Job {
     id: number;
@@ -65,17 +65,41 @@ export default function JobList({
                     </div>
 
                     <div className="row bg-slate-75 mb-3 justify-between gap-2 rounded-lg px-4 py-4">
-                        <DateWithLabel
-                            label="Expires:"
-                            date={addMonths(new Date(project.createdAt), job.paymentAndDuration.duration)}
+                        <ItemWithLabel
+                            label="Expires"
+                            value={addMonths(new Date(project.createdAt), job.paymentAndDuration.duration).toLocaleDateString(
+                                undefined,
+                                {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                },
+                            )}
                         />
-                        <DateWithLabel
-                            label="Next payment due:"
-                            date={addMonths(new Date(project.createdAt), job.paymentAndDuration.paymentMonthsCount)}
+
+                        <ItemWithLabel
+                            label="Next payment due"
+                            value={addMonths(
+                                new Date(project.createdAt),
+                                job.paymentAndDuration.paymentMonthsCount,
+                            ).toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                            })}
+                        />
+
+                        <ItemWithLabel
+                            label="Job duration"
+                            value={<SmallTag>{job.paymentAndDuration.duration} months</SmallTag>}
                         />
 
                         {/* TODO: Remove hardcoded values */}
-                        <div className="min-w-[390px]">
+                        <div className="min-w-[403px]">
                             <DetailedUsage
                                 used={
                                     (process.env.NODE_ENV === 'development' ? 1 : 0) +
@@ -92,23 +116,11 @@ export default function JobList({
     );
 }
 
-function DateWithLabel({ label, date }: { label: string; date: Date }) {
+function ItemWithLabel({ label, value }: { label: string; value: string | React.ReactNode }) {
     return (
-        <div className="row gap-2.5">
-            <div className="font-medium">{label}</div>
-
-            <SmallTag>
-                <div className="row gap-1">
-                    <RiCalendarLine className="text-sm" />
-                    {date.toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                    })}
-                </div>
-            </SmallTag>
+        <div className="col gap-1">
+            <div className="font-medium text-slate-500">{label}</div>
+            {value}
         </div>
     );
 }
