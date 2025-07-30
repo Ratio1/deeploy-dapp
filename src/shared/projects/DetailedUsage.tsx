@@ -18,7 +18,7 @@ export default function DetailedUsage({ used, paid, total }: { used: number; pai
             <div className="row justify-between">
                 <Item label="Used" value={used} color="bg-primary" />
                 <Item label="Paid" value={paid} color="bg-emerald-500" />
-                <Item label="To be paid" value={total - paid} color="bg-slate-300" />
+                {total > paid && <Item label="To be paid" value={total - paid} color="bg-slate-300" />}
             </div>
         </div>
     );
@@ -32,7 +32,13 @@ function Item({ label, value, color }: { label: string; value: number; color: st
             <div className="leading-none">
                 <span className="text-slate-500">{label}:</span>{' '}
                 <span className="font-medium">
-                    {value} month{value > 1 ? 's' : ''}
+                    {value < 1 ? (
+                        <>{'<1 month'}</>
+                    ) : (
+                        <>
+                            {value} month{value > 1 ? 's' : ''}
+                        </>
+                    )}
                 </span>
             </div>
         </div>
