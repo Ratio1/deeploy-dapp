@@ -233,6 +233,11 @@ export const CspEscrowAbi = [
                         type: 'uint256',
                     },
                     {
+                        internalType: 'bytes32',
+                        name: 'projectHash',
+                        type: 'bytes32',
+                    },
+                    {
                         internalType: 'uint256',
                         name: 'lastExecutionEpoch',
                         type: 'uint256',
@@ -249,7 +254,13 @@ export const CspEscrowAbi = [
             },
         ],
         name: 'createJobs',
-        outputs: [],
+        outputs: [
+            {
+                internalType: 'uint256[]',
+                name: '',
+                type: 'uint256[]',
+            },
+        ],
         stateMutability: 'nonpayable',
         type: 'function',
     },
@@ -276,6 +287,11 @@ export const CspEscrowAbi = [
                         internalType: 'uint256',
                         name: 'id',
                         type: 'uint256',
+                    },
+                    {
+                        internalType: 'bytes32',
+                        name: 'projectHash',
+                        type: 'bytes32',
                     },
                     {
                         internalType: 'uint256',
@@ -365,6 +381,11 @@ export const CspEscrowAbi = [
                         internalType: 'uint256',
                         name: 'id',
                         type: 'uint256',
+                    },
+                    {
+                        internalType: 'bytes32',
+                        name: 'projectHash',
+                        type: 'bytes32',
                     },
                     {
                         internalType: 'uint256',
@@ -501,6 +522,11 @@ export const CspEscrowAbi = [
                 internalType: 'uint256',
                 name: 'id',
                 type: 'uint256',
+            },
+            {
+                internalType: 'bytes32',
+                name: 'projectHash',
+                type: 'bytes32',
             },
             {
                 internalType: 'uint256',
