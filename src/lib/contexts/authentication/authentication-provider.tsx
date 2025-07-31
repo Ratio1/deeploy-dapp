@@ -41,8 +41,6 @@ export const AuthenticationProvider = ({ children }) => {
         queryFn: async () => {
             const data = await getAccount();
 
-            console.log('fetchAccount', data);
-
             if (!data) {
                 throw new Error('Internal server error');
             }
