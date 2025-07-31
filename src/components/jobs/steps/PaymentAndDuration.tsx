@@ -9,6 +9,7 @@ import { JobPaymentAndDuration, JobSpecifications, JobType } from '@typedefs/dee
 import { addMonths } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { RiInformation2Line } from 'react-icons/ri';
 
 function PaymentAndDuration() {
     const { watch, setValue } = useFormContext();
@@ -29,25 +30,19 @@ function PaymentAndDuration() {
         setDuration(value);
         setValue('paymentAndDuration.duration', value);
 
-        // If payment months count exceeds the new duration, adjust it
-        if (paymentMonthsCount > value) {
-            setPaymentMonthsCount(value);
-            setValue('paymentAndDuration.paymentMonthsCount', value);
-        }
-    };
-
-    const handlePaymentMonthsCountChange = (value: number) => {
+        // Always set payment months count equal to duration for full payment in advance
         setPaymentMonthsCount(value);
         setValue('paymentAndDuration.paymentMonthsCount', value);
     };
 
-    // Ensure payment months count doesn't exceed duration when component mounts or duration changes
+    // Payment months count is now locked to duration, so this function is no longer needed
+    const handlePaymentMonthsCountChange = (_value: number) => {};
+
+    // Ensure payment months count equals duration when component mounts or duration changes
     useEffect(() => {
-        if (paymentMonthsCount > duration) {
-            setPaymentMonthsCount(duration);
-            setValue('paymentAndDuration.paymentMonthsCount', duration);
-        }
-    }, [duration, paymentMonthsCount, setValue]);
+        setPaymentMonthsCount(duration);
+        setValue('paymentAndDuration.paymentMonthsCount', duration);
+    }, [duration, setValue]);
 
     const summaryItems = [
         {
@@ -125,26 +120,27 @@ function PaymentAndDuration() {
             </BorderedCard>
 
             <BorderedCard>
-                <div className="w-full">
+                <div className="col w-full gap-4">
                     <Slider
                         classNames={{
                             base: 'gap-2',
                             labelWrapper: 'font-medium',
                         }}
                         aria-label="Payment (in advance)"
-                        label="Payment (in advance)"
+                        label="Full Payment"
                         defaultValue={12}
                         maxValue={duration}
                         minValue={1}
                         size="sm"
                         step={1}
+                        isDisabled={true}
                         renderValue={(_props) => (
                             <div className="row gap-1.5">
                                 <div className="text-sm">
                                     {paymentMonthsCount} month{paymentMonthsCount > 1 ? 's' : ''}
                                 </div>
 
-                                {paymentMonthsCount > 1 && (
+                                {paymentMonthsCount > 1 && getDiscountPercentage(paymentMonthsCount) > 0 && (
                                     <SmallTag variant="green">
                                         {getDiscountPercentage(paymentMonthsCount).toFixed()}% Discount
                                     </SmallTag>
@@ -154,6 +150,11 @@ function PaymentAndDuration() {
                         value={paymentMonthsCount}
                         onChange={(value) => handlePaymentMonthsCountChange(value as number)}
                     />
+
+                    <div className="row gap-1">
+                        <RiInformation2Line className="text-primary text-lg" />
+                        <div className="text-sm">Custom payment periods will be available in a future update.</div>
+                    </div>
                 </div>
             </BorderedCard>
 
@@ -164,7 +165,7 @@ function PaymentAndDuration() {
                     <div className="row gap-1.5 text-[19px] font-semibold">
                         <div className="text-slate-500">$USDC</div>
 
-                        {paymentMonthsCount > 1 && (
+                        {paymentMonthsCount > 1 && getDiscountPercentage(paymentMonthsCount) > 0 && (
                             <div className="text-slate-400 line-through">{parseFloat(getPaymentAmount(false).toFixed(2))}</div>
                         )}
 
