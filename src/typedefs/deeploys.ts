@@ -154,6 +154,7 @@ type Job = GenericJob | NativeJob | ServiceJob;
 
 type Project = {
     id: number;
+    uuid: string;
     name: string;
     color: string;
     createdAt: string;

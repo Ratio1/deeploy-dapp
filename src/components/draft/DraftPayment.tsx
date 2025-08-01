@@ -1,4 +1,8 @@
+import { CspEscrowAbi } from '@blockchain/CspEscrow';
+import { ERC20Abi } from '@blockchain/ERC20';
 import { ContainerOrWorkerType } from '@data/containerResources';
+import { config, escrowContractAddress } from '@lib/config';
+import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { getContainerOrWorkerType, getJobsTotalCost } from '@lib/utils';
 import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
@@ -6,28 +10,37 @@ import EmptyData from '@shared/EmptyData';
 import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import SupportFooter from '@shared/SupportFooter';
 import { GenericJob, Job, JobType, type Project } from '@typedefs/deeploys';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { RiBox3Line, RiDraftLine } from 'react-icons/ri';
+import { decodeEventLog, keccak256, toBytes } from 'viem';
+import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import ProjectIdentity from '../../shared/projects/ProjectIdentity';
 import GenericJobsCostRundown from './job-rundowns/GenericJobsCostRundown';
 import NativeJobsCostRundown from './job-rundowns/NativeJobsCostRundown';
 import ServiceJobsCostRundown from './job-rundowns/ServiceJobsCostRundown';
-import { useWalletClient, usePublicClient } from 'wagmi';
-import { CspEscrowAbi } from '@blockchain/CspEscrow';
-import { decodeEventLog, keccak256 } from 'viem';
-import { config } from '@lib/config';
-import { ERC20Abi } from '@blockchain/ERC20';
-import { v4 as uuidv4 } from 'uuid';
 
 const MAX_ALLOWANCE: bigint = 2n ** 256n - 1n;
 
 export default function DraftPayment({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
+    const { watchTx } = useBlockchainContext() as BlockchainContextType;
+
+    const [allowance, setAllowance] = useState<bigint | undefined>();
+    const [isLoading, setLoading] = useState<boolean>(false);
+
     const { data: walletClient } = useWalletClient();
     const publicClient = usePublicClient();
+    const { address } = useAccount();
 
     useEffect(() => {
         console.log('[DraftPayment] jobs', jobs);
     }, [jobs]);
+
+    useEffect(() => {
+        if (publicClient && address) {
+            fetchAllowance(publicClient, address);
+        }
+    }, [address, publicClient]);
 
     const formatGenericJobPayload = (job: GenericJob) => {
         const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
@@ -99,84 +112,8 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         };
     };
 
-    const onPayAndDeploy = async () => {
-        if (!jobs) {
-            return;
-        }
-        if (!walletClient) {
-            console.error('[DraftPayment] No wallet client');
-            return;
-        }
-        if (!publicClient) {
-            console.error('[DraftPayment] No public client');
-            return;
-        }
-
-        const escrowContractAddress = '0x2F2b63811617a9C6b97535ffa4c9B3626cDAE15C';
-        console.log('[DraftPayment] onPayAndDeploy', jobs);
-
-        //project hash is the hash of the project id
-        const newUuid = uuidv4();
-        const projectHash = keccak256(newUuid);
-        console.log('[DraftPayment] projectHash', projectHash, newUuid);
-
-        const txHashApprove = await walletClient.writeContract({
-            address: config.usdcContractAddress,
-            abi: ERC20Abi,
-            functionName: 'approve',
-            args: [escrowContractAddress, MAX_ALLOWANCE],
-        });
-        const receiptApprove = await publicClient.waitForTransactionReceipt({
-            hash: txHashApprove,
-        });
-
-        console.log('[DraftPayment] Approve receipt:', receiptApprove);
-
-        const txHashCreateJobs = await walletClient.writeContract({
-            address: escrowContractAddress,
-            abi: CspEscrowAbi,
-            functionName: 'createJobs',
-            args: [
-                jobs.map((job) => ({
-                    jobType: 1n, //TODO use correct job type
-                    projectHash,
-                    lastExecutionEpoch: 249n, //TODO use correct lastExecutionEpoch
-                    numberOfNodesRequested: BigInt(job.specifications.targetNodesCount),
-                })),
-            ],
-        });
-
-        console.log('[DraftPayment] Transaction hash:', txHashCreateJobs);
-
-        // Wait for the transaction to be mined and get the receipt
-        const receiptCreateJobs = await publicClient.waitForTransactionReceipt({
-            hash: txHashCreateJobs,
-        });
-
-        console.log('[DraftPayment] Transaction receipt:', receiptCreateJobs);
-
-        // Check if the transaction was successful
-        if (receiptCreateJobs.status === 'success') {
-            console.log('[DraftPayment] Transaction successful!');
-
-            const decodedLogs = receiptCreateJobs.logs
-                .filter((log) => log.address === escrowContractAddress)
-                .map((log) => {
-                    const decoded = decodeEventLog({
-                        abi: CspEscrowAbi,
-                        data: log.data,
-                        topics: log.topics,
-                    });
-                    return decoded;
-                })
-                .filter((log) => log.eventName === 'JobCreated');
-            console.log('[DraftPayment] Transaction logs:', decodedLogs);
-        } else {
-            console.error('[DraftPayment] Transaction failed!');
-        }
-
-        return;
-        const payloads = jobs.map((job) => {
+    const getJobsWithPayloads = (jobs: Job[]) => {
+        return jobs.map((job) => {
             let payload = {};
 
             switch (job.jobType) {
@@ -197,10 +134,126 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                     break;
             }
 
-            return payload;
+            return {
+                ...job,
+                payload,
+            };
+        });
+    };
+
+    const onPayAndDeploy = async () => {
+        if (!jobs) {
+            return;
+        }
+
+        if (!walletClient || !publicClient || !address) {
+            toast.error('Please refresh this page and try again.');
+            return;
+        }
+
+        setLoading(true);
+
+        const projectHash = keccak256(toBytes(project.uuid));
+
+        console.log('[DraftPayment] projectHash', projectHash);
+
+        const txHash = await walletClient.writeContract({
+            address: escrowContractAddress,
+            abi: CspEscrowAbi,
+            functionName: 'createJobs',
+            args: [
+                jobs.map((job) => ({
+                    jobType: 1n, //TODO use correct job type
+                    projectHash,
+                    lastExecutionEpoch: 249n, //TODO use the correct lastExecutionEpoch
+                    numberOfNodesRequested: BigInt(job.specifications.targetNodesCount),
+                })),
+            ],
         });
 
-        console.log('[DraftPayment] payloads', payloads);
+        const receipt = await watchTx(txHash, publicClient);
+
+        if (receipt.status === 'success') {
+            const decodedLogs = receipt.logs
+                .filter((log) => log.address === escrowContractAddress)
+                .map((log) => {
+                    const decoded = decodeEventLog({
+                        abi: CspEscrowAbi,
+                        data: log.data,
+                        topics: log.topics,
+                    });
+                    return decoded;
+                })
+                .filter((log) => log.eventName === 'JobCreated');
+
+            console.log('[DraftPayment] Transaction logs:', decodedLogs);
+
+            fetchAllowance(publicClient, address);
+
+            // TODO: Call Deeploy API
+        } else {
+            toast.error('Deployment failed, please try again.');
+        }
+    };
+
+    const approve = async () => {
+        setLoading(true);
+
+        if (!walletClient || !publicClient || !address) {
+            toast.error('Please refresh this page and try again.');
+            return;
+        }
+
+        const txHash = await walletClient.writeContract({
+            address: config.usdcContractAddress,
+            abi: ERC20Abi,
+            functionName: 'approve',
+            args: [escrowContractAddress, MAX_ALLOWANCE],
+        });
+
+        await watchTx(txHash, publicClient);
+
+        fetchAllowance(publicClient, address);
+    };
+
+    const fetchAllowance = async (publicClient, address: string): Promise<void> => {
+        const allowance = await publicClient.readContract({
+            address: config.usdcContractAddress,
+            abi: ERC20Abi,
+            functionName: 'allowance',
+            args: [address, escrowContractAddress],
+        });
+
+        console.log('[DraftPayment] allowance', allowance);
+
+        setAllowance(allowance);
+    };
+
+    const isPayAndDeployButtonDisabled = (): boolean => {
+        return allowance === undefined || jobs?.length === 0;
+    };
+
+    const hasEnoughAllowance = (): boolean => allowance !== undefined && allowance > MAX_ALLOWANCE / 2n;
+
+    /**
+     * Approval is required only if the allowance is less than half of the maximum allowance,
+     * otherwise approving would be triggered after every buy
+     */
+    const isApprovalRequired = (): boolean => !hasEnoughAllowance();
+
+    const onPress = async () => {
+        try {
+            if (isApprovalRequired()) {
+                await approve();
+            } else {
+                await onPayAndDeploy();
+            }
+        } catch (err: any) {
+            console.error(err.message);
+            toast.error('An error occured, please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -213,7 +266,13 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                     <div className="row gap-2">
                         <OverviewButton />
 
-                        <ActionButton color="primary" variant="solid" onPress={onPayAndDeploy} isDisabled={jobs?.length === 0}>
+                        <ActionButton
+                            color="primary"
+                            variant="solid"
+                            onPress={onPress}
+                            isDisabled={isPayAndDeployButtonDisabled()}
+                            isLoading={isLoading}
+                        >
                             <div className="row gap-1.5">
                                 <RiBox3Line className="text-lg" />
                                 <div className="text-sm">Pay & Deploy</div>

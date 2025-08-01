@@ -8,8 +8,9 @@ import { RiTerminalBoxLine } from 'react-icons/ri';
 
 const widthClasses = [
     'min-w-[128px]', // alias
-    'min-w-[90px]', // duration
+    'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
+    'min-w-[50px]', // type
     'min-w-[300px]', // workerType
 ];
 
@@ -24,7 +25,7 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
                     <div className="compact">Native Apps</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Worker Type'], widthClasses)}</>}
+            tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Type', 'Worker Type'], widthClasses)}</>}
             jobs={jobs}
             renderJob={(job) => {
                 const nativeJob = job as NativeJob;
@@ -44,6 +45,12 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
                         <div className={widthClasses[2]}>{nativeJob.specifications.targetNodesCount}</div>
 
                         <div className={widthClasses[3]}>
+                            <SmallTag variant={nativeJob.specifications.gpuType ? 'green' : 'blue'}>
+                                {nativeJob.specifications.gpuType ? 'GPU' : 'CPU'}
+                            </SmallTag>
+                        </div>
+
+                        <div className={widthClasses[4]}>
                             {containerOrWorkerType.name} ({getContainerOrWorkerTypeDescription(containerOrWorkerType)})
                         </div>
                     </>

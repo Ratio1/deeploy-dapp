@@ -24,6 +24,7 @@ function CreateProject() {
     const onSubmit = async (data: z.infer<typeof projectSchema>) => {
         const project = {
             ...data,
+            uuid: crypto.randomUUID(),
             createdAt: new Date().toISOString(),
         };
 

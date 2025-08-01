@@ -8,8 +8,9 @@ import { RiDatabase2Line } from 'react-icons/ri';
 
 const widthClasses = [
     'min-w-[128px]', // alias
-    'min-w-[90px]', // duration
+    'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
+    'min-w-[50px]', // type
     'min-w-[300px]', // containerType
 ];
 
@@ -24,7 +25,9 @@ export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
                     <div className="compact">Services</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Container Type'], widthClasses)}</>}
+            tableHeader={
+                <>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Type', 'Container Type'], widthClasses)}</>
+            }
             jobs={jobs}
             renderJob={(job) => {
                 const serviceJob = job as ServiceJob;
@@ -44,6 +47,12 @@ export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
                         <div className={widthClasses[2]}>{serviceJob.specifications.targetNodesCount}</div>
 
                         <div className={widthClasses[3]}>
+                            <SmallTag variant={serviceJob.specifications.gpuType ? 'green' : 'blue'}>
+                                {serviceJob.specifications.gpuType ? 'GPU' : 'CPU'}
+                            </SmallTag>
+                        </div>
+
+                        <div className={widthClasses[4]}>
                             {containerOrWorkerType.name} ({getContainerOrWorkerTypeDescription(containerOrWorkerType)})
                         </div>
                     </>
