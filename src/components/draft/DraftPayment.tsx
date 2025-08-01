@@ -1,7 +1,7 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { ERC20Abi } from '@blockchain/ERC20';
 import { ContainerOrWorkerType } from '@data/containerResources';
-import { config, escrowContractAddress } from '@lib/config';
+import { config, escrowContractAddress, getCurrentEpoch } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { getContainerOrWorkerType, getJobsTotalCost } from '@lib/utils';
 import ActionButton from '@shared/ActionButton';
@@ -10,6 +10,7 @@ import EmptyData from '@shared/EmptyData';
 import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import SupportFooter from '@shared/SupportFooter';
 import { GenericJob, Job, JobType, type Project } from '@typedefs/deeploys';
+import { addMonths, differenceInDays } from 'date-fns';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiBox3Line, RiDraftLine } from 'react-icons/ri';
@@ -20,12 +21,13 @@ import GenericJobsCostRundown from './job-rundowns/GenericJobsCostRundown';
 import NativeJobsCostRundown from './job-rundowns/NativeJobsCostRundown';
 import ServiceJobsCostRundown from './job-rundowns/ServiceJobsCostRundown';
 
-const MAX_ALLOWANCE: bigint = 2n ** 256n - 1n;
+// const MAX_ALLOWANCE: bigint = 2n ** 256n - 1n;
 
 export default function DraftPayment({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
 
     const [allowance, setAllowance] = useState<bigint | undefined>();
+    const [totalCost, setTotalCost] = useState<number>(0);
     const [isLoading, setLoading] = useState<boolean>(false);
 
     const { data: walletClient } = useWalletClient();
@@ -34,6 +36,10 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
     useEffect(() => {
         console.log('[DraftPayment] jobs', jobs);
+
+        if (jobs) {
+            setTotalCost(getJobsTotalCost(jobs));
+        }
     }, [jobs]);
 
     useEffect(() => {
@@ -157,18 +163,27 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
         console.log('[DraftPayment] projectHash', projectHash);
 
+        const args = jobs.map((job) => {
+            const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+            const expiryDate = addMonths(new Date(), job.paymentAndDuration.duration);
+            const durationInEpochs = differenceInDays(expiryDate, new Date());
+            const lastExecutionEpoch = BigInt(getCurrentEpoch() + durationInEpochs);
+
+            return {
+                jobType: BigInt(containerType.jobType),
+                projectHash,
+                lastExecutionEpoch,
+                numberOfNodesRequested: BigInt(job.specifications.targetNodesCount),
+            };
+        });
+
+        console.log(args);
+
         const txHash = await walletClient.writeContract({
             address: escrowContractAddress,
             abi: CspEscrowAbi,
             functionName: 'createJobs',
-            args: [
-                jobs.map((job) => ({
-                    jobType: 1n, //TODO use correct job type
-                    projectHash,
-                    lastExecutionEpoch: 249n, //TODO use the correct lastExecutionEpoch
-                    numberOfNodesRequested: BigInt(job.specifications.targetNodesCount),
-                })),
-            ],
+            args: [args],
         });
 
         const receipt = await watchTx(txHash, publicClient);
@@ -208,7 +223,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             address: config.usdcContractAddress,
             abi: ERC20Abi,
             functionName: 'approve',
-            args: [escrowContractAddress, MAX_ALLOWANCE],
+            args: [escrowContractAddress, BigInt(totalCost * 10 ** 6)],
         });
 
         await watchTx(txHash, publicClient);
@@ -229,11 +244,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         setAllowance(allowance);
     };
 
-    const isPayAndDeployButtonDisabled = (): boolean => {
-        return allowance === undefined || jobs?.length === 0;
-    };
-
-    const hasEnoughAllowance = (): boolean => allowance !== undefined && allowance > MAX_ALLOWANCE / 2n;
+    const hasEnoughAllowance = (): boolean => allowance !== undefined && allowance >= BigInt(totalCost * 10 ** 6);
 
     /**
      * Approval is required only if the allowance is less than half of the maximum allowance,
@@ -256,6 +267,10 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         }
     };
 
+    const isPayAndDeployButtonDisabled = (): boolean => {
+        return allowance === undefined || jobs?.length === 0 || totalCost === 0;
+    };
+
     return (
         <div className="col gap-12">
             <div className="col gap-6">
@@ -275,7 +290,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                         >
                             <div className="row gap-1.5">
                                 <RiBox3Line className="text-lg" />
-                                <div className="text-sm">Pay & Deploy</div>
+                                <div className="text-sm">{isApprovalRequired() ? 'Approve $USDC' : 'Pay & Deploy'}</div>
                             </div>
                         </ActionButton>
                     </div>
@@ -289,7 +304,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
                             <div className="text-primary text-[19px] font-semibold">
                                 <span className="text-slate-500">$USDC</span>{' '}
-                                {parseFloat(getJobsTotalCost(jobs).toFixed(2)).toLocaleString()}
+                                {parseFloat(totalCost.toFixed(2)).toLocaleString()}
                             </div>
                         </div>
                     </BorderedCard>

@@ -1,5 +1,5 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
-import { cspEscrowContractAddress } from '@lib/config';
+import { escrowContractAddress } from '@lib/config';
 import ListHeader from '@shared/ListHeader';
 import { useEffect } from 'react';
 import { usePublicClient } from 'wagmi';
@@ -14,7 +14,7 @@ export default function Jobs() {
     const fetchAllJobs = async () => {
         if (publicClient) {
             const jobs = await publicClient.readContract({
-                address: cspEscrowContractAddress,
+                address: escrowContractAddress,
                 abi: CspEscrowAbi,
                 functionName: 'getAllJobs',
             });
