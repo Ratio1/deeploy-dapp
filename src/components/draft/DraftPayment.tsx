@@ -12,8 +12,19 @@ import ProjectIdentity from '../../shared/projects/ProjectIdentity';
 import GenericJobsCostRundown from './job-rundowns/GenericJobsCostRundown';
 import NativeJobsCostRundown from './job-rundowns/NativeJobsCostRundown';
 import ServiceJobsCostRundown from './job-rundowns/ServiceJobsCostRundown';
+import { useWalletClient, usePublicClient } from 'wagmi';
+import { CspEscrowAbi } from '@blockchain/CspEscrow';
+import { decodeEventLog, keccak256 } from 'viem';
+import { config } from '@lib/config';
+import { ERC20Abi } from '@blockchain/ERC20';
+import { v4 as uuidv4 } from 'uuid';
+
+const MAX_ALLOWANCE: bigint = 2n ** 256n - 1n;
 
 export default function DraftPayment({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
+    const { data: walletClient } = useWalletClient();
+    const publicClient = usePublicClient();
+
     useEffect(() => {
         console.log('[DraftPayment] jobs', jobs);
     }, [jobs]);
@@ -88,13 +99,83 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         };
     };
 
-    const onPayAndDeploy = () => {
+    const onPayAndDeploy = async () => {
         if (!jobs) {
             return;
         }
+        if (!walletClient) {
+            console.error('[DraftPayment] No wallet client');
+            return;
+        }
+        if (!publicClient) {
+            console.error('[DraftPayment] No public client');
+            return;
+        }
 
+        const escrowContractAddress = '0x2F2b63811617a9C6b97535ffa4c9B3626cDAE15C';
         console.log('[DraftPayment] onPayAndDeploy', jobs);
 
+        //project hash is the hash of the project id
+        const newUuid = uuidv4();
+        const projectHash = keccak256(newUuid);
+        console.log('[DraftPayment] projectHash', projectHash, newUuid);
+
+        const txHashApprove = await walletClient.writeContract({
+            address: config.usdcContractAddress,
+            abi: ERC20Abi,
+            functionName: 'approve',
+            args: [escrowContractAddress, MAX_ALLOWANCE],
+        });
+        const receiptApprove = await publicClient.waitForTransactionReceipt({
+            hash: txHashApprove,
+        });
+
+        console.log('[DraftPayment] Approve receipt:', receiptApprove);
+
+        const txHashCreateJobs = await walletClient.writeContract({
+            address: escrowContractAddress,
+            abi: CspEscrowAbi,
+            functionName: 'createJobs',
+            args: [
+                jobs.map((job) => ({
+                    jobType: 1n, //TODO use correct job type
+                    projectHash,
+                    lastExecutionEpoch: 249n, //TODO use correct lastExecutionEpoch
+                    numberOfNodesRequested: BigInt(job.specifications.targetNodesCount),
+                })),
+            ],
+        });
+
+        console.log('[DraftPayment] Transaction hash:', txHashCreateJobs);
+
+        // Wait for the transaction to be mined and get the receipt
+        const receiptCreateJobs = await publicClient.waitForTransactionReceipt({
+            hash: txHashCreateJobs,
+        });
+
+        console.log('[DraftPayment] Transaction receipt:', receiptCreateJobs);
+
+        // Check if the transaction was successful
+        if (receiptCreateJobs.status === 'success') {
+            console.log('[DraftPayment] Transaction successful!');
+
+            const decodedLogs = receiptCreateJobs.logs
+                .filter((log) => log.address === escrowContractAddress)
+                .map((log) => {
+                    const decoded = decodeEventLog({
+                        abi: CspEscrowAbi,
+                        data: log.data,
+                        topics: log.topics,
+                    });
+                    return decoded;
+                })
+                .filter((log) => log.eventName === 'JobCreated');
+            console.log('[DraftPayment] Transaction logs:', decodedLogs);
+        } else {
+            console.error('[DraftPayment] Transaction failed!');
+        }
+
+        return;
         const payloads = jobs.map((job) => {
             let payload = {};
 
