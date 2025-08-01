@@ -1,6 +1,4 @@
-import { Switch } from '@heroui/switch';
 import { SlateCard } from '@shared/cards/SlateCard';
-import { SmallTag } from '@shared/SmallTag';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import ImageContainerSection from './ImageContainerSection';
@@ -39,18 +37,20 @@ function ContainerSectionCard() {
             title="Container"
             label={
                 <div className="row gap-2">
-                    <SmallTag variant={containerType === 'worker' ? 'emerald' : 'default'}>Worker</SmallTag>
+                    {/* TODO: Temporarily disabled */}
+                    {/* <SmallTag variant={containerType === 'worker' ? 'emerald' : 'default'}>Worker</SmallTag> */}
 
-                    <Switch
+                    {/* <Switch
                         isSelected={containerType === 'image'}
                         onValueChange={onContainerTypeChange}
                         size="sm"
                         classNames={{
                             wrapper: 'bg-emerald-200 group-data-[selected=true]:bg-purple-300',
                         }}
+                        isDisabled
                     >
                         <SmallTag variant={containerType === 'image' ? 'purple' : 'default'}>Image</SmallTag>
-                    </Switch>
+                    </Switch> */}
                 </div>
             }
         >

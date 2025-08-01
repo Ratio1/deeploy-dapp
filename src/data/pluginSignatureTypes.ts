@@ -1,1 +1,1 @@
-export const PLUGIN_SIGNATURE_TYPES = ['CONTAINER_APP_RUNNER', 'SOME_PLUGIN_01'] as const;
+export const PLUGIN_SIGNATURE_TYPES = ['A_SIMPLE_PLUGIN'] as const;
