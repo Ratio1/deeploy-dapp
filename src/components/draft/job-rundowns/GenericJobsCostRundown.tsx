@@ -1,4 +1,5 @@
 import { ContainerOrWorkerType, genericContainerTypes, GpuType, gpuTypes } from '@data/containerResources';
+import { getContainerOrWorkerTypeDescription } from '@lib/utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
 import { GenericJob } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
@@ -30,7 +31,10 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
                     // Specifications
                     { label: 'App Type', value: genericJob.specifications.applicationType },
                     { label: 'Target Nodes', value: genericJob.specifications.targetNodesCount },
-                    { label: 'Container Type', value: `${containerType.name} (${containerType.description})` },
+                    {
+                        label: 'Container Type',
+                        value: `${containerType.name} (${getContainerOrWorkerTypeDescription(containerType)})`,
+                    },
                     ...(gpuType ? [{ label: 'GPU Type', value: `${gpuType.name} (${gpuType.gpus.join(', ')})` }] : []),
 
                     // Deployment

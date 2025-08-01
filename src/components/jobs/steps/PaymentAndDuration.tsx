@@ -1,6 +1,6 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { Slider } from '@heroui/slider';
-import { getContainerOrWorkerType, getDiscountPercentage } from '@lib/utils';
+import { getContainerOrWorkerType, getContainerOrWorkerTypeDescription, getDiscountPercentage } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { SlateCard } from '@shared/cards/SlateCard';
 import Label from '@shared/Label';
@@ -55,7 +55,7 @@ function PaymentAndDuration() {
         },
         {
             label: 'Configuration',
-            value: containerOrWorkerType.description,
+            value: getContainerOrWorkerTypeDescription(containerOrWorkerType),
         },
         {
             label: 'Target Nodes',

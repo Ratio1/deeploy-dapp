@@ -1,6 +1,6 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { getContainerOrWorkerType, getShortAddress } from '@lib/utils';
+import { getContainerOrWorkerType, getContainerOrWorkerTypeDescription, getShortAddress } from '@lib/utils';
 import JobList from '@shared/jobs/drafts/JobList';
 import { SmallTag } from '@shared/SmallTag';
 import { JobType, ServiceJob } from '@typedefs/deeploys';
@@ -42,7 +42,7 @@ export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
                         </div>
                         <div className="min-w-[106px]">{serviceJob.specifications.targetNodesCount}</div>
                         <div className="min-w-[234px]">
-                            {containerOrWorkerType.name} ({containerOrWorkerType.description})
+                            {containerOrWorkerType.name} ({getContainerOrWorkerTypeDescription(containerOrWorkerType)})
                         </div>
                         <div className="flex min-w-[264px]">
                             <div className="rounded-md border-2 border-slate-200 bg-slate-50 px-2 py-1 text-slate-600">

@@ -1,5 +1,5 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
-import { getContainerOrWorkerType } from '@lib/utils';
+import { getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
 import JobList from '@shared/jobs/projects/JobList';
 import { SmallTag } from '@shared/SmallTag';
 import { GenericJob, Project } from '@typedefs/deeploys';
@@ -46,7 +46,7 @@ function GenericJobList({ jobs, project }: { jobs: GenericJob[]; project: Projec
                             <SmallTag key="id">{genericJob.id}</SmallTag>,
                             <div className="font-medium">{genericJob.deployment.jobAlias}</div>,
                             genericJob.specifications.targetNodesCount,
-                            `${containerOrWorkerType.name} (${containerOrWorkerType.description})`,
+                            `${containerOrWorkerType.name} (${getContainerOrWorkerTypeDescription(containerOrWorkerType)})`,
                             <div className="flex">
                                 <div className="rounded-md border-2 border-slate-200 bg-slate-50 px-2 py-1">
                                     {genericJob.deployment.container.type === 'image'

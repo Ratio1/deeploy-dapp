@@ -1,5 +1,5 @@
 import { ContainerOrWorkerType, GpuType, gpuTypes, serviceContainerTypes } from '@data/containerResources';
-import { getShortAddress } from '@lib/utils';
+import { getContainerOrWorkerTypeDescription, getShortAddress } from '@lib/utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
 import { ServiceJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
@@ -30,7 +30,10 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
                     // Specifications
                     { label: 'App Type', value: serviceJob.specifications.applicationType },
                     { label: 'Target Nodes', value: serviceJob.specifications.targetNodesCount },
-                    { label: 'Container Type', value: `${containerType.name} (${containerType.description})` },
+                    {
+                        label: 'Container Type',
+                        value: `${containerType.name} (${getContainerOrWorkerTypeDescription(containerType)})`,
+                    },
                     ...(gpuType ? [{ label: 'GPU Type', value: `${gpuType.name} (${gpuType.gpus.join(', ')})` }] : []),
 
                     // Deployment

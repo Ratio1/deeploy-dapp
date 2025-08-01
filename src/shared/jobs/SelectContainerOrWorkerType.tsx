@@ -1,5 +1,6 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { SelectItem } from '@heroui/select';
+import { getContainerOrWorkerTypeDescription } from '@lib/utils';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import StyledSelect from '@shared/StyledSelect';
@@ -48,7 +49,9 @@ export default function SelectContainerOrWorkerType({ name, label, options }: Pr
                                 return items.map((item) => (
                                     <div key={item.key} className="row gap-1">
                                         <SmallTag variant="blue">{(item.data as ContainerOrWorkerType).name}</SmallTag>
-                                        <SmallTag>{(item.data as ContainerOrWorkerType).description}</SmallTag>
+                                        <SmallTag>
+                                            {getContainerOrWorkerTypeDescription(item.data as ContainerOrWorkerType)}
+                                        </SmallTag>
                                     </div>
                                 ));
                             }}
@@ -61,7 +64,7 @@ export default function SelectContainerOrWorkerType({ name, label, options }: Pr
                                         <div className="row justify-between py-1">
                                             <div className="row gap-1">
                                                 <SmallTag variant="blue">{containerType.name}</SmallTag>
-                                                <SmallTag>{containerType.description}</SmallTag>
+                                                <SmallTag>{getContainerOrWorkerTypeDescription(containerType)}</SmallTag>
                                                 <SmallTag variant={containerType.notesColor}>{containerType.notes}</SmallTag>
 
                                                 {/* Only rendered when not all options are the same */}

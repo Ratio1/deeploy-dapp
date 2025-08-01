@@ -8,6 +8,9 @@ export type ContainerOrWorkerType = {
     notesColor: 'red' | 'orange' | 'green' | 'blue';
     monthlyBudgetPerWorker: number;
     minimalBalancing: number;
+    cores: number;
+    ram: number;
+    storage?: number;
 };
 
 export type GpuType = {
@@ -28,6 +31,8 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'red',
         monthlyBudgetPerWorker: 11.25,
         minimalBalancing: 2,
+        cores: 1,
+        ram: 2,
     },
     {
         id: 2,
@@ -37,6 +42,8 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'red',
         monthlyBudgetPerWorker: 22.5,
         minimalBalancing: 2,
+        cores: 2,
+        ram: 4,
     },
     {
         id: 3,
@@ -46,6 +53,8 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'red',
         monthlyBudgetPerWorker: 30,
         minimalBalancing: 2,
+        cores: 2,
+        ram: 8,
     },
     {
         id: 4,
@@ -55,6 +64,8 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'orange',
         monthlyBudgetPerWorker: 57.5,
         minimalBalancing: 2,
+        cores: 4,
+        ram: 12,
     },
     {
         id: 5,
@@ -64,6 +75,8 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'orange',
         monthlyBudgetPerWorker: 87.5,
         minimalBalancing: 2,
+        cores: 6,
+        ram: 14,
     },
     {
         id: 6,
@@ -73,6 +86,8 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'orange',
         monthlyBudgetPerWorker: 112.5,
         minimalBalancing: 2,
+        cores: 6,
+        ram: 14,
     },
     {
         id: 7,
@@ -82,6 +97,8 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'orange',
         monthlyBudgetPerWorker: 160,
         minimalBalancing: 2,
+        cores: 12,
+        ram: 30,
     },
     {
         id: 8,
@@ -91,6 +108,8 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'orange',
         monthlyBudgetPerWorker: 250,
         minimalBalancing: 2,
+        cores: 16,
+        ram: 62,
     },
     {
         id: 9,
@@ -100,6 +119,8 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'green',
         monthlyBudgetPerWorker: 375,
         minimalBalancing: 2,
+        cores: 24,
+        ram: 128,
     },
 ];
 
@@ -112,6 +133,8 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         notesColor: 'orange',
         monthlyBudgetPerWorker: 75,
         minimalBalancing: 2,
+        cores: 4,
+        ram: 14,
     },
     {
         id: 2,
@@ -121,6 +144,8 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         notesColor: 'orange',
         monthlyBudgetPerWorker: 112.5,
         minimalBalancing: 2,
+        cores: 8,
+        ram: 22,
     },
     {
         id: 3,
@@ -130,6 +155,8 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         notesColor: 'orange',
         monthlyBudgetPerWorker: 180,
         minimalBalancing: 1,
+        cores: 12,
+        ram: 30,
     },
     {
         id: 4,
@@ -139,6 +166,8 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         notesColor: 'orange',
         monthlyBudgetPerWorker: 270,
         minimalBalancing: 1,
+        cores: 16,
+        ram: 60,
     },
     {
         id: 5,
@@ -148,6 +177,8 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         notesColor: 'green',
         monthlyBudgetPerWorker: 400,
         minimalBalancing: 1,
+        cores: 24,
+        ram: 128,
     },
 ];
 
@@ -160,6 +191,9 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'blue',
         monthlyBudgetPerWorker: 30,
         minimalBalancing: 1,
+        cores: 1,
+        ram: 2,
+        storage: 50,
     },
     {
         id: 2,
@@ -169,6 +203,9 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'blue',
         monthlyBudgetPerWorker: 65,
         minimalBalancing: 1,
+        cores: 2,
+        ram: 4,
+        storage: 200,
     },
     {
         id: 3,
@@ -178,6 +215,9 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'orange',
         monthlyBudgetPerWorker: 30,
         minimalBalancing: 1,
+        cores: 1,
+        ram: 2,
+        storage: 50,
     },
     {
         id: 4,
@@ -187,6 +227,9 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'orange',
         monthlyBudgetPerWorker: 65,
         minimalBalancing: 1,
+        cores: 2,
+        ram: 4,
+        storage: 200,
     },
     {
         id: 5,
@@ -196,6 +239,9 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'green',
         monthlyBudgetPerWorker: 30,
         minimalBalancing: 1,
+        cores: 1,
+        ram: 2,
+        storage: 50,
     },
     {
         id: 6,
@@ -205,6 +251,9 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         notesColor: 'green',
         monthlyBudgetPerWorker: 65,
         minimalBalancing: 1,
+        cores: 2,
+        ram: 4,
+        storage: 200,
     },
 ];
 

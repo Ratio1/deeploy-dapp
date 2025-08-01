@@ -1,4 +1,5 @@
-import { getJobsTotalCost } from '@lib/utils';
+import { ContainerOrWorkerType } from '@data/containerResources';
+import { getContainerOrWorkerType, getJobsTotalCost } from '@lib/utils';
 import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import EmptyData from '@shared/EmptyData';
@@ -18,6 +19,8 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
     }, [jobs]);
 
     const formatGenericJobPayload = (job: GenericJob) => {
+        const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+
         // Convert env vars array to object
         const envVars: Record<string, string> = {};
         job.deployment.envVars.forEach((envVar) => {
@@ -45,7 +48,15 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                 USERNAME: job.deployment.container.crUsername,
                 PASSWORD: job.deployment.container.crPassword,
             };
+        } else {
+            console.error('Worker-based container not implemented yet.');
         }
+
+        const containerResources = {
+            name: containerType.name,
+            cpu: containerType.cores,
+            memory: `${containerType.ram}GB`,
+        };
 
         // Generate nonce (current timestamp in milliseconds as hex)
         const nonce = Math.floor(Date.now() * 1000).toString(16);
@@ -54,18 +65,17 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             app_alias: job.deployment.jobAlias,
             plugin_signature: 'CONTAINER_APP_RUNNER',
             nonce: nonce,
-            target_nodes: job.deployment.targetNodes || [],
+            target_nodes: job.deployment.targetNodes,
             target_nodes_count: job.specifications.targetNodesCount,
-            node_res_req: {}, // TODO: This should not be included
             app_params: {
                 IMAGE: image,
                 CR_DATA: crData,
-                CONTAINER_RESOURCES: {}, // TODO: Only the container name should be sent
-                PORT: job.deployment.port.toString(),
+                CONTAINER_RESOURCES: containerResources,
+                PORT: job.deployment.port,
                 NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || 'None',
                 NGROK_EDGE_LABEL: 'None',
-                NGROK_ENABLED: job.deployment.tunnelingToken ? 'True' : 'False',
-                NGROK_USE_API: 'True',
+                NGROK_ENABLED: job.deployment.tunnelingToken ? true : false,
+                NGROK_USE_API: true,
                 VOLUMES: {}, // TODO: Implement
                 ENV: envVars,
                 DYNAMIC_ENV: dynamicEnvVars,
@@ -74,7 +84,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             },
             pipeline_input_type: 'void',
             pipeline_input_uri: 'None',
-            chainstore_response: 'True',
+            chainstore_response: true,
         };
     };
 
