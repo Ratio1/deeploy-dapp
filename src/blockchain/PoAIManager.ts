@@ -307,6 +307,19 @@ export const PoAIManagerAbi = [
         type: 'function',
     },
     {
+        inputs: [],
+        name: 'getIsLastEpochAllocated',
+        outputs: [
+            {
+                internalType: 'bool',
+                name: '',
+                type: 'bool',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
         inputs: [
             {
                 internalType: 'uint256',
@@ -322,6 +335,11 @@ export const PoAIManagerAbi = [
                         internalType: 'uint256',
                         name: 'id',
                         type: 'uint256',
+                    },
+                    {
+                        internalType: 'bytes32',
+                        name: 'projectHash',
+                        type: 'bytes32',
                     },
                     {
                         internalType: 'uint256',
@@ -406,6 +424,19 @@ export const PoAIManagerAbi = [
         type: 'function',
     },
     {
+        inputs: [],
+        name: 'getUnvalidatedJobIds',
+        outputs: [
+            {
+                internalType: 'uint256[]',
+                name: '',
+                type: 'uint256[]',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
         inputs: [
             {
                 internalType: 'address',
@@ -466,12 +497,44 @@ export const PoAIManagerAbi = [
                 type: 'uint256',
             },
         ],
+        name: 'isJobUnvalidated',
+        outputs: [
+            {
+                internalType: 'bool',
+                name: '',
+                type: 'bool',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+            },
+        ],
         name: 'jobIdToEscrow',
         outputs: [
             {
                 internalType: 'address',
                 name: '',
                 type: 'address',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'lastAllocatedEpoch',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
             },
         ],
         stateMutability: 'view',
@@ -704,6 +767,25 @@ export const PoAIManagerAbi = [
                 internalType: 'address',
                 name: '',
                 type: 'address',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+            },
+        ],
+        name: 'unvalidatedJobIds',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
             },
         ],
         stateMutability: 'view',
