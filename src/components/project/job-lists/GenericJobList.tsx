@@ -9,6 +9,7 @@ const widthClasses = [
     'min-w-[64px]', // id
     'min-w-[128px]', // alias
     'min-w-[90px]', // targetNodes
+    'min-w-[50px]', // type
     'min-w-[300px]', // containerType
 ];
 
@@ -21,7 +22,7 @@ function GenericJobList({ jobs, project }: { jobs: GenericJob[]; project: Projec
                     <div className="compact">Generic Apps</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Container Type'], widthClasses)}</>}
+            tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Type', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
             project={project}
             renderJob={(job) => {
@@ -44,6 +45,12 @@ function GenericJobList({ jobs, project }: { jobs: GenericJob[]; project: Projec
                         <div className={widthClasses[2]}>{genericJob.specifications.targetNodesCount}</div>
 
                         <div className={widthClasses[3]}>
+                            <SmallTag variant={genericJob.specifications.gpuType ? 'green' : 'blue'}>
+                                {genericJob.specifications.gpuType ? 'GPU' : 'CPU'}
+                            </SmallTag>
+                        </div>
+
+                        <div className={widthClasses[4]}>
                             {`${containerOrWorkerType.name} (${getContainerOrWorkerTypeDescription(containerOrWorkerType)})`}
                         </div>
                     </>

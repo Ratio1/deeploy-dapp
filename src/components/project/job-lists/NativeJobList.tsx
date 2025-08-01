@@ -9,6 +9,7 @@ const widthClasses = [
     'min-w-[64px]', // id
     'min-w-[128px]', // alias
     'min-w-[90px]', // targetNodes
+    'min-w-[50px]', // type
     'min-w-[300px]', // containerType
 ];
 
@@ -21,7 +22,7 @@ function NativeJobList({ jobs, project }: { jobs: NativeJob[]; project: Project 
                     <div className="compact">Native Apps</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Worker Type'], widthClasses)}</>}
+            tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Type', 'Worker Type'], widthClasses)}</>}
             jobs={jobs}
             project={project}
             renderJob={(job) => {
@@ -44,6 +45,12 @@ function NativeJobList({ jobs, project }: { jobs: NativeJob[]; project: Project 
                         <div className={widthClasses[2]}>{nativeJob.specifications.targetNodesCount}</div>
 
                         <div className={widthClasses[3]}>
+                            <SmallTag variant={nativeJob.specifications.gpuType ? 'green' : 'blue'}>
+                                {nativeJob.specifications.gpuType ? 'GPU' : 'CPU'}
+                            </SmallTag>
+                        </div>
+
+                        <div className={widthClasses[4]}>
                             {`${containerOrWorkerType.name} (${getContainerOrWorkerTypeDescription(containerOrWorkerType)})`}
                         </div>
                     </>
