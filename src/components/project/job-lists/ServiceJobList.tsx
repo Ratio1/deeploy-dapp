@@ -1,21 +1,18 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
-import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
-import JobList from '@shared/jobs/drafts/JobList';
+import JobList from '@shared/jobs/projects/JobList';
 import { SmallTag } from '@shared/SmallTag';
-import { JobType, ServiceJob } from '@typedefs/deeploys';
+import { Project, ServiceJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
 
 const widthClasses = [
+    'min-w-[64px]', // id
     'min-w-[128px]', // alias
-    'min-w-[90px]', // duration
     'min-w-[90px]', // targetNodes
     'min-w-[300px]', // containerType
 ];
 
-export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
-    const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
-
+function ServiceJobList({ jobs, project }: { jobs: ServiceJob[]; project: Project }) {
     return (
         <JobList
             cardHeader={
@@ -24,8 +21,9 @@ export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
                     <div className="compact">Services</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Container Type'], widthClasses)}</>}
+            tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
+            project={project}
             renderJob={(job) => {
                 const serviceJob = job as ServiceJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
@@ -35,24 +33,24 @@ export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
 
                 return (
                     <>
-                        <div className={widthClasses[0]}>{serviceJob.deployment.jobAlias}</div>
+                        <div className={widthClasses[0]}>
+                            <SmallTag key="id">{serviceJob.id}</SmallTag>
+                        </div>
 
                         <div className={widthClasses[1]}>
-                            <SmallTag>{serviceJob.paymentAndDuration.duration} months</SmallTag>
+                            <div className="font-medium">{serviceJob.deployment.jobAlias}</div>
                         </div>
 
                         <div className={widthClasses[2]}>{serviceJob.specifications.targetNodesCount}</div>
 
                         <div className={widthClasses[3]}>
-                            {containerOrWorkerType.name} ({getContainerOrWorkerTypeDescription(containerOrWorkerType)})
+                            {`${containerOrWorkerType.name} (${getContainerOrWorkerTypeDescription(containerOrWorkerType)})`}
                         </div>
                     </>
                 );
             }}
-            onAddJob={() => {
-                setStep(2);
-                setJobType(JobType.Service);
-            }}
         />
     );
 }
+
+export default ServiceJobList;

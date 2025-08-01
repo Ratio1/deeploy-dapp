@@ -1,25 +1,16 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
-import { getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
+import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
 import JobList from '@shared/jobs/projects/JobList';
 import { SmallTag } from '@shared/SmallTag';
 import { GenericJob, Project } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
 
-const applyWidthClasses = (elements: React.ReactNode[]) => {
-    const widthClasses = [
-        'min-w-[64px]', // id
-        'min-w-[128px]', // alias
-        'min-w-[90px]', // targetNodes
-        'min-w-[234px]', // containerType
-        'min-w-[264px]', // containerImage
-    ];
-
-    return elements.map((element, index) => (
-        <div key={index} className={widthClasses[index]}>
-            {element}
-        </div>
-    ));
-};
+const widthClasses = [
+    'min-w-[64px]', // id
+    'min-w-[128px]', // alias
+    'min-w-[90px]', // targetNodes
+    'min-w-[300px]', // containerType
+];
 
 function GenericJobList({ jobs, project }: { jobs: GenericJob[]; project: Project }) {
     return (
@@ -30,7 +21,7 @@ function GenericJobList({ jobs, project }: { jobs: GenericJob[]; project: Projec
                     <div className="compact">Generic Apps</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Container Type', 'Container Image/Repo'])}</>}
+            tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
             project={project}
             renderJob={(job) => {
@@ -42,19 +33,19 @@ function GenericJobList({ jobs, project }: { jobs: GenericJob[]; project: Projec
 
                 return (
                     <>
-                        {applyWidthClasses([
-                            <SmallTag key="id">{genericJob.id}</SmallTag>,
-                            <div className="font-medium">{genericJob.deployment.jobAlias}</div>,
-                            genericJob.specifications.targetNodesCount,
-                            `${containerOrWorkerType.name} (${getContainerOrWorkerTypeDescription(containerOrWorkerType)})`,
-                            <div className="flex">
-                                <div className="rounded-md border-2 border-slate-200 bg-slate-50 px-2 py-1">
-                                    {genericJob.deployment.container.type === 'image'
-                                        ? genericJob.deployment.container.containerImage
-                                        : genericJob.deployment.container.githubUrl}
-                                </div>
-                            </div>,
-                        ])}
+                        <div className={widthClasses[0]}>
+                            <SmallTag key="id">{genericJob.id}</SmallTag>
+                        </div>
+
+                        <div className={widthClasses[1]}>
+                            <div className="font-medium">{genericJob.deployment.jobAlias}</div>
+                        </div>
+
+                        <div className={widthClasses[2]}>{genericJob.specifications.targetNodesCount}</div>
+
+                        <div className={widthClasses[3]}>
+                            {`${containerOrWorkerType.name} (${getContainerOrWorkerTypeDescription(containerOrWorkerType)})`}
+                        </div>
                     </>
                 );
             }}

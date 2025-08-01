@@ -1,21 +1,18 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
-import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
-import JobList from '@shared/jobs/drafts/JobList';
+import JobList from '@shared/jobs/projects/JobList';
 import { SmallTag } from '@shared/SmallTag';
-import { JobType, NativeJob } from '@typedefs/deeploys';
+import { NativeJob, Project } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
 const widthClasses = [
+    'min-w-[64px]', // id
     'min-w-[128px]', // alias
-    'min-w-[90px]', // duration
     'min-w-[90px]', // targetNodes
-    'min-w-[300px]', // workerType
+    'min-w-[300px]', // containerType
 ];
 
-export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
-    const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
-
+function NativeJobList({ jobs, project }: { jobs: NativeJob[]; project: Project }) {
     return (
         <JobList
             cardHeader={
@@ -24,8 +21,9 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
                     <div className="compact">Native Apps</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Worker Type'], widthClasses)}</>}
+            tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Worker Type'], widthClasses)}</>}
             jobs={jobs}
+            project={project}
             renderJob={(job) => {
                 const nativeJob = job as NativeJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
@@ -35,24 +33,24 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
 
                 return (
                     <>
-                        <div className={widthClasses[0]}>{nativeJob.deployment.jobAlias}</div>
+                        <div className={widthClasses[0]}>
+                            <SmallTag key="id">{nativeJob.id}</SmallTag>
+                        </div>
 
                         <div className={widthClasses[1]}>
-                            <SmallTag>{nativeJob.paymentAndDuration.duration} months</SmallTag>
+                            <div className="font-medium">{nativeJob.deployment.jobAlias}</div>
                         </div>
 
                         <div className={widthClasses[2]}>{nativeJob.specifications.targetNodesCount}</div>
 
                         <div className={widthClasses[3]}>
-                            {containerOrWorkerType.name} ({getContainerOrWorkerTypeDescription(containerOrWorkerType)})
+                            {`${containerOrWorkerType.name} (${getContainerOrWorkerTypeDescription(containerOrWorkerType)})`}
                         </div>
                     </>
                 );
             }}
-            onAddJob={() => {
-                setStep(2);
-                setJobType(JobType.Native);
-            }}
         />
     );
 }
+
+export default NativeJobList;

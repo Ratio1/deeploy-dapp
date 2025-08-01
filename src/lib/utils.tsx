@@ -184,3 +184,11 @@ export const getContainerOrWorkerTypeDescription = (containerOrWorkerType: Conta
     const storageString = `, ${containerOrWorkerType.storage} GiB storage`;
     return `${containerOrWorkerType.cores} core${containerOrWorkerType.cores > 1 ? 's' : ''}, ${containerOrWorkerType.ram} GB RAM${containerOrWorkerType.storage ? storageString : ''}`;
 };
+
+export const applyWidthClasses = (elements: React.ReactNode[], widthClasses: string[]) => {
+    return elements.map((element, index) => (
+        <div key={index} className={widthClasses[index]}>
+            {element}
+        </div>
+    ));
+};

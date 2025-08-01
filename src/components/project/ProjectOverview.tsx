@@ -6,6 +6,8 @@ import { useEffect } from 'react';
 import JobsStats from '../../shared/projects/JobsStats';
 import ProjectIdentity from '../../shared/projects/ProjectIdentity';
 import GenericJobList from './job-lists/GenericJobList';
+import NativeJobList from './job-lists/NativeJobList';
+import ServiceJobList from './job-lists/ServiceJobList';
 
 export default function ProjectOverview({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
     useEffect(() => {
@@ -33,6 +35,12 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                     <>
                         {jobs.filter((job) => job.jobType === JobType.Generic).length > 0 && (
                             <GenericJobList jobs={jobs.filter((job) => job.jobType === JobType.Generic)} project={project} />
+                        )}
+                        {jobs.filter((job) => job.jobType === JobType.Native).length > 0 && (
+                            <NativeJobList jobs={jobs.filter((job) => job.jobType === JobType.Native)} project={project} />
+                        )}
+                        {jobs.filter((job) => job.jobType === JobType.Service).length > 0 && (
+                            <ServiceJobList jobs={jobs.filter((job) => job.jobType === JobType.Service)} project={project} />
                         )}
                     </>
                 )}

@@ -1,10 +1,17 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
+import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
 import JobList from '@shared/jobs/drafts/JobList';
 import { SmallTag } from '@shared/SmallTag';
 import { GenericJob, JobType } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
+
+const widthClasses = [
+    'min-w-[128px]', // alias
+    'min-w-[90px]', // duration
+    'min-w-[90px]', // targetNodes
+    'min-w-[300px]', // containerType
+];
 
 export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
     const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
@@ -17,15 +24,7 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
                     <div className="compact">Generic Apps</div>
                 </div>
             }
-            tableHeader={
-                <>
-                    <div className="min-w-[128px]">Alias</div>
-                    <div className="min-w-[90px]">Duration</div>
-                    <div className="min-w-[90px]">Target Nodes</div>
-                    <div className="min-w-[234px]">Container Type</div>
-                    <div className="min-w-[264px]">Container Image/Repo</div>
-                </>
-            }
+            tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
             renderJob={(job) => {
                 const genericJob = job as GenericJob;
@@ -36,20 +35,16 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
 
                 return (
                     <>
-                        <div className="min-w-[128px]">{genericJob.deployment.jobAlias}</div>
-                        <div className="min-w-[90px]">
+                        <div className={widthClasses[0]}>{genericJob.deployment.jobAlias}</div>
+
+                        <div className={widthClasses[1]}>
                             <SmallTag>{genericJob.paymentAndDuration.duration} months</SmallTag>
                         </div>
-                        <div className="min-w-[90px]">{genericJob.specifications.targetNodesCount}</div>
-                        <div className="min-w-[234px]">
+
+                        <div className={widthClasses[2]}>{genericJob.specifications.targetNodesCount}</div>
+
+                        <div className={widthClasses[3]}>
                             {containerOrWorkerType.name} ({getContainerOrWorkerTypeDescription(containerOrWorkerType)})
-                        </div>
-                        <div className="flex min-w-[264px]">
-                            <div className="rounded-md border-2 border-slate-200 bg-slate-50 px-2 py-1">
-                                {genericJob.deployment.container.type === 'image'
-                                    ? genericJob.deployment.container.containerImage
-                                    : genericJob.deployment.container.githubUrl}
-                            </div>
                         </div>
                     </>
                 );

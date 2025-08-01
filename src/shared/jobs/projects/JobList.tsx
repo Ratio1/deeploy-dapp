@@ -47,8 +47,9 @@ export default function JobList({
             </div>
 
             {jobs.map((job) => (
-                <div key={job.id} className="col border-t-2 border-slate-200/65 px-4 text-[13px]">
-                    <div className="row justify-between gap-2 py-3">
+                <div key={job.id} className="col gap-4 border-t-2 border-slate-200/65 px-4 py-4 text-[13px]">
+                    {/* Content */}
+                    <div className="row justify-between gap-2">
                         {renderJob(job)}
 
                         <ContextMenuWithTrigger
@@ -64,7 +65,8 @@ export default function JobList({
                         />
                     </div>
 
-                    <div className="row bg-slate-75 mb-3 justify-between gap-2 rounded-lg px-4 py-4">
+                    {/* Footer */}
+                    <div className="row bg-slate-75 justify-between gap-2 rounded-lg px-4 py-4">
                         <ItemWithLabel
                             label="Expires"
                             value={addMonths(new Date(project.createdAt), job.paymentAndDuration.duration).toLocaleDateString(
