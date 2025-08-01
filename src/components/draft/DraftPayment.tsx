@@ -53,7 +53,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         }
 
         const containerResources = {
-            name: containerType.name,
+            // name: containerType.name,
             cpu: containerType.cores,
             memory: `${containerType.ram}GB`,
         };
