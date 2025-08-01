@@ -1,4 +1,5 @@
 import Drafts from '@components/deeploys/Drafts';
+import Jobs from '@components/deeploys/Jobs';
 import Projects, { RunningRef } from '@components/deeploys/Projects';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
@@ -10,7 +11,7 @@ import { RiBox3Line, RiFileTextLine } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
 
 function Dashboard() {
-    const [selectedTab, setSelectedTab] = useState<'running' | 'drafts'>('running');
+    const [selectedTab, setSelectedTab] = useState<'jobs' | 'projects' | 'drafts'>('drafts');
     const drafts = useLiveQuery(() => db.projects.toArray());
     const runningRef = useRef<RunningRef>(null);
 
@@ -20,7 +21,7 @@ function Dashboard() {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
 
-        if (tab && (tab === 'running' || tab === 'drafts')) {
+        if (tab && (tab === 'jobs' || tab === 'projects' || tab === 'drafts')) {
             setSelectedTab(tab);
         }
     }, [window.location.search]);
@@ -39,8 +40,14 @@ function Dashboard() {
                 <CustomTabs
                     tabs={[
                         {
-                            key: 'running',
-                            title: 'Running',
+                            key: 'jobs',
+                            title: 'Jobs',
+                            icon: <RiBox3Line />,
+                            count: 0, // TODO: Get from SC
+                        },
+                        {
+                            key: 'projects',
+                            title: 'Projects',
                             icon: <RiBox3Line />,
                             count: drafts?.length ?? 0, // TODO: Get from API
                         },
@@ -57,7 +64,7 @@ function Dashboard() {
                     }}
                 />
 
-                {selectedTab === 'running' && (
+                {selectedTab === 'projects' && (
                     <div className="row gap-2">
                         <ActionButton className="slate-button" onPress={handleExpandAll}>
                             <div className="compact">Expand all</div>
@@ -70,7 +77,9 @@ function Dashboard() {
                 )}
             </div>
 
-            {selectedTab === 'running' ? <Projects ref={runningRef} /> : <Drafts />}
+            {selectedTab === 'jobs' && <Jobs />}
+            {selectedTab === 'projects' && <Projects ref={runningRef} />}
+            {selectedTab === 'drafts' && <Drafts />}
         </div>
     );
 }

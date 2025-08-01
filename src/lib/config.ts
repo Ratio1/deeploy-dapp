@@ -3,6 +3,8 @@ import { addSeconds } from 'date-fns';
 import { Chain } from 'viem';
 import { base, baseSepolia } from 'wagmi/chains';
 
+// TODO: Clean-up unused values
+
 type Config = {
     deeployUrl: string;
     backendUrl: string;
@@ -122,3 +124,6 @@ export const getNextEpochTimestamp = (): Date =>
 
 export const getLicenseAssignEpoch = (assignTimestamp: bigint) =>
     Math.floor((Number(assignTimestamp) - config.genesisDate.getTime() / 1000) / config.epochDurationInSeconds);
+
+export const cspEscrowContractAddress = '0x026790d71b70Ae6585709de94F60D7e9d3Eb46cd';
+export const poAIManagerContractAddress = '0x9A41f43494fCD592577228fE8E4014f2D75d2aa3';

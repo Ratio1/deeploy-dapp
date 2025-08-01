@@ -31,12 +31,12 @@ function Overview() {
                     </div>
                 </CardWithHeader>
 
-                <CardWithHeader icon={<RiBox3Line />} title="Applications">
+                <CardWithHeader icon={<RiBox3Line />} title="Projects">
                     <div className="col h-full w-full gap-4">
-                        <ValueWithLabel label="Applications running" value={20} />
+                        <ValueWithLabel label="Projects running" value={3} />
 
                         <Button className="mt-1 px-3" variant="bordered">
-                            <div>Check Your Apps</div>
+                            <div>Check Your Projects</div>
                         </Button>
                     </div>
                 </CardWithHeader>

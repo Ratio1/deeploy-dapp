@@ -20,7 +20,7 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                     <ProjectIdentity project={project} />
 
                     <div className="row gap-2">
-                        <CancelButton tab="running" />
+                        <CancelButton tab="projects" />
                         <PaymentButton isDisabled={jobs?.length === 0} />
                     </div>
                 </div>
