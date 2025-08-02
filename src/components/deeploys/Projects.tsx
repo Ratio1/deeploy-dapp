@@ -1,4 +1,6 @@
+import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import ProjectCard from '@components/deeploys/ProjectCard';
+import { escrowContractAddress } from '@lib/config';
 import db from '@lib/storage/db';
 import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
@@ -6,6 +8,7 @@ import { Project } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { RiDraftLine } from 'react-icons/ri';
+import { usePublicClient } from 'wagmi';
 
 export interface RunningRef {
     expandAll: () => void;
@@ -18,6 +21,13 @@ const Projects = forwardRef<RunningRef>((_props, ref) => {
 
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
+    const publicClient = usePublicClient();
+
+    // Init
+    useEffect(() => {
+        fetchAllJobs();
+    }, []);
+
     useEffect(() => {
         if (projects) {
             const obj = {};
@@ -29,6 +39,18 @@ const Projects = forwardRef<RunningRef>((_props, ref) => {
             setExpanded(obj);
         }
     }, [projects]);
+
+    const fetchAllJobs = async () => {
+        if (publicClient) {
+            const jobs = await publicClient.readContract({
+                address: escrowContractAddress,
+                abi: CspEscrowAbi,
+                functionName: 'getAllJobs',
+            });
+
+            console.log('[Jobs] jobs', jobs);
+        }
+    };
 
     const expandAll = () => {
         if (projects) {
@@ -58,9 +80,9 @@ const Projects = forwardRef<RunningRef>((_props, ref) => {
     return (
         <div className="list">
             <ListHeader>
-                <div className="row gap-8">
+                <div className="row gap-6">
                     <div className="min-w-[232px]">Name</div>
-                    <div className="min-w-[80px]">Jobs</div>
+                    <div className="min-w-[80px]">Details</div>
                     <div className="min-w-[164px]">Expiration Date</div>
                     <div className="min-w-[200px]">Usage</div>
                 </div>

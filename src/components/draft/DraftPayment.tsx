@@ -6,6 +6,7 @@ import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/block
 import { getContainerOrWorkerType, getJobsTotalCost } from '@lib/utils';
 import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
+import { ConnectWalletWrapper } from '@shared/ConnectWalletWrapper';
 import EmptyData from '@shared/EmptyData';
 import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import SupportFooter from '@shared/SupportFooter';
@@ -42,9 +43,13 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
     useEffect(() => {
         if (publicClient && address) {
-            fetchAllowance(publicClient, address);
+            fetchAllowance();
         }
     }, [address, publicClient]);
+
+    useEffect(() => {
+        console.log('[DraftPayment] allowance', allowance);
+    }, [allowance]);
 
     const formatGenericJobPayload = (job: GenericJob) => {
         const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
@@ -287,7 +292,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
             console.log('[DraftPayment] Transaction logs:', decodedLogs);
 
-            fetchAllowance(publicClient, address);
+            fetchAllowance();
 
             // TODO: Get the jobId from the JobCreated event
             // TODO: Call Deeploy API
@@ -313,18 +318,20 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
         await watchTx(txHash, publicClient);
 
-        fetchAllowance(publicClient, address);
+        fetchAllowance();
     };
 
-    const fetchAllowance = async (publicClient, address: string): Promise<void> => {
+    const fetchAllowance = async (): Promise<void> => {
+        if (!publicClient || !address) {
+            return;
+        }
+
         const allowance = await publicClient.readContract({
             address: config.usdcContractAddress,
             abi: ERC20Abi,
             functionName: 'allowance',
             args: [address, escrowContractAddress],
         });
-
-        console.log('[DraftPayment] allowance', allowance);
 
         setAllowance(allowance);
     };
@@ -366,18 +373,20 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                     <div className="row gap-2">
                         <OverviewButton />
 
-                        <ActionButton
-                            color="primary"
-                            variant="solid"
-                            onPress={onPress}
-                            isDisabled={isPayAndDeployButtonDisabled()}
-                            isLoading={isLoading}
-                        >
-                            <div className="row gap-1.5">
-                                <RiBox3Line className="text-lg" />
-                                <div className="text-sm">{isApprovalRequired() ? 'Approve $USDC' : 'Pay & Deploy'}</div>
-                            </div>
-                        </ActionButton>
+                        <ConnectWalletWrapper>
+                            <ActionButton
+                                color="primary"
+                                variant="solid"
+                                onPress={onPress}
+                                isDisabled={isPayAndDeployButtonDisabled()}
+                                isLoading={isLoading}
+                            >
+                                <div className="row gap-1.5">
+                                    {!isApprovalRequired() && <RiBox3Line className="text-lg" />}
+                                    <div className="text-sm">{isApprovalRequired() ? 'Approve $USDC' : 'Pay & Deploy'}</div>
+                                </div>
+                            </ActionButton>
+                        </ConnectWalletWrapper>
                     </div>
                 </div>
 

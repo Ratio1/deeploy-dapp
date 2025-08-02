@@ -4,7 +4,7 @@ import { genericContainerTypes, gpuTypes, nativeWorkerTypes, serviceContainerTyp
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
-import { R1Address } from './blockchain';
+import { EthAddress, R1Address } from './blockchain';
 
 enum JobType {
     Generic = 'Generic',
@@ -161,6 +161,21 @@ type Project = {
     createdAt: string;
 };
 
+type RunningJob = {
+    id: bigint;
+    projectHash: string;
+    requestTimestamp: bigint;
+    startTimestamp: bigint;
+    lastNodesChangeTimestamp: bigint;
+    jobType: bigint;
+    pricePerEpoch: bigint;
+    lastExecutionEpoch: bigint;
+    numberOfNodesRequested: bigint;
+    balance: bigint;
+    lastAllocatedEpoch: bigint;
+    activeNodes: EthAddress[];
+};
+
 export { JobType, ProjectPage };
 export type {
     GenericJob,
@@ -171,6 +186,7 @@ export type {
     NativeJob,
     NativeJobSpecifications,
     Project,
+    RunningJob,
     ServiceJob,
     ServiceJobSpecifications,
 };

@@ -67,8 +67,8 @@ export default function ProjectCard({
     return (
         <Link to={`${routePath.deeploys}/${routePath.project}/${project.id}`}>
             <BorderedCard isHoverable>
-                <div className="row justify-between">
-                    <div className="row gap-8">
+                <div className="row justify-between gap-6">
+                    <div className="row gap-6">
                         <div className="min-w-[232px]">
                             <CardItem
                                 label="Name"
@@ -143,7 +143,7 @@ export default function ProjectCard({
                                 value={
                                     <Usage
                                         used={
-                                            (process.env.NODE_ENV === 'development' ? 3 : 0) +
+                                            (process.env.NODE_ENV === 'development' ? 1 : 0) +
                                             differenceInMonths(new Date(), new Date(project.createdAt))
                                         }
                                         total={
@@ -195,7 +195,7 @@ export default function ProjectCard({
 
                             return (
                                 <div key={job.id} className="row">
-                                    <div className="row flex-1 gap-8">
+                                    <div className="row flex-1 gap-6">
                                         <div className="row gap-1.5">
                                             {/* Tree Line */}
                                             <div className="row relative mr-2 ml-2.5">
@@ -209,7 +209,12 @@ export default function ProjectCard({
 
                                             <div className={`text-[17px] ${jobTypeOption.color}`}>{jobTypeOption.icon}</div>
 
-                                            <div className="w-[275px] truncate font-medium">{job.deployment.jobAlias}</div>
+                                            <div className="w-[163px] truncate font-medium">{job.deployment.jobAlias}</div>
+                                        </div>
+
+                                        <div className="min-w-[80px] text-[13px]">
+                                            {job.deployment.targetNodes.length} node
+                                            {job.deployment.targetNodes.length > 1 ? 's' : ''}
                                         </div>
 
                                         <div className="min-w-[164px]">
@@ -233,7 +238,7 @@ export default function ProjectCard({
                                             {/* TODO: Remove hardcoded values */}
                                             <Usage
                                                 used={
-                                                    (process.env.NODE_ENV === 'development' ? 3 : 0) +
+                                                    (process.env.NODE_ENV === 'development' ? 1 : 0) +
                                                     differenceInMonths(new Date(), new Date(project.createdAt))
                                                 }
                                                 total={job.paymentAndDuration.duration}
