@@ -31,7 +31,13 @@ export default function SelectGPU({ jobType }: Props) {
 
     useEffect(() => {
         if (containerOrWorkerType) {
-            setSupportedGpuTypes(gpuTypes.filter((gpuType) => containerOrWorkerType.id >= gpuType.support[jobType]));
+            setSupportedGpuTypes(
+                gpuTypes.filter((gpuType) => {
+                    const [min, max] = gpuType.support[jobType];
+
+                    return containerOrWorkerType.id >= min && containerOrWorkerType.id <= max;
+                }),
+            );
         }
     }, [containerOrWorkerType]);
 
