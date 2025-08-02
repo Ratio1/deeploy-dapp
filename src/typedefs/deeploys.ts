@@ -91,6 +91,7 @@ type GenericJobDeployment = BaseJobDeployment & {
 type NativeJobDeployment = BaseJobDeployment & {
     jobAlias: string;
     pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
+    port: number;
     customParams: Array<{
         key: string;
         value: string;

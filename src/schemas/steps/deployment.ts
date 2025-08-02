@@ -186,6 +186,7 @@ export const nativeAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
         jobAlias: validations.jobAlias,
         pluginSignature: validations.pluginSignature,
+        port: validations.port,
         customParams: validations.customParams,
         pipelineParams: validations.pipelineParams,
         pipelineInputType: validations.pipelineInputType,

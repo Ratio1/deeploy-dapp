@@ -9,7 +9,7 @@ import { BorderedCard } from '@shared/cards/BorderedCard';
 import EmptyData from '@shared/EmptyData';
 import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import SupportFooter from '@shared/SupportFooter';
-import { GenericJob, Job, JobType, type Project } from '@typedefs/deeploys';
+import { GenericJob, Job, JobType, NativeJob, ServiceJob, type Project } from '@typedefs/deeploys';
 import { addMonths, differenceInDays } from 'date-fns';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -20,8 +20,6 @@ import ProjectIdentity from '../../shared/projects/ProjectIdentity';
 import GenericJobsCostRundown from './job-rundowns/GenericJobsCostRundown';
 import NativeJobsCostRundown from './job-rundowns/NativeJobsCostRundown';
 import ServiceJobsCostRundown from './job-rundowns/ServiceJobsCostRundown';
-
-// const MAX_ALLOWANCE: bigint = 2n ** 256n - 1n;
 
 export default function DraftPayment({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
@@ -51,19 +49,16 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
     const formatGenericJobPayload = (job: GenericJob) => {
         const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
 
-        // Convert env vars array to object
         const envVars: Record<string, string> = {};
         job.deployment.envVars.forEach((envVar) => {
             envVars[envVar.key] = envVar.value;
         });
 
-        // Convert dynamic env vars array to object
         const dynamicEnvVars: Record<string, Array<{ type: string; value: string }>> = {};
         job.deployment.dynamicEnvVars.forEach((dynamicEnvVar) => {
             dynamicEnvVars[dynamicEnvVar.key] = dynamicEnvVar.values;
         });
 
-        // Handle container configuration
         let image = 'repo/image:tag';
         let crData = {
             SERVER: 'docker.io',
@@ -83,7 +78,6 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         }
 
         const containerResources = {
-            // name: containerType.name,
             cpu: containerType.cores,
             memory: `${containerType.ram}GB`,
         };
@@ -94,7 +88,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         return {
             app_alias: job.deployment.jobAlias,
             plugin_signature: 'CONTAINER_APP_RUNNER',
-            nonce: nonce,
+            nonce,
             target_nodes: job.deployment.targetNodes,
             target_nodes_count: job.specifications.targetNodesCount,
             app_params: {
@@ -102,9 +96,9 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                 CR_DATA: crData,
                 CONTAINER_RESOURCES: containerResources,
                 PORT: job.deployment.port,
-                NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || 'None',
-                NGROK_EDGE_LABEL: 'None',
-                NGROK_ENABLED: job.deployment.tunnelingToken ? true : false,
+                NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
+                NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
+                NGROK_ENABLED: job.deployment.enableTunneling === 'True',
                 NGROK_USE_API: true,
                 VOLUMES: {}, // TODO: Implement
                 ENV: envVars,
@@ -113,7 +107,97 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                 IMAGE_PULL_POLICY: job.deployment.imagePullPolicy,
             },
             pipeline_input_type: 'void',
-            pipeline_input_uri: 'None',
+            pipeline_input_uri: null,
+            chainstore_response: true,
+        };
+    };
+
+    const formatNativeJobPayload = (job: NativeJob) => {
+        const workerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+
+        const customParams: Record<string, string> = {};
+        job.deployment.customParams.forEach((param) => {
+            customParams[param.key] = param.value;
+        });
+
+        const pipelineParams: Record<string, string> = {};
+        job.deployment.pipelineParams.forEach((param) => {
+            pipelineParams[param.key] = param.value;
+        });
+
+        const nodeResourceRequirements = {
+            cpu: workerType.cores,
+            memory: `${workerType.ram}GB`,
+        };
+
+        // Generate nonce (current timestamp in milliseconds as hex)
+        const nonce = Math.floor(Date.now() * 1000).toString(16);
+
+        return {
+            app_alias: job.deployment.jobAlias,
+            plugin_signature: job.deployment.pluginSignature,
+            nonce,
+            target_nodes: job.deployment.targetNodes,
+            target_nodes_count: job.specifications.targetNodesCount,
+            node_res_req: nodeResourceRequirements,
+            app_params: {
+                PORT: job.deployment.port,
+                NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
+                NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
+                NGROK_ENABLED: job.deployment.enableTunneling === 'True',
+                NGROK_USE_API: true,
+                ENV: {},
+                DYNAMIC_ENV: {},
+                ...customParams,
+            },
+            pipeline_input_type: job.deployment.pipelineInputType,
+            pipeline_input_uri: job.deployment.pipelineInputUri,
+            pipeline_params: pipelineParams,
+            chainstore_response: false,
+        };
+    };
+
+    const formatServiceJobPayload = (job: ServiceJob) => {
+        const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+
+        const envVars: Record<string, string> = {};
+        job.deployment.envVars.forEach((envVar) => {
+            envVars[envVar.key] = envVar.value;
+        });
+
+        const dynamicEnvVars: Record<string, Array<{ type: string; value: string }>> = {};
+        job.deployment.dynamicEnvVars.forEach((dynamicEnvVar) => {
+            dynamicEnvVars[dynamicEnvVar.key] = dynamicEnvVar.values;
+        });
+
+        const nodeResourceRequirements = {
+            cpu: containerType.cores,
+            memory: `${containerType.ram}GB`,
+        };
+
+        // Generate nonce (current timestamp in milliseconds as hex)
+        const nonce = Math.floor(Date.now() * 1000).toString(16);
+
+        return {
+            app_alias: job.deployment.jobAlias,
+            plugin_signature: 'CONTAINER_APP_RUNNER',
+            nonce,
+            target_nodes: job.deployment.targetNodes,
+            service_replica: job.deployment.serviceReplica,
+            node_res_req: nodeResourceRequirements,
+            app_params: {
+                PORT: containerType.port,
+                NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
+                NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
+                NGROK_ENABLED: job.deployment.enableTunneling === 'True',
+                NGROK_USE_API: true,
+                ENV: envVars,
+                DYNAMIC_ENV: dynamicEnvVars,
+                RESTART_POLICY: 'always',
+                IMAGE_PULL_POLICY: 'always',
+            },
+            pipeline_input_type: 'void',
+            pipeline_input_uri: null,
             chainstore_response: true,
         };
     };
@@ -128,11 +212,11 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                     break;
 
                 case JobType.Native:
-                    payload = {};
+                    payload = formatNativeJobPayload(job as NativeJob);
                     break;
 
                 case JobType.Service:
-                    payload = {};
+                    payload = formatServiceJobPayload(job as ServiceJob);
                     break;
 
                 default:
@@ -205,6 +289,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
             fetchAllowance(publicClient, address);
 
+            // TODO: Get the jobId from the JobCreated event
             // TODO: Call Deeploy API
         } else {
             toast.error('Deployment failed, please try again.');

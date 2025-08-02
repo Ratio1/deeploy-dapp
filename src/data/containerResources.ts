@@ -12,6 +12,7 @@ export type ContainerOrWorkerType = {
     cores: number;
     ram: number;
     storage?: number;
+    port?: number;
 };
 
 export type GpuType = {
@@ -215,6 +216,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         cores: 1,
         ram: 2,
         storage: 50,
+        port: 5432,
     },
     {
         id: 2,
@@ -228,6 +230,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         cores: 2,
         ram: 4,
         storage: 200,
+        port: 5432,
     },
     {
         id: 3,
@@ -241,6 +244,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         cores: 1,
         ram: 2,
         storage: 50,
+        port: 3306,
     },
     {
         id: 4,
@@ -254,6 +258,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         cores: 2,
         ram: 4,
         storage: 200,
+        port: 3306,
     },
     {
         id: 5,
@@ -267,6 +272,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         cores: 1,
         ram: 2,
         storage: 50,
+        port: 27017,
     },
     {
         id: 6,
@@ -280,6 +286,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         cores: 2,
         ram: 4,
         storage: 200,
+        port: 27017,
     },
 ];
 
