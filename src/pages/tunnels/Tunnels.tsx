@@ -131,7 +131,7 @@ function Tunnels() {
                                     <div className="center-all">
                                         <EmptyData
                                             title="No tunnels added"
-                                            description="Create a tunnel to get started."
+                                            description="Create a tunnel to get started"
                                             icon={<RiDraftLine />}
                                         />
                                     </div>

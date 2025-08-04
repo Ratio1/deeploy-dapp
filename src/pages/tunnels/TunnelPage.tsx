@@ -274,7 +274,7 @@ export default function TunnelPage() {
                         <div className="center-all py-4">
                             <EmptyData
                                 title="No linked domains"
-                                description="Domains linked to the tunnel will appear here."
+                                description="Domains linked to the tunnel will appear here"
                                 icon={<RiDraftLine />}
                             />
                         </div>

@@ -1,5 +1,5 @@
 import { getRunningJobResources } from '@data/containerResources';
-import { config } from '@lib/config';
+import { config, environment } from '@lib/config';
 import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
@@ -7,7 +7,7 @@ import Usage from '@shared/projects/Usage';
 import { SmallTag } from '@shared/SmallTag';
 import { RunningJob } from '@typedefs/deeploys';
 import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
-import { addDays, differenceInDays, differenceInMonths, formatDistanceStrict } from 'date-fns';
+import { addDays, addHours, differenceInDays, differenceInHours, formatDistanceStrict } from 'date-fns';
 import _ from 'lodash';
 import { RiArrowRightSLine, RiCalendarLine } from 'react-icons/ri';
 
@@ -23,9 +23,14 @@ export default function RunningCard({
     toggle: () => void;
 }) {
     const getDaysLeftUntilNextPayment = (job: RunningJob): any => {
-        const epochsCovered = Math.floor(Number(job.balance / job.pricePerEpoch));
+        const epochsCovered = Math.floor(
+            Number(job.balance / (job.pricePerEpoch * job.numberOfNodesRequested * (environment === 'mainnet' ? 1n : 24n))),
+        );
         return epochsCovered;
     };
+
+    const addFn = environment === 'mainnet' ? addDays : addHours;
+    const diffFn = environment === 'mainnet' ? differenceInDays : differenceInHours;
 
     return (
         // <Link to={`${routePath.deeploys}/${routePath.project}/${projectHash}`}>
@@ -75,7 +80,7 @@ export default function RunningCard({
                                     <div className="row gap-1">
                                         <RiCalendarLine className="text-sm" />
 
-                                        {addDays(
+                                        {addFn(
                                             config.genesisDate,
                                             Number(
                                                 (_.maxBy(jobs, (job) => job.lastExecutionEpoch) as RunningJob)
@@ -100,19 +105,27 @@ export default function RunningCard({
                 <div className="row min-w-[124px]">
                     <CardItem
                         label="Next payment due"
-                        value={
-                            <SmallTag>
-                                {formatDistanceStrict(
-                                    addDays(
-                                        new Date(),
-                                        _(jobs)
-                                            .map((job) => getDaysLeftUntilNextPayment(job))
-                                            .min() as number,
-                                    ),
-                                    new Date(),
-                                )}
-                            </SmallTag>
-                        }
+                        value={() => {
+                            const allJobsPaidInFull = jobs.every((job) => {
+                                const expirationDate = addFn(config.genesisDate, Number(job.lastExecutionEpoch));
+                                const daysLeftUntilExpiration = differenceInDays(expirationDate, new Date());
+                                const daysLeftUntilNextPayment = getDaysLeftUntilNextPayment(job);
+
+                                return daysLeftUntilNextPayment >= daysLeftUntilExpiration;
+                            });
+
+                            const minDaysLeftUntilNextPayment: number = _(jobs)
+                                .map((job) => getDaysLeftUntilNextPayment(job))
+                                .min() as number;
+
+                            return allJobsPaidInFull ? (
+                                <SmallTag variant="green">Paid in full</SmallTag>
+                            ) : (
+                                <SmallTag variant={minDaysLeftUntilNextPayment > 15 ? 'default' : 'red'}>
+                                    {formatDistanceStrict(addDays(new Date(), minDaysLeftUntilNextPayment), new Date())}
+                                </SmallTag>
+                            );
+                        }}
                     />
                 </div>
             </div>
@@ -135,12 +148,17 @@ export default function RunningCard({
                         const targetNodes = Number(job.numberOfNodesRequested);
 
                         const requestDate = new Date(Number(job.requestTimestamp) * 1000);
-                        const expirationDate = addDays(config.genesisDate, Number(job.lastExecutionEpoch));
+
+                        const expirationDate = addFn(config.genesisDate, Number(job.lastExecutionEpoch));
 
                         const daysLeftUntilExpiration = differenceInDays(expirationDate, new Date());
                         const daysLeftUntilNextPayment = getDaysLeftUntilNextPayment(job);
 
-                        console.log(job.id, { daysLeftUntilExpiration, daysLeftUntilNextPayment });
+                        console.log(
+                            job.id,
+                            { daysLeftUntilExpiration, daysLeftUntilNextPayment },
+                            { requestDate, expirationDate },
+                        );
 
                         return (
                             <div key={job.id} className="row">
@@ -188,17 +206,21 @@ export default function RunningCard({
 
                                     <div className="w-[200px]">
                                         <Usage
-                                            used={differenceInMonths(new Date(), requestDate)}
-                                            total={differenceInMonths(expirationDate, requestDate)}
+                                            used={diffFn(new Date(), requestDate)}
+                                            total={diffFn(expirationDate, requestDate) + 1}
                                             isColored
                                         />
                                     </div>
                                 </div>
 
                                 <div className="row min-w-[114px]">
-                                    <SmallTag>
-                                        {formatDistanceStrict(addDays(new Date(), daysLeftUntilNextPayment), new Date())}
-                                    </SmallTag>
+                                    {daysLeftUntilNextPayment >= daysLeftUntilExpiration ? (
+                                        <SmallTag variant="green">Paid in full</SmallTag>
+                                    ) : (
+                                        <SmallTag variant={daysLeftUntilNextPayment > 15 ? 'default' : 'red'}>
+                                            {formatDistanceStrict(addDays(new Date(), daysLeftUntilNextPayment), new Date())}
+                                        </SmallTag>
+                                    )}
                                 </div>
                             </div>
                         );

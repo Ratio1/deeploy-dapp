@@ -82,7 +82,7 @@ const Projects = forwardRef<RunningRef>((_props, ref) => {
                 <div className="center-all w-full p-14">
                     <EmptyData
                         title="No running projects"
-                        description="Deployed projects will be displayed here."
+                        description="Deployed projects will be displayed here"
                         icon={<RiDraftLine />}
                     />
                 </div>

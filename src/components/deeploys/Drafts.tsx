@@ -31,7 +31,7 @@ function Drafts() {
                 <div className="center-all w-full p-14">
                     <EmptyData
                         title="No drafts found"
-                        description="Saved project drafts will be displayed here."
+                        description="Saved project drafts will be displayed here"
                         icon={<RiDraftLine />}
                     />
                 </div>

@@ -41,7 +41,10 @@ export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
                         <div className={widthClasses[0]}>{serviceJob.deployment.jobAlias}</div>
 
                         <div className={widthClasses[1]}>
-                            <SmallTag>{serviceJob.paymentAndDuration.duration} months</SmallTag>
+                            <SmallTag>
+                                {serviceJob.paymentAndDuration.duration} month
+                                {serviceJob.paymentAndDuration.duration > 1 ? 's' : ''}
+                            </SmallTag>
                         </div>
 
                         <div className={widthClasses[2]}>{serviceJob.specifications.targetNodesCount}</div>

@@ -125,6 +125,6 @@ export const getNextEpochTimestamp = (): Date =>
 export const getLicenseAssignEpoch = (assignTimestamp: bigint) =>
     Math.floor((Number(assignTimestamp) - config.genesisDate.getTime() / 1000) / config.epochDurationInSeconds);
 
-// TODO: Move inside config
+// TODO: Move inside configs
 export const poAIManagerContractAddress = '0x9A41f43494fCD592577228fE8E4014f2D75d2aa3';
-export const escrowContractAddress = '0x882130F66C4Bc83130Bc05104A64Ae4C899500e3';
+export const escrowContractAddress = '0x960ca4e854de626B1d6d8942ac60918847824d9D'; // '0x882130F66C4Bc83130Bc05104A64Ae4C899500e3';

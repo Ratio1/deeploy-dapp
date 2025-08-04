@@ -5,7 +5,7 @@ export default function Usage({ used, total, isColored = false }: { used: number
         <div className="col w-full gap-1.5 text-xs font-medium">
             <div className="row justify-between leading-none">
                 <div>
-                    {used}/{total} months
+                    {used}/{total} epochs
                 </div>
 
                 <div>{parseFloat(((used / total) * 100).toFixed(2))}%</div>

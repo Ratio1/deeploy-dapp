@@ -98,7 +98,7 @@ function PaymentAndDuration() {
             </div>
 
             <BorderedCard>
-                <div className="w-full">
+                <div className="col w-full gap-4">
                     <Slider
                         classNames={{
                             base: 'gap-2',
@@ -116,6 +116,11 @@ function PaymentAndDuration() {
                         value={duration}
                         onChange={(value) => handleDurationChange(value as number)}
                     />
+
+                    <div className="row gap-1">
+                        <RiInformation2Line className="text-primary text-lg" />
+                        <div className="text-sm">1 month = 30 epochs/days</div>
+                    </div>
                 </div>
             </BorderedCard>
 
@@ -153,7 +158,7 @@ function PaymentAndDuration() {
 
                     <div className="row gap-1">
                         <RiInformation2Line className="text-primary text-lg" />
-                        <div className="text-sm">Custom payment periods will be available in a future update.</div>
+                        <div className="text-sm">Custom payment periods will be available in a future update</div>
                     </div>
                 </div>
             </BorderedCard>

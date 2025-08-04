@@ -39,7 +39,10 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
                         <div className={widthClasses[0]}>{nativeJob.deployment.jobAlias}</div>
 
                         <div className={widthClasses[1]}>
-                            <SmallTag>{nativeJob.paymentAndDuration.duration} months</SmallTag>
+                            <SmallTag>
+                                {nativeJob.paymentAndDuration.duration} month
+                                {nativeJob.paymentAndDuration.duration > 1 ? 's' : ''}
+                            </SmallTag>
                         </div>
 
                         <div className={widthClasses[2]}>{nativeJob.specifications.targetNodesCount}</div>

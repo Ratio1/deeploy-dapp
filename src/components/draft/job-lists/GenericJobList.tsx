@@ -41,7 +41,10 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
                         <div className={widthClasses[0]}>{genericJob.deployment.jobAlias}</div>
 
                         <div className={widthClasses[1]}>
-                            <SmallTag>{genericJob.paymentAndDuration.duration} months</SmallTag>
+                            <SmallTag>
+                                {genericJob.paymentAndDuration.duration} month
+                                {genericJob.paymentAndDuration.duration > 1 ? 's' : ''}
+                            </SmallTag>
                         </div>
 
                         <div className={widthClasses[2]}>{genericJob.specifications.targetNodesCount}</div>

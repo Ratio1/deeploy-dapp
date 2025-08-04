@@ -124,8 +124,8 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
             {_.isEmpty(projects) && !isLoading && (
                 <div className="center-all w-full p-14">
                     <EmptyData
-                        title="No running projects"
-                        description="Deployed projects will be displayed here."
+                        title="No running jobs"
+                        description="Deployed projects will be displayed here"
                         icon={<RiDraftLine />}
                     />
                 </div>

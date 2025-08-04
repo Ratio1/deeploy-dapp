@@ -1,7 +1,7 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { ERC20Abi } from '@blockchain/ERC20';
 import { ContainerOrWorkerType } from '@data/containerResources';
-import { config, escrowContractAddress, getCurrentEpoch } from '@lib/config';
+import { config, environment, escrowContractAddress, getCurrentEpoch } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { getContainerOrWorkerType, getJobsTotalCost } from '@lib/utils';
 import ActionButton from '@shared/ActionButton';
@@ -9,9 +9,10 @@ import { BorderedCard } from '@shared/cards/BorderedCard';
 import { ConnectWalletWrapper } from '@shared/ConnectWalletWrapper';
 import EmptyData from '@shared/EmptyData';
 import OverviewButton from '@shared/projects/buttons/OverviewButton';
+import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
 import { GenericJob, Job, JobType, NativeJob, ServiceJob, type Project } from '@typedefs/deeploys';
-import { addMonths, differenceInDays } from 'date-fns';
+import { addDays, differenceInDays, differenceInHours } from 'date-fns';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiBox3Line, RiDraftLine } from 'react-icons/ri';
@@ -25,7 +26,7 @@ import ServiceJobsCostRundown from './job-rundowns/ServiceJobsCostRundown';
 export default function DraftPayment({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
 
-    const [allowance, setAllowance] = useState<bigint | undefined>();
+    const [allowance, setAllowance] = useState<bigint>(0n);
     const [totalCost, setTotalCost] = useState<number>(0);
     const [isLoading, setLoading] = useState<boolean>(false);
 
@@ -37,7 +38,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         console.log('[DraftPayment] jobs', jobs);
 
         if (jobs) {
-            setTotalCost(getJobsTotalCost(jobs));
+            setTotalCost(getJobsTotalCost(jobs) * (environment === 'mainnet' ? 1 : 24));
         }
     }, [jobs]);
 
@@ -48,7 +49,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
     }, [address, publicClient]);
 
     useEffect(() => {
-        console.log('[DraftPayment] allowance', allowance);
+        console.log(`[DraftPayment] Allowance: ${Number(allowance) / 10 ** 6} $USDC`);
     }, [allowance]);
 
     const formatGenericJobPayload = (job: GenericJob) => {
@@ -254,8 +255,14 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
         const args = jobs.map((job) => {
             const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-            const expiryDate = addMonths(new Date(), job.paymentAndDuration.duration);
-            const durationInEpochs = differenceInDays(expiryDate, new Date());
+            const expiryDate = addDays(new Date(), job.paymentAndDuration.duration * 30);
+
+            const diffFn = environment === 'mainnet' ? differenceInDays : differenceInHours;
+
+            const durationInEpochs = diffFn(expiryDate, new Date());
+
+            console.log(`Duration in epochs: ${durationInEpochs}`);
+
             const lastExecutionEpoch = BigInt(getCurrentEpoch() + durationInEpochs);
 
             return {
@@ -266,7 +273,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             };
         });
 
-        console.log(args);
+        console.log(`Current Epoch: ${getCurrentEpoch()}`, `Last Execution Epoch: ${args[0].lastExecutionEpoch}`);
 
         const txHash = await walletClient.writeContract({
             address: escrowContractAddress,
@@ -276,6 +283,8 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         });
 
         const receipt = await watchTx(txHash, publicClient);
+
+        console.log('[DraftPayment] Deployment receipt logs:', receipt.logs);
 
         if (receipt.status === 'success') {
             const decodedLogs = receipt.logs
@@ -292,7 +301,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
             console.log('[DraftPayment] Transaction logs:', decodedLogs);
 
-            fetchAllowance();
+            await fetchAllowance();
 
             // TODO: Get the jobId from the JobCreated event
             // TODO: Call Deeploy API
@@ -316,24 +325,36 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             args: [escrowContractAddress, BigInt(totalCost * 10 ** 6)],
         });
 
-        await watchTx(txHash, publicClient);
+        const receipt = await watchTx(txHash, publicClient);
 
-        fetchAllowance();
+        console.log('[DraftPayment] Approval receipt:', receipt);
+
+        if (receipt.status === 'success') {
+            await fetchAllowance();
+        } else {
+            toast.error('Approval failed, please try again.');
+        }
     };
 
-    const fetchAllowance = async (): Promise<void> => {
+    const fetchAllowance = async (): Promise<bigint | undefined> => {
         if (!publicClient || !address) {
+            console.error('fetchAllowance: No public client or address');
             return;
         }
 
-        const allowance = await publicClient.readContract({
+        console.log(`[DraftPayment] Fetching allowance`);
+
+        const result = await publicClient.readContract({
             address: config.usdcContractAddress,
             abi: ERC20Abi,
             functionName: 'allowance',
             args: [address, escrowContractAddress],
         });
 
-        setAllowance(allowance);
+        console.log(`[DraftPayment] fetchAllowance: ${Number(result) / 10 ** 6} $USDC`);
+
+        setAllowance(result);
+        return result;
     };
 
     const hasEnoughAllowance = (): boolean => allowance !== undefined && allowance >= BigInt(totalCost * 10 ** 6);
@@ -360,7 +381,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
     };
 
     const isPayAndDeployButtonDisabled = (): boolean => {
-        return allowance === undefined || jobs?.length === 0 || totalCost === 0;
+        return !publicClient || allowance === undefined || jobs?.length === 0 || totalCost === 0;
     };
 
     return (
@@ -396,9 +417,13 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                         <div className="row justify-between py-2">
                             <div className="text-[15px] font-medium text-slate-500">Total Amount Due</div>
 
-                            <div className="text-primary text-[19px] font-semibold">
-                                <span className="text-slate-500">$USDC</span>{' '}
-                                {parseFloat(totalCost.toFixed(2)).toLocaleString()}
+                            <div className="row gap-1.5">
+                                <div className="text-primary text-[19px] font-semibold">
+                                    <span className="text-slate-500">$USDC</span>{' '}
+                                    {parseFloat(totalCost.toFixed(2)).toLocaleString()}
+                                </div>
+
+                                {environment !== 'mainnet' && <SmallTag variant="blue">Adjusted for 1-hour epochs</SmallTag>}
                             </div>
                         </div>
                     </BorderedCard>
@@ -425,7 +450,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                         <div className="center-all">
                             <EmptyData
                                 title="No jobs added"
-                                description="Add a job first to proceed with payment."
+                                description="Add a job first to proceed with payment"
                                 icon={<RiDraftLine />}
                             />
                         </div>
