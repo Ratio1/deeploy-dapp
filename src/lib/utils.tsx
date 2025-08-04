@@ -20,6 +20,15 @@ import { JSX } from 'react';
 import toast from 'react-hot-toast';
 import { RiCodeSSlashLine } from 'react-icons/ri';
 
+/**
+ * Sleep function that returns a Promise that resolves after the specified delay
+ * @param ms - The number of milliseconds to sleep
+ * @returns Promise that resolves after the delay
+ */
+export const sleep = (ms: number): Promise<void> => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
 export const getShortAddressOrHash = (address: string, size = 4, asString = false): string | JSX.Element => {
     if (asString) {
         return `${address.slice(0, size)}...${address.slice(-size)}`;

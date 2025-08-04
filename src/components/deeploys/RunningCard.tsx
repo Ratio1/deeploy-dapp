@@ -154,12 +154,6 @@ export default function RunningCard({
                         const daysLeftUntilExpiration = differenceInDays(expirationDate, new Date());
                         const daysLeftUntilNextPayment = getDaysLeftUntilNextPayment(job);
 
-                        console.log(
-                            job.id,
-                            { daysLeftUntilExpiration, daysLeftUntilNextPayment },
-                            { requestDate, expirationDate },
-                        );
-
                         return (
                             <div key={job.id} className="row">
                                 <div className="row flex-1 gap-6">

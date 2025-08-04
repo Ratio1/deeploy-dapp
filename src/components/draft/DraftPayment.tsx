@@ -3,7 +3,7 @@ import { ERC20Abi } from '@blockchain/ERC20';
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { config, environment, escrowContractAddress, getCurrentEpoch } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
-import { getContainerOrWorkerType, getJobsTotalCost } from '@lib/utils';
+import { getContainerOrWorkerType, getJobsTotalCost, sleep } from '@lib/utils';
 import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { ConnectWalletWrapper } from '@shared/ConnectWalletWrapper';
@@ -284,27 +284,34 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
         const receipt = await watchTx(txHash, publicClient);
 
-        console.log('[DraftPayment] Deployment receipt logs:', receipt.logs);
-
         if (receipt.status === 'success') {
-            const decodedLogs = receipt.logs
-                .filter((log) => log.address === escrowContractAddress)
+            const jobCreatedLogs = receipt.logs
+                .filter((log) => log.address === escrowContractAddress.toLowerCase())
                 .map((log) => {
-                    const decoded = decodeEventLog({
-                        abi: CspEscrowAbi,
-                        data: log.data,
-                        topics: log.topics,
-                    });
-                    return decoded;
+                    try {
+                        const decoded = decodeEventLog({
+                            abi: CspEscrowAbi,
+                            data: log.data,
+                            topics: log.topics,
+                        });
+                        return decoded;
+                    } catch (err) {
+                        console.error('Failed to decode log', log, err);
+                        return null;
+                    }
                 })
-                .filter((log) => log.eventName === 'JobCreated');
+                .filter((log) => log !== null && log.eventName === 'JobCreated');
 
-            console.log('[DraftPayment] Transaction logs:', decodedLogs);
+            console.log('JobCreated Logs', jobCreatedLogs);
 
+            const jobIds = jobCreatedLogs.map((log) => log.args.jobId);
+
+            console.log('jobIds', jobIds);
+
+            // TODO: Call Deeploy API with the job & projectIDs
+
+            await sleep(2000); // Wait for the allowance to be updated
             await fetchAllowance();
-
-            // TODO: Get the jobId from the JobCreated event
-            // TODO: Call Deeploy API
         } else {
             toast.error('Deployment failed, please try again.');
         }
@@ -330,6 +337,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         console.log('[DraftPayment] Approval receipt:', receipt);
 
         if (receipt.status === 'success') {
+            await sleep(2000); // Wait for the allowance to be updated
             await fetchAllowance();
         } else {
             toast.error('Approval failed, please try again.');
