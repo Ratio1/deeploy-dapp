@@ -5,7 +5,8 @@ export type JobTypeOption = {
     id: string;
     title: string;
     icon: React.ReactNode;
-    color: string;
+    textColorClass: string;
+    color: 'blue' | 'green' | 'purple';
     jobType: JobType;
 };
 
@@ -14,21 +15,24 @@ export const jobTypeOptions: JobTypeOption[] = [
         id: 'generic',
         title: 'Generic App',
         icon: <RiBox3Line />,
-        color: 'text-primary-500',
+        textColorClass: 'text-primary-500',
+        color: 'blue',
         jobType: JobType.Generic,
     },
     {
         id: 'native',
         title: 'Native App',
         icon: <RiTerminalBoxLine />,
-        color: 'text-green-600',
+        textColorClass: 'text-green-600',
+        color: 'green',
         jobType: JobType.Native,
     },
     {
         id: 'service',
         title: 'Service',
         icon: <RiDatabase2Line />,
-        color: 'text-purple-500',
+        textColorClass: 'text-purple-500',
+        color: 'purple',
         jobType: JobType.Service,
     },
 ];

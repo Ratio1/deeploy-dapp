@@ -1,8 +1,9 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
+import { Skeleton } from '@heroui/skeleton';
 import { escrowContractAddress } from '@lib/config';
 import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
-import { RunningJob, RunningProject } from '@typedefs/deeploys';
+import { RunningJob } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { RiDraftLine } from 'react-icons/ri';
@@ -15,7 +16,9 @@ export interface RunningRef {
 }
 
 const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => void }>(({ setProjectsCount }, ref) => {
-    const [projects, setProjects] = useState<RunningProject[]>([]);
+    const [isLoading, setLoading] = useState(true);
+
+    const [projects, setProjects] = useState<Record<string, RunningJob[]>>({});
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
     const publicClient = usePublicClient();
@@ -29,8 +32,8 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
         if (projects) {
             const obj = {};
 
-            projects.forEach((project) => {
-                obj[project.projectHash] = false;
+            Object.keys(projects).forEach((projectHash) => {
+                obj[projectHash] = true;
             });
 
             setExpanded(obj);
@@ -45,39 +48,37 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
                 functionName: 'getAllJobs',
             });
 
-            console.log('getAllJobs', jobs);
-
-            const projects = _(jobs)
-                .uniqBy('projectHash')
-                .map((job) => ({
-                    projectHash: job.projectHash,
-                }))
-                .value();
-
-            console.log('projects', projects);
+            const projects = _.groupBy(jobs, 'projectHash');
+            console.log(projects);
 
             setProjects(projects);
-            setProjectsCount(projects.length);
+            setProjectsCount(Object.keys(projects).length);
         }
+
+        setLoading(false);
     };
 
     const expandAll = () => {
         if (projects) {
-            const expandedState = {};
-            projects.forEach((project) => {
-                expandedState[project.projectHash] = true;
+            const expanded = {};
+
+            Object.keys(projects).forEach((projectHash) => {
+                expanded[projectHash] = true;
             });
-            setExpanded(expandedState);
+
+            setExpanded(expanded);
         }
     };
 
     const collapseAll = () => {
         if (projects) {
-            const collapsedState = {};
-            projects.forEach((project) => {
-                collapsedState[project.projectHash] = false;
+            const collapsed = {};
+
+            Object.keys(projects).forEach((projectHash) => {
+                collapsed[projectHash] = false;
             });
-            setExpanded(collapsedState);
+
+            setExpanded(collapsed);
         }
     };
 
@@ -99,17 +100,28 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
                 <div className="min-w-[124px]">Next payment due</div>
             </ListHeader>
 
-            {projects?.map((project, index) => (
-                <div key={index}>
-                    <RunningCard
-                        project={project}
-                        expanded={expanded[project.projectHash]}
-                        toggle={() => setExpanded({ ...expanded, [project.projectHash]: !expanded[project.projectHash] })}
-                    />
-                </div>
-            ))}
+            {isLoading ? (
+                <>
+                    {Array.from({ length: 4 }).map((_, index) => (
+                        <Skeleton key={index} className="min-h-[104px] w-full rounded-lg" />
+                    ))}
+                </>
+            ) : (
+                <>
+                    {_.entries(projects).map(([projectHash, jobs], index) => (
+                        <div key={index}>
+                            <RunningCard
+                                projectHash={projectHash}
+                                jobs={jobs}
+                                expanded={expanded[projectHash]}
+                                toggle={() => setExpanded({ ...expanded, [projectHash]: !expanded[projectHash] })}
+                            />
+                        </div>
+                    ))}
+                </>
+            )}
 
-            {!projects?.length && (
+            {_.isEmpty(projects) && !isLoading && (
                 <div className="center-all w-full p-14">
                     <EmptyData
                         title="No running projects"

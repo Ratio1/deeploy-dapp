@@ -1,5 +1,5 @@
 import { ContainerOrWorkerType, GpuType, gpuTypes, serviceContainerTypes } from '@data/containerResources';
-import { getContainerOrWorkerTypeDescription, getShortAddress } from '@lib/utils';
+import { getContainerOrWorkerTypeDescription, getShortAddressOrHash } from '@lib/utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
 import { ServiceJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
@@ -41,7 +41,7 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
                     ...(serviceJob.deployment.enableTunneling === 'True' && serviceJob.deployment.tunnelingLabel
                         ? [{ label: 'Tunneling Label', value: serviceJob.deployment.tunnelingLabel }]
                         : []),
-                    { label: 'Service Replica', value: getShortAddress(serviceJob.deployment.serviceReplica, 4, true) },
+                    { label: 'Service Replica', value: getShortAddressOrHash(serviceJob.deployment.serviceReplica, 4, true) },
                 ];
 
                 return (

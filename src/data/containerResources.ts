@@ -340,3 +340,39 @@ export const gpuTypes: GpuType[] = [
         minimalBalancing: 1,
     },
 ];
+
+export const getRunningJobResources = (
+    jobType: bigint,
+):
+    | {
+          containerOrWorkerType: ContainerOrWorkerType;
+          jobType: JobType;
+      }
+    | undefined => {
+    const genericContainerType = genericContainerTypes.find((type) => type.jobType === Number(jobType));
+
+    if (genericContainerType) {
+        return {
+            containerOrWorkerType: genericContainerType,
+            jobType: JobType.Generic,
+        };
+    }
+
+    const nativeWorkerType = nativeWorkerTypes.find((type) => type.jobType === Number(jobType));
+
+    if (nativeWorkerType) {
+        return {
+            containerOrWorkerType: nativeWorkerType,
+            jobType: JobType.Native,
+        };
+    }
+
+    const serviceContainerType = serviceContainerTypes.find((type) => type.jobType === Number(jobType));
+
+    if (serviceContainerType) {
+        return {
+            containerOrWorkerType: serviceContainerType,
+            jobType: JobType.Service,
+        };
+    }
+};

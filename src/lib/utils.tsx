@@ -20,7 +20,7 @@ import { JSX } from 'react';
 import toast from 'react-hot-toast';
 import { RiCodeSSlashLine } from 'react-icons/ri';
 
-export const getShortAddress = (address: string, size = 4, asString = false): string | JSX.Element => {
+export const getShortAddressOrHash = (address: string, size = 4, asString = false): string | JSX.Element => {
     if (asString) {
         return `${address.slice(0, size)}...${address.slice(-size)}`;
     }

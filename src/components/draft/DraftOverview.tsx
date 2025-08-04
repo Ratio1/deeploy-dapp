@@ -91,7 +91,7 @@ export default function DraftOverview({ project, jobs }: { project: Project; job
                                     }}
                                 >
                                     <div className="row gap-1.5">
-                                        <div className={`text-xl ${option.color}`}>{option.icon}</div>
+                                        <div className={`text-xl ${option.textColorClass}`}>{option.icon}</div>
                                         <div className="text-sm">{option.title}</div>
                                     </div>
                                 </ActionButton>

@@ -205,7 +205,9 @@ export default function ProjectCard({
                                                 )}
                                             </div>
 
-                                            <div className={`text-[17px] ${jobTypeOption.color}`}>{jobTypeOption.icon}</div>
+                                            <div className={`text-[17px] ${jobTypeOption.textColorClass}`}>
+                                                {jobTypeOption.icon}
+                                            </div>
 
                                             <div className="w-[163px] truncate font-medium">{job.deployment.jobAlias}</div>
                                         </div>
