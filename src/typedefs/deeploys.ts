@@ -173,7 +173,11 @@ type RunningJob = {
     numberOfNodesRequested: bigint;
     balance: bigint;
     lastAllocatedEpoch: bigint;
-    activeNodes: EthAddress[];
+    activeNodes: readonly EthAddress[];
+};
+
+type RunningProject = {
+    projectHash: string;
 };
 
 export { JobType, ProjectPage };
@@ -187,6 +191,7 @@ export type {
     NativeJobSpecifications,
     Project,
     RunningJob,
+    RunningProject,
     ServiceJob,
     ServiceJobSpecifications,
 };

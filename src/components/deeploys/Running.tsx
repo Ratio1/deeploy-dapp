@@ -1,40 +1,71 @@
-import ProjectCard from '@components/deeploys/ProjectCard';
-import db from '@lib/storage/db';
+import { CspEscrowAbi } from '@blockchain/CspEscrow';
+import { escrowContractAddress } from '@lib/config';
 import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
-import { Project } from '@typedefs/deeploys';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { RunningJob, RunningProject } from '@typedefs/deeploys';
+import _ from 'lodash';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { RiDraftLine } from 'react-icons/ri';
+import { usePublicClient } from 'wagmi';
+import RunningCard from './RunningCard';
 
 export interface RunningRef {
     expandAll: () => void;
     collapseAll: () => void;
 }
 
-const Projects = forwardRef<RunningRef>((_props, ref) => {
-    // TODO: Replace with API call
-    const projects: Project[] | undefined = useLiveQuery(() => db.projects.toArray());
-
+const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => void }>(({ setProjectsCount }, ref) => {
+    const [projects, setProjects] = useState<RunningProject[]>([]);
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+    const publicClient = usePublicClient();
+
+    // Init
+    useEffect(() => {
+        fetchAllJobs();
+    }, []);
 
     useEffect(() => {
         if (projects) {
             const obj = {};
 
             projects.forEach((project) => {
-                obj[project.id] = false;
+                obj[project.projectHash] = false;
             });
 
             setExpanded(obj);
         }
     }, [projects]);
 
+    const fetchAllJobs = async () => {
+        if (publicClient) {
+            const jobs: readonly RunningJob[] = await publicClient.readContract({
+                address: escrowContractAddress,
+                abi: CspEscrowAbi,
+                functionName: 'getAllJobs',
+            });
+
+            console.log('getAllJobs', jobs);
+
+            const projects = _(jobs)
+                .uniqBy('projectHash')
+                .map((job) => ({
+                    projectHash: job.projectHash,
+                }))
+                .value();
+
+            console.log('projects', projects);
+
+            setProjects(projects);
+            setProjectsCount(projects.length);
+        }
+    };
+
     const expandAll = () => {
         if (projects) {
             const expandedState = {};
             projects.forEach((project) => {
-                expandedState[project.id] = true;
+                expandedState[project.projectHash] = true;
             });
             setExpanded(expandedState);
         }
@@ -44,7 +75,7 @@ const Projects = forwardRef<RunningRef>((_props, ref) => {
         if (projects) {
             const collapsedState = {};
             projects.forEach((project) => {
-                collapsedState[project.id] = false;
+                collapsedState[project.projectHash] = false;
             });
             setExpanded(collapsedState);
         }
@@ -70,10 +101,10 @@ const Projects = forwardRef<RunningRef>((_props, ref) => {
 
             {projects?.map((project, index) => (
                 <div key={index}>
-                    <ProjectCard
+                    <RunningCard
                         project={project}
-                        expanded={expanded[project.id]}
-                        toggle={() => setExpanded({ ...expanded, [project.id]: !expanded[project.id] })}
+                        expanded={expanded[project.projectHash]}
+                        toggle={() => setExpanded({ ...expanded, [project.projectHash]: !expanded[project.projectHash] })}
                     />
                 </div>
             ))}
@@ -91,6 +122,6 @@ const Projects = forwardRef<RunningRef>((_props, ref) => {
     );
 });
 
-Projects.displayName = 'Projects';
+Running.displayName = 'Running';
 
-export default Projects;
+export default Running;

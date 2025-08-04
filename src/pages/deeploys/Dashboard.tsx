@@ -1,18 +1,21 @@
 import Drafts from '@components/deeploys/Drafts';
-import Projects, { RunningRef } from '@components/deeploys/Projects';
+import { RunningRef } from '@components/deeploys/Projects';
+import Running from '@components/deeploys/Running';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import ActionButton from '@shared/ActionButton';
 import CustomTabs from '@shared/CustomTabs';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useRef, useState } from 'react';
-import { RiBox3Line, RiFileTextLine } from 'react-icons/ri';
+import { RiBox2Line, RiFileTextLine } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
 
 function Dashboard() {
-    const [selectedTab, setSelectedTab] = useState<'projects' | 'drafts'>('drafts');
+    const [selectedTab, setSelectedTab] = useState<'running' | 'drafts'>('running');
     const drafts = useLiveQuery(() => db.projects.toArray());
     const runningRef = useRef<RunningRef>(null);
+
+    const [projectsCount, setProjectsCount] = useState(0);
 
     const navigate = useNavigate();
 
@@ -20,7 +23,7 @@ function Dashboard() {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
 
-        if (tab && (tab === 'projects' || tab === 'drafts')) {
+        if (tab && (tab === 'running' || tab === 'drafts')) {
             setSelectedTab(tab);
         }
     }, [window.location.search]);
@@ -39,10 +42,10 @@ function Dashboard() {
                 <CustomTabs
                     tabs={[
                         {
-                            key: 'projects',
-                            title: 'Projects',
-                            icon: <RiBox3Line />,
-                            count: drafts?.length ?? 0, // TODO: Get from API
+                            key: 'running',
+                            title: 'Running',
+                            icon: <RiBox2Line />,
+                            count: projectsCount,
                         },
                         {
                             key: 'drafts',
@@ -57,7 +60,7 @@ function Dashboard() {
                     }}
                 />
 
-                {selectedTab === 'projects' && (
+                {selectedTab === 'running' && (
                     <div className="row gap-2">
                         <ActionButton className="slate-button" onPress={handleExpandAll}>
                             <div className="compact">Expand all</div>
@@ -70,7 +73,7 @@ function Dashboard() {
                 )}
             </div>
 
-            {selectedTab === 'projects' && <Projects ref={runningRef} />}
+            {selectedTab === 'running' && <Running ref={runningRef} setProjectsCount={setProjectsCount} />}
             {selectedTab === 'drafts' && <Drafts />}
         </div>
     );

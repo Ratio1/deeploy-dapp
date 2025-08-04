@@ -127,4 +127,4 @@ export const getLicenseAssignEpoch = (assignTimestamp: bigint) =>
 
 // TODO: Move inside config
 export const poAIManagerContractAddress = '0x9A41f43494fCD592577228fE8E4014f2D75d2aa3';
-export const escrowContractAddress = '0x2F2b63811617a9C6b97535ffa4c9B3626cDAE15C';
+export const escrowContractAddress = '0x882130F66C4Bc83130Bc05104A64Ae4C899500e3';

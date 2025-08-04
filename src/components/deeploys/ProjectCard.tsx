@@ -32,8 +32,6 @@ export default function ProjectCard({
     const [earliestPaymentJob, setEarliestPaymentJob] = useState<Job>();
 
     useEffect(() => {
-        console.log(project.name, jobs);
-
         if (jobs) {
             setEarliestPaymentJob(
                 _(jobs)
