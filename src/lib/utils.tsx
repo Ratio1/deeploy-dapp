@@ -201,3 +201,13 @@ export const applyWidthClasses = (elements: React.ReactNode[], widthClasses: str
         </div>
     ));
 };
+
+export function buildDeeployMessage(data: Record<string, any>): string {
+    const cleaned = structuredClone(data);
+    delete cleaned.address;
+    delete cleaned.signature;
+
+    const sorted = deepSort(cleaned);
+    const json = JSON.stringify(sorted, null, 1).replaceAll('": ', '":');
+    return `Please sign this message for Deeploy: ${json}`;
+}

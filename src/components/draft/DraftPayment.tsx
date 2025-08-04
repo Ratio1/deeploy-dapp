@@ -1,9 +1,10 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { ERC20Abi } from '@blockchain/ERC20';
 import { ContainerOrWorkerType } from '@data/containerResources';
+import { createPipeline } from '@lib/api/deeploy';
 import { config, environment, escrowContractAddress, getCurrentEpoch } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
-import { getContainerOrWorkerType, getJobsTotalCost, sleep } from '@lib/utils';
+import { buildDeeployMessage, getContainerOrWorkerType, getJobsTotalCost, sleep } from '@lib/utils';
 import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { ConnectWalletWrapper } from '@shared/ConnectWalletWrapper';
@@ -13,11 +14,12 @@ import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
 import { GenericJob, Job, JobType, NativeJob, ServiceJob, type Project } from '@typedefs/deeploys';
 import { addDays, differenceInDays, differenceInHours } from 'date-fns';
+import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiBox3Line, RiDraftLine } from 'react-icons/ri';
 import { decodeEventLog, keccak256, toBytes } from 'viem';
-import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
+import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wagmi';
 import ProjectIdentity from '../../shared/projects/ProjectIdentity';
 import GenericJobsCostRundown from './job-rundowns/GenericJobsCostRundown';
 import NativeJobsCostRundown from './job-rundowns/NativeJobsCostRundown';
@@ -33,6 +35,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
     const { data: walletClient } = useWalletClient();
     const publicClient = usePublicClient();
     const { address } = useAccount();
+    const { signMessageAsync } = useSignMessage();
 
     useEffect(() => {
         console.log('[DraftPayment] jobs', jobs);
@@ -51,6 +54,8 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
     useEffect(() => {
         console.log(`[DraftPayment] Allowance: ${Number(allowance) / 10 ** 6} $USDC`);
     }, [allowance]);
+
+    const generateNonce = () => `0x${Date.now().toString(16)}`;
 
     const formatGenericJobPayload = (job: GenericJob) => {
         const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
@@ -89,13 +94,13 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         };
 
         // Generate nonce (current timestamp in milliseconds as hex)
-        const nonce = Math.floor(Date.now() * 1000).toString(16);
+        const nonce = generateNonce();
 
         return {
             app_alias: job.deployment.jobAlias,
             plugin_signature: 'CONTAINER_APP_RUNNER',
             nonce,
-            target_nodes: job.deployment.targetNodes,
+            target_nodes: job.deployment.targetNodes.filter((node) => !_.isEmpty(node.address)),
             target_nodes_count: job.specifications.targetNodesCount,
             app_params: {
                 IMAGE: image,
@@ -137,13 +142,13 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         };
 
         // Generate nonce (current timestamp in milliseconds as hex)
-        const nonce = Math.floor(Date.now() * 1000).toString(16);
+        const nonce = generateNonce();
 
         return {
             app_alias: job.deployment.jobAlias,
             plugin_signature: job.deployment.pluginSignature,
             nonce,
-            target_nodes: job.deployment.targetNodes,
+            target_nodes: job.deployment.targetNodes.filter((node) => !_.isEmpty(node.address)),
             target_nodes_count: job.specifications.targetNodesCount,
             node_res_req: nodeResourceRequirements,
             app_params: {
@@ -182,13 +187,13 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         };
 
         // Generate nonce (current timestamp in milliseconds as hex)
-        const nonce = Math.floor(Date.now() * 1000).toString(16);
+        const nonce = generateNonce();
 
         return {
             app_alias: job.deployment.jobAlias,
             plugin_signature: 'CONTAINER_APP_RUNNER',
             nonce,
-            target_nodes: job.deployment.targetNodes,
+            target_nodes: job.deployment.targetNodes.filter((node) => !_.isEmpty(node.address)),
             service_replica: job.deployment.serviceReplica,
             node_res_req: nodeResourceRequirements,
             app_params: {
@@ -208,7 +213,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         };
     };
 
-    const getJobsWithPayloads = (jobs: Job[]) => {
+    const getJobPayloads = (jobs: Job[]) => {
         return jobs.map((job) => {
             let payload = {};
 
@@ -230,10 +235,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                     break;
             }
 
-            return {
-                ...job,
-                payload,
-            };
+            return payload;
         });
     };
 
@@ -302,13 +304,39 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                 })
                 .filter((log) => log !== null && log.eventName === 'JobCreated');
 
-            console.log('JobCreated Logs', jobCreatedLogs);
-
             const jobIds = jobCreatedLogs.map((log) => log.args.jobId);
 
-            console.log('jobIds', jobIds);
+            const payloads = getJobPayloads(jobs);
 
-            // TODO: Call Deeploy API with the job & projectIDs
+            for (let index = 0; index < payloads.length; index++) {
+                const payload = payloads[index];
+                const jobId = Number(jobIds[index]);
+
+                const payloadWithIdentifiers = {
+                    ...payload,
+                    jobId,
+                    projectId: projectHash,
+                };
+
+                const message = buildDeeployMessage(payloadWithIdentifiers);
+
+                const signature = await signMessageAsync({
+                    account: address,
+                    message,
+                });
+
+                const request = {
+                    ...payloadWithIdentifiers,
+                    EE_ETH_SIGN: signature,
+                    EE_ETH_SENDER: address,
+                };
+
+                console.log('createPipeline', request);
+
+                const response = await createPipeline(request);
+
+                console.log('Response', response);
+            }
 
             await sleep(2000); // Wait for the allowance to be updated
             await fetchAllowance();

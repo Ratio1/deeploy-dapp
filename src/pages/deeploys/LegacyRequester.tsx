@@ -12,6 +12,8 @@ import toast from 'react-hot-toast';
 import { useAccount, useSignMessage } from 'wagmi';
 
 function buildMessage(data: Record<string, any>): string {
+    console.log('buildMessage', data);
+
     const cleaned = structuredClone(data);
     delete cleaned.address;
     delete cleaned.signature;
@@ -38,6 +40,8 @@ function LegacyRequester() {
 
     useEffect(() => {
         const nonce = `0x${Date.now().toString(16)}`;
+
+        console.log(nonce);
 
         if (endpoint === '/get_apps') {
             setUserInput(
@@ -164,7 +168,9 @@ function LegacyRequester() {
                 EE_ETH_SENDER: address,
             };
 
-            console.log('Data to send', request);
+            console.log('Data to send', {
+                request,
+            });
 
             const res = await _doPost(`${config.deeployUrl}${endpoint}`, {
                 request,

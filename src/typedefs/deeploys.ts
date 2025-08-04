@@ -50,7 +50,7 @@ type JobPaymentAndDuration = {
 
 // Deployment
 type BaseJobDeployment = {
-    targetNodes: R1Address[];
+    targetNodes: Array<{ address: R1Address }>;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
     tunnelingLabel?: string;
     tunnelingToken?: string;

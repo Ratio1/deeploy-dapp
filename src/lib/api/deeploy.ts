@@ -1,16 +1,18 @@
 import { config } from '@lib/config';
-import { EthAddress } from '@typedefs/blockchain';
 import axios from 'axios';
 
 const axiosInstance = axios.create({
     baseURL: config.deeployUrl,
 });
 
-export const createPipeline = (EE_ETH_SIGN: EthAddress, EE_ETH_SENDER: EthAddress, payload: any) =>
+export const createPipeline = (request: {
+    EE_ETH_SIGN: `0x${string}`;
+    EE_ETH_SENDER: `0x${string}`;
+    jobId: number;
+    projectId: `0x${string}`;
+}) =>
     _doPost('/create_pipeline', {
-        ...payload,
-        EE_ETH_SIGN,
-        EE_ETH_SENDER,
+        request,
     });
 
 async function _doPost(endpoint: string, body: any) {
