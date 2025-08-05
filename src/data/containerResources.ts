@@ -13,6 +13,7 @@ export type ContainerOrWorkerType = {
     ram: number;
     storage?: number;
     port?: number;
+    image?: string;
 };
 
 export type GpuType = {
@@ -217,6 +218,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         ram: 2,
         storage: 50,
         port: 5432,
+        image: 'postgres:17',
     },
     {
         id: 2,
@@ -231,6 +233,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         ram: 4,
         storage: 200,
         port: 5432,
+        image: 'postgres:17',
     },
     {
         id: 3,
@@ -245,6 +248,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         ram: 2,
         storage: 50,
         port: 3306,
+        image: 'mysql',
     },
     {
         id: 4,
@@ -259,6 +263,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         ram: 4,
         storage: 200,
         port: 3306,
+        image: 'mysql',
     },
     {
         id: 5,
@@ -273,6 +278,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         ram: 2,
         storage: 50,
         port: 27017,
+        image: 'mongodb',
     },
     {
         id: 6,
@@ -287,6 +293,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         ram: 4,
         storage: 200,
         port: 27017,
+        image: 'mongodb',
     },
 ];
 

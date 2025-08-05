@@ -70,7 +70,7 @@ const configs: {
         ND_LICENSE_CAP: 1575_188843457943924200n,
     },
     devnet: {
-        deeployUrl: 'https://devnet-deeploy-api.ratio1.ai',
+        deeployUrl: 'https://2b1e1f9b0d35.ratio1.link', // 'https://devnet-deeploy-api.ratio1.ai',
         backendUrl: 'https://devnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://devnet-oracle.ratio1.ai',
         r1ContractAddress: '0x277CbD0Cf25F4789Bc04035eCd03d811FAf73691',

@@ -15,12 +15,13 @@ import SupportFooter from '@shared/SupportFooter';
 import { GenericJob, Job, JobType, NativeJob, ServiceJob, type Project } from '@typedefs/deeploys';
 import { addDays, differenceInDays, differenceInHours } from 'date-fns';
 import _ from 'lodash';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiBox3Line, RiDraftLine } from 'react-icons/ri';
 import { decodeEventLog, keccak256, toBytes } from 'viem';
 import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wagmi';
 import ProjectIdentity from '../../shared/projects/ProjectIdentity';
+import { DeeployFlowModal } from './DeeployFlowModal';
 import GenericJobsCostRundown from './job-rundowns/GenericJobsCostRundown';
 import NativeJobsCostRundown from './job-rundowns/NativeJobsCostRundown';
 import ServiceJobsCostRundown from './job-rundowns/ServiceJobsCostRundown';
@@ -36,6 +37,12 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
     const publicClient = usePublicClient();
     const { address } = useAccount();
     const { signMessageAsync } = useSignMessage();
+
+    const deeployFlowModalRef = useRef<{
+        open: (jobsCount: number) => void;
+        progress: (action: 'payJobs' | 'signMessages' | 'callDeeployApi') => void;
+        close: () => void;
+    }>(null);
 
     useEffect(() => {
         console.log('[DraftPayment] jobs', jobs);
@@ -55,7 +62,12 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         console.log(`[DraftPayment] Allowance: ${Number(allowance) / 10 ** 6} $USDC`);
     }, [allowance]);
 
-    const generateNonce = () => `0x${Date.now().toString(16)}`;
+    const generateNonce = () => {
+        const now = new Date();
+        const unixTimestamp = now.getTime();
+        console.log('generateNonce', now, unixTimestamp);
+        return `0x${unixTimestamp.toString(16)}`;
+    };
 
     const formatGenericJobPayload = (job: GenericJob) => {
         const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
@@ -90,7 +102,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
         const containerResources = {
             cpu: containerType.cores,
-            memory: `${containerType.ram}GB`,
+            memory: `${containerType.ram}g`,
         };
 
         // Generate nonce (current timestamp in milliseconds as hex)
@@ -138,7 +150,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
         const nodeResourceRequirements = {
             cpu: workerType.cores,
-            memory: `${workerType.ram}GB`,
+            memory: `${workerType.ram}g`,
         };
 
         // Generate nonce (current timestamp in milliseconds as hex)
@@ -181,9 +193,9 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             dynamicEnvVars[dynamicEnvVar.key] = dynamicEnvVar.values;
         });
 
-        const nodeResourceRequirements = {
+        const containerResources = {
             cpu: containerType.cores,
-            memory: `${containerType.ram}GB`,
+            memory: `${containerType.ram}g`,
         };
 
         // Generate nonce (current timestamp in milliseconds as hex)
@@ -194,9 +206,11 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             plugin_signature: 'CONTAINER_APP_RUNNER',
             nonce,
             target_nodes: job.deployment.targetNodes.filter((node) => !_.isEmpty(node.address)),
+            target_nodes_count: 1,
             service_replica: job.deployment.serviceReplica,
-            node_res_req: nodeResourceRequirements,
             app_params: {
+                IMAGE: containerType.image,
+                CONTAINER_RESOURCES: containerResources,
                 PORT: containerType.port,
                 NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
                 NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
@@ -314,8 +328,8 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
                 const payloadWithIdentifiers = {
                     ...payload,
-                    jobId,
-                    projectId: projectHash,
+                    job_id: jobId,
+                    project_id: projectHash,
                 };
 
                 const message = buildDeeployMessage(payloadWithIdentifiers);
@@ -428,6 +442,24 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                     <ProjectIdentity project={project} />
 
                     <div className="row gap-2">
+                        <ActionButton
+                            color="secondary"
+                            variant="solid"
+                            onPress={() => {
+                                deeployFlowModalRef.current?.open(2);
+
+                                setTimeout(() => {
+                                    deeployFlowModalRef.current?.progress('signMessages');
+                                }, 2000);
+
+                                setTimeout(() => {
+                                    deeployFlowModalRef.current?.progress('callDeeployApi');
+                                }, 4000);
+                            }}
+                        >
+                            <div className="compact">Debug</div>
+                        </ActionButton>
+
                         <OverviewButton />
 
                         <ConnectWalletWrapper>
@@ -495,6 +527,8 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             </div>
 
             <SupportFooter />
+
+            <DeeployFlowModal ref={deeployFlowModalRef} />
         </div>
     );
 }

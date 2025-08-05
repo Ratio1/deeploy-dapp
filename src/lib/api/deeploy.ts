@@ -8,8 +8,8 @@ const axiosInstance = axios.create({
 export const createPipeline = (request: {
     EE_ETH_SIGN: `0x${string}`;
     EE_ETH_SENDER: `0x${string}`;
-    jobId: number;
-    projectId: `0x${string}`;
+    job_id: number;
+    project_id: `0x${string}`;
 }) =>
     _doPost('/create_pipeline', {
         request,
