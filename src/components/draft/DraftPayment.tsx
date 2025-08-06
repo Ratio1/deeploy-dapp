@@ -42,6 +42,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         open: (jobsCount: number) => void;
         progress: (action: 'payJobs' | 'signMessages' | 'callDeeployApi') => void;
         close: () => void;
+        displayError: () => void;
     }>(null);
 
     useEffect(() => {
@@ -376,6 +377,11 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
             if (successfulJobs.length === jobs.length) {
                 // deeployFlowModalRef.current?.progress('done'); TODO: Uncomment
+                setTimeout(() => {
+                    deeployFlowModalRef.current?.close();
+                }, 2000);
+            } else {
+                deeployFlowModalRef.current?.displayError();
             }
 
             console.log('All deployment responses:', responses);
@@ -454,6 +460,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         } catch (err: any) {
             console.error(err.message);
             toast.error('An error occured, please try again.');
+            deeployFlowModalRef.current?.displayError();
         } finally {
             setLoading(false);
         }
@@ -471,23 +478,25 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                     <ProjectIdentity project={project} />
 
                     <div className="row gap-2">
-                        <ActionButton
-                            color="secondary"
-                            variant="solid"
-                            onPress={() => {
-                                deeployFlowModalRef.current?.open(2);
+                        {process.env.NODE_ENV === 'development' && (
+                            <ActionButton
+                                color="secondary"
+                                variant="solid"
+                                onPress={() => {
+                                    deeployFlowModalRef.current?.open(2);
 
-                                setTimeout(() => {
-                                    deeployFlowModalRef.current?.progress('signMessages');
-                                }, 2000);
+                                    setTimeout(() => {
+                                        deeployFlowModalRef.current?.progress('signMessages');
+                                    }, 1500);
 
-                                setTimeout(() => {
-                                    deeployFlowModalRef.current?.progress('callDeeployApi');
-                                }, 4000);
-                            }}
-                        >
-                            <div className="compact">Debug</div>
-                        </ActionButton>
+                                    setTimeout(() => {
+                                        deeployFlowModalRef.current?.displayError();
+                                    }, 3000);
+                                }}
+                            >
+                                <div className="compact">Debug</div>
+                            </ActionButton>
+                        )}
 
                         <OverviewButton />
 
