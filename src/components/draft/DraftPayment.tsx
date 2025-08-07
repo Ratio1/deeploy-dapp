@@ -59,32 +59,55 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         }
     }, [address, publicClient]);
 
-    useEffect(() => {
-        console.log(`[DraftPayment] Allowance: ${Number(allowance) / 10 ** 6} $USDC`);
-    }, [allowance]);
-
     const generateNonce = () => {
         const now = new Date();
         const unixTimestamp = now.getTime();
         return `0x${unixTimestamp.toString(16)}`;
     };
 
+    const formatEnvVars = (envVars: Array<{ key: string; value: string }>) => {
+        const formatted: Record<string, string> = {};
+        envVars.forEach((envVar) => {
+            if (envVar.key) {
+                formatted[envVar.key] = envVar.value;
+            }
+        });
+        return formatted;
+    };
+
+    const formatDynamicEnvVars = (dynamicEnvVars: Array<{ key: string; values: Array<{ type: string; value: string }> }>) => {
+        const formatted: Record<string, Array<{ type: string; value: string }>> = {};
+        dynamicEnvVars.forEach((dynamicEnvVar) => {
+            if (dynamicEnvVar.key) {
+                formatted[dynamicEnvVar.key] = dynamicEnvVar.values;
+            }
+        });
+        return formatted;
+    };
+
+    const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType) => {
+        return {
+            cpu: containerOrWorkerType.cores,
+            memory: `${containerOrWorkerType.ram}g`,
+        };
+    };
+
+    const formatTargetNodes = (targetNodes: Array<{ address: string }>) => {
+        return targetNodes.filter((node) => !_.isEmpty(node.address)).map((node) => node.address);
+    };
+
+    const getTargetNodesCount = (targetNodes: Array<{ address: string }>, specificationsTargetNodesCount: number) => {
+        return targetNodes.length > 0 ? 0 : specificationsTargetNodesCount;
+    };
+
     const formatGenericJobPayload = (job: GenericJob) => {
         const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
 
-        const envVars: Record<string, string> = {};
-        job.deployment.envVars.forEach((envVar) => {
-            if (envVar.key) {
-                envVars[envVar.key] = envVar.value;
-            }
-        });
-
-        const dynamicEnvVars: Record<string, Array<{ type: string; value: string }>> = {};
-        job.deployment.dynamicEnvVars.forEach((dynamicEnvVar) => {
-            if (dynamicEnvVar.key) {
-                dynamicEnvVars[dynamicEnvVar.key] = dynamicEnvVar.values;
-            }
-        });
+        const envVars = formatEnvVars(job.deployment.envVars);
+        const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
+        const containerResources = formatContainerResources(containerType);
+        const targetNodes = formatTargetNodes(job.deployment.targetNodes);
+        const targetNodesCount = getTargetNodesCount(job.deployment.targetNodes, job.specifications.targetNodesCount);
 
         let image = 'repo/image:tag';
         let crData = {
@@ -104,20 +127,14 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             console.error('Worker-based container not implemented yet.');
         }
 
-        const containerResources = {
-            cpu: containerType.cores,
-            memory: `${containerType.ram}g`,
-        };
-
-        // Generate nonce (current timestamp in milliseconds as hex)
         const nonce = generateNonce();
 
         return {
             app_alias: job.deployment.jobAlias,
             plugin_signature: 'CONTAINER_APP_RUNNER',
             nonce,
-            target_nodes: job.deployment.targetNodes.filter((node) => !_.isEmpty(node.address)).map((node) => node.address),
-            target_nodes_count: job.deployment.targetNodes.length > 0 ? 0 : job.specifications.targetNodesCount,
+            target_nodes: targetNodes,
+            target_nodes_count: targetNodesCount,
             app_params: {
                 IMAGE: image,
                 CR_DATA: {}, // TODO: Use crData
@@ -156,12 +173,10 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             }
         });
 
-        const nodeResourceRequirements = {
-            cpu: workerType.cores,
-            memory: `${workerType.ram}g`,
-        };
+        const nodeResourceRequirements = formatContainerResources(workerType);
+        const targetNodes = formatTargetNodes(job.deployment.targetNodes);
+        const targetNodesCount = getTargetNodesCount(job.deployment.targetNodes, job.specifications.targetNodesCount);
 
-        // Generate nonce (current timestamp in milliseconds as hex)
         const nonce = generateNonce();
 
         let appParams = {
@@ -185,8 +200,8 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             app_alias: job.deployment.jobAlias,
             plugin_signature: job.deployment.pluginSignature,
             nonce,
-            target_nodes: job.deployment.targetNodes.filter((node) => !_.isEmpty(node.address)).map((node) => node.address),
-            target_nodes_count: job.deployment.targetNodes.length > 0 ? 0 : job.specifications.targetNodesCount,
+            target_nodes: targetNodes,
+            target_nodes_count: targetNodesCount,
             node_res_req: nodeResourceRequirements,
             app_params: appParams,
             pipeline_input_type: 'void', // TODO: job.deployment.pipelineInputType,
@@ -199,33 +214,18 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
     const formatServiceJobPayload = (job: ServiceJob) => {
         const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
 
-        const envVars: Record<string, string> = {};
-        job.deployment.envVars.forEach((envVar) => {
-            if (envVar.key) {
-                envVars[envVar.key] = envVar.value;
-            }
-        });
+        const envVars = formatEnvVars(job.deployment.envVars);
+        const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
+        const containerResources = formatContainerResources(containerType);
+        const targetNodes = formatTargetNodes(job.deployment.targetNodes);
 
-        const dynamicEnvVars: Record<string, Array<{ type: string; value: string }>> = {};
-        job.deployment.dynamicEnvVars.forEach((dynamicEnvVar) => {
-            if (dynamicEnvVar.key) {
-                dynamicEnvVars[dynamicEnvVar.key] = dynamicEnvVar.values;
-            }
-        });
-
-        const containerResources = {
-            cpu: containerType.cores,
-            memory: `${containerType.ram}g`,
-        };
-
-        // Generate nonce (current timestamp in milliseconds as hex)
         const nonce = generateNonce();
 
         return {
             app_alias: job.deployment.jobAlias,
             plugin_signature: 'CONTAINER_APP_RUNNER',
             nonce,
-            target_nodes: job.deployment.targetNodes.filter((node) => !_.isEmpty(node.address)).map((node) => node.address),
+            target_nodes: targetNodes,
             target_nodes_count: 1,
             service_replica: job.deployment.serviceReplica,
             app_params: {
@@ -447,8 +447,6 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             return;
         }
 
-        console.log(`[DraftPayment] Fetching allowance`);
-
         const result = await publicClient.readContract({
             address: config.usdcContractAddress,
             abi: ERC20Abi,
@@ -498,34 +496,6 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                     <ProjectIdentity project={project} />
 
                     <div className="row gap-2">
-                        {/* {process.env.NODE_ENV === 'development' && (
-                            <ActionButton
-                                color="secondary"
-                                variant="solid"
-                                onPress={() => {
-                                    deeployFlowModalRef.current?.open(2);
-
-                                    setTimeout(() => {
-                                        deeployFlowModalRef.current?.progress('signMessages');
-                                    }, 1500);
-
-                                    setTimeout(() => {
-                                        deeployFlowModalRef.current?.progress('callDeeployApi');
-                                    }, 3000);
-
-                                    setTimeout(() => {
-                                        deeployFlowModalRef.current?.progress('done');
-                                    }, 4500);
-
-                                    setTimeout(() => {
-                                        deeployFlowModalRef.current?.close();
-                                    }, 5000);
-                                }}
-                            >
-                                <div className="compact">Debug</div>
-                            </ActionButton>
-                        )} */}
-
                         <OverviewButton />
 
                         <ConnectWalletWrapper>
