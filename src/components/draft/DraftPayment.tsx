@@ -40,7 +40,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
     const deeployFlowModalRef = useRef<{
         open: (jobsCount: number) => void;
-        progress: (action: 'payJobs' | 'signMessages' | 'callDeeployApi') => void;
+        progress: (action: 'payJobs' | 'signMessages' | 'callDeeployApi' | 'done') => void;
         close: () => void;
     }>(null);
 
@@ -116,7 +116,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             target_nodes_count: job.specifications.targetNodesCount,
             app_params: {
                 IMAGE: image,
-                CR_DATA: crData,
+                CR_DATA: {}, // TODO: Use crData,
                 CONTAINER_RESOURCES: containerResources,
                 PORT: job.deployment.port,
                 NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
@@ -126,8 +126,8 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                 VOLUMES: {}, // TODO: Implement
                 ENV: envVars,
                 DYNAMIC_ENV: dynamicEnvVars,
-                RESTART_POLICY: job.deployment.restartPolicy,
-                IMAGE_PULL_POLICY: job.deployment.imagePullPolicy,
+                RESTART_POLICY: job.deployment.restartPolicy.toLowerCase(),
+                IMAGE_PULL_POLICY: job.deployment.imagePullPolicy.toLowerCase(),
             },
             pipeline_input_type: 'void',
             pipeline_input_uri: null,
@@ -210,13 +210,15 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             service_replica: job.deployment.serviceReplica,
             app_params: {
                 IMAGE: containerType.image,
+
                 CONTAINER_RESOURCES: containerResources,
                 PORT: containerType.port,
+                TUNNEL_ENGINE: 'ngrok',
                 NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
                 NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
                 NGROK_ENABLED: job.deployment.enableTunneling === 'True',
                 NGROK_USE_API: true,
-                ENV: envVars,
+                ENV: { POSTGRES_PASSWORD: 'some-passowrd', ...envVars },
                 DYNAMIC_ENV: dynamicEnvVars,
                 RESTART_POLICY: 'always',
                 IMAGE_PULL_POLICY: 'always',
@@ -450,11 +452,19 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
                                 setTimeout(() => {
                                     deeployFlowModalRef.current?.progress('signMessages');
-                                }, 2000);
+                                }, 1500);
 
                                 setTimeout(() => {
                                     deeployFlowModalRef.current?.progress('callDeeployApi');
-                                }, 4000);
+                                }, 3000);
+
+                                setTimeout(() => {
+                                    deeployFlowModalRef.current?.progress('done');
+                                }, 4500);
+
+                                setTimeout(() => {
+                                    deeployFlowModalRef.current?.close();
+                                }, 5000);
                             }}
                         >
                             <div className="compact">Debug</div>

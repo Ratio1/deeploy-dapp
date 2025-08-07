@@ -5,8 +5,8 @@ import {
     dynamicEnvEntrySchema,
     enabledBooleanTypeValue,
     getKeyValueEntriesArraySchema,
+    getNameWithoutSpacesSchema,
     getStringSchema,
-    getStringWithSpacesSchema,
     nodeSchema,
     workerCommandSchema,
 } from '@schemas/common';
@@ -15,7 +15,7 @@ import { z } from 'zod';
 // Common validation patterns
 const validations = {
     // String patterns
-    jobAlias: getStringWithSpacesSchema(3, 36),
+    jobAlias: getNameWithoutSpacesSchema(3, 36),
 
     containerImage: z
         .string({ required_error: 'Value is required' })

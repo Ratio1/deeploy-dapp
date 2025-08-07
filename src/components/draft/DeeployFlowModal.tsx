@@ -2,7 +2,7 @@ import { Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from '@her
 import { Spinner } from '@heroui/spinner';
 import { DetailedAlert } from '@shared/DetailedAlert';
 import { forwardRef, useImperativeHandle, useState } from 'react';
-import { RiBox3Line, RiCheckDoubleLine, RiEdit2Line, RiWalletLine } from 'react-icons/ri';
+import { RiBox3Line, RiCheckDoubleLine, RiCheckLine, RiEdit2Line, RiWalletLine } from 'react-icons/ri';
 
 const ACTIONS = {
     payJobs: {
@@ -22,7 +22,7 @@ const ACTIONS = {
 export const DeeployFlowModal = forwardRef((_props, ref) => {
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
 
-    const [currentAction, setCurrentAction] = useState<'payJobs' | 'signMessages' | 'callDeeployApi'>('payJobs');
+    const [currentAction, setCurrentAction] = useState<'payJobs' | 'signMessages' | 'callDeeployApi' | 'done'>('payJobs');
     const [jobsCount, setJobsCount] = useState<number>(1);
 
     const open = (jobsCount: number) => {
@@ -31,7 +31,7 @@ export const DeeployFlowModal = forwardRef((_props, ref) => {
         onOpen();
     };
 
-    const progress = (action: 'payJobs' | 'signMessages' | 'callDeeployApi') => {
+    const progress = (action: 'payJobs' | 'signMessages' | 'callDeeployApi' | 'done') => {
         setCurrentAction(action);
     };
 
@@ -55,11 +55,13 @@ export const DeeployFlowModal = forwardRef((_props, ref) => {
         );
     };
 
-    const getJobDone = (icon: React.ReactNode) => {
+    const getJobDone = () => {
         return (
             <div className="z-10 -ml-1.5 bg-white p-1.5">
                 <div className="center-all rounded-full bg-green-100 p-1">
-                    <div className="text-[17px] text-green-600">{icon}</div>
+                    <div className="text-[17px] text-green-600">
+                        <RiCheckLine />
+                    </div>
                 </div>
             </div>
         );
@@ -114,8 +116,8 @@ export const DeeployFlowModal = forwardRef((_props, ref) => {
                                     <div key={index} className="row gap-1.5">
                                         {index === currentIndex
                                             ? getJobLoading()
-                                            : index < currentIndex
-                                              ? getJobDone(ACTIONS[action].icon)
+                                            : index < currentIndex || currentIndex === -1
+                                              ? getJobDone()
                                               : getJobPending(ACTIONS[action].icon)}
 
                                         <div>{ACTIONS[action].title}</div>
@@ -126,52 +128,6 @@ export const DeeployFlowModal = forwardRef((_props, ref) => {
                             {/* Vertical bar */}
                             <div className="bg-primary-100 absolute top-3 bottom-3 left-[11px] w-[2px]" />
                         </div>
-
-                        {/* <div className="col relative mx-auto my-4 gap-6 text-[15px]">
-                            <div className="row gap-1.5">
-                                {currentAction === 'payJobs' ? (
-                                    <div className="z-10 -ml-1.5 bg-white p-1.5">
-                                        <div className="center-all rounded-full bg-green-100 p-1">
-                                            <RiCheckLine className="text-base text-green-600" />
-                                        </div>
-                                    </div>
-                                ) : (
-                                    getJobLoading()
-                                )}
-
-                                <div>Pay to deploy jobs</div>
-                            </div>
-
-                            <div className="row gap-1.5">
-                                {currentAction === 'signMessages' ? (
-                                    <div className="z-10 -ml-1.5 bg-white p-1.5">
-                                        <div className="center-all bg-primary-100 rounded-full p-1">
-                                            <RiArrowUpDownLine className="text-primary text-base" />
-                                        </div>
-                                    </div>
-                                ) : (
-                                    getJobLoading()
-                                )}
-
-                                <div>Sign messages with job details</div>
-                            </div>
-
-                            <div className="row gap-1.5">
-                                {currentAction === 'callDeeployApi' ? (
-                                    <div className="z-10 -ml-1.5 bg-white p-1.5">
-                                        <div className="center-all bg-primary-100 rounded-full p-1">
-                                            <RiBox2Line className="text-primary text-base" />
-                                        </div>
-                                    </div>
-                                ) : (
-                                    getJobLoading()
-                                )}
-
-                                <div>Create jobs</div>
-                            </div>
-
-                            <div className="bg-primary-100 absolute top-3 bottom-3 left-[11px] w-[2px]" />
-                        </div> */}
                     </div>
                 </ModalBody>
             </ModalContent>

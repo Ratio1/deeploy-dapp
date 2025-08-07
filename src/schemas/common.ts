@@ -170,6 +170,14 @@ export const getStringWithSpacesSchema = (minLength: number, maxLength: number) 
         );
 };
 
+export const getNameWithoutSpacesSchema = (minLength: number, maxLength: number) => {
+    return z
+        .string({ required_error: 'Value is required' })
+        .min(minLength, `Value must be at least ${minLength} characters`)
+        .max(maxLength, `Value cannot exceed ${maxLength} characters`)
+        .regex(/^[a-zA-Z0-9_-]*$/, 'Only letters, numbers, underscores and hyphens allowed');
+};
+
 export const workerCommandSchema = z.object({
     command: getStringWithSpacesSchema(2, 512),
 });
