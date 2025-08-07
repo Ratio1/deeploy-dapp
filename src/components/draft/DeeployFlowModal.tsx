@@ -7,7 +7,7 @@ import { RiBox3Line, RiCheckDoubleLine, RiCheckLine, RiCloseLine, RiEdit2Line, R
 const ACTIONS = {
     payJobs: {
         icon: <RiWalletLine />,
-        title: 'Pay for the jobs',
+        title: 'Confirm payment',
     },
     signMessages: {
         icon: <RiEdit2Line />,

@@ -112,11 +112,11 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             app_alias: job.deployment.jobAlias,
             plugin_signature: 'CONTAINER_APP_RUNNER',
             nonce,
-            target_nodes: job.deployment.targetNodes.filter((node) => !_.isEmpty(node.address)),
-            target_nodes_count: job.specifications.targetNodesCount,
+            target_nodes: job.deployment.targetNodes.filter((node) => !_.isEmpty(node.address)).map((node) => node.address),
+            target_nodes_count: job.deployment.targetNodes.length > 0 ? 0 : job.specifications.targetNodesCount,
             app_params: {
                 IMAGE: image,
-                CR_DATA: {}, // TODO: Use crData,
+                CR_DATA: {}, // TODO: Use crData
                 CONTAINER_RESOURCES: containerResources,
                 PORT: job.deployment.port,
                 NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
@@ -160,8 +160,8 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             app_alias: job.deployment.jobAlias,
             plugin_signature: job.deployment.pluginSignature,
             nonce,
-            target_nodes: job.deployment.targetNodes.filter((node) => !_.isEmpty(node.address)),
-            target_nodes_count: job.specifications.targetNodesCount,
+            target_nodes: job.deployment.targetNodes.filter((node) => !_.isEmpty(node.address)).map((node) => node.address),
+            target_nodes_count: job.deployment.targetNodes.length > 0 ? 0 : job.specifications.targetNodesCount,
             node_res_req: nodeResourceRequirements,
             app_params: {
                 PORT: job.deployment.port,
@@ -205,12 +205,11 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             app_alias: job.deployment.jobAlias,
             plugin_signature: 'CONTAINER_APP_RUNNER',
             nonce,
-            target_nodes: job.deployment.targetNodes.filter((node) => !_.isEmpty(node.address)),
+            target_nodes: job.deployment.targetNodes.filter((node) => !_.isEmpty(node.address)).map((node) => node.address),
             target_nodes_count: 1,
             service_replica: job.deployment.serviceReplica,
             app_params: {
                 IMAGE: containerType.image,
-
                 CONTAINER_RESOURCES: containerResources,
                 PORT: containerType.port,
                 TUNNEL_ENGINE: 'ngrok',
@@ -218,7 +217,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                 NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
                 NGROK_ENABLED: job.deployment.enableTunneling === 'True',
                 NGROK_USE_API: true,
-                ENV: { POSTGRES_PASSWORD: 'some-passowrd', ...envVars },
+                ENV: envVars,
                 DYNAMIC_ENV: dynamicEnvVars,
                 RESTART_POLICY: 'always',
                 IMAGE_PULL_POLICY: 'always',
@@ -366,7 +365,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
             if (failedJobs.length > 0) {
                 console.error('Some jobs failed to deploy:', failedJobs);
-                toast.error(`${failedJobs.length} job(s) failed to deploy.`);
+                toast.error(`${failedJobs.length} job${failedJobs.length > 1 ? 's' : ''} failed to deploy.`);
             }
 
             if (successfulJobs.length > 0) {
@@ -374,11 +373,12 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                     'Successfully deployed jobs:',
                     successfulJobs.map((r) => (r as PromiseFulfilledResult<any>).value),
                 );
-                toast.success(`${successfulJobs.length} job(s) deployed successfully.`);
+                toast.success(`${successfulJobs.length} job${successfulJobs.length > 1 ? 's' : ''} deployed successfully.`);
             }
 
             if (successfulJobs.length === jobs.length) {
-                // deeployFlowModalRef.current?.progress('done'); TODO: Uncomment
+                deeployFlowModalRef.current?.progress('done');
+
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
                 }, 2000);
@@ -480,7 +480,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                     <ProjectIdentity project={project} />
 
                     <div className="row gap-2">
-                        {process.env.NODE_ENV === 'development' && (
+                        {/* {process.env.NODE_ENV === 'development' && (
                             <ActionButton
                                 color="secondary"
                                 variant="solid"
@@ -506,7 +506,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                             >
                                 <div className="compact">Debug</div>
                             </ActionButton>
-                        )}
+                        )} */}
 
                         <OverviewButton />
 
