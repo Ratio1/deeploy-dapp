@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Tunnels API
-const tunnelsBaseUrl = 'https://c52148be9514.ratio1.link';
+const tunnelsBaseUrl = 'https://1f8b266e9dbf.ratio1.link';
 
 const axiosInstance = axios.create({
     baseURL: tunnelsBaseUrl,

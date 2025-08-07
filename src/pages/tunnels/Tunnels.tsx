@@ -72,7 +72,7 @@ function Tunnels() {
             const tunnelsObj = data.result || {};
 
             const tunnelsArray = Object.values(tunnelsObj)
-                .filter((t: any) => t.metadata.creator === 'ratio1')
+                .filter((t: any) => t.metadata?.creator === 'ratio1')
                 .map((t: any) => ({
                     id: t.id,
                     status: t.status,
@@ -88,6 +88,7 @@ function Tunnels() {
             setTunnels(tunnelsArray);
         } catch (e: any) {
             setError('An error occurred while fetching the tunnels.');
+            console.error(e);
         } finally {
             setLoading(false);
         }
