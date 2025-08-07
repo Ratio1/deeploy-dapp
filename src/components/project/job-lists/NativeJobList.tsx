@@ -2,7 +2,7 @@ import { ContainerOrWorkerType } from '@data/containerResources';
 import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
 import JobList from '@shared/jobs/projects/JobList';
 import { SmallTag } from '@shared/SmallTag';
-import { NativeJob, Project } from '@typedefs/deeploys';
+import { DraftProject, NativeDraftJob } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
 const widthClasses = [
@@ -13,7 +13,7 @@ const widthClasses = [
     'min-w-[300px]', // containerType
 ];
 
-function NativeJobList({ jobs, project }: { jobs: NativeJob[]; project: Project }) {
+function NativeJobList({ jobs, project }: { jobs: NativeDraftJob[]; project: DraftProject }) {
     return (
         <JobList
             cardHeader={
@@ -26,7 +26,7 @@ function NativeJobList({ jobs, project }: { jobs: NativeJob[]; project: Project 
             jobs={jobs}
             project={project}
             renderJob={(job) => {
-                const nativeJob = job as NativeJob;
+                const nativeJob = job as NativeDraftJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
                     nativeJob.jobType,
                     nativeJob.specifications,

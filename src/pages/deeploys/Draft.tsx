@@ -4,7 +4,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { isValidId } from '@lib/utils';
-import { Job, ProjectPage, type Project } from '@typedefs/deeploys';
+import { DraftJob, ProjectPage, type DraftProject } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -16,14 +16,14 @@ export default function Draft() {
     const navigate = useNavigate();
     const { id } = useParams();
 
-    const project: Project | undefined | null = useLiveQuery(
+    const project: DraftProject | undefined | null = useLiveQuery(
         isValidId(id) ? () => db.projects.get(parseInt(id as string)) : () => undefined,
         [isValidId, id],
         null, // Default value returned while data is loading
     );
 
-    const jobs: Job[] | undefined = useLiveQuery(
-        project ? () => db.jobs.where('projectId').equals(project.id).toArray() : () => undefined,
+    const jobs: DraftJob[] | undefined = useLiveQuery(
+        project ? () => db.jobs.where('projectHash').equals(project.projectHash).toArray() : () => undefined,
         [project],
     );
 

@@ -1,31 +1,23 @@
+import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import ProjectOverview from '@components/project/ProjectOverview';
+import { Skeleton } from '@heroui/skeleton';
+import { escrowContractAddress } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
-import db from '@lib/storage/db';
-import { isValidId } from '@lib/utils';
-import { Job, ProjectPage, type Project } from '@typedefs/deeploys';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect } from 'react';
+import { ProjectPage, RunningJob } from '@typedefs/deeploys';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { usePublicClient } from 'wagmi';
 
 export default function Project() {
     const { projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
+    const [isLoading, setLoading] = useState(true);
+    const [runningJobs, setRunningJobs] = useState<RunningJob[]>([]);
+
+    const publicClient = usePublicClient();
 
     const navigate = useNavigate();
-    const { id } = useParams();
-
-    // TODO: Replace with API call
-    const project: Project | undefined | null = useLiveQuery(
-        isValidId(id) ? () => db.projects.get(parseInt(id as string)) : () => undefined,
-        [isValidId, id],
-        null, // Default value returned while data is loading
-    );
-
-    // TODO: Replace with API call
-    const jobs: Job[] | undefined = useLiveQuery(
-        project ? () => db.jobs.where('projectId').equals(project.id).toArray() : () => undefined,
-        [project],
-    );
+    const { projectHash } = useParams();
 
     // Init
     useEffect(() => {
@@ -33,18 +25,55 @@ export default function Project() {
     }, []);
 
     useEffect(() => {
-        if (project === undefined) {
+        if (publicClient && projectHash) {
+            fetchAllJobs();
+        }
+    }, [publicClient, projectHash]);
+
+    useEffect(() => {
+        if (!projectHash) {
             navigate(routePath.notFound);
         }
-    }, [project]);
+    }, [projectHash]);
 
-    if (project === null) {
-        return <></>;
+    const fetchAllJobs = async () => {
+        if (!publicClient) {
+            return;
+        }
+
+        const jobs: readonly RunningJob[] = await publicClient.readContract({
+            address: escrowContractAddress,
+            abi: CspEscrowAbi,
+            functionName: 'getAllJobs',
+        });
+
+        const projectJobs = jobs.filter((job) => job.projectHash === projectHash);
+        console.log('[Project] Jobs:', projectJobs);
+
+        setRunningJobs(projectJobs);
+        setLoading(false);
+    };
+
+    if (isLoading || !projectHash) {
+        return (
+            <div className="col w-full gap-6">
+                <Skeleton className="min-h-10 w-80 rounded-lg" />
+
+                <div className="row justify-between">
+                    <Skeleton className="min-h-12 w-80 rounded-lg" />
+                    <Skeleton className="min-h-12 w-80 rounded-lg" />
+                </div>
+
+                <Skeleton className="min-h-[90px] w-full rounded-lg" />
+                <Skeleton className="min-h-[300px] w-full rounded-lg" />
+                <Skeleton className="min-h-[300px] w-full rounded-lg" />
+            </div>
+        );
     }
 
-    if (project === undefined) {
-        return <></>;
-    }
-
-    return projectPage === ProjectPage.Payment ? <div>Project Payment</div> : <ProjectOverview project={project} jobs={jobs} />;
+    return projectPage === ProjectPage.Payment ? (
+        <div>Project Payment</div>
+    ) : (
+        <ProjectOverview projectHash={projectHash} jobs={runningJobs} />
+    );
 }

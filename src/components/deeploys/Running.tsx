@@ -23,10 +23,11 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
 
     const publicClient = usePublicClient();
 
-    // Init
     useEffect(() => {
-        fetchAllJobs();
-    }, []);
+        if (publicClient) {
+            fetchAllJobs();
+        }
+    }, [publicClient]);
 
     useEffect(() => {
         if (projects) {
@@ -41,22 +42,26 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
     }, [projects]);
 
     const fetchAllJobs = async () => {
-        if (publicClient) {
-            const jobs: readonly RunningJob[] = await publicClient.readContract({
-                address: escrowContractAddress,
-                abi: CspEscrowAbi,
-                functionName: 'getAllJobs',
-            });
-
-            const projects = _.groupBy(jobs, 'projectHash');
-            console.log(projects);
-
-            setProjects(projects);
-            setProjectsCount(Object.keys(projects).length);
+        if (!publicClient) {
+            return;
         }
+
+        const jobs: readonly RunningJob[] = await publicClient.readContract({
+            address: escrowContractAddress,
+            abi: CspEscrowAbi,
+            functionName: 'getAllJobs',
+        });
+
+        const projects = _.groupBy(jobs, 'projectHash');
+        console.log('[Running] Projects:', projects);
+
+        setProjects(projects);
+        setProjectsCount(Object.keys(projects).length);
 
         setLoading(false);
     };
+
+    const fetchApps = async () => {};
 
     const expandAll = () => {
         if (projects) {

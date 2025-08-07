@@ -1,11 +1,13 @@
-import { Project } from '@typedefs/deeploys';
+import { SmallTag } from '@shared/SmallTag';
+import { DraftProject } from '@typedefs/deeploys';
 
-export default function ProjectIdentity({ project }: { project: Project }) {
+export default function DraftIdentity({ project }: { project: DraftProject }) {
     return (
-        <div className="col gap-1">
+        <div className="col">
             <div className="row gap-2">
                 <div className="mt-px h-2.5 w-2.5 rounded-full" style={{ backgroundColor: project.color }}></div>
                 <div className="text-xl font-semibold">{project.name}</div>
+                <SmallTag isLarge>Draft</SmallTag>
             </div>
 
             <div className="row gap-1.5 text-slate-500">

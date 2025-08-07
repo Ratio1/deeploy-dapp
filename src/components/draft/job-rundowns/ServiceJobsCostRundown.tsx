@@ -1,10 +1,10 @@
 import { ContainerOrWorkerType, GpuType, gpuTypes, serviceContainerTypes } from '@data/containerResources';
 import { getContainerOrWorkerTypeDescription, getShortAddressOrHash } from '@lib/utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
-import { ServiceJob } from '@typedefs/deeploys';
+import { ServiceDraftJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
 
-export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] }) {
+export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceDraftJob[] }) {
     return (
         <JobsCostRundown
             cardHeader={
@@ -15,7 +15,7 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
             }
             jobs={jobs}
             renderJob={(job) => {
-                const serviceJob = job as ServiceJob;
+                const serviceJob = job as ServiceDraftJob;
                 const containerType = serviceContainerTypes.find(
                     (type) => type.name === serviceJob.specifications.containerType,
                 ) as ContainerOrWorkerType;

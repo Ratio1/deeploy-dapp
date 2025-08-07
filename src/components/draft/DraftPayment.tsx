@@ -4,7 +4,7 @@ import { ContainerOrWorkerType } from '@data/containerResources';
 import { createPipeline } from '@lib/api/deeploy';
 import { config, environment, escrowContractAddress, getCurrentEpoch } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
-import { buildDeeployMessage, getContainerOrWorkerType, getJobsTotalCost, sleep } from '@lib/utils';
+import { buildDeeployMessage, generateNonce, getContainerOrWorkerType, getJobsTotalCost, sleep } from '@lib/utils';
 import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { ConnectWalletWrapper } from '@shared/ConnectWalletWrapper';
@@ -12,21 +12,21 @@ import EmptyData from '@shared/EmptyData';
 import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
-import { GenericJob, Job, JobType, NativeJob, ServiceJob, type Project } from '@typedefs/deeploys';
+import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob, type DraftProject } from '@typedefs/deeploys';
 import { addDays, differenceInDays, differenceInHours } from 'date-fns';
 import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiBox3Line, RiDraftLine } from 'react-icons/ri';
-import { decodeEventLog, keccak256, toBytes } from 'viem';
+import { decodeEventLog } from 'viem';
 import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wagmi';
-import ProjectIdentity from '../../shared/projects/ProjectIdentity';
 import { DeeployFlowModal } from './DeeployFlowModal';
+import DraftIdentity from './DraftIdentity';
 import GenericJobsCostRundown from './job-rundowns/GenericJobsCostRundown';
 import NativeJobsCostRundown from './job-rundowns/NativeJobsCostRundown';
 import ServiceJobsCostRundown from './job-rundowns/ServiceJobsCostRundown';
 
-export default function DraftPayment({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
+export default function DraftPayment({ project, jobs }: { project: DraftProject; jobs: DraftJob[] | undefined }) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
 
     const [allowance, setAllowance] = useState<bigint>(0n);
@@ -58,12 +58,6 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             fetchAllowance();
         }
     }, [address, publicClient]);
-
-    const generateNonce = () => {
-        const now = new Date();
-        const unixTimestamp = now.getTime();
-        return `0x${unixTimestamp.toString(16)}`;
-    };
 
     const formatEnvVars = (envVars: Array<{ key: string; value: string }>) => {
         const formatted: Record<string, string> = {};
@@ -100,7 +94,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         return targetNodes.length > 0 ? 0 : specificationsTargetNodesCount;
     };
 
-    const formatGenericJobPayload = (job: GenericJob) => {
+    const formatGenericJobPayload = (job: GenericDraftJob) => {
         const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
 
         const envVars = formatEnvVars(job.deployment.envVars);
@@ -157,7 +151,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         };
     };
 
-    const formatNativeJobPayload = (job: NativeJob) => {
+    const formatNativeJobPayload = (job: NativeDraftJob) => {
         const workerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
 
         const customParams: Record<string, string> = {};
@@ -213,7 +207,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         };
     };
 
-    const formatServiceJobPayload = (job: ServiceJob) => {
+    const formatServiceJobPayload = (job: ServiceDraftJob) => {
         const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
 
         const envVars = formatEnvVars(job.deployment.envVars);
@@ -251,21 +245,21 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         };
     };
 
-    const getJobPayloads = (jobs: Job[]) => {
+    const getJobPayloads = (jobs: DraftJob[]) => {
         return jobs.map((job) => {
             let payload = {};
 
             switch (job.jobType) {
                 case JobType.Generic:
-                    payload = formatGenericJobPayload(job as GenericJob);
+                    payload = formatGenericJobPayload(job as GenericDraftJob);
                     break;
 
                 case JobType.Native:
-                    payload = formatNativeJobPayload(job as NativeJob);
+                    payload = formatNativeJobPayload(job as NativeDraftJob);
                     break;
 
                 case JobType.Service:
-                    payload = formatServiceJobPayload(job as ServiceJob);
+                    payload = formatServiceJobPayload(job as ServiceDraftJob);
                     break;
 
                 default:
@@ -315,7 +309,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         setLoading(true);
         deeployFlowModalRef.current?.open(jobs.length);
 
-        const projectHash = keccak256(toBytes(project.uuid));
+        const projectHash = project.projectHash as `0x${string}`;
 
         const args = jobs.map((job) => {
             const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
@@ -496,7 +490,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <ProjectIdentity project={project} />
+                    <DraftIdentity project={project} />
 
                     <div className="row gap-2">
                         <OverviewButton />

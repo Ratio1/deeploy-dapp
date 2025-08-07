@@ -123,39 +123,39 @@ type ServiceJobDeployment = BaseJobDeployment & {
 
 type JobDeployment = BaseJobDeployment & (GenericJobDeployment | NativeJobDeployment | ServiceJobDeployment);
 
-// Job
-type BaseJob = {
+// Draft Job
+type BaseDraftJob = {
     id: number;
-    projectId: number;
+    projectHash: string;
     jobType: JobType;
     specifications: JobSpecifications;
     paymentAndDuration: JobPaymentAndDuration;
     deployment: JobDeployment;
 };
 
-type GenericJob = BaseJob & {
+type GenericDraftJob = BaseDraftJob & {
     jobType: JobType.Generic;
     specifications: GenericJobSpecifications;
     deployment: GenericJobDeployment;
 };
 
-type NativeJob = BaseJob & {
+type NativeDraftJob = BaseDraftJob & {
     jobType: JobType.Native;
     specifications: NativeJobSpecifications;
     deployment: NativeJobDeployment;
 };
 
-type ServiceJob = BaseJob & {
+type ServiceDraftJob = BaseDraftJob & {
     jobType: JobType.Service;
     specifications: ServiceJobSpecifications;
     deployment: ServiceJobDeployment;
 };
 
-type Job = GenericJob | NativeJob | ServiceJob;
+type DraftJob = GenericDraftJob | NativeDraftJob | ServiceDraftJob;
 
-type Project = {
+type DraftProject = {
     id: number;
-    uuid: string;
+    projectHash: string;
     name: string;
     color: string;
     createdAt: string;
@@ -182,16 +182,16 @@ type RunningProject = {
 
 export { JobType, ProjectPage };
 export type {
-    GenericJob,
+    DraftJob,
+    DraftProject,
+    GenericDraftJob,
     GenericJobSpecifications,
-    Job,
     JobPaymentAndDuration,
     JobSpecifications,
-    NativeJob,
+    NativeDraftJob,
     NativeJobSpecifications,
-    Project,
     RunningJob,
     RunningProject,
-    ServiceJob,
+    ServiceDraftJob,
     ServiceJobSpecifications,
 };

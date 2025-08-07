@@ -15,6 +15,11 @@ export const createPipeline = (request: {
         request,
     });
 
+export const getApps = (request: { nonce: string }) =>
+    _doPost('/create_pipeline', {
+        request,
+    });
+
 async function _doPost(endpoint: string, body: any) {
     const { data } = await axiosInstance.post(endpoint, body);
     return data.result;

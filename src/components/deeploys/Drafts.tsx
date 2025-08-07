@@ -1,13 +1,13 @@
 import db from '@lib/storage/db';
 import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
-import { Project } from '@typedefs/deeploys';
+import { DraftProject } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { RiDraftLine } from 'react-icons/ri';
 import DraftCard from './DraftCard';
 
 function Drafts() {
-    const projects: Project[] | undefined = useLiveQuery(() => db.projects.toArray());
+    const projects: DraftProject[] | undefined = useLiveQuery(() => db.projects.toArray());
 
     return (
         <div className="list">

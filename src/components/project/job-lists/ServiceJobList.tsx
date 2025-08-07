@@ -2,7 +2,7 @@ import { ContainerOrWorkerType } from '@data/containerResources';
 import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
 import JobList from '@shared/jobs/projects/JobList';
 import { SmallTag } from '@shared/SmallTag';
-import { Project, ServiceJob } from '@typedefs/deeploys';
+import { DraftProject, ServiceDraftJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
 
 const widthClasses = [
@@ -12,7 +12,7 @@ const widthClasses = [
     'min-w-[300px]', // containerType
 ];
 
-function ServiceJobList({ jobs, project }: { jobs: ServiceJob[]; project: Project }) {
+function ServiceJobList({ jobs, project }: { jobs: ServiceDraftJob[]; project: DraftProject }) {
     return (
         <JobList
             cardHeader={
@@ -25,7 +25,7 @@ function ServiceJobList({ jobs, project }: { jobs: ServiceJob[]; project: Projec
             jobs={jobs}
             project={project}
             renderJob={(job) => {
-                const serviceJob = job as ServiceJob;
+                const serviceJob = job as ServiceDraftJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
                     serviceJob.jobType,
                     serviceJob.specifications,

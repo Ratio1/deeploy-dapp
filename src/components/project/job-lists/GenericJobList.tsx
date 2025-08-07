@@ -2,7 +2,7 @@ import { ContainerOrWorkerType } from '@data/containerResources';
 import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
 import JobList from '@shared/jobs/projects/JobList';
 import { SmallTag } from '@shared/SmallTag';
-import { GenericJob, Project } from '@typedefs/deeploys';
+import { DraftProject, GenericDraftJob } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
 
 const widthClasses = [
@@ -13,7 +13,7 @@ const widthClasses = [
     'min-w-[300px]', // containerType
 ];
 
-function GenericJobList({ jobs, project }: { jobs: GenericJob[]; project: Project }) {
+function GenericJobList({ jobs, project }: { jobs: GenericDraftJob[]; project: DraftProject }) {
     return (
         <JobList
             cardHeader={
@@ -26,7 +26,7 @@ function GenericJobList({ jobs, project }: { jobs: GenericJob[]; project: Projec
             jobs={jobs}
             project={project}
             renderJob={(job) => {
-                const genericJob = job as GenericJob;
+                const genericJob = job as GenericDraftJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
                     genericJob.jobType,
                     genericJob.specifications,

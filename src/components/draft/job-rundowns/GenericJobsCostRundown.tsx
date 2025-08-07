@@ -1,10 +1,10 @@
 import { ContainerOrWorkerType, genericContainerTypes, GpuType, gpuTypes } from '@data/containerResources';
 import { getContainerOrWorkerTypeDescription } from '@lib/utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
-import { GenericJob } from '@typedefs/deeploys';
+import { GenericDraftJob } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
 
-export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] }) {
+export default function GenericJobsCostRundown({ jobs }: { jobs: GenericDraftJob[] }) {
     return (
         <JobsCostRundown
             cardHeader={
@@ -15,7 +15,7 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
             }
             jobs={jobs}
             renderJob={(job) => {
-                const genericJob = job as GenericJob;
+                const genericJob = job as GenericDraftJob;
                 const containerType = genericContainerTypes.find(
                     (type) => type.name === genericJob.specifications.containerType,
                 ) as ContainerOrWorkerType;

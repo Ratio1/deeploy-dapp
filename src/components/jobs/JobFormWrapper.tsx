@@ -13,7 +13,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import db from '@lib/storage/db';
 import { isValidId } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
-import { Job, JobType } from '@typedefs/deeploys';
+import { DraftJob, JobType } from '@typedefs/deeploys';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -132,15 +132,23 @@ function JobFormWrapper() {
         }
 
         try {
+            const project = await db.projects.get(parseInt(projectId as string));
+
+            if (!project) {
+                console.error('[JobFormWrapper] Project draft not found');
+                toast.error('Project does not exist anymore.');
+                return;
+            }
+
             const job = {
-                projectId: parseInt(projectId as string),
+                projectHash: project.projectHash,
                 jobType: data.jobType,
                 specifications: data.specifications,
                 paymentAndDuration: data.paymentAndDuration,
                 deployment: data.deployment,
             };
 
-            const jobId = await db.jobs.add(job as Job);
+            const jobId = await db.jobs.add(job as DraftJob);
 
             console.log('[JobFormWrapper] Job added successfully', jobId);
             toast.success('Job added successfully.');

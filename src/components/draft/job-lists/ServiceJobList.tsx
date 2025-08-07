@@ -3,7 +3,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
 import JobList from '@shared/jobs/drafts/JobList';
 import { SmallTag } from '@shared/SmallTag';
-import { JobType, ServiceJob } from '@typedefs/deeploys';
+import { JobType, ServiceDraftJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
 
 const widthClasses = [
@@ -14,7 +14,7 @@ const widthClasses = [
     'min-w-[300px]', // containerType
 ];
 
-export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
+export default function ServiceJobList({ jobs }: { jobs: ServiceDraftJob[] }) {
     const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
@@ -30,7 +30,7 @@ export default function ServiceJobList({ jobs }: { jobs: ServiceJob[] }) {
             }
             jobs={jobs}
             renderJob={(job) => {
-                const serviceJob = job as ServiceJob;
+                const serviceJob = job as ServiceDraftJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
                     serviceJob.jobType,
                     serviceJob.specifications,

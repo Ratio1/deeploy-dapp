@@ -1,15 +1,15 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { getContainerOrWorkerType, getGpuType } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
-import { Job } from '@typedefs/deeploys';
+import { DraftJob } from '@typedefs/deeploys';
 import clsx from 'clsx';
 
-export default function JobsStats({ jobs }: { jobs: Job[] | undefined }) {
+export default function DraftJobsStats({ jobs }: { jobs: DraftJob[] | undefined }) {
     if (!jobs || jobs.length === 0) {
         return null;
     }
 
-    const getJobMonthlyCost = (job: Job) => {
+    const getJobMonthlyCost = (job: DraftJob) => {
         const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
         const gpuType = getGpuType(job.specifications);
 
@@ -30,7 +30,7 @@ export default function JobsStats({ jobs }: { jobs: Job[] | undefined }) {
                 />
 
                 <Item
-                    label="Monthly Cost"
+                    label="Monthly Cost Estimate"
                     value={
                         <div className="text-primary">
                             <span className="text-slate-500">$USDC</span>{' '}

@@ -1,25 +1,27 @@
+import { getShortAddressOrHash } from '@lib/utils';
 import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
+import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
-import { Job, JobType, type Project } from '@typedefs/deeploys';
-import { useEffect } from 'react';
-import JobsStats from '../../shared/projects/JobsStats';
-import ProjectIdentity from '../../shared/projects/ProjectIdentity';
-import GenericJobList from './job-lists/GenericJobList';
-import NativeJobList from './job-lists/NativeJobList';
-import ServiceJobList from './job-lists/ServiceJobList';
+import { RunningJob } from '@typedefs/deeploys';
+// import GenericJobList from './job-lists/GenericJobList';
+// import NativeJobList from './job-lists/NativeJobList';
+// import ServiceJobList from './job-lists/ServiceJobList';
+import AddJobCard from '@shared/projects/AddJobCard';
+import RunningJobsStats from './RunningJobsStats';
 
-export default function ProjectOverview({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
-    useEffect(() => {
-        console.log('[ProjectOverview]', project);
-    }, [project]);
-
+export default function ProjectOverview({ projectHash, jobs }: { projectHash: string; jobs: RunningJob[] | undefined }) {
     return (
         <div className="col gap-12">
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <ProjectIdentity project={project} />
+                    <div className="row gap-1.5">
+                        <SmallTag isLarge>{getShortAddressOrHash(projectHash, 6)}</SmallTag>
+                        <SmallTag variant="green" isLarge>
+                            Running
+                        </SmallTag>
+                    </div>
 
                     <div className="row gap-2">
                         <CancelButton tab="projects" />
@@ -28,10 +30,13 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                 </div>
 
                 {/* Stats */}
-                <JobsStats jobs={jobs} />
+                <RunningJobsStats jobs={jobs} />
+
+                {/* Add Job */}
+                <AddJobCard />
 
                 {/* Jobs */}
-                {!!jobs && !!jobs.length && (
+                {/* {!!jobs && !!jobs.length && (
                     <>
                         {jobs.filter((job) => job.jobType === JobType.Generic).length > 0 && (
                             <GenericJobList jobs={jobs.filter((job) => job.jobType === JobType.Generic)} project={project} />
@@ -43,7 +48,7 @@ export default function ProjectOverview({ project, jobs }: { project: Project; j
                             <ServiceJobList jobs={jobs.filter((job) => job.jobType === JobType.Service)} project={project} />
                         )}
                     </>
-                )}
+                )} */}
             </div>
 
             <SupportFooter />

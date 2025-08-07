@@ -3,7 +3,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { isValidId } from '@lib/utils';
-import { JobType, Project } from '@typedefs/deeploys';
+import { DraftProject, JobType } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
 import { RiArrowLeftLine } from 'react-icons/ri';
@@ -20,7 +20,7 @@ function JobFormHeader({ steps }: Props) {
     const { id } = useParams();
 
     // Only run the query if we have a valid ID
-    const project: Project | undefined | null = useLiveQuery(
+    const project: DraftProject | undefined | null = useLiveQuery(
         isValidId(id) ? () => db.projects.get(parseInt(id as string)) : () => undefined,
         [isValidId, id],
         null, // Default value returned while data is loading

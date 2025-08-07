@@ -5,16 +5,19 @@ import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { SmallTag } from '@shared/SmallTag';
-import { Job, Project } from '@typedefs/deeploys';
+import { DraftJob, DraftProject } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { toast } from 'react-hot-toast';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
 
-export default function DraftCard({ project }: { project: Project }) {
+export default function DraftCard({ project }: { project: DraftProject }) {
     const confirm = useInteractionContext() as InteractionContextType;
 
-    const jobs: Job[] | undefined = useLiveQuery(() => db.jobs.where('projectId').equals(project.id).toArray(), [project]);
+    const jobs: DraftJob[] | undefined = useLiveQuery(
+        () => db.jobs.where('projectHash').equals(project.projectHash).toArray(),
+        [project],
+    );
 
     const onDeleteProject = async () => {
         try {

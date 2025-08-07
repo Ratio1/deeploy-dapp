@@ -3,7 +3,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
 import JobList from '@shared/jobs/drafts/JobList';
 import { SmallTag } from '@shared/SmallTag';
-import { JobType, NativeJob } from '@typedefs/deeploys';
+import { JobType, NativeDraftJob } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
 const widthClasses = [
@@ -14,7 +14,7 @@ const widthClasses = [
     'min-w-[300px]', // workerType
 ];
 
-export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
+export default function NativeJobList({ jobs }: { jobs: NativeDraftJob[] }) {
     const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
@@ -28,7 +28,7 @@ export default function NativeJobList({ jobs }: { jobs: NativeJob[] }) {
             tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Type', 'Worker Type'], widthClasses)}</>}
             jobs={jobs}
             renderJob={(job) => {
-                const nativeJob = job as NativeJob;
+                const nativeJob = job as NativeDraftJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
                     nativeJob.jobType,
                     nativeJob.specifications,

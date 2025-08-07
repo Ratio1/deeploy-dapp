@@ -3,7 +3,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
 import JobList from '@shared/jobs/drafts/JobList';
 import { SmallTag } from '@shared/SmallTag';
-import { GenericJob, JobType } from '@typedefs/deeploys';
+import { GenericDraftJob, JobType } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
 
 const widthClasses = [
@@ -14,7 +14,7 @@ const widthClasses = [
     'min-w-[300px]', // containerType
 ];
 
-export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
+export default function GenericJobList({ jobs }: { jobs: GenericDraftJob[] }) {
     const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
@@ -30,7 +30,7 @@ export default function GenericJobList({ jobs }: { jobs: GenericJob[] }) {
             }
             jobs={jobs}
             renderJob={(job) => {
-                const genericJob = job as GenericJob;
+                const genericJob = job as GenericDraftJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
                     genericJob.jobType,
                     genericJob.specifications,

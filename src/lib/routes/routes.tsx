@@ -164,7 +164,7 @@ export const routes: AppRoute[] = [
         ),
     },
     {
-        path: `${routePath.deeploys}/${routePath.project}/:id`,
+        path: `${routePath.deeploys}/${routePath.project}/:projectHash`,
         page: () => (
             <DeploymentProvider>
                 <Project />

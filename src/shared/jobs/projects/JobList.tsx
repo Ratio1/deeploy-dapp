@@ -2,7 +2,7 @@ import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import DetailedUsage from '@shared/projects/DetailedUsage';
 import { SmallTag } from '@shared/SmallTag';
-import { Project } from '@typedefs/deeploys';
+import { DraftProject } from '@typedefs/deeploys';
 import { addMonths, differenceInMonths } from 'date-fns';
 import { RiEditLine } from 'react-icons/ri';
 
@@ -21,7 +21,7 @@ export default function JobList({
     cardHeader: React.ReactNode;
     tableHeader: React.ReactNode;
     jobs: Job[];
-    project: Project;
+    project: DraftProject;
     renderJob: (job: Job) => React.ReactNode;
 }) {
     return (

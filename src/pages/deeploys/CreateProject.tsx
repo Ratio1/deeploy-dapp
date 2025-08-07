@@ -7,6 +7,7 @@ import { projectSchema } from '@schemas/project';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { keccak256, toBytes } from 'viem';
 import { z } from 'zod';
 
 function CreateProject() {
@@ -24,7 +25,7 @@ function CreateProject() {
     const onSubmit = async (data: z.infer<typeof projectSchema>) => {
         const project = {
             ...data,
-            uuid: crypto.randomUUID(),
+            projectHash: keccak256(toBytes(crypto.randomUUID())),
             createdAt: new Date().toISOString(),
         };
 

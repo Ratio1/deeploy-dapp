@@ -8,8 +8,8 @@ import {
 } from '@data/containerResources';
 import { ClosableToastContent } from '@shared/ClosableToastContent';
 import {
+    DraftJob,
     GenericJobSpecifications,
-    Job,
     JobSpecifications,
     JobType,
     NativeJobSpecifications,
@@ -19,6 +19,7 @@ import { throttle } from 'lodash';
 import { JSX } from 'react';
 import toast from 'react-hot-toast';
 import { RiCodeSSlashLine } from 'react-icons/ri';
+import { formatUnits } from 'viem';
 
 /**
  * Sleep function that returns a Promise that resolves after the specified delay
@@ -51,17 +52,20 @@ export function fN(num: number): string | number {
     return parseFloat(num.toFixed(2));
 }
 
-export function fBI(num: bigint, decimals: number): string {
-    num = num / 10n ** BigInt(decimals);
-    if (num >= 1_000_000n) {
-        const formattedNum = Number(num) / 1_000_000;
+export function fBI(num: bigint, decimals: number, precision: number = 2): string | number {
+    const numWithDecimals = num / 10n ** BigInt(decimals);
+
+    if (numWithDecimals >= 1_000_000n) {
+        const formattedNum = Number(numWithDecimals) / 1_000_000;
         return formattedNum % 1 === 0 ? `${formattedNum}M` : `${parseFloat(formattedNum.toFixed(2))}M`;
     }
-    if (num >= 1000n) {
-        const formattedNum = Number(num) / 1000;
+    if (numWithDecimals >= 1000n) {
+        const formattedNum = Number(numWithDecimals) / 1000;
         return formattedNum % 1 === 0 ? `${formattedNum}K` : `${parseFloat(formattedNum.toFixed(2))}K`;
     }
-    return num.toString();
+
+    const floatValue = parseFloat(formatUnits(num, decimals));
+    return parseFloat(floatValue.toFixed(precision));
 }
 
 export const throttledToastError = throttle(
@@ -105,7 +109,7 @@ export const getDiscountPercentage = (paymentMonthsCount: number): number => {
     return 0;
 };
 
-export const getJobCost = (job: Job): number => {
+export const getJobCost = (job: DraftJob): number => {
     const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
     const gpuType: GpuType | undefined = getGpuType(job.specifications);
 
@@ -117,7 +121,7 @@ export const getJobCost = (job: Job): number => {
     );
 };
 
-export const getJobsTotalCost = (jobs: Job[]): number => {
+export const getJobsTotalCost = (jobs: DraftJob[]): number => {
     return jobs.reduce((acc, job) => {
         return acc + getJobCost(job);
     }, 0);
@@ -211,3 +215,9 @@ export function buildDeeployMessage(data: Record<string, any>): string {
     const json = JSON.stringify(sorted, null, 1).replaceAll('": ', '":');
     return `Please sign this message for Deeploy: ${json}`;
 }
+
+export const generateNonce = (): string => {
+    const now = new Date();
+    const unixTimestamp = now.getTime();
+    return `0x${unixTimestamp.toString(16)}`;
+};

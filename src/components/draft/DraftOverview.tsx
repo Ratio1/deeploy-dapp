@@ -1,28 +1,24 @@
-import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import ActionButton from '@shared/ActionButton';
-import { BorderedCard } from '@shared/cards/BorderedCard';
+import AddJobCard from '@shared/projects/AddJobCard';
 import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
 import SupportFooter from '@shared/SupportFooter';
-import { Job, JobType, type Project } from '@typedefs/deeploys';
-import { jobTypeOptions } from '@typedefs/jobType';
+import { DraftJob, JobType, type DraftProject } from '@typedefs/deeploys';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { RiAddLine, RiDeleteBin2Line } from 'react-icons/ri';
+import { RiDeleteBin2Line } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
-import JobsStats from '../../shared/projects/JobsStats';
-import ProjectIdentity from '../../shared/projects/ProjectIdentity';
+import DraftIdentity from './DraftIdentity';
+import DraftJobsStats from './DraftJobsStats';
 import GenericJobList from './job-lists/GenericJobList';
 import NativeJobList from './job-lists/NativeJobList';
 import ServiceJobList from './job-lists/ServiceJobList';
 
-export default function DraftOverview({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
+export default function DraftOverview({ project, jobs }: { project: DraftProject; jobs: DraftJob[] | undefined }) {
     const confirm = useInteractionContext() as InteractionContextType;
-    const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
-
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -51,7 +47,7 @@ export default function DraftOverview({ project, jobs }: { project: Project; job
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <ProjectIdentity project={project} />
+                    <DraftIdentity project={project} />
 
                     <div className="row gap-2">
                         <CancelButton tab="drafts" />
@@ -68,37 +64,10 @@ export default function DraftOverview({ project, jobs }: { project: Project; job
                 </div>
 
                 {/* Stats */}
-                <JobsStats jobs={jobs} />
+                <DraftJobsStats jobs={jobs} />
 
                 {/* Add Job */}
-                <BorderedCard>
-                    <div className="col items-center gap-2.5 text-center">
-                        <div className="row gap-0.5">
-                            <RiAddLine className="text-xl" />
-                            <div className="font-medium">Add Job</div>
-                        </div>
-
-                        <div className="row gap-2">
-                            {jobTypeOptions.map((option) => (
-                                <ActionButton
-                                    key={option.id}
-                                    className="slate-button"
-                                    color="default"
-                                    onPress={() => {
-                                        // Job type selection is considered to be the 1st step
-                                        setStep(2);
-                                        setJobType(option.jobType);
-                                    }}
-                                >
-                                    <div className="row gap-1.5">
-                                        <div className={`text-xl ${option.textColorClass}`}>{option.icon}</div>
-                                        <div className="text-sm">{option.title}</div>
-                                    </div>
-                                </ActionButton>
-                            ))}
-                        </div>
-                    </div>
-                </BorderedCard>
+                <AddJobCard />
 
                 {/* Jobs */}
                 {!!jobs && !!jobs.length && (
