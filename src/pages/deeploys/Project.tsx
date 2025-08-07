@@ -1,4 +1,5 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
+import JobFormWrapper from '@components/jobs/JobFormWrapper';
 import ProjectOverview from '@components/project/ProjectOverview';
 import { Skeleton } from '@heroui/skeleton';
 import { escrowContractAddress } from '@lib/config';
@@ -10,7 +11,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { usePublicClient } from 'wagmi';
 
 export default function Project() {
-    const { projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
+    const { jobType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
     const [isLoading, setLoading] = useState(true);
     const [runningJobs, setRunningJobs] = useState<RunningJob[]>([]);
 
@@ -71,9 +72,15 @@ export default function Project() {
         );
     }
 
-    return projectPage === ProjectPage.Payment ? (
-        <div>Project Payment</div>
+    return !jobType ? (
+        <>
+            {projectPage === ProjectPage.Payment ? (
+                <div>Project Payment</div>
+            ) : (
+                <ProjectOverview projectHash={projectHash} jobs={runningJobs} />
+            )}
+        </>
     ) : (
-        <ProjectOverview projectHash={projectHash} jobs={runningJobs} />
+        <JobFormWrapper />
     );
 }

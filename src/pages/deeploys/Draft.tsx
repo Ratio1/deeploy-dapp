@@ -3,7 +3,7 @@ import DraftPayment from '@components/draft/DraftPayment';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
-import { isValidId } from '@lib/utils';
+import { isValidProjectHash } from '@lib/utils';
 import { DraftJob, ProjectPage, type DraftProject } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
@@ -14,11 +14,11 @@ export default function Draft() {
     const { jobType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
-    const { id } = useParams();
+    const { projectHash } = useParams();
 
     const project: DraftProject | undefined | null = useLiveQuery(
-        isValidId(id) ? () => db.projects.get(parseInt(id as string)) : () => undefined,
-        [isValidId, id],
+        isValidProjectHash(projectHash) ? () => db.projects.get(projectHash) : () => undefined,
+        [isValidProjectHash, projectHash],
         null, // Default value returned while data is loading
     );
 

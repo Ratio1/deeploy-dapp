@@ -102,7 +102,7 @@ export const arrayAverage = (numbers: number[]): number => {
     return numbers.reduce((sum, num) => sum + num, 0) / numbers.length;
 };
 
-export const isValidId = (id: string | undefined) => id && !isNaN(parseInt(id)) && isFinite(parseInt(id));
+export const isValidProjectHash = (hash: string | undefined): hash is string => !!hash && hash.startsWith('0x');
 
 export const getDiscountPercentage = (paymentMonthsCount: number): number => {
     // Disabled for now

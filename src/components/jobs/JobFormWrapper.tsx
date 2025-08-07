@@ -11,7 +11,7 @@ import { POLICY_TYPES } from '@data/policyTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import db from '@lib/storage/db';
-import { isValidId } from '@lib/utils';
+import { isValidProjectHash } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
 import { DraftJob, JobType } from '@typedefs/deeploys';
 import { useEffect } from 'react';
@@ -23,8 +23,7 @@ import { z } from 'zod';
 const STEPS = ['Project', 'Specifications', 'Payment & Duration', 'Deployment'];
 
 function JobFormWrapper() {
-    const { id: projectId } = useParams();
-
+    const { projectHash } = useParams();
     const { step, jobType, setJobType } = useDeploymentContext() as DeploymentContextType;
 
     const getBaseSchemaDefaults = () => ({
@@ -125,23 +124,15 @@ function JobFormWrapper() {
     const onSubmit = async (data: z.infer<typeof jobSchema>) => {
         console.log('[JobFormWrapper] onSubmit', data);
 
-        if (!isValidId(projectId)) {
-            console.error('[JobFormWrapper] Invalid project ID');
-            toast.error('Invalid project ID.');
+        if (!isValidProjectHash(projectHash)) {
+            console.error('[JobFormWrapper] Invalid projectHash');
+            toast.error('Unable to find project.');
             return;
         }
 
         try {
-            const project = await db.projects.get(parseInt(projectId as string));
-
-            if (!project) {
-                console.error('[JobFormWrapper] Project draft not found');
-                toast.error('Project does not exist anymore.');
-                return;
-            }
-
             const job = {
-                projectHash: project.projectHash,
+                projectHash,
                 jobType: data.jobType,
                 specifications: data.specifications,
                 paymentAndDuration: data.paymentAndDuration,

@@ -156,7 +156,7 @@ export const routes: AppRoute[] = [
     },
     // Routes which are not displayed in the main navigation
     {
-        path: `${routePath.deeploys}/${routePath.draft}/:id`,
+        path: `${routePath.deeploys}/${routePath.draft}/:projectHash`,
         page: () => (
             <DeploymentProvider>
                 <Draft />

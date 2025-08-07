@@ -3,12 +3,12 @@ import { Dexie, type EntityTable } from 'dexie';
 
 // Only declare properties you want to index
 const db = new Dexie('Database') as Dexie & {
-    projects: EntityTable<DraftProject, 'id'>;
+    projects: EntityTable<DraftProject, 'projectHash'>;
     jobs: EntityTable<DraftJob, 'id'>;
 };
 
 db.version(1).stores({
-    projects: '++id, name, createdAt, projectHash',
+    projects: 'projectHash, name, createdAt',
     jobs: '++id, projectHash',
 });
 

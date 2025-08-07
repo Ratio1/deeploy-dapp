@@ -12,7 +12,7 @@ function Drafts() {
     return (
         <div className="list">
             <ListHeader>
-                <div className="min-w-[82px]">ID</div>
+                <div className="min-w-[132px]">ID</div>
                 <div className="min-w-[212px]">Name</div>
                 <div className="min-w-[110px]">Jobs</div>
                 <div className="min-w-[212px]">Created</div>
@@ -22,7 +22,7 @@ function Drafts() {
             </ListHeader>
 
             {projects?.map((project) => (
-                <div key={project.id}>
+                <div key={project.projectHash}>
                     <DraftCard project={project} />
                 </div>
             ))}

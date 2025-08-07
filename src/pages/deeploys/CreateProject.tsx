@@ -23,15 +23,17 @@ function CreateProject() {
     });
 
     const onSubmit = async (data: z.infer<typeof projectSchema>) => {
+        const projectHash = keccak256(toBytes(crypto.randomUUID()));
+
         const project = {
             ...data,
-            projectHash: keccak256(toBytes(crypto.randomUUID())),
+            projectHash,
             createdAt: new Date().toISOString(),
         };
 
         try {
-            const id = await db.projects.add(project);
-            navigate(`${routePath.deeploys}/${routePath.draft}/${id}`);
+            await db.projects.add(project);
+            navigate(`${routePath.deeploys}/${routePath.draft}/${projectHash}`);
         } catch (error) {
             console.error('[CreateProject] Error adding project:', error);
             toast.error('Failed to create project.');

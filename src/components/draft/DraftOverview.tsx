@@ -33,7 +33,7 @@ export default function DraftOverview({ project, jobs }: { project: DraftProject
                 return;
             }
 
-            await db.projects.delete(project.id);
+            await db.projects.delete(project.projectHash);
             toast.success('Project draft deleted successfully.');
             navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`);
         } catch (error) {

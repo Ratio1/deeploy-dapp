@@ -1,6 +1,7 @@
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
+import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
@@ -36,7 +37,7 @@ export default function DraftCard({ project }: { project: DraftProject }) {
                 return;
             }
 
-            await db.projects.delete(project.id);
+            await db.projects.delete(project.projectHash);
             toast.success('Project draft deleted successfully.');
         } catch (error) {
             console.error('Error deleting project draft:', error);
@@ -45,11 +46,11 @@ export default function DraftCard({ project }: { project: DraftProject }) {
     };
 
     return (
-        <Link to={`${routePath.deeploys}/${routePath.draft}/${project.id}`}>
+        <Link to={`${routePath.deeploys}/${routePath.draft}/${project.projectHash}`}>
             <BorderedCard isHoverable>
                 <div className="row justify-between gap-3 lg:gap-6">
-                    <div className="min-w-[82px]">
-                        <CardItem label="ID" value={<SmallTag>{project.id}</SmallTag>} isBold />
+                    <div className="min-w-[132px]">
+                        <CardItem label="ID" value={<SmallTag>{getShortAddressOrHash(project.projectHash, 6)}</SmallTag>} />
                     </div>
 
                     <div className="min-w-[212px]">

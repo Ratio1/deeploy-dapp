@@ -154,7 +154,6 @@ type ServiceDraftJob = BaseDraftJob & {
 type DraftJob = GenericDraftJob | NativeDraftJob | ServiceDraftJob;
 
 type DraftProject = {
-    id: number;
     projectHash: string;
     name: string;
     color: string;
