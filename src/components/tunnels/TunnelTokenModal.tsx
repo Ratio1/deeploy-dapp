@@ -27,7 +27,15 @@ const TunnelTokenModal = forwardRef<TunnelTokenModalRef>((_, ref) => {
     }));
 
     return (
-        <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="sm" shouldBlockScroll={false}>
+        <Modal
+            isOpen={isOpen}
+            onOpenChange={onOpenChange}
+            size="sm"
+            shouldBlockScroll={false}
+            classNames={{
+                closeButton: 'cursor-pointer',
+            }}
+        >
             <ModalContent>
                 <ModalHeader>Tunnel Token</ModalHeader>
 

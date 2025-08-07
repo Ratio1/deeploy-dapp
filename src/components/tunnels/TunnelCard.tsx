@@ -7,6 +7,7 @@ import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { CopyableValue } from '@shared/CopyableValue';
 import { SmallTag } from '@shared/SmallTag';
 import { Tunnel } from '@typedefs/tunnels';
+import clsx from 'clsx';
 import toast from 'react-hot-toast';
 import { RiExternalLinkLine, RiLinkM } from 'react-icons/ri';
 import { Link, useNavigate } from 'react-router-dom';
@@ -42,28 +43,33 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
         <div onClick={() => navigate(`${routePath.tunnels}/${tunnel.id}`)}>
             <BorderedCard isHoverable>
                 <div className="row justify-between gap-3 bg-white lg:gap-6">
-                    <SmallTag variant="green">
-                        <div className="row gap-0.5">
-                            <div className="compact">{tunnel.status}</div>
+                    <div className="row gap-2.5">
+                        <div
+                            className={clsx('h-9 w-1 rounded-full', {
+                                'bg-emerald-500': tunnel.status === 'healthy',
+                                'bg-red-500': tunnel.status === 'down',
+                                'bg-gray-500': tunnel.status === 'inactive',
+                                'bg-yellow-500': tunnel.status === 'degraded',
+                            })}
+                        ></div>
+
+                        <div className="col">
+                            <div className="text-[15px] font-medium">{tunnel.alias}</div>
+
+                            <CopyableValue value={tunnel.url}>
+                                <Link
+                                    to={`https://${tunnel.url}`}
+                                    target="_blank"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="cursor-pointer transition-all hover:opacity-60"
+                                >
+                                    <div className="row text-primary gap-1">
+                                        <div className="font-roboto-mono text-sm">{tunnel.url}</div>
+                                        <RiExternalLinkLine className="mb-px text-[17px]" />
+                                    </div>
+                                </Link>
+                            </CopyableValue>
                         </div>
-                    </SmallTag>
-
-                    <div className="col gap-1">
-                        <div className="font-medium">{tunnel.alias}</div>
-
-                        <CopyableValue value={tunnel.url}>
-                            <Link
-                                to={`https://${tunnel.url}`}
-                                target="_blank"
-                                onClick={(e) => e.stopPropagation()}
-                                className="cursor-pointer transition-all hover:opacity-60"
-                            >
-                                <div className="row text-primary gap-1">
-                                    <div className="font-roboto-mono text-sm">{tunnel.url}</div>
-                                    <RiExternalLinkLine className="mb-px text-[17px]" />
-                                </div>
-                            </Link>
-                        </CopyableValue>
                     </div>
 
                     <div className="row gap-3">

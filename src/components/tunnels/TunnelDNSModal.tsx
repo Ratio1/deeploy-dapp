@@ -24,7 +24,15 @@ const TunnelDNSModal = forwardRef<TunnelDNSModalRef>((_, ref) => {
     }));
 
     return (
-        <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="md" shouldBlockScroll={false}>
+        <Modal
+            isOpen={isOpen}
+            onOpenChange={onOpenChange}
+            size="md"
+            shouldBlockScroll={false}
+            classNames={{
+                closeButton: 'cursor-pointer',
+            }}
+        >
             <ModalContent>
                 <ModalHeader>DNS Record</ModalHeader>
 

@@ -67,7 +67,15 @@ export const InteractionProvider = ({ children }) => {
         <InteractionContext.Provider value={confirm}>
             {children}
 
-            <Modal isOpen={isOpen} size={modalSize} onClose={onClose} onOpenChange={handleOpenChange}>
+            <Modal
+                isOpen={isOpen}
+                size={modalSize}
+                onClose={onClose}
+                onOpenChange={handleOpenChange}
+                classNames={{
+                    closeButton: 'cursor-pointer',
+                }}
+            >
                 <ModalContent>
                     <ModalHeader className="flex flex-col gap-1">Confirmation</ModalHeader>
                     <ModalBody>{content}</ModalBody>
