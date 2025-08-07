@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # Scripts
-scripts/deploy-vercel.sh
+deploy-vercel.txt
