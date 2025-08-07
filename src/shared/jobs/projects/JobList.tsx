@@ -100,13 +100,10 @@ export default function JobList({
                             value={<SmallTag>{job.paymentAndDuration.duration} months</SmallTag>}
                         />
 
-                        {/* TODO: Remove hardcoded values */}
                         <div className="min-w-[403px]">
+                            {/* TODO: Update to use epochs */}
                             <DetailedUsage
-                                used={
-                                    (process.env.NODE_ENV === 'development' ? 1 : 0) +
-                                    differenceInMonths(new Date(), new Date(project.createdAt))
-                                }
+                                used={differenceInMonths(new Date(), new Date(project.createdAt))}
                                 paid={job.paymentAndDuration.paymentMonthsCount}
                                 total={job.paymentAndDuration.duration}
                             />

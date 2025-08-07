@@ -25,7 +25,7 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
 
     useEffect(() => {
         if (publicClient) {
-            fetchAllJobs();
+            fetchRunningJobs();
         }
     }, [publicClient]);
 
@@ -41,7 +41,7 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
         }
     }, [projects]);
 
-    const fetchAllJobs = async () => {
+    const fetchRunningJobs = async () => {
         if (!publicClient) {
             return;
         }
@@ -60,8 +60,6 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
 
         setLoading(false);
     };
-
-    const fetchApps = async () => {};
 
     const expandAll = () => {
         if (projects) {

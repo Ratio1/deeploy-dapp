@@ -24,7 +24,7 @@ function JobFormHeader({ steps }: Props) {
         null, // Default value returned while data is loading
     );
 
-    if (project === null || !projectHash) {
+    if (project === null || !isValidProjectHash(projectHash)) {
         return (
             <div className="col w-full gap-8">
                 <Skeleton className="min-h-[82.5px] w-full rounded-lg" />

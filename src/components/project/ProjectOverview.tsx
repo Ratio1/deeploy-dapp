@@ -3,14 +3,28 @@ import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
 import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
-import { RunningJob } from '@typedefs/deeploys';
+import { DraftJob, RunningJob } from '@typedefs/deeploys';
 // import GenericJobList from './job-lists/GenericJobList';
 // import NativeJobList from './job-lists/NativeJobList';
 // import ServiceJobList from './job-lists/ServiceJobList';
 import AddJobCard from '@shared/projects/AddJobCard';
+import { useEffect } from 'react';
 import RunningJobsStats from './RunningJobsStats';
 
-export default function ProjectOverview({ projectHash, jobs }: { projectHash: string; jobs: RunningJob[] | undefined }) {
+export default function ProjectOverview({
+    projectHash,
+    runningJobs,
+    draftJobs,
+}: {
+    projectHash: string;
+    runningJobs: RunningJob[] | undefined;
+    draftJobs: DraftJob[] | undefined;
+}) {
+    useEffect(() => {
+        console.log('runningJobs', runningJobs);
+        console.log('draftJobs', draftJobs);
+    }, [runningJobs, draftJobs]);
+
     return (
         <div className="col gap-12">
             <div className="col gap-6">
@@ -25,12 +39,12 @@ export default function ProjectOverview({ projectHash, jobs }: { projectHash: st
 
                     <div className="row gap-2">
                         <CancelButton tab="projects" />
-                        <PaymentButton isDisabled={jobs?.length === 0} />
+                        <PaymentButton isDisabled={runningJobs?.length === 0} />
                     </div>
                 </div>
 
                 {/* Stats */}
-                <RunningJobsStats jobs={jobs} />
+                <RunningJobsStats jobs={runningJobs} />
 
                 {/* Add Job */}
                 <AddJobCard />

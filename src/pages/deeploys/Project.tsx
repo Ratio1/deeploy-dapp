@@ -5,7 +5,10 @@ import { Skeleton } from '@heroui/skeleton';
 import { escrowContractAddress } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
-import { ProjectPage, RunningJob } from '@typedefs/deeploys';
+import db from '@lib/storage/db';
+import { isValidProjectHash } from '@lib/utils';
+import { DraftJob, ProjectPage, RunningJob } from '@typedefs/deeploys';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePublicClient } from 'wagmi';
@@ -20,24 +23,30 @@ export default function Project() {
     const navigate = useNavigate();
     const { projectHash } = useParams();
 
+    const draftJobs: DraftJob[] | undefined | null = useLiveQuery(
+        isValidProjectHash(projectHash) ? () => db.jobs.where('projectHash').equals(projectHash).toArray() : () => undefined,
+        [projectHash],
+        null,
+    );
+
     // Init
     useEffect(() => {
         setProjectPage(ProjectPage.Overview);
     }, []);
 
     useEffect(() => {
-        if (publicClient && projectHash) {
-            fetchAllJobs();
+        if (publicClient && isValidProjectHash(projectHash)) {
+            fetchRunningJobs();
         }
     }, [publicClient, projectHash]);
 
     useEffect(() => {
-        if (!projectHash) {
+        if (!isValidProjectHash(projectHash)) {
             navigate(routePath.notFound);
         }
     }, [projectHash]);
 
-    const fetchAllJobs = async () => {
+    const fetchRunningJobs = async () => {
         if (!publicClient) {
             return;
         }
@@ -49,13 +58,12 @@ export default function Project() {
         });
 
         const projectJobs = jobs.filter((job) => job.projectHash === projectHash);
-        console.log('[Project] Jobs:', projectJobs);
 
         setRunningJobs(projectJobs);
         setLoading(false);
     };
 
-    if (isLoading || !projectHash) {
+    if (isLoading || draftJobs === null) {
         return (
             <div className="col w-full gap-6">
                 <Skeleton className="min-h-10 w-80 rounded-lg" />
@@ -72,12 +80,16 @@ export default function Project() {
         );
     }
 
+    if (!projectHash) {
+        return <></>;
+    }
+
     return !jobType ? (
         <>
             {projectPage === ProjectPage.Payment ? (
                 <div>Project Payment</div>
             ) : (
-                <ProjectOverview projectHash={projectHash} jobs={runningJobs} />
+                <ProjectOverview projectHash={projectHash} runningJobs={runningJobs} draftJobs={draftJobs} />
             )}
         </>
     ) : (
