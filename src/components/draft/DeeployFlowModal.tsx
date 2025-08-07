@@ -11,7 +11,7 @@ const ACTIONS = {
     },
     signMessages: {
         icon: <RiEdit2Line />,
-        title: 'Sign messages with details',
+        title: 'Sign a message for each job',
     },
     callDeeployApi: {
         icon: <RiBox3Line />,

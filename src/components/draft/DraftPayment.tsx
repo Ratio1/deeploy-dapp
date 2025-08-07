@@ -74,12 +74,16 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
         const envVars: Record<string, string> = {};
         job.deployment.envVars.forEach((envVar) => {
-            envVars[envVar.key] = envVar.value;
+            if (envVar.key) {
+                envVars[envVar.key] = envVar.value;
+            }
         });
 
         const dynamicEnvVars: Record<string, Array<{ type: string; value: string }>> = {};
         job.deployment.dynamicEnvVars.forEach((dynamicEnvVar) => {
-            dynamicEnvVars[dynamicEnvVar.key] = dynamicEnvVar.values;
+            if (dynamicEnvVar.key) {
+                dynamicEnvVars[dynamicEnvVar.key] = dynamicEnvVar.values;
+            }
         });
 
         let image = 'repo/image:tag';
@@ -140,12 +144,16 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
         const customParams: Record<string, string> = {};
         job.deployment.customParams.forEach((param) => {
-            customParams[param.key] = param.value;
+            if (param.key) {
+                customParams[param.key] = param.value;
+            }
         });
 
         const pipelineParams: Record<string, string> = {};
         job.deployment.pipelineParams.forEach((param) => {
-            pipelineParams[param.key] = param.value;
+            if (param.key) {
+                pipelineParams[param.key] = param.value;
+            }
         });
 
         const nodeResourceRequirements = {
@@ -156,6 +164,23 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         // Generate nonce (current timestamp in milliseconds as hex)
         const nonce = generateNonce();
 
+        let appParams = {
+            PORT: job.deployment.port,
+            NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
+            NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
+            NGROK_ENABLED: job.deployment.enableTunneling === 'True',
+            NGROK_USE_API: true,
+            ENV: {},
+            DYNAMIC_ENV: {},
+        };
+
+        if (_.isEmpty(customParams)) {
+            appParams = {
+                ...appParams,
+                ...customParams,
+            };
+        }
+
         return {
             app_alias: job.deployment.jobAlias,
             plugin_signature: job.deployment.pluginSignature,
@@ -163,19 +188,10 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             target_nodes: job.deployment.targetNodes.filter((node) => !_.isEmpty(node.address)).map((node) => node.address),
             target_nodes_count: job.deployment.targetNodes.length > 0 ? 0 : job.specifications.targetNodesCount,
             node_res_req: nodeResourceRequirements,
-            app_params: {
-                PORT: job.deployment.port,
-                NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
-                NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
-                NGROK_ENABLED: job.deployment.enableTunneling === 'True',
-                NGROK_USE_API: true,
-                ENV: {},
-                DYNAMIC_ENV: {},
-                ...customParams,
-            },
-            pipeline_input_type: job.deployment.pipelineInputType,
-            pipeline_input_uri: job.deployment.pipelineInputUri,
-            pipeline_params: pipelineParams,
+            app_params: appParams,
+            pipeline_input_type: 'void', // TODO: job.deployment.pipelineInputType,
+            pipeline_input_uri: null, // TODO: job.deployment.pipelineInputUri,
+            pipeline_params: !_.isEmpty(pipelineParams) ? pipelineParams : {},
             chainstore_response: false,
         };
     };
@@ -185,12 +201,16 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
         const envVars: Record<string, string> = {};
         job.deployment.envVars.forEach((envVar) => {
-            envVars[envVar.key] = envVar.value;
+            if (envVar.key) {
+                envVars[envVar.key] = envVar.value;
+            }
         });
 
         const dynamicEnvVars: Record<string, Array<{ type: string; value: string }>> = {};
         job.deployment.dynamicEnvVars.forEach((dynamicEnvVar) => {
-            dynamicEnvVars[dynamicEnvVar.key] = dynamicEnvVar.values;
+            if (dynamicEnvVar.key) {
+                dynamicEnvVars[dynamicEnvVar.key] = dynamicEnvVar.values;
+            }
         });
 
         const containerResources = {
@@ -392,8 +412,6 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         } else {
             toast.error('Deployment failed, please try again.');
         }
-
-        deeployFlowModalRef.current?.close();
     };
 
     const approve = async () => {
