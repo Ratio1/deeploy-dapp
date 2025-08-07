@@ -2,7 +2,7 @@ import { Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from '@her
 import { Spinner } from '@heroui/spinner';
 import { DetailedAlert } from '@shared/DetailedAlert';
 import { forwardRef, useImperativeHandle, useState } from 'react';
-import { RiBox3Line, RiCheckDoubleLine, RiCheckLine, RiEdit2Line, RiWalletLine } from 'react-icons/ri';
+import { RiBox3Line, RiCheckDoubleLine, RiCheckLine, RiCloseLine, RiEdit2Line, RiWalletLine } from 'react-icons/ri';
 
 const ACTIONS = {
     payJobs: {
@@ -15,7 +15,7 @@ const ACTIONS = {
     },
     callDeeployApi: {
         icon: <RiBox3Line />,
-        title: 'Create the jobs',
+        title: 'Wait for deployment',
     },
 };
 
@@ -25,9 +25,12 @@ export const DeeployFlowModal = forwardRef((_props, ref) => {
     const [currentAction, setCurrentAction] = useState<'payJobs' | 'signMessages' | 'callDeeployApi' | 'done'>('payJobs');
     const [jobsCount, setJobsCount] = useState<number>(1);
 
+    const [error, setError] = useState<boolean>(false);
+
     const open = (jobsCount: number) => {
         setCurrentAction('payJobs');
         setJobsCount(jobsCount);
+        setError(false);
         onOpen();
     };
 
@@ -39,10 +42,18 @@ export const DeeployFlowModal = forwardRef((_props, ref) => {
         onClose();
     };
 
+    const displayError = () => {
+        setError(true);
+        setTimeout(() => {
+            onClose();
+        }, 2000);
+    };
+
     useImperativeHandle(ref, () => ({
         open,
         progress,
         close,
+        displayError,
     }));
 
     const getJobLoading = () => {
@@ -75,6 +86,22 @@ export const DeeployFlowModal = forwardRef((_props, ref) => {
                 </div>
             </div>
         );
+    };
+
+    const getCurrentJobIcon = () => {
+        if (error) {
+            return (
+                <div className="z-10 -ml-1.5 bg-white p-1.5">
+                    <div className="center-all rounded-full bg-red-100 p-1">
+                        <div className="text-[17px] text-red-600">
+                            <RiCloseLine />
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        return getJobLoading();
     };
 
     return (
@@ -115,8 +142,8 @@ export const DeeployFlowModal = forwardRef((_props, ref) => {
                                 return (
                                     <div key={index} className="row gap-1.5">
                                         {index === currentIndex
-                                            ? getJobLoading()
-                                            : index < currentIndex || currentIndex === -1
+                                            ? getCurrentJobIcon()
+                                            : index < currentIndex
                                               ? getJobDone()
                                               : getJobPending(ACTIONS[action].icon)}
 

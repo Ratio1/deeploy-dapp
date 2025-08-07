@@ -42,6 +42,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         open: (jobsCount: number) => void;
         progress: (action: 'payJobs' | 'signMessages' | 'callDeeployApi' | 'done') => void;
         close: () => void;
+        displayError: () => void;
     }>(null);
 
     useEffect(() => {
@@ -65,7 +66,6 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
     const generateNonce = () => {
         const now = new Date();
         const unixTimestamp = now.getTime();
-        console.log('generateNonce', now, unixTimestamp);
         return `0x${unixTimestamp.toString(16)}`;
     };
 
@@ -255,6 +255,31 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         });
     };
 
+    const signAndBuildRequest = async (jobId: number, projectHash: string, payload: any) => {
+        const payloadWithIdentifiers = {
+            ...payload,
+            job_id: jobId,
+            project_id: projectHash,
+        };
+
+        const message = buildDeeployMessage(payloadWithIdentifiers);
+
+        const signature = await signMessageAsync({
+            account: address,
+            message,
+        });
+
+        const request = {
+            ...payloadWithIdentifiers,
+            EE_ETH_SIGN: signature,
+            EE_ETH_SENDER: address,
+        };
+
+        console.log(`(${payload.app_alias}) request`, request);
+
+        return request;
+    };
+
     const onPayAndDeploy = async () => {
         if (!jobs) {
             return;
@@ -266,10 +291,9 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         }
 
         setLoading(true);
+        deeployFlowModalRef.current?.open(jobs.length);
 
         const projectHash = keccak256(toBytes(project.uuid));
-
-        console.log('[DraftPayment] projectHash', projectHash);
 
         const args = jobs.map((job) => {
             const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
@@ -278,8 +302,6 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             const diffFn = environment === 'mainnet' ? differenceInDays : differenceInHours;
 
             const durationInEpochs = diffFn(expiryDate, new Date());
-
-            console.log(`Duration in epochs: ${durationInEpochs}`);
 
             const lastExecutionEpoch = BigInt(getCurrentEpoch() + durationInEpochs);
 
@@ -290,8 +312,6 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                 numberOfNodesRequested: BigInt(job.specifications.targetNodesCount),
             };
         });
-
-        console.log(`Current Epoch: ${getCurrentEpoch()}`, `Last Execution Epoch: ${args[0].lastExecutionEpoch}`);
 
         const txHash = await walletClient.writeContract({
             address: escrowContractAddress,
@@ -321,44 +341,59 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                 .filter((log) => log !== null && log.eventName === 'JobCreated');
 
             const jobIds = jobCreatedLogs.map((log) => log.args.jobId);
-
             const payloads = getJobPayloads(jobs);
 
-            for (let index = 0; index < payloads.length; index++) {
-                const payload = payloads[index];
-                const jobId = Number(jobIds[index]);
+            deeployFlowModalRef.current?.progress('signMessages');
 
-                const payloadWithIdentifiers = {
-                    ...payload,
-                    job_id: jobId,
-                    project_id: projectHash,
-                };
+            const requests = await Promise.all(
+                payloads.map((payload, index) => {
+                    const jobId = Number(jobIds[index]);
+                    return signAndBuildRequest(jobId, projectHash, payload);
+                }),
+            );
 
-                const message = buildDeeployMessage(payloadWithIdentifiers);
+            deeployFlowModalRef.current?.progress('callDeeployApi');
 
-                const signature = await signMessageAsync({
-                    account: address,
-                    message,
-                });
+            const responses = await Promise.allSettled(
+                requests.map((request) => {
+                    return createPipeline(request);
+                }),
+            );
 
-                const request = {
-                    ...payloadWithIdentifiers,
-                    EE_ETH_SIGN: signature,
-                    EE_ETH_SENDER: address,
-                };
+            // Check for any failed deployments
+            const failedJobs = responses.filter((response) => response.status === 'rejected');
+            const successfulJobs = responses.filter((response) => response.status === 'fulfilled');
 
-                console.log('createPipeline', request);
-
-                const response = await createPipeline(request);
-
-                console.log('Response', response);
+            if (failedJobs.length > 0) {
+                console.error('Some jobs failed to deploy:', failedJobs);
+                toast.error(`${failedJobs.length} job(s) failed to deploy.`);
             }
 
-            await sleep(2000); // Wait for the allowance to be updated
+            if (successfulJobs.length > 0) {
+                console.log(
+                    'Successfully deployed jobs:',
+                    successfulJobs.map((r) => (r as PromiseFulfilledResult<any>).value),
+                );
+                toast.success(`${successfulJobs.length} job(s) deployed successfully.`);
+            }
+
+            if (successfulJobs.length === jobs.length) {
+                // deeployFlowModalRef.current?.progress('done'); TODO: Uncomment
+                setTimeout(() => {
+                    deeployFlowModalRef.current?.close();
+                }, 2000);
+            } else {
+                deeployFlowModalRef.current?.displayError();
+            }
+
+            console.log('All deployment responses:', responses);
+
             await fetchAllowance();
         } else {
             toast.error('Deployment failed, please try again.');
         }
+
+        deeployFlowModalRef.current?.close();
     };
 
     const approve = async () => {
@@ -427,6 +462,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         } catch (err: any) {
             console.error(err.message);
             toast.error('An error occured, please try again.');
+            deeployFlowModalRef.current?.displayError();
         } finally {
             setLoading(false);
         }
@@ -444,31 +480,33 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                     <ProjectIdentity project={project} />
 
                     <div className="row gap-2">
-                        <ActionButton
-                            color="secondary"
-                            variant="solid"
-                            onPress={() => {
-                                deeployFlowModalRef.current?.open(2);
+                        {process.env.NODE_ENV === 'development' && (
+                            <ActionButton
+                                color="secondary"
+                                variant="solid"
+                                onPress={() => {
+                                    deeployFlowModalRef.current?.open(2);
 
-                                setTimeout(() => {
-                                    deeployFlowModalRef.current?.progress('signMessages');
-                                }, 1500);
+                                    setTimeout(() => {
+                                        deeployFlowModalRef.current?.progress('signMessages');
+                                    }, 1500);
 
-                                setTimeout(() => {
-                                    deeployFlowModalRef.current?.progress('callDeeployApi');
-                                }, 3000);
+                                    setTimeout(() => {
+                                        deeployFlowModalRef.current?.progress('callDeeployApi');
+                                    }, 3000);
 
-                                setTimeout(() => {
-                                    deeployFlowModalRef.current?.progress('done');
-                                }, 4500);
+                                    setTimeout(() => {
+                                        deeployFlowModalRef.current?.progress('done');
+                                    }, 4500);
 
-                                setTimeout(() => {
-                                    deeployFlowModalRef.current?.close();
-                                }, 5000);
-                            }}
-                        >
-                            <div className="compact">Debug</div>
-                        </ActionButton>
+                                    setTimeout(() => {
+                                        deeployFlowModalRef.current?.close();
+                                    }, 5000);
+                                }}
+                            >
+                                <div className="compact">Debug</div>
+                            </ActionButton>
+                        )}
 
                         <OverviewButton />
 
