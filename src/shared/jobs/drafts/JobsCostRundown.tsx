@@ -1,4 +1,4 @@
-import { getJobCost, getJobsTotalCost } from '@lib/utils';
+import { getJobCost, getJobsTotalCost } from '@lib/deeploy-utils';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import { SmallTag } from '@shared/SmallTag';
 import { DraftJob } from '@typedefs/deeploys';

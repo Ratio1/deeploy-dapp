@@ -1,6 +1,6 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { SelectItem } from '@heroui/select';
-import { getContainerOrWorkerTypeDescription } from '@lib/utils';
+import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import StyledSelect from '@shared/StyledSelect';

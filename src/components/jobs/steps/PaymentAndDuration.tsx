@@ -1,6 +1,6 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { Slider } from '@heroui/slider';
-import { getContainerOrWorkerType, getContainerOrWorkerTypeDescription, getDiscountPercentage } from '@lib/utils';
+import { getContainerOrWorkerType, getContainerOrWorkerTypeDescription, getDiscountPercentage } from '@lib/deeploy-utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { SlateCard } from '@shared/cards/SlateCard';
 import Label from '@shared/Label';

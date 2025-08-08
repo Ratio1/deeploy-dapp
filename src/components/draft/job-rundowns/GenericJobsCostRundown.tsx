@@ -1,5 +1,5 @@
 import { ContainerOrWorkerType, genericContainerTypes, GpuType, gpuTypes } from '@data/containerResources';
-import { getContainerOrWorkerTypeDescription } from '@lib/utils';
+import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
 import { GenericDraftJob } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';

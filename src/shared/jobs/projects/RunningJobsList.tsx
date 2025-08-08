@@ -1,5 +1,5 @@
 import { config } from '@lib/config';
-import { addTimeFn, diffTimeFn } from '@lib/utils';
+import { addTimeFn, diffTimeFn } from '@lib/deeploy-utils';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import DetailedUsage from '@shared/projects/DetailedUsage';

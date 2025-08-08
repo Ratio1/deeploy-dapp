@@ -1,6 +1,7 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
+import { getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
+import { applyWidthClasses } from '@lib/utils';
 import DraftJobsList from '@shared/jobs/drafts/DraftJobsList';
 import { SmallTag } from '@shared/SmallTag';
 import { GenericDraftJob, JobType } from '@typedefs/deeploys';

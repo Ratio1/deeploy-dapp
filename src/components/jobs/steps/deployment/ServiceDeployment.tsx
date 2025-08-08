@@ -1,6 +1,6 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { ContainerOrWorkerType } from '@data/containerResources';
-import { getContainerOrWorkerType } from '@lib/utils';
+import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';

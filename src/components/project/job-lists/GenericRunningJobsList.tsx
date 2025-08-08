@@ -1,4 +1,5 @@
-import { applyWidthClasses, getContainerOrWorkerTypeDescription } from '@lib/utils';
+import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
+import { applyWidthClasses } from '@lib/utils';
 import RunningJobsList from '@shared/jobs/projects/RunningJobsList';
 import { SmallTag } from '@shared/SmallTag';
 import { RunningJobWithResources } from '@typedefs/deeploys';

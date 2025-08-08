@@ -14,15 +14,6 @@ export default function RunningJobsStats({ jobs }: { jobs: RunningJob[] | undefi
             <div className="row justify-between">
                 <Item label="Total Jobs" value={jobs.length} />
 
-                {/* <Item
-                    label="Total Active Nodes"
-                    value={_(jobs)
-                        .map((job) => job.activeNodes)
-                        .flatten()
-                        .uniq()
-                        .size()}
-                /> */}
-
                 <Item
                     label="Total Budget"
                     value={

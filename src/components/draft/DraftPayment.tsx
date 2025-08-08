@@ -4,7 +4,15 @@ import { ContainerOrWorkerType } from '@data/containerResources';
 import { createPipeline } from '@lib/api/deeploy';
 import { config, environment, escrowContractAddress, getCurrentEpoch } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
-import { buildDeeployMessage, generateNonce, getContainerOrWorkerType, getJobsTotalCost, sleep } from '@lib/utils';
+import {
+    buildDeeployMessage,
+    formatGenericJobPayload,
+    formatNativeJobPayload,
+    formatServiceJobPayload,
+    getContainerOrWorkerType,
+    getJobsTotalCost,
+} from '@lib/deeploy-utils';
+import { sleep } from '@lib/utils';
 import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { ConnectWalletWrapper } from '@shared/ConnectWalletWrapper';
@@ -14,7 +22,6 @@ import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
 import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob, type DraftProject } from '@typedefs/deeploys';
 import { addDays, differenceInDays, differenceInHours } from 'date-fns';
-import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiBox3Line, RiDraftLine } from 'react-icons/ri';
@@ -58,192 +65,6 @@ export default function DraftPayment({ project, jobs }: { project: DraftProject;
             fetchAllowance();
         }
     }, [address, publicClient]);
-
-    const formatEnvVars = (envVars: Array<{ key: string; value: string }>) => {
-        const formatted: Record<string, string> = {};
-        envVars.forEach((envVar) => {
-            if (envVar.key) {
-                formatted[envVar.key] = envVar.value;
-            }
-        });
-        return formatted;
-    };
-
-    const formatDynamicEnvVars = (dynamicEnvVars: Array<{ key: string; values: Array<{ type: string; value: string }> }>) => {
-        const formatted: Record<string, Array<{ type: string; value: string }>> = {};
-        dynamicEnvVars.forEach((dynamicEnvVar) => {
-            if (dynamicEnvVar.key) {
-                formatted[dynamicEnvVar.key] = dynamicEnvVar.values;
-            }
-        });
-        return formatted;
-    };
-
-    const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType) => {
-        return {
-            cpu: containerOrWorkerType.cores,
-            memory: `${containerOrWorkerType.ram}g`,
-        };
-    };
-
-    const formatTargetNodes = (targetNodes: Array<{ address: string }>) => {
-        return targetNodes.filter((node) => !_.isEmpty(node.address)).map((node) => node.address);
-    };
-
-    const getTargetNodesCount = (targetNodes: Array<{ address: string }>, specificationsTargetNodesCount: number) => {
-        return targetNodes.length > 0 ? 0 : specificationsTargetNodesCount;
-    };
-
-    const formatGenericJobPayload = (job: GenericDraftJob) => {
-        const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-
-        const envVars = formatEnvVars(job.deployment.envVars);
-        const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
-        const containerResources = formatContainerResources(containerType);
-        const targetNodes = formatTargetNodes(job.deployment.targetNodes);
-        const targetNodesCount = getTargetNodesCount(job.deployment.targetNodes, job.specifications.targetNodesCount);
-
-        let image = 'repo/image:tag';
-        let crData = {
-            SERVER: 'docker.io',
-            USERNAME: 'user',
-            PASSWORD: 'password',
-        };
-
-        if (job.deployment.container.type === 'image') {
-            image = job.deployment.container.containerImage;
-            crData = {
-                SERVER: job.deployment.container.containerRegistry,
-                USERNAME: job.deployment.container.crUsername,
-                PASSWORD: job.deployment.container.crPassword,
-            };
-        } else {
-            console.error('Worker-based container not implemented yet.');
-        }
-
-        const nonce = generateNonce();
-
-        return {
-            app_alias: job.deployment.jobAlias,
-            plugin_signature: 'CONTAINER_APP_RUNNER',
-            nonce,
-            target_nodes: targetNodes,
-            target_nodes_count: targetNodesCount,
-            app_params: {
-                IMAGE: image,
-                CR_DATA: {}, // TODO: Use crData
-                CONTAINER_RESOURCES: containerResources,
-                PORT: job.deployment.port,
-                TUNNEL_ENGINE: 'cloudflare',
-                NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
-                NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
-                TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
-                NGROK_USE_API: true,
-                VOLUMES: {}, // TODO: Implement
-                ENV: envVars,
-                DYNAMIC_ENV: dynamicEnvVars,
-                RESTART_POLICY: job.deployment.restartPolicy.toLowerCase(),
-                IMAGE_PULL_POLICY: job.deployment.imagePullPolicy.toLowerCase(),
-            },
-            pipeline_input_type: 'void',
-            pipeline_input_uri: null,
-            chainstore_response: true,
-        };
-    };
-
-    const formatNativeJobPayload = (job: NativeDraftJob) => {
-        const workerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-
-        const customParams: Record<string, string> = {};
-        job.deployment.customParams.forEach((param) => {
-            if (param.key) {
-                customParams[param.key] = param.value;
-            }
-        });
-
-        const pipelineParams: Record<string, string> = {};
-        job.deployment.pipelineParams.forEach((param) => {
-            if (param.key) {
-                pipelineParams[param.key] = param.value;
-            }
-        });
-
-        const nodeResourceRequirements = formatContainerResources(workerType);
-        const targetNodes = formatTargetNodes(job.deployment.targetNodes);
-        const targetNodesCount = getTargetNodesCount(job.deployment.targetNodes, job.specifications.targetNodesCount);
-
-        const nonce = generateNonce();
-
-        let appParams = {
-            PORT: job.deployment.port,
-            NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
-            NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
-            TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
-            NGROK_USE_API: true,
-            ENV: {},
-            DYNAMIC_ENV: {},
-        };
-
-        if (_.isEmpty(customParams)) {
-            appParams = {
-                ...appParams,
-                ...customParams,
-            };
-        }
-
-        return {
-            app_alias: job.deployment.jobAlias,
-            plugin_signature: job.deployment.pluginSignature,
-            nonce,
-            target_nodes: targetNodes,
-            target_nodes_count: targetNodesCount,
-            node_res_req: nodeResourceRequirements,
-            TUNNEL_ENGINE: 'cloudflare',
-            app_params: appParams,
-            pipeline_input_type: 'void', // TODO: job.deployment.pipelineInputType,
-            pipeline_input_uri: null, // TODO: job.deployment.pipelineInputUri,
-            pipeline_params: !_.isEmpty(pipelineParams) ? pipelineParams : {},
-            chainstore_response: false,
-        };
-    };
-
-    const formatServiceJobPayload = (job: ServiceDraftJob) => {
-        const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-
-        const envVars = formatEnvVars(job.deployment.envVars);
-        const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
-        const containerResources = formatContainerResources(containerType);
-        const targetNodes = formatTargetNodes(job.deployment.targetNodes);
-
-        const nonce = generateNonce();
-
-        return {
-            app_alias: job.deployment.jobAlias,
-            plugin_signature: 'CONTAINER_APP_RUNNER',
-            nonce,
-            target_nodes: targetNodes,
-            target_nodes_count: 1,
-            service_replica: job.deployment.serviceReplica,
-            app_params: {
-                IMAGE: containerType.image,
-                CONTAINER_RESOURCES: containerResources,
-                PORT: containerType.port,
-                TUNNEL_ENGINE: 'ngrok',
-                NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
-                NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
-                TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
-                NGROK_USE_API: true,
-                VOLUMES: {}, // TODO: Implement
-                ENV: envVars,
-                DYNAMIC_ENV: dynamicEnvVars,
-                RESTART_POLICY: 'always',
-                IMAGE_PULL_POLICY: 'always',
-            },
-            pipeline_input_type: 'void',
-            pipeline_input_uri: null,
-            chainstore_response: true,
-        };
-    };
 
     const getJobPayloads = (jobs: DraftJob[]) => {
         return jobs.map((job) => {

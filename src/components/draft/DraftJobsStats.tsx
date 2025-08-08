@@ -1,7 +1,7 @@
-import { ContainerOrWorkerType } from '@data/containerResources';
-import { getContainerOrWorkerType, getGpuType } from '@lib/utils';
+import { ContainerOrWorkerType, GpuType } from '@data/containerResources';
+import { getContainerOrWorkerType, getGpuType } from '@lib/deeploy-utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
-import { DraftJob } from '@typedefs/deeploys';
+import { DraftJob, JobType } from '@typedefs/deeploys';
 import clsx from 'clsx';
 
 export default function DraftJobsStats({ jobs }: { jobs: DraftJob[] | undefined }) {
@@ -11,7 +11,7 @@ export default function DraftJobsStats({ jobs }: { jobs: DraftJob[] | undefined 
 
     const getJobMonthlyCost = (job: DraftJob) => {
         const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-        const gpuType = getGpuType(job.specifications);
+        const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
 
         return (
             job.specifications.targetNodesCount *
