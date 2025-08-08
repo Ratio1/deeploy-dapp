@@ -13,9 +13,9 @@ import { RiDeleteBin2Line } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
 import DraftIdentity from './DraftIdentity';
 import DraftJobsStats from './DraftJobsStats';
-import GenericJobList from './job-lists/GenericJobList';
-import NativeJobList from './job-lists/NativeJobList';
-import ServiceJobList from './job-lists/ServiceJobList';
+import GenericDraftJobsList from './job-lists/GenericDraftJobsList';
+import NativeDraftJobsList from './job-lists/NativeDraftJobsList';
+import ServiceDraftJobsList from './job-lists/ServiceDraftJobsList';
 
 export default function DraftOverview({ project, jobs }: { project: DraftProject; jobs: DraftJob[] | undefined }) {
     const confirm = useInteractionContext() as InteractionContextType;
@@ -73,13 +73,13 @@ export default function DraftOverview({ project, jobs }: { project: DraftProject
                 {!!jobs && !!jobs.length && (
                     <>
                         {jobs.filter((job) => job.jobType === JobType.Generic).length > 0 && (
-                            <GenericJobList jobs={jobs.filter((job) => job.jobType === JobType.Generic)} />
+                            <GenericDraftJobsList jobs={jobs.filter((job) => job.jobType === JobType.Generic)} />
                         )}
                         {jobs.filter((job) => job.jobType === JobType.Native).length > 0 && (
-                            <NativeJobList jobs={jobs.filter((job) => job.jobType === JobType.Native)} />
+                            <NativeDraftJobsList jobs={jobs.filter((job) => job.jobType === JobType.Native)} />
                         )}
                         {jobs.filter((job) => job.jobType === JobType.Service).length > 0 && (
-                            <ServiceJobList jobs={jobs.filter((job) => job.jobType === JobType.Service)} />
+                            <ServiceDraftJobsList jobs={jobs.filter((job) => job.jobType === JobType.Service)} />
                         )}
                     </>
                 )}

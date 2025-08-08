@@ -19,7 +19,6 @@ enum ProjectPage {
 
 // Specifications
 type BaseJobSpecifications = {
-    gpuType?: (typeof gpuTypes)[number]['name'];
     applicationType: (typeof APPLICATION_TYPES)[number];
     targetNodesCount: number;
 };
@@ -27,11 +26,13 @@ type BaseJobSpecifications = {
 type GenericJobSpecifications = BaseJobSpecifications & {
     type: 'Generic';
     containerType: (typeof genericContainerTypes)[number]['name'];
+    gpuType?: (typeof gpuTypes)[number]['name'];
 };
 
 type NativeJobSpecifications = BaseJobSpecifications & {
     type: 'Native';
     workerType: (typeof nativeWorkerTypes)[number]['name'];
+    gpuType?: (typeof gpuTypes)[number]['name'];
 };
 
 type ServiceJobSpecifications = BaseJobSpecifications & {

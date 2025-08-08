@@ -9,6 +9,7 @@ const widthClasses = [
     'min-w-[64px]', // id
     'min-w-[128px]', // alias
     'min-w-[90px]', // targetNodes
+    'min-w-[70px]', // database
     'min-w-[300px]', // containerType
 ];
 
@@ -21,7 +22,7 @@ function ServiceJobList({ jobs, project }: { jobs: ServiceDraftJob[]; project: D
                     <div className="compact">Services</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Container Type'], widthClasses)}</>}
+            tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Database', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
             project={project}
             renderJob={(job) => {
@@ -44,6 +45,10 @@ function ServiceJobList({ jobs, project }: { jobs: ServiceDraftJob[]; project: D
                         <div className={widthClasses[2]}>{serviceJob.specifications.targetNodesCount}</div>
 
                         <div className={widthClasses[3]}>
+                            <SmallTag variant={containerOrWorkerType.notesColor}>{containerOrWorkerType.dbSystem}</SmallTag>
+                        </div>
+
+                        <div className={widthClasses[4]}>
                             {`${containerOrWorkerType.name} (${getContainerOrWorkerTypeDescription(containerOrWorkerType)})`}
                         </div>
                     </>

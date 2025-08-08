@@ -3,56 +3,54 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
 import JobList from '@shared/jobs/drafts/JobList';
 import { SmallTag } from '@shared/SmallTag';
-import { GenericDraftJob, JobType } from '@typedefs/deeploys';
-import { RiBox3Line } from 'react-icons/ri';
+import { JobType, ServiceDraftJob } from '@typedefs/deeploys';
+import { RiDatabase2Line } from 'react-icons/ri';
 
 const widthClasses = [
     'min-w-[128px]', // alias
     'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
-    'min-w-[50px]', // type
+    'min-w-[70px]', // database
     'min-w-[300px]', // containerType
 ];
 
-export default function GenericJobList({ jobs }: { jobs: GenericDraftJob[] }) {
+export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[] }) {
     const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
         <JobList
             cardHeader={
                 <div className="row gap-1.5">
-                    <RiBox3Line className="text-primary-500 text-lg" />
-                    <div className="compact">Generic Apps</div>
+                    <RiDatabase2Line className="text-lg text-purple-500" />
+                    <div className="compact">Services</div>
                 </div>
             }
             tableHeader={
-                <>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Type', 'Container Type'], widthClasses)}</>
+                <>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Database', 'Container Type'], widthClasses)}</>
             }
             jobs={jobs}
             renderJob={(job) => {
-                const genericJob = job as GenericDraftJob;
+                const serviceJob = job as ServiceDraftJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
-                    genericJob.jobType,
-                    genericJob.specifications,
+                    serviceJob.jobType,
+                    serviceJob.specifications,
                 );
 
                 return (
                     <>
-                        <div className={widthClasses[0]}>{genericJob.deployment.jobAlias}</div>
+                        <div className={widthClasses[0]}>{serviceJob.deployment.jobAlias}</div>
 
                         <div className={widthClasses[1]}>
                             <SmallTag>
-                                {genericJob.paymentAndDuration.duration} month
-                                {genericJob.paymentAndDuration.duration > 1 ? 's' : ''}
+                                {serviceJob.paymentAndDuration.duration} month
+                                {serviceJob.paymentAndDuration.duration > 1 ? 's' : ''}
                             </SmallTag>
                         </div>
 
-                        <div className={widthClasses[2]}>{genericJob.specifications.targetNodesCount}</div>
+                        <div className={widthClasses[2]}>{serviceJob.specifications.targetNodesCount}</div>
 
                         <div className={widthClasses[3]}>
-                            <SmallTag variant={genericJob.specifications.gpuType ? 'green' : 'blue'}>
-                                {genericJob.specifications.gpuType ? 'GPU' : 'CPU'}
-                            </SmallTag>
+                            <SmallTag variant={containerOrWorkerType.notesColor}>{containerOrWorkerType.dbSystem}</SmallTag>
                         </div>
 
                         <div className={widthClasses[4]}>
@@ -63,7 +61,7 @@ export default function GenericJobList({ jobs }: { jobs: GenericDraftJob[] }) {
             }}
             onAddJob={() => {
                 setStep(2);
-                setJobType(JobType.Generic);
+                setJobType(JobType.Service);
             }}
         />
     );
