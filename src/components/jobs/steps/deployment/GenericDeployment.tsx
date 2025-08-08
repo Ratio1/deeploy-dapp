@@ -37,8 +37,9 @@ function GenericDeployment() {
                             <InputWithLabel name="deployment.tunnelingToken" label="Tunneling Token" placeholder="None" />
                             <InputWithLabel
                                 name="deployment.tunnelingLabel"
-                                label="Tunneling Label (optional)"
+                                label="Tunneling Label"
                                 placeholder="None"
+                                isOptional
                             />
                         </div>
                     )}

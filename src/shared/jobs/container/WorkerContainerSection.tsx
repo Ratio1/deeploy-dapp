@@ -10,7 +10,7 @@ export default function WorkerContainerSection() {
                     label="GitHub URL"
                     placeholder="https://github.com/user/repo"
                 />
-                <InputWithLabel name="deployment.container.accessToken" label="Access Token (optional)" placeholder="" />
+                <InputWithLabel name="deployment.container.accessToken" label="Access Token" placeholder="" isOptional />
             </div>
 
             <WorkerContainerCommandsSection />

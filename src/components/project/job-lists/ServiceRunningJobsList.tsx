@@ -39,7 +39,12 @@ function ServiceRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
                             </div>
                         </div>
 
-                        <div className={widthClasses[2]}>{targetNodes}</div>
+                        <div className={widthClasses[2]}>
+                            <div className="font-medium">
+                                {targetNodes} node
+                                {targetNodes > 1 ? 's' : ''}
+                            </div>
+                        </div>
 
                         <div className={widthClasses[3]}>
                             <SmallTag variant={containerOrWorkerType.notesColor}>{containerOrWorkerType.dbSystem}</SmallTag>
