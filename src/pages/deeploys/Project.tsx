@@ -7,6 +7,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
+import Payment from '@shared/jobs/projects/Payment';
 import { DraftJob, ProjectPage, RunningJob } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
@@ -51,6 +52,8 @@ export default function Project() {
             return;
         }
 
+        setLoading(true);
+
         const jobs: readonly RunningJob[] = await publicClient.readContract({
             address: escrowContractAddress,
             abi: CspEscrowAbi,
@@ -87,7 +90,14 @@ export default function Project() {
     return !jobType ? (
         <>
             {projectPage === ProjectPage.Payment ? (
-                <div>Project Payment</div>
+                <Payment
+                    projectHash={projectHash}
+                    jobs={draftJobs}
+                    callback={() => {
+                        setProjectPage(ProjectPage.Overview);
+                        fetchRunningJobs();
+                    }}
+                />
             ) : (
                 <ProjectOverview projectHash={projectHash} runningJobs={runningJobs} draftJobs={draftJobs} />
             )}

@@ -11,8 +11,8 @@ import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { RiDeleteBin2Line } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
-import DraftIdentity from './DraftIdentity';
-import DraftJobsStats from './DraftJobsStats';
+import ProjectIdentity from '../../shared/jobs/projects/ProjectIdentity';
+import DraftStats from './DraftStats';
 import GenericDraftJobsList from './job-lists/GenericDraftJobsList';
 import NativeDraftJobsList from './job-lists/NativeDraftJobsList';
 import ServiceDraftJobsList from './job-lists/ServiceDraftJobsList';
@@ -47,7 +47,7 @@ export default function DraftOverview({ project, jobs }: { project: DraftProject
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <DraftIdentity project={project} />
+                    <ProjectIdentity />
 
                     <div className="row gap-2">
                         <CancelButton tab="drafts" />
@@ -64,7 +64,7 @@ export default function DraftOverview({ project, jobs }: { project: DraftProject
                 </div>
 
                 {/* Stats */}
-                <DraftJobsStats jobs={jobs} />
+                <DraftStats jobs={jobs} />
 
                 {/* Add Job */}
                 <AddJobCard />

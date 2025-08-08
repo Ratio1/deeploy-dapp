@@ -4,15 +4,21 @@ import { RunningJob } from '@typedefs/deeploys';
 import clsx from 'clsx';
 import _ from 'lodash';
 
-export default function RunningJobsStats({ jobs }: { jobs: RunningJob[] | undefined }) {
-    if (!jobs || jobs.length === 0) {
+export default function ProjectStats({
+    runningJobs,
+    draftJobsCount,
+}: {
+    runningJobs: RunningJob[] | undefined;
+    draftJobsCount: number;
+}) {
+    if (!runningJobs || runningJobs.length === 0) {
         return null;
     }
 
     return (
         <BorderedCard isLight={false}>
             <div className="row justify-between">
-                <Item label="Total Jobs" value={jobs.length} />
+                <Item label="Total Jobs" value={runningJobs.length + draftJobsCount} />
 
                 <Item
                     label="Total Budget"
@@ -20,7 +26,7 @@ export default function RunningJobsStats({ jobs }: { jobs: RunningJob[] | undefi
                         <div className="text-primary">
                             <span className="text-slate-500">$USDC</span>{' '}
                             {fBI(
-                                jobs.reduce((acc, job) => acc + job.balance, 0n),
+                                runningJobs.reduce((acc, job) => acc + job.balance, 0n),
                                 6,
                                 2,
                             )}
@@ -34,7 +40,7 @@ export default function RunningJobsStats({ jobs }: { jobs: RunningJob[] | undefi
                         <div className="text-primary">
                             <span className="text-slate-500">$USDC</span>{' '}
                             {fBI(
-                                jobs.reduce((acc, job) => acc + job.pricePerEpoch, 0n),
+                                runningJobs.reduce((acc, job) => acc + job.pricePerEpoch, 0n),
                                 6,
                                 2,
                             )}
@@ -44,7 +50,7 @@ export default function RunningJobsStats({ jobs }: { jobs: RunningJob[] | undefi
 
                 <Item
                     label="Last Execution Epoch"
-                    value={<>{Number(_.maxBy(jobs, 'lastExecutionEpoch')?.lastExecutionEpoch)}</>}
+                    value={<>{Number(_.maxBy(runningJobs, 'lastExecutionEpoch')?.lastExecutionEpoch)}</>}
                     isLast
                 />
             </div>

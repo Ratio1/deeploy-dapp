@@ -1,9 +1,9 @@
 import DraftOverview from '@components/draft/DraftOverview';
-import DraftPayment from '@components/draft/DraftPayment';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
+import Payment from '@shared/jobs/projects/Payment';
 import { DraftJob, ProjectPage, type DraftProject } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
@@ -42,14 +42,21 @@ export default function Draft() {
         return <></>;
     }
 
-    if (project === undefined) {
+    if (project === undefined || !isValidProjectHash(projectHash)) {
         return <></>;
     }
 
     return !jobType ? (
         <>
             {projectPage === ProjectPage.Payment ? (
-                <DraftPayment project={project} jobs={jobs} />
+                <Payment
+                    projectHash={projectHash}
+                    projectName={project.name}
+                    jobs={jobs}
+                    callback={() => {
+                        navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=running`);
+                    }}
+                />
             ) : (
                 <DraftOverview project={project} jobs={jobs} />
             )}

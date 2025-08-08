@@ -143,7 +143,7 @@ export const DeeployFlowModal = forwardRef((_props, ref) => {
                                     <div key={index} className="row gap-1.5">
                                         {index === currentIndex
                                             ? getCurrentJobIcon()
-                                            : index < currentIndex
+                                            : index < currentIndex || currentIndex === -1
                                               ? getJobDone()
                                               : getJobPending(ACTIONS[action].icon)}
 

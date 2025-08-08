@@ -2,13 +2,12 @@ import GenericDraftJobsList from '@components/draft/job-lists/GenericDraftJobsLi
 import NativeDraftJobsList from '@components/draft/job-lists/NativeDraftJobsList';
 import ServiceDraftJobsList from '@components/draft/job-lists/ServiceDraftJobsList';
 import { getRunningJobResources } from '@data/containerResources';
-import { getShortAddressOrHash } from '@lib/utils';
 import CustomTabs from '@shared/CustomTabs';
 import EmptyData from '@shared/EmptyData';
+import ProjectIdentity from '@shared/jobs/projects/ProjectIdentity';
 import AddJobCard from '@shared/projects/AddJobCard';
 import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
-import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
 import { DraftJob, JobType, RunningJob, RunningJobWithResources } from '@typedefs/deeploys';
 import _ from 'lodash';
@@ -17,7 +16,7 @@ import { RiBox2Line, RiDraftLine, RiFileTextLine } from 'react-icons/ri';
 import GenericRunningJobsList from './job-lists/GenericRunningJobsList';
 import NativeRunningJobsList from './job-lists/NativeRunningJobsList';
 import ServiceRunningJobsList from './job-lists/ServiceRunningJobsList';
-import RunningJobsStats from './RunningJobsStats';
+import ProjectStats from './ProjectStats';
 
 export default function ProjectOverview({
     projectHash,
@@ -58,21 +57,16 @@ export default function ProjectOverview({
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <div className="row gap-1.5">
-                        <SmallTag isLarge>{getShortAddressOrHash(projectHash, 6)}</SmallTag>
-                        <SmallTag variant="green" isLarge>
-                            Running
-                        </SmallTag>
-                    </div>
+                    <ProjectIdentity />
 
                     <div className="row gap-2">
-                        <CancelButton tab="projects" />
+                        <CancelButton tab="running" />
                         <PaymentButton isDisabled={draftJobs?.length === 0} />
                     </div>
                 </div>
 
                 {/* Stats */}
-                <RunningJobsStats jobs={runningJobs} />
+                <ProjectStats runningJobs={runningJobs} draftJobsCount={draftJobs?.length ?? 0} />
 
                 {/* Add Job */}
                 <AddJobCard />
@@ -160,27 +154,13 @@ export default function ProjectOverview({
                             <div className="py-8">
                                 <EmptyData
                                     title="No drafts"
-                                    description="Draft jobs will be displayed here"
+                                    description="Job drafts will be displayed here"
                                     icon={<RiDraftLine />}
                                 />
                             </div>
                         )}
                     </>
                 )}
-
-                {/* {!!jobs && !!jobs.length && (
-                    <>
-                        {jobs.filter((job) => job.jobType === JobType.Generic).length > 0 && (
-                            <GenericJobList jobs={jobs.filter((job) => job.jobType === JobType.Generic)} project={project} />
-                        )}
-                        {jobs.filter((job) => job.jobType === JobType.Native).length > 0 && (
-                            <NativeJobList jobs={jobs.filter((job) => job.jobType === JobType.Native)} project={project} />
-                        )}
-                        {jobs.filter((job) => job.jobType === JobType.Service).length > 0 && (
-                            <ServiceJobList jobs={jobs.filter((job) => job.jobType === JobType.Service)} project={project} />
-                        )}
-                    </>
-                )} */}
             </div>
 
             <SupportFooter />

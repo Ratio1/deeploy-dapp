@@ -1,7 +1,8 @@
 import { getRunningJobResources } from '@data/containerResources';
 import { config, environment } from '@lib/config';
+import { addTimeFn, diffTimeFn } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
-import { addTimeFn, diffTimeFn, getShortAddressOrHash } from '@lib/utils';
+import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
 import Usage from '@shared/projects/Usage';

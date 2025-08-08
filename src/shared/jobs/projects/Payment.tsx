@@ -1,5 +1,9 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { ERC20Abi } from '@blockchain/ERC20';
+import { DeeployFlowModal } from '@components/draft/DeeployFlowModal';
+import GenericJobsCostRundown from '@components/draft/job-rundowns/GenericJobsCostRundown';
+import NativeJobsCostRundown from '@components/draft/job-rundowns/NativeJobsCostRundown';
+import ServiceJobsCostRundown from '@components/draft/job-rundowns/ServiceJobsCostRundown';
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { createPipeline } from '@lib/api/deeploy';
 import { config, environment, escrowContractAddress, getCurrentEpoch } from '@lib/config';
@@ -20,21 +24,29 @@ import EmptyData from '@shared/EmptyData';
 import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
-import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob, type DraftProject } from '@typedefs/deeploys';
+import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { addDays, differenceInDays, differenceInHours } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiBox3Line, RiDraftLine } from 'react-icons/ri';
+import { useNavigate } from 'react-router-dom';
 import { decodeEventLog } from 'viem';
 import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wagmi';
-import { DeeployFlowModal } from './DeeployFlowModal';
-import DraftIdentity from './DraftIdentity';
-import GenericJobsCostRundown from './job-rundowns/GenericJobsCostRundown';
-import NativeJobsCostRundown from './job-rundowns/NativeJobsCostRundown';
-import ServiceJobsCostRundown from './job-rundowns/ServiceJobsCostRundown';
+import ProjectIdentity from './ProjectIdentity';
 
-export default function DraftPayment({ project, jobs }: { project: DraftProject; jobs: DraftJob[] | undefined }) {
+export default function Payment({
+    projectHash,
+    projectName,
+    jobs,
+    callback,
+}: {
+    projectHash: string;
+    projectName?: string;
+    jobs: DraftJob[] | undefined;
+    callback: () => void;
+}) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
+    const navigate = useNavigate();
 
     const [allowance, setAllowance] = useState<bigint>(0n);
     const [totalCost, setTotalCost] = useState<number>(0);
@@ -96,9 +108,12 @@ export default function DraftPayment({ project, jobs }: { project: DraftProject;
         const payloadWithIdentifiers = {
             ...payload,
             job_id: jobId,
-            project_id: project.projectHash,
-            project_name: project.name,
+            project_id: projectHash,
         };
+
+        if (projectName) {
+            payloadWithIdentifiers.project_name = projectName;
+        }
 
         const message = buildDeeployMessage(payloadWithIdentifiers);
 
@@ -112,8 +127,6 @@ export default function DraftPayment({ project, jobs }: { project: DraftProject;
             EE_ETH_SIGN: signature,
             EE_ETH_SENDER: address,
         };
-
-        console.log(`(${payload.app_alias}) request`, request);
 
         return request;
     };
@@ -131,8 +144,6 @@ export default function DraftPayment({ project, jobs }: { project: DraftProject;
         setLoading(true);
         deeployFlowModalRef.current?.open(jobs.length);
 
-        const projectHash = project.projectHash as `0x${string}`;
-
         const args = jobs.map((job) => {
             const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
             const expiryDate = addDays(new Date(), job.paymentAndDuration.duration * 30);
@@ -145,7 +156,7 @@ export default function DraftPayment({ project, jobs }: { project: DraftProject;
 
             return {
                 jobType: BigInt(containerType.jobType),
-                projectHash,
+                projectHash: projectHash as `0x${string}`,
                 lastExecutionEpoch,
                 numberOfNodesRequested: BigInt(job.specifications.targetNodesCount),
             };
@@ -220,7 +231,7 @@ export default function DraftPayment({ project, jobs }: { project: DraftProject;
 
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
-                }, 2000);
+                }, 1000);
             } else {
                 deeployFlowModalRef.current?.displayError();
             }
@@ -250,8 +261,6 @@ export default function DraftPayment({ project, jobs }: { project: DraftProject;
 
         const receipt = await watchTx(txHash, publicClient);
 
-        console.log('[DraftPayment] Approval receipt:', receipt);
-
         if (receipt.status === 'success') {
             await sleep(2000); // Wait for the allowance to be updated
             await fetchAllowance();
@@ -273,7 +282,7 @@ export default function DraftPayment({ project, jobs }: { project: DraftProject;
             args: [address, escrowContractAddress],
         });
 
-        console.log(`[DraftPayment] fetchAllowance: ${Number(result) / 10 ** 6} $USDC`);
+        // console.log(`[DraftPayment] fetchAllowance: ${Number(result) / 10 ** 6} $USDC`);
 
         setAllowance(result);
         return result;
@@ -312,9 +321,38 @@ export default function DraftPayment({ project, jobs }: { project: DraftProject;
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <DraftIdentity project={project} />
+                    <ProjectIdentity />
 
                     <div className="row gap-2">
+                        {/* {process.env.NODE_ENV === 'development' && (
+                            <ActionButton
+                                color="secondary"
+                                variant="solid"
+                                onPress={() => {
+                                    deeployFlowModalRef.current?.open(1);
+
+                                    setTimeout(() => {
+                                        deeployFlowModalRef.current?.progress('signMessages');
+                                    }, 1500);
+
+                                    setTimeout(() => {
+                                        deeployFlowModalRef.current?.progress('callDeeployApi');
+                                    }, 3000);
+
+                                    setTimeout(() => {
+                                        deeployFlowModalRef.current?.progress('done');
+                                    }, 4500);
+
+                                    setTimeout(() => {
+                                        deeployFlowModalRef.current?.close();
+                                        navigate(`${routePath.deeploys}/${routePath.project}/${projectHash}`);
+                                    }, 5500);
+                                }}
+                            >
+                                <div className="compact">Testing</div>
+                            </ActionButton>
+                        )} */}
+
                         <OverviewButton />
 
                         <ConnectWalletWrapper>
@@ -367,13 +405,12 @@ export default function DraftPayment({ project, jobs }: { project: DraftProject;
                     </>
                 )}
 
-                {/* No Jobs added */}
                 {!!jobs && jobs.length === 0 && (
                     <BorderedCard>
                         <div className="center-all">
                             <EmptyData
-                                title="No jobs added"
-                                description="Add a job first to proceed with payment"
+                                title="No job drafts"
+                                description="Add a new job first to proceed with payment"
                                 icon={<RiDraftLine />}
                             />
                         </div>

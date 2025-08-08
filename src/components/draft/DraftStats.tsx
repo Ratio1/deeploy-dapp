@@ -4,7 +4,7 @@ import { BorderedCard } from '@shared/cards/BorderedCard';
 import { DraftJob, JobType } from '@typedefs/deeploys';
 import clsx from 'clsx';
 
-export default function DraftJobsStats({ jobs }: { jobs: DraftJob[] | undefined }) {
+export default function DraftStats({ jobs }: { jobs: DraftJob[] | undefined }) {
     if (!jobs || jobs.length === 0) {
         return null;
     }
