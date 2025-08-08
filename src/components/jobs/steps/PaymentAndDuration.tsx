@@ -66,7 +66,7 @@ function PaymentAndDuration() {
             value: `$${containerOrWorkerType.monthlyBudgetPerWorker * targetNodesCount}`,
         },
         {
-            label: 'Expiration Date',
+            label: 'End Date',
             value: addMonths(new Date(), duration).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',

@@ -3,18 +3,21 @@ import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
 import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
-import { DraftJob, JobType, RunningJob } from '@typedefs/deeploys';
+import { DraftJob, JobType, RunningJob, RunningJobWithResources } from '@typedefs/deeploys';
 // import GenericJobList from './job-lists/GenericJobList';
 // import NativeJobList from './job-lists/NativeJobList';
 // import ServiceJobList from './job-lists/ServiceJobList';
 import GenericDraftJobsList from '@components/draft/job-lists/GenericDraftJobsList';
 import NativeDraftJobsList from '@components/draft/job-lists/NativeDraftJobsList';
 import ServiceDraftJobsList from '@components/draft/job-lists/ServiceDraftJobsList';
+import { getRunningJobResources } from '@data/containerResources';
 import CustomTabs from '@shared/CustomTabs';
 import EmptyData from '@shared/EmptyData';
 import AddJobCard from '@shared/projects/AddJobCard';
+import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { RiBox2Line, RiDraftLine, RiFileTextLine } from 'react-icons/ri';
+import GenericRunningJobsList from './job-lists/GenericRunningJobsList';
 import RunningJobsStats from './RunningJobsStats';
 
 export default function ProjectOverview({
@@ -27,11 +30,29 @@ export default function ProjectOverview({
     draftJobs: DraftJob[] | undefined;
 }) {
     const [selectedTab, setSelectedTab] = useState<'runningJobs' | 'draftJobs'>('runningJobs');
+    const [runningJobsWithResources, setRunningJobsWithResources] = useState<RunningJobWithResources[]>([]);
 
     useEffect(() => {
         console.log('runningJobs', runningJobs);
         console.log('draftJobs', draftJobs);
     }, [runningJobs, draftJobs]);
+
+    useEffect(() => {
+        const runningJobsWithResources: RunningJobWithResources[] = _(runningJobs)
+            .map((job) => {
+                const resources = getRunningJobResources(job.jobType);
+
+                if (!resources) {
+                    return undefined;
+                }
+
+                return { ...job, resources };
+            })
+            .filter((job) => job !== undefined)
+            .value();
+
+        setRunningJobsWithResources(runningJobsWithResources);
+    }, [runningJobs]);
 
     return (
         <div className="col gap-12">
@@ -81,9 +102,28 @@ export default function ProjectOverview({
                     />
                 </div>
 
-                {/* {selectedTab === 'runningJobs' && (
-                    <RunningJobsList jobs={runningJobs} />
-                )} */}
+                {selectedTab === 'runningJobs' && (
+                    <>
+                        {!!runningJobsWithResources && runningJobsWithResources.length > 0 ? (
+                            <>
+                                {runningJobsWithResources.filter((job) => job.resources.jobType === JobType.Generic).length >
+                                    0 && (
+                                    <GenericRunningJobsList
+                                        jobs={runningJobsWithResources.filter(
+                                            (job) => job.resources.jobType === JobType.Generic,
+                                        )}
+                                    />
+                                )}
+                            </>
+                        ) : (
+                            <EmptyData
+                                title="No drafts"
+                                description="Draft jobs will be displayed here"
+                                icon={<RiDraftLine />}
+                            />
+                        )}
+                    </>
+                )}
 
                 {selectedTab === 'draftJobs' && (
                     <>

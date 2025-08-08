@@ -1,14 +1,14 @@
 import { getRunningJobResources } from '@data/containerResources';
 import { config, environment } from '@lib/config';
 import { routePath } from '@lib/routes/route-paths';
-import { getShortAddressOrHash } from '@lib/utils';
+import { addTimeFn, diffTimeFn, getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
 import Usage from '@shared/projects/Usage';
 import { SmallTag } from '@shared/SmallTag';
 import { RunningJob } from '@typedefs/deeploys';
 import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
-import { addDays, addHours, differenceInDays, differenceInHours, formatDistanceStrict } from 'date-fns';
+import { addDays, differenceInDays, formatDistanceStrict } from 'date-fns';
 import _ from 'lodash';
 import { RiArrowRightSLine, RiCalendarLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
@@ -30,9 +30,6 @@ export default function RunningCard({
         );
         return epochsCovered;
     };
-
-    const addFn = environment === 'mainnet' ? addDays : addHours;
-    const diffFn = environment === 'mainnet' ? differenceInDays : differenceInHours;
 
     return (
         <Link to={`${routePath.deeploys}/${routePath.project}/${projectHash}`}>
@@ -76,13 +73,13 @@ export default function RunningCard({
 
                         <div className="min-w-[164px]">
                             <CardItem
-                                label="Expiration Date"
+                                label="End Date"
                                 value={
                                     <SmallTag>
                                         <div className="row gap-1">
                                             <RiCalendarLine className="text-sm" />
 
-                                            {addFn(
+                                            {addTimeFn(
                                                 config.genesisDate,
                                                 Number(
                                                     (_.maxBy(jobs, (job) => job.lastExecutionEpoch) as RunningJob)
@@ -109,7 +106,7 @@ export default function RunningCard({
                             label="Next payment due"
                             value={() => {
                                 const allJobsPaidInFull = jobs.every((job) => {
-                                    const expirationDate = addFn(config.genesisDate, Number(job.lastExecutionEpoch));
+                                    const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
                                     const daysLeftUntilExpiration = differenceInDays(expirationDate, new Date());
                                     const daysLeftUntilNextPayment = getDaysLeftUntilNextPayment(job);
 
@@ -150,8 +147,7 @@ export default function RunningCard({
                             const targetNodes = Number(job.numberOfNodesRequested);
 
                             const requestDate = new Date(Number(job.requestTimestamp) * 1000);
-
-                            const expirationDate = addFn(config.genesisDate, Number(job.lastExecutionEpoch));
+                            const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
 
                             const daysLeftUntilExpiration = differenceInDays(expirationDate, new Date());
                             const daysLeftUntilNextPayment = getDaysLeftUntilNextPayment(job);
@@ -202,8 +198,8 @@ export default function RunningCard({
 
                                         <div className="w-[200px]">
                                             <Usage
-                                                used={diffFn(new Date(), requestDate)}
-                                                total={diffFn(expirationDate, requestDate) + 1}
+                                                used={diffTimeFn(new Date(), requestDate)}
+                                                total={diffTimeFn(expirationDate, requestDate) + 1}
                                                 isColored
                                             />
                                         </div>

@@ -1,7 +1,7 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
-import JobList from '@shared/jobs/drafts/JobList';
+import DraftJobsList from '@shared/jobs/drafts/DraftJobsList';
 import { SmallTag } from '@shared/SmallTag';
 import { GenericDraftJob, JobType } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
@@ -18,7 +18,7 @@ export default function GenericDraftJobsList({ jobs }: { jobs: GenericDraftJob[]
     const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
-        <JobList
+        <DraftJobsList
             cardHeader={
                 <div className="row gap-1.5">
                     <RiBox3Line className="text-primary-500 text-lg" />

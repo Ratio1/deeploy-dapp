@@ -1,6 +1,12 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { genericContainerTypes, gpuTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerResources';
+import {
+    ContainerOrWorkerType,
+    genericContainerTypes,
+    gpuTypes,
+    nativeWorkerTypes,
+    serviceContainerTypes,
+} from '@data/containerResources';
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
@@ -161,6 +167,7 @@ type DraftProject = {
     createdAt: string;
 };
 
+// Running
 type RunningJob = {
     id: bigint;
     projectHash: string;
@@ -174,6 +181,13 @@ type RunningJob = {
     balance: bigint;
     lastAllocatedEpoch: bigint;
     activeNodes: readonly EthAddress[];
+};
+
+type RunningJobWithResources = RunningJob & {
+    resources: {
+        jobType: JobType;
+        containerOrWorkerType: ContainerOrWorkerType;
+    };
 };
 
 type RunningProject = {
@@ -191,6 +205,7 @@ export type {
     NativeDraftJob,
     NativeJobSpecifications,
     RunningJob,
+    RunningJobWithResources,
     RunningProject,
     ServiceDraftJob,
     ServiceJobSpecifications,

@@ -38,10 +38,10 @@ function Item({ label, value, color }: { label: string; value: number; color: st
                 <span className="text-slate-500">{label}:</span>{' '}
                 <span className="font-medium">
                     {value < 1 ? (
-                        <>{'<1 month'}</>
+                        <>{'<1 epoch'}</>
                     ) : (
                         <>
-                            {value} month{value > 1 ? 's' : ''}
+                            {value} epoch{value > 1 ? 's' : ''}
                         </>
                     )}
                 </span>

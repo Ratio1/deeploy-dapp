@@ -11,7 +11,7 @@ interface Job {
     [key: string]: any;
 }
 
-export default function JobList({
+export default function DraftJobsList({
     cardHeader,
     tableHeader,
     jobs,

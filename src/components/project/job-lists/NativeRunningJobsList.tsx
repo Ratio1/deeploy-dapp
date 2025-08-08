@@ -1,6 +1,6 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
-import JobList from '@shared/jobs/projects/JobList';
+import RunningJobsList from '@shared/jobs/projects/RunningJobsList';
 import { SmallTag } from '@shared/SmallTag';
 import { DraftProject, NativeDraftJob } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
@@ -9,13 +9,13 @@ const widthClasses = [
     'min-w-[64px]', // id
     'min-w-[128px]', // alias
     'min-w-[90px]', // targetNodes
-    'min-w-[50px]', // type
+    'min-w-[68px]', // type
     'min-w-[300px]', // containerType
 ];
 
-function NativeJobList({ jobs, project }: { jobs: NativeDraftJob[]; project: DraftProject }) {
+function NativeRunningJobsList({ jobs, project }: { jobs: NativeDraftJob[]; project: DraftProject }) {
     return (
-        <JobList
+        <RunningJobsList
             cardHeader={
                 <div className="row gap-1.5">
                     <RiTerminalBoxLine className="text-lg text-green-600" />
@@ -24,7 +24,7 @@ function NativeJobList({ jobs, project }: { jobs: NativeDraftJob[]; project: Dra
             }
             tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Type', 'Worker Type'], widthClasses)}</>}
             jobs={jobs}
-            project={project}
+            projectHash={project}
             renderJob={(job) => {
                 const nativeJob = job as NativeDraftJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
@@ -60,4 +60,4 @@ function NativeJobList({ jobs, project }: { jobs: NativeDraftJob[]; project: Dra
     );
 }
 
-export default NativeJobList;
+export default NativeRunningJobsList;

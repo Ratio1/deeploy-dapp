@@ -1,6 +1,6 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
-import JobList from '@shared/jobs/projects/JobList';
+import RunningJobsList from '@shared/jobs/projects/RunningJobsList';
 import { SmallTag } from '@shared/SmallTag';
 import { DraftProject, ServiceDraftJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
@@ -13,9 +13,9 @@ const widthClasses = [
     'min-w-[300px]', // containerType
 ];
 
-function ServiceJobList({ jobs, project }: { jobs: ServiceDraftJob[]; project: DraftProject }) {
+function ServiceRunningJobsList({ jobs, project }: { jobs: ServiceDraftJob[]; project: DraftProject }) {
     return (
-        <JobList
+        <RunningJobsList
             cardHeader={
                 <div className="row gap-1.5">
                     <RiDatabase2Line className="text-lg text-purple-500" />
@@ -24,7 +24,7 @@ function ServiceJobList({ jobs, project }: { jobs: ServiceDraftJob[]; project: D
             }
             tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Database', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
-            project={project}
+            projectHash={project}
             renderJob={(job) => {
                 const serviceJob = job as ServiceDraftJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
@@ -58,4 +58,4 @@ function ServiceJobList({ jobs, project }: { jobs: ServiceDraftJob[]; project: D
     );
 }
 
-export default ServiceJobList;
+export default ServiceRunningJobsList;

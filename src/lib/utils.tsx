@@ -15,11 +15,13 @@ import {
     NativeJobSpecifications,
     ServiceJobSpecifications,
 } from '@typedefs/deeploys';
+import { addDays, addHours, differenceInDays, differenceInHours } from 'date-fns';
 import { throttle } from 'lodash';
 import { JSX } from 'react';
 import toast from 'react-hot-toast';
 import { RiCodeSSlashLine } from 'react-icons/ri';
 import { formatUnits } from 'viem';
+import { environment } from './config';
 
 /**
  * Sleep function that returns a Promise that resolves after the specified delay
@@ -111,7 +113,7 @@ export const getDiscountPercentage = (paymentMonthsCount: number): number => {
 
 export const getJobCost = (job: DraftJob): number => {
     const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-    const gpuType: GpuType | undefined = getGpuType(job.specifications);
+    const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
 
     return (
         job.paymentAndDuration.paymentMonthsCount *
@@ -139,7 +141,7 @@ export const getContainerOrWorkerType = (jobType: JobType, specifications: JobSp
     return containerOrWorkerType;
 };
 
-export const getGpuType = (specifications: JobSpecifications): GpuType | undefined => {
+export const getGpuType = (specifications: GenericJobSpecifications | NativeJobSpecifications): GpuType | undefined => {
     return specifications.gpuType ? gpuTypes.find((type) => type.name === specifications.gpuType) : undefined;
 };
 
@@ -221,3 +223,6 @@ export const generateNonce = (): string => {
     const unixTimestamp = now.getTime();
     return `0x${unixTimestamp.toString(16)}`;
 };
+
+export const addTimeFn = environment === 'mainnet' ? addDays : addHours;
+export const diffTimeFn = environment === 'mainnet' ? differenceInDays : differenceInHours;
