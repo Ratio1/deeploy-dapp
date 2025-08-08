@@ -22,10 +22,10 @@ export default function RunningJobsList({
         <CompactCustomCard
             header={
                 <div className="row justify-between">
-                    <div className="row gap-2">
+                    <div className="row min-h-[28px] gap-2">
                         {cardHeader}
 
-                        <div className="center-all bg-light h-5 min-h-[28px] w-5 rounded-full">
+                        <div className="center-all bg-light h-5 w-5 rounded-full">
                             <div className="text-xs font-medium text-slate-600">{jobs.length}</div>
                         </div>
                     </div>
@@ -45,7 +45,7 @@ export default function RunningJobsList({
                 const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
 
                 return (
-                    <div key={job.id} className="col gap-4 border-t-2 border-slate-200/65 px-4 py-4 text-[13px]">
+                    <div key={job.id} className="col gap-4 border-t-2 border-slate-200/65 px-4 py-5 text-[13px]">
                         {/* Content */}
                         <div className="row justify-between gap-2">
                             {renderJob(job)}

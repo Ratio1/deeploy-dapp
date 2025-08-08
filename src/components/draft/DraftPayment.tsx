@@ -271,11 +271,12 @@ export default function DraftPayment({ project, jobs }: { project: DraftProject;
         });
     };
 
-    const signAndBuildRequest = async (jobId: number, projectHash: string, payload: any) => {
+    const signAndBuildRequest = async (jobId: number, payload: any) => {
         const payloadWithIdentifiers = {
             ...payload,
             job_id: jobId,
-            project_id: projectHash,
+            project_id: project.projectHash,
+            project_name: project.name,
         };
 
         const message = buildDeeployMessage(payloadWithIdentifiers);
@@ -364,7 +365,7 @@ export default function DraftPayment({ project, jobs }: { project: DraftProject;
             const requests = await Promise.all(
                 payloads.map((payload, index) => {
                     const jobId = Number(jobIds[index]);
-                    return signAndBuildRequest(jobId, projectHash, payload);
+                    return signAndBuildRequest(jobId, payload);
                 }),
             );
 

@@ -1,23 +1,22 @@
+import GenericDraftJobsList from '@components/draft/job-lists/GenericDraftJobsList';
+import NativeDraftJobsList from '@components/draft/job-lists/NativeDraftJobsList';
+import ServiceDraftJobsList from '@components/draft/job-lists/ServiceDraftJobsList';
+import { getRunningJobResources } from '@data/containerResources';
 import { getShortAddressOrHash } from '@lib/utils';
+import CustomTabs from '@shared/CustomTabs';
+import EmptyData from '@shared/EmptyData';
+import AddJobCard from '@shared/projects/AddJobCard';
 import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
 import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
 import { DraftJob, JobType, RunningJob, RunningJobWithResources } from '@typedefs/deeploys';
-// import GenericJobList from './job-lists/GenericJobList';
-// import NativeJobList from './job-lists/NativeJobList';
-// import ServiceJobList from './job-lists/ServiceJobList';
-import GenericDraftJobsList from '@components/draft/job-lists/GenericDraftJobsList';
-import NativeDraftJobsList from '@components/draft/job-lists/NativeDraftJobsList';
-import ServiceDraftJobsList from '@components/draft/job-lists/ServiceDraftJobsList';
-import { getRunningJobResources } from '@data/containerResources';
-import CustomTabs from '@shared/CustomTabs';
-import EmptyData from '@shared/EmptyData';
-import AddJobCard from '@shared/projects/AddJobCard';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { RiBox2Line, RiDraftLine, RiFileTextLine } from 'react-icons/ri';
 import GenericRunningJobsList from './job-lists/GenericRunningJobsList';
+import NativeRunningJobsList from './job-lists/NativeRunningJobsList';
+import ServiceRunningJobsList from './job-lists/ServiceRunningJobsList';
 import RunningJobsStats from './RunningJobsStats';
 
 export default function ProjectOverview({
@@ -68,7 +67,7 @@ export default function ProjectOverview({
 
                     <div className="row gap-2">
                         <CancelButton tab="projects" />
-                        <PaymentButton isDisabled={runningJobs?.length === 0} />
+                        <PaymentButton isDisabled={draftJobs?.length === 0} />
                     </div>
                 </div>
 
@@ -114,13 +113,31 @@ export default function ProjectOverview({
                                         )}
                                     />
                                 )}
+                                {runningJobsWithResources.filter((job) => job.resources.jobType === JobType.Native).length >
+                                    0 && (
+                                    <NativeRunningJobsList
+                                        jobs={runningJobsWithResources.filter(
+                                            (job) => job.resources.jobType === JobType.Native,
+                                        )}
+                                    />
+                                )}
+                                {runningJobsWithResources.filter((job) => job.resources.jobType === JobType.Service).length >
+                                    0 && (
+                                    <ServiceRunningJobsList
+                                        jobs={runningJobsWithResources.filter(
+                                            (job) => job.resources.jobType === JobType.Service,
+                                        )}
+                                    />
+                                )}
                             </>
                         ) : (
-                            <EmptyData
-                                title="No drafts"
-                                description="Draft jobs will be displayed here"
-                                icon={<RiDraftLine />}
-                            />
+                            <div className="py-8">
+                                <EmptyData
+                                    title="No running jobs"
+                                    description="Running jobs will be displayed here"
+                                    icon={<RiBox2Line />}
+                                />
+                            </div>
                         )}
                     </>
                 )}
@@ -140,11 +157,13 @@ export default function ProjectOverview({
                                 )}
                             </>
                         ) : (
-                            <EmptyData
-                                title="No drafts"
-                                description="Draft jobs will be displayed here"
-                                icon={<RiDraftLine />}
-                            />
+                            <div className="py-8">
+                                <EmptyData
+                                    title="No drafts"
+                                    description="Draft jobs will be displayed here"
+                                    icon={<RiDraftLine />}
+                                />
+                            </div>
                         )}
                     </>
                 )}
