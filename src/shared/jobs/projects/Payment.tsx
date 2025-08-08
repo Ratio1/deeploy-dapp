@@ -231,6 +231,7 @@ export default function Payment({
 
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
+                    callback();
                 }, 1000);
             } else {
                 deeployFlowModalRef.current?.displayError();
