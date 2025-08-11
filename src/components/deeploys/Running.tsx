@@ -86,7 +86,7 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
 
             console.log('[Running] fetchApps', response);
 
-            setRefreshRequired(false);
+            // setRefreshRequired(false); TODO: Uncomment this
         } catch (error) {
             console.error('[Running] fetchApps', error);
             toast.error('Failed to refresh running jobs.');

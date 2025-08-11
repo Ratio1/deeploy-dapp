@@ -1,5 +1,6 @@
 export const routePath = {
     root: '/',
+    login: '/login',
     home: '/home',
     deeploys: '/deeploys',
     // Children of /deeploys

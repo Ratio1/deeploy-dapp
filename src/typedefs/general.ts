@@ -14,4 +14,10 @@ type BillingInfo = {
     city: string;
 };
 
-export type { BillingInfo, Invoice };
+enum AuthState {
+    SignedIn = 'signedIn',
+    SignedOut = 'signedOut',
+    NotConnected = 'notConnected',
+}
+
+export type { AuthState, BillingInfo, Invoice };

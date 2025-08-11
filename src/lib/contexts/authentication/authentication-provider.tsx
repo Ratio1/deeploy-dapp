@@ -10,27 +10,31 @@ import { AuthenticationContext } from './context';
 
 export const AuthenticationProvider = ({ children }) => {
     const { isConnected, address } = useAccount();
-    const { isSignedIn: authenticated } = useSIWE({
+    const { isSignedIn } = useSIWE({
         onSignIn: (session?: SIWESession) => {
-            console.log('Signed in:', session);
+            console.log('Signed in (SIWE):', session);
         },
     });
+
     const { open: modalOpen, openSIWE } = useModal();
     const [account, setAccount] = useState<ApiAccount>();
 
+    // Only 'undefined' if never fetched
+    const [isFetchAppsRequired, setFetchAppsRequired] = useState<boolean | undefined>();
+
     // SIWE
     useEffect(() => {
-        if (isConnected && !authenticated && !modalOpen && address !== config.safeAddress) {
+        if (isConnected && !isSignedIn && !modalOpen && address !== config.safeAddress) {
             openSIWE();
         }
-    }, [isConnected, authenticated, modalOpen, address]);
+    }, [isConnected, isSignedIn, modalOpen, address]);
 
     useEffect(() => {
-        if (authenticated) {
-            console.log('User is authenticated');
+        if (isSignedIn) {
+            console.log('User is signed in');
             fetchAccount();
         }
-    }, [authenticated]);
+    }, [isSignedIn]);
 
     const {
         refetch,
@@ -68,13 +72,16 @@ export const AuthenticationProvider = ({ children }) => {
         <AuthenticationContext.Provider
             value={{
                 // SIWE
-                authenticated,
+                isSignedIn,
                 // Account
                 account,
                 setAccount,
                 fetchAccount,
                 isFetchingAccount,
                 accountFetchError,
+                // get_apps
+                isFetchAppsRequired,
+                setFetchAppsRequired,
             }}
         >
             {children}

@@ -2,7 +2,6 @@ import { ERC20Abi } from '@blockchain/ERC20';
 import { MNDContractAbi } from '@blockchain/MNDContract';
 import { NDContractAbi } from '@blockchain/NDContract';
 import { config } from '@lib/config';
-import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiExternalLinkLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
@@ -12,20 +11,8 @@ import { useAccount, usePublicClient } from 'wagmi';
 import { BlockchainContext } from './context';
 
 export const BlockchainProvider = ({ children }) => {
-    const [r1Balance, setR1Balance] = useState<bigint>(0n);
-
     const { address } = useAccount();
     const publicClient = usePublicClient();
-
-    useEffect(() => {
-        if (publicClient && address) {
-            fetchR1Balance();
-        }
-    }, [address, publicClient]);
-
-    const fetchR1Balance = () => {
-        fetchErc20Balance(config.r1ContractAddress).then(setR1Balance);
-    };
 
     const fetchErc20Balance = (tokenAddress: EthAddress) => {
         if (publicClient && address) {
@@ -139,10 +126,6 @@ export const BlockchainProvider = ({ children }) => {
         <BlockchainContext.Provider
             value={{
                 watchTx,
-                // R1 Balance
-                r1Balance,
-                setR1Balance,
-                fetchR1Balance,
                 // Licenses
                 fetchLicenses,
                 // Other
