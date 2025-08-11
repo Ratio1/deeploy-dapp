@@ -58,11 +58,15 @@ function ServiceDeployment() {
             </SlateCard>
 
             <SlateCard title="ENV Variables">
-                <KeyValueEntriesSection name="deployment.envVars" />
+                <KeyValueEntriesSection name="deployment.envVars" disabledKeys={['DB_PASSWORD']} />
             </SlateCard>
 
             <SlateCard title="Dynamic ENV Variables">
                 <DynamicEnvSection />
+            </SlateCard>
+
+            <SlateCard title="Volumes">
+                <KeyValueEntriesSection name="deployment.volumes" displayLabel="volumes" placeholders={['VOLUME', 'PATH']} />
             </SlateCard>
 
             <SlateCard title="Other">

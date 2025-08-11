@@ -45,7 +45,8 @@ function JobFormButtons({ steps }: Props) {
         const isFormValid = await trigger();
 
         if (!isFormValid) {
-            toast.error('Form validation failed, cannot download JSON.');
+            toast.error('Form validation failed.');
+            console.log(getValues());
             return;
         }
 

@@ -12,6 +12,7 @@ export default function KeyValueEntriesSection({
     label,
     maxEntries,
     predefinedEntries,
+    disabledKeys,
     placeholders = ['KEY', 'VALUE'],
 }: {
     name: string;
@@ -19,6 +20,7 @@ export default function KeyValueEntriesSection({
     label?: string;
     maxEntries?: number;
     predefinedEntries?: { key: string; value: string }[];
+    disabledKeys?: string[];
     placeholders?: [string, string];
 }) {
     const { control, formState, trigger } = useFormContext();
@@ -107,6 +109,7 @@ export default function KeyValueEntriesSection({
                                                                 ? errors.root.message
                                                                 : undefined)
                                                         }
+                                                        isDisabled={disabledKeys?.includes(field.value)}
                                                     />
                                                 );
                                             }}
@@ -137,7 +140,9 @@ export default function KeyValueEntriesSection({
                                         />
                                     </div>
 
-                                    <VariableSectionRemove onClick={() => remove(index)} />
+                                    <div className={disabledKeys?.includes((field as any).key) ? 'invisible' : ''}>
+                                        <VariableSectionRemove onClick={() => remove(index)} />
+                                    </div>
                                 </div>
                             );
                         })

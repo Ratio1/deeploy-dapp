@@ -90,6 +90,7 @@ function JobFormWrapper() {
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
+            envVars: [{ key: 'DB_PASSWORD', value: '' }],
         },
     });
 
