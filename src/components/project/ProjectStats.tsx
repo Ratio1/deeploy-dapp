@@ -61,7 +61,7 @@ export default function ProjectStats({
 function Item({ label, value, isLast = false }: { label: string; value: string | React.ReactNode; isLast?: boolean }) {
     return (
         <div className={clsx('col gap-0.5', isLast && 'text-right')}>
-            <div className="text-right text-[15px] font-medium text-slate-500">{label}</div>
+            <div className="text-[15px] font-medium text-slate-500">{label}</div>
             <div className="text-[19px] font-semibold">{value}</div>
         </div>
     );

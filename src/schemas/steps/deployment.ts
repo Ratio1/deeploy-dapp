@@ -70,6 +70,7 @@ const validations = {
         ),
     customParams: getKeyValueEntriesArraySchema(50),
     pipelineParams: getKeyValueEntriesArraySchema(50),
+    volumes: getKeyValueEntriesArraySchema(),
 
     // Enum patterns
     restartPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
@@ -175,6 +176,7 @@ export const genericAppDeploymentSchema = applyTunnelingRefinements(
         port: validations.port,
         envVars: validations.envVars,
         dynamicEnvVars: validations.dynamicEnvVars,
+        volumes: validations.volumes,
         restartPolicy: validations.restartPolicy,
         imagePullPolicy: validations.imagePullPolicy,
     }),
@@ -216,6 +218,7 @@ export const serviceAppDeploymentSchema = applyTunnelingRefinements(
         jobAlias: validations.jobAlias,
         envVars: validations.envVars,
         dynamicEnvVars: validations.dynamicEnvVars,
+        volumes: validations.volumes,
         serviceReplica: nodeSchema.shape.address,
     }),
 );

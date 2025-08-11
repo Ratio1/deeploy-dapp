@@ -67,24 +67,32 @@ export default function RunningJobsList({
                         <div className="row bg-slate-75 justify-between gap-2 rounded-lg px-4 py-4">
                             <ItemWithLabel
                                 label="Start Date"
-                                value={requestDate.toLocaleDateString(undefined, {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                })}
+                                value={
+                                    <div className="leading-none">
+                                        {requestDate.toLocaleDateString(undefined, {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                        })}
+                                    </div>
+                                }
                             />
 
                             <ItemWithLabel
                                 label="End Date"
-                                value={expirationDate.toLocaleDateString(undefined, {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                })}
+                                value={
+                                    <div className="leading-none">
+                                        {expirationDate.toLocaleDateString(undefined, {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                        })}
+                                    </div>
+                                }
                             />
 
                             <ItemWithLabel label="Next payment due" value={<SmallTag variant="green">Paid in full</SmallTag>} />
@@ -107,7 +115,7 @@ export default function RunningJobsList({
 
 function ItemWithLabel({ label, value }: { label: string; value: string | React.ReactNode }) {
     return (
-        <div className="col gap-0.5">
+        <div className="col gap-1">
             <div className="font-medium text-slate-500">{label}</div>
             {value}
         </div>

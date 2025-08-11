@@ -93,6 +93,10 @@ type GenericJobDeployment = BaseJobDeployment & {
             value: string;
         }>;
     }>;
+    volumes: Array<{
+        key: string;
+        value: string;
+    }>;
     restartPolicy: (typeof POLICY_TYPES)[number];
     imagePullPolicy: (typeof POLICY_TYPES)[number];
 };
@@ -126,6 +130,10 @@ type ServiceJobDeployment = BaseJobDeployment & {
             type: (typeof DYNAMIC_ENV_TYPES)[number];
             value: string;
         }>;
+    }>;
+    volumes: Array<{
+        key: string;
+        value: string;
     }>;
     serviceReplica: R1Address;
 };

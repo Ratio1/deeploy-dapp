@@ -3,7 +3,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
-import Payment from '@shared/jobs/projects/Payment';
+import Payment from '@shared/projects/Payment';
 import { DraftJob, ProjectPage, type DraftProject } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';

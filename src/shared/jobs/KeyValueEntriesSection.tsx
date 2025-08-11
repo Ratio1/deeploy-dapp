@@ -11,13 +11,15 @@ export default function KeyValueEntriesSection({
     displayLabel = 'entries',
     label,
     maxEntries,
-    defaultEntries,
+    predefinedEntries,
+    placeholders = ['KEY', 'VALUE'],
 }: {
     name: string;
     displayLabel?: string;
     label?: string;
     maxEntries?: number;
-    defaultEntries?: { key: string; value: string }[];
+    predefinedEntries?: { key: string; value: string }[];
+    placeholders?: [string, string];
 }) {
     const { control, formState, trigger } = useFormContext();
 
@@ -41,9 +43,9 @@ export default function KeyValueEntriesSection({
                 )}
 
                 <div className="col gap-2">
-                    {!!defaultEntries && defaultEntries.length > 0 && (
+                    {!!predefinedEntries && predefinedEntries.length > 0 && (
                         <>
-                            {defaultEntries.map((entry, index) => (
+                            {predefinedEntries.map((entry, index) => (
                                 <div key={entry.key} className="flex gap-3">
                                     <VariableSectionIndex index={index} />
 
@@ -69,7 +71,7 @@ export default function KeyValueEntriesSection({
 
                             return (
                                 <div key={field.id} className="flex gap-3">
-                                    <VariableSectionIndex index={index + (defaultEntries?.length ?? 0)} />
+                                    <VariableSectionIndex index={index + (predefinedEntries?.length ?? 0)} />
 
                                     <div className="flex w-full gap-2">
                                         <Controller
@@ -83,7 +85,7 @@ export default function KeyValueEntriesSection({
 
                                                 return (
                                                     <StyledInput
-                                                        placeholder="KEY"
+                                                        placeholder={placeholders[0]}
                                                         value={field.value ?? ''}
                                                         onChange={async (e) => {
                                                             const value = e.target.value;
@@ -120,7 +122,7 @@ export default function KeyValueEntriesSection({
 
                                                 return (
                                                     <StyledInput
-                                                        placeholder="VALUE"
+                                                        placeholder={placeholders[1]}
                                                         value={field.value ?? ''}
                                                         onChange={(e) => {
                                                             const value = e.target.value;

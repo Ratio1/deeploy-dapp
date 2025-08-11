@@ -103,6 +103,16 @@ export const formatDynamicEnvVars = (dynamicEnvVars: { key: string; values: { ty
     return formatted;
 };
 
+export const formatVolumes = (volumes: { key: string; value: string }[]) => {
+    const formatted: Record<string, string> = {};
+    volumes.forEach((volume) => {
+        if (volume.key) {
+            formatted[volume.key] = volume.value;
+        }
+    });
+    return formatted;
+};
+
 export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType) => {
     return {
         cpu: containerOrWorkerType.cores,
@@ -126,6 +136,7 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
 
     const envVars = formatEnvVars(job.deployment.envVars);
     const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
+    const volumes = formatVolumes(job.deployment.volumes);
     const containerResources = formatContainerResources(containerType);
     const targetNodes = formatTargetNodes(job.deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, job.specifications.targetNodesCount);
@@ -165,7 +176,7 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
             NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
             TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
             NGROK_USE_API: true,
-            VOLUMES: {}, // TODO: Implement
+            VOLUMES: volumes,
             ENV: envVars,
             DYNAMIC_ENV: dynamicEnvVars,
             RESTART_POLICY: job.deployment.restartPolicy.toLowerCase(),
@@ -226,8 +237,8 @@ export const formatNativeJobPayload = (job: NativeDraftJob) => {
         node_res_req: nodeResourceRequirements,
         TUNNEL_ENGINE: 'cloudflare',
         app_params: appParams,
-        pipeline_input_type: 'void', // TODO: job.deployment.pipelineInputType,
-        pipeline_input_uri: null, // TODO: job.deployment.pipelineInputUri,
+        pipeline_input_type: job.deployment.pipelineInputType,
+        pipeline_input_uri: job.deployment.pipelineInputUri,
         pipeline_params: !_.isEmpty(pipelineParams) ? pipelineParams : {},
         chainstore_response: false,
     };
@@ -238,6 +249,7 @@ export const formatServiceJobPayload = (job: ServiceDraftJob) => {
 
     const envVars = formatEnvVars(job.deployment.envVars);
     const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
+    const volumes = formatVolumes(job.deployment.volumes);
     const containerResources = formatContainerResources(containerType);
     const targetNodes = formatTargetNodes(job.deployment.targetNodes);
 
@@ -259,7 +271,7 @@ export const formatServiceJobPayload = (job: ServiceDraftJob) => {
             NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
             TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
             NGROK_USE_API: true,
-            VOLUMES: {}, // TODO: Implement
+            VOLUMES: volumes,
             ENV: envVars,
             DYNAMIC_ENV: dynamicEnvVars,
             RESTART_POLICY: 'always',

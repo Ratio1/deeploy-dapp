@@ -31,7 +31,7 @@ import toast from 'react-hot-toast';
 import { RiBox3Line, RiDraftLine } from 'react-icons/ri';
 import { decodeEventLog } from 'viem';
 import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wagmi';
-import ProjectIdentity from './ProjectIdentity';
+import ProjectIdentity from '../jobs/projects/ProjectIdentity';
 
 export default function Payment({
     projectHash,

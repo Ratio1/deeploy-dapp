@@ -76,6 +76,7 @@ function JobFormWrapper() {
             pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
             customParams: [{ key: '', value: '' }],
             pipelineParams: [{ key: '', value: '' }],
+            pipelineInputType: 'void',
             chainstoreResponse: BOOLEAN_TYPES[1],
         },
     });

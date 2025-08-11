@@ -39,12 +39,6 @@ function GenericDeployment() {
                                 label="Tunnel Token"
                                 placeholder="Starts with 'ey'"
                             />
-                            {/* <InputWithLabel
-                                name="deployment.tunnelingLabel"
-                                label="Tunneling Label"
-                                placeholder="None"
-                                isOptional
-                            /> */}
                         </div>
                     )}
                 </div>
@@ -56,6 +50,10 @@ function GenericDeployment() {
 
             <SlateCard title="Dynamic ENV Variables">
                 <DynamicEnvSection />
+            </SlateCard>
+
+            <SlateCard title="Volumes">
+                <KeyValueEntriesSection name="deployment.volumes" displayLabel="volumes" placeholders={['VOLUME', 'PATH']} />
             </SlateCard>
 
             <SlateCard title="Policies">

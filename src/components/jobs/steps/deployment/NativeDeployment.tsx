@@ -43,12 +43,6 @@ function NativeDeployment() {
                                 label="Tunnel Token"
                                 placeholder="Starts with 'ey'"
                             />
-                            {/* <InputWithLabel
-                                name="deployment.tunnelingLabel"
-                                label="Tunneling Label"
-                                placeholder="None"
-                                isOptional
-                            /> */}
                         </div>
                     )}
                 </div>
@@ -59,15 +53,25 @@ function NativeDeployment() {
                     name="deployment.customParams"
                     displayLabel="custom parameters"
                     maxEntries={50}
-                    defaultEntries={pluginSignaturesCustomParams[pluginSignature] ?? []}
+                    predefinedEntries={pluginSignaturesCustomParams[pluginSignature] ?? []}
                 />
             </SlateCard>
 
             <SlateCard title="Pipeline">
                 <div className="col gap-4">
                     <div className="flex gap-4">
-                        <InputWithLabel name="deployment.pipelineInputType" label="Pipeline Input Type" placeholder="None" />
-                        <InputWithLabel name="deployment.pipelineInputUri" label="Pipeline Input URI" placeholder="None" />
+                        <InputWithLabel
+                            name="deployment.pipelineInputType"
+                            label="Pipeline Input Type"
+                            placeholder="None"
+                            isDisabled
+                        />
+                        <InputWithLabel
+                            name="deployment.pipelineInputUri"
+                            label="Pipeline Input URI"
+                            placeholder="None"
+                            isDisabled
+                        />
                     </div>
 
                     <KeyValueEntriesSection
