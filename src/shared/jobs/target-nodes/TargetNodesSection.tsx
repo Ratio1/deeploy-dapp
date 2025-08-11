@@ -2,12 +2,11 @@ import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine } from 'react-icons/ri';
 import VariableSectionIndex from '../VariableSectionIndex';
-import VariableSectionRemove from '../VariableSectionRemove';
 
 // This component assumes it's being used in the deployment step
 export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean }) {
     const { control, watch, formState, trigger } = useFormContext();
-    const { fields, append, remove } = useFieldArray({
+    const { fields, append } = useFieldArray({
         control,
         name: 'deployment.targetNodes',
     });
@@ -72,16 +71,9 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                             );
                                         }}
                                     />
-
-                                    <VariableSectionRemove onClick={() => remove(index)} />
                                 </div>
                             );
                         })}
-
-                        <div className="text-sm text-slate-500 italic">
-                            {fields.length === 0 && 'No target nodes added yet. '}
-                            Remaining unspecified nodes will be auto-assigned.
-                        </div>
                     </div>
 
                     {fields.length < targetNodesCount && (

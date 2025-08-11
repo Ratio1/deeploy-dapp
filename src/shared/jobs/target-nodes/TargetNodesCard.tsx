@@ -6,14 +6,21 @@ import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 function TargetNodesCard() {
+    const { watch } = useFormContext();
+
     const [autoAssign, setAutoAssign] = useState(true);
     const { setValue } = useFormContext();
 
+    const targetNodesCount: number = watch('specifications.targetNodesCount');
+
     useEffect(() => {
         if (autoAssign) {
-            setValue('deployment.targetNodes', [{ address: '' }]);
+            setValue(
+                'deployment.targetNodes',
+                Array.from({ length: targetNodesCount }, () => ({ address: '' })),
+            );
         }
-    }, [autoAssign]);
+    }, [autoAssign, targetNodesCount]);
 
     return (
         <SlateCard
