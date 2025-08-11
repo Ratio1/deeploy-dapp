@@ -1,4 +1,5 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
+import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import {
@@ -143,6 +144,7 @@ const imageContainerSchema = z.object({
     type: z.literal('image'),
     containerImage: validations.containerImage,
     containerRegistry: validations.containerRegistry,
+    crVisibility: z.enum(CR_VISIBILITY_OPTIONS, { required_error: 'Value is required' }),
     crUsername: validations.crUsername,
     crPassword: validations.crPassword,
 });
