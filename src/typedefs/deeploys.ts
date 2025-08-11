@@ -7,6 +7,7 @@ import {
     nativeWorkerTypes,
     serviceContainerTypes,
 } from '@data/containerResources';
+import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
@@ -70,8 +71,9 @@ type GenericJobDeployment = BaseJobDeployment & {
               type: 'image';
               containerImage: string;
               containerRegistry: string;
-              crUsername: string;
-              crPassword: string;
+              crVisibility: (typeof CR_VISIBILITY_OPTIONS)[number];
+              crUsername?: string;
+              crPassword?: string;
           }
         | {
               type: 'worker';

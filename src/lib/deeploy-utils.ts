@@ -131,19 +131,18 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
     const targetNodesCount = formatTargetNodesCount(targetNodes, job.specifications.targetNodesCount);
 
     let image = 'repo/image:tag';
-    let crData = {
-        SERVER: 'docker.io',
-        USERNAME: 'user',
-        PASSWORD: 'password',
-    };
+    let crData = {};
 
     if (job.deployment.container.type === 'image') {
         image = job.deployment.container.containerImage;
-        crData = {
-            SERVER: job.deployment.container.containerRegistry,
-            USERNAME: job.deployment.container.crUsername,
-            PASSWORD: job.deployment.container.crPassword,
-        };
+
+        if (job.deployment.container.crVisibility === 'Private') {
+            crData = {
+                SERVER: job.deployment.container.containerRegistry,
+                USERNAME: job.deployment.container.crUsername,
+                PASSWORD: job.deployment.container.crPassword,
+            };
+        }
     } else {
         console.error('Worker-based container not implemented yet.');
     }
@@ -158,7 +157,7 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
         target_nodes_count: targetNodesCount,
         app_params: {
             IMAGE: image,
-            CR_DATA: {}, // TODO: Use crData
+            CR_DATA: crData,
             CONTAINER_RESOURCES: containerResources,
             PORT: job.deployment.port,
             TUNNEL_ENGINE: 'cloudflare',

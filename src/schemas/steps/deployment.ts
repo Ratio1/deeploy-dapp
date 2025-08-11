@@ -29,10 +29,6 @@ const validations = {
         .max(128, 'Value cannot exceed 128 characters')
         .regex(/^[^/]+\.[^/]+$/, 'Must be a valid domain format'),
 
-    crUsername: getStringSchema(3, 128),
-
-    crPassword: getStringSchema(3, 64),
-
     pipelineInputType: z
         .string({ required_error: 'Value is required' })
         .min(2, 'Value must be at least 2 characters')
@@ -145,8 +141,8 @@ const imageContainerSchema = z.object({
     containerImage: validations.containerImage,
     containerRegistry: validations.containerRegistry,
     crVisibility: z.enum(CR_VISIBILITY_OPTIONS, { required_error: 'Value is required' }),
-    crUsername: validations.crUsername,
-    crPassword: validations.crPassword,
+    crUsername: z.union([getStringSchema(3, 128), z.literal('')]).optional(),
+    crPassword: z.union([getStringSchema(3, 256), z.literal('')]).optional(),
 });
 
 const workerContainerSchema = z.object({
@@ -182,7 +178,25 @@ export const genericAppDeploymentSchema = applyTunnelingRefinements(
         restartPolicy: validations.restartPolicy,
         imagePullPolicy: validations.imagePullPolicy,
     }),
-);
+).superRefine((data, ctx) => {
+    // Validate that crUsername and crPassword are provided when crVisibility is 'Private'
+    if (data.container.type === 'image' && data.container.crVisibility === 'Private') {
+        if (!data.container.crUsername) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Username is required',
+                path: ['container', 'crUsername'],
+            });
+        }
+        if (!data.container.crPassword) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Password/Authentication Token is required',
+                path: ['container', 'crPassword'],
+            });
+        }
+    }
+});
 
 export const nativeAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
