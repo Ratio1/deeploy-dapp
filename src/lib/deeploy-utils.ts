@@ -83,7 +83,7 @@ export const generateNonce = (): string => {
     return `0x${unixTimestamp.toString(16)}`;
 };
 
-export const formatEnvVars = (envVars: Array<{ key: string; value: string }>) => {
+export const formatEnvVars = (envVars: { key: string; value: string }[]) => {
     const formatted: Record<string, string> = {};
     envVars.forEach((envVar) => {
         if (envVar.key) {
@@ -93,10 +93,8 @@ export const formatEnvVars = (envVars: Array<{ key: string; value: string }>) =>
     return formatted;
 };
 
-export const formatDynamicEnvVars = (
-    dynamicEnvVars: Array<{ key: string; values: Array<{ type: string; value: string }> }>,
-) => {
-    const formatted: Record<string, Array<{ type: string; value: string }>> = {};
+export const formatDynamicEnvVars = (dynamicEnvVars: { key: string; values: { type: string; value: string }[] }[]) => {
+    const formatted: Record<string, { type: string; value: string }[]> = {};
     dynamicEnvVars.forEach((dynamicEnvVar) => {
         if (dynamicEnvVar.key) {
             formatted[dynamicEnvVar.key] = dynamicEnvVar.values;
@@ -112,11 +110,14 @@ export const formatContainerResources = (containerOrWorkerType: ContainerOrWorke
     };
 };
 
-export const formatTargetNodes = (targetNodes: Array<{ address: string }>) => {
-    return targetNodes.filter((node) => !_.isEmpty(node.address)).map((node) => node.address);
+export const formatTargetNodes = (targetNodes: { address: string }[]): string[] => {
+    return _(targetNodes)
+        .filter((node) => !_.isEmpty(node.address))
+        .map((node) => node.address)
+        .value();
 };
 
-export const formatTargetNodesCount = (targetNodes: Array<{ address: string }>, specificationsTargetNodesCount: number) => {
+export const formatTargetNodesCount = (targetNodes: string[], specificationsTargetNodesCount: number) => {
     return targetNodes.length > 0 ? 0 : specificationsTargetNodesCount;
 };
 
@@ -127,7 +128,7 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
     const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
     const containerResources = formatContainerResources(containerType);
     const targetNodes = formatTargetNodes(job.deployment.targetNodes);
-    const targetNodesCount = formatTargetNodesCount(job.deployment.targetNodes, job.specifications.targetNodesCount);
+    const targetNodesCount = formatTargetNodesCount(targetNodes, job.specifications.targetNodesCount);
 
     let image = 'repo/image:tag';
     let crData = {
@@ -196,7 +197,7 @@ export const formatNativeJobPayload = (job: NativeDraftJob) => {
 
     const nodeResourceRequirements = formatContainerResources(workerType);
     const targetNodes = formatTargetNodes(job.deployment.targetNodes);
-    const targetNodesCount = formatTargetNodesCount(job.deployment.targetNodes, job.specifications.targetNodesCount);
+    const targetNodesCount = formatTargetNodesCount(targetNodes, job.specifications.targetNodesCount);
 
     const nonce = generateNonce();
 

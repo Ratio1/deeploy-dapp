@@ -29,7 +29,6 @@ import { addDays, differenceInDays, differenceInHours } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiBox3Line, RiDraftLine } from 'react-icons/ri';
-import { useNavigate } from 'react-router-dom';
 import { decodeEventLog } from 'viem';
 import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wagmi';
 import ProjectIdentity from './ProjectIdentity';
@@ -46,7 +45,6 @@ export default function Payment({
     callback: () => void;
 }) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
-    const navigate = useNavigate();
 
     const [allowance, setAllowance] = useState<bigint>(0n);
     const [totalCost, setTotalCost] = useState<number>(0);
@@ -210,8 +208,12 @@ export default function Payment({
             );
 
             // Check for any failed deployments
-            const failedJobs = responses.filter((response) => response.status === 'rejected');
-            const successfulJobs = responses.filter((response) => response.status === 'fulfilled');
+            const failedJobs = responses.filter(
+                (response) => response.status === 'rejected' || response.value.status === 'fail',
+            );
+            const successfulJobs = responses.filter(
+                (response) => response.status === 'fulfilled' && response.value.status === 'success',
+            );
 
             if (failedJobs.length > 0) {
                 console.error('Some jobs failed to deploy:', failedJobs);
