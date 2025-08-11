@@ -260,7 +260,7 @@ export const formatServiceJobPayload = (job: ServiceDraftJob) => {
         plugin_signature: 'CONTAINER_APP_RUNNER',
         nonce,
         target_nodes: targetNodes,
-        target_nodes_count: 1,
+        target_nodes_count: 1, // Service jobs are always single-node
         service_replica: job.deployment.serviceReplica,
         app_params: {
             IMAGE: containerType.image,

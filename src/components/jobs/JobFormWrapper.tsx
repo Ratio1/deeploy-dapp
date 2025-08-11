@@ -86,6 +86,7 @@ function JobFormWrapper() {
         specifications: {
             ...getBaseSchemaDefaults().specifications,
             containerType: serviceContainerTypes[0].name,
+            targetNodesCount: 1, // Service jobs are always single-node
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,

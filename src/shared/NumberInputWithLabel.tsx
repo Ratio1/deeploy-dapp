@@ -1,9 +1,10 @@
+import { InputProps } from '@heroui/input';
 import { Controller, useFormContext } from 'react-hook-form';
 import Label from './Label';
 import { SmallTag } from './SmallTag';
 import StyledInput from './StyledInput';
 
-interface Props {
+interface Props extends InputProps {
     name: string;
     label: string;
     placeholder?: string;
@@ -11,7 +12,7 @@ interface Props {
     hasWarning?: boolean;
 }
 
-export default function NumberInputWithLabel({ name, label, placeholder, tag, hasWarning }: Props) {
+export default function NumberInputWithLabel({ name, label, placeholder, tag, hasWarning, ...props }: Props) {
     const { control } = useFormContext();
 
     return (
@@ -38,6 +39,7 @@ export default function NumberInputWithLabel({ name, label, placeholder, tag, ha
                             isInvalid={!!fieldState.error}
                             errorMessage={fieldState.error?.message}
                             showsWarning={hasWarning}
+                            {...props}
                         />
                     );
                 }}

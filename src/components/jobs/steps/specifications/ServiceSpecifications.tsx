@@ -31,7 +31,7 @@ export default function ServiceSpecifications() {
                         label="Application Type"
                         options={APPLICATION_TYPES}
                     />
-                    <NumberInputWithLabel name="specifications.targetNodesCount" label="Target Nodes Count" />
+                    <NumberInputWithLabel name="specifications.targetNodesCount" label="Target Nodes Count" isDisabled />
                 </div>
             </SlateCard>
         </div>

@@ -70,7 +70,7 @@ layer(base);
 
 @layer utilities {
     input:disabled {
-        opacity: 0.7 !important;
+        opacity: 0.75 !important;
     }
 }
 
