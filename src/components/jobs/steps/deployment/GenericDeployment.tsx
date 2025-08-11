@@ -34,13 +34,17 @@ function GenericDeployment() {
 
                     {enableTunneling === BOOLEAN_TYPES[0] && (
                         <div className="flex gap-4">
-                            <InputWithLabel name="deployment.tunnelingToken" label="Tunneling Token" placeholder="None" />
                             <InputWithLabel
+                                name="deployment.tunnelingToken"
+                                label="Tunnel Token"
+                                placeholder="Starts with 'ey'"
+                            />
+                            {/* <InputWithLabel
                                 name="deployment.tunnelingLabel"
                                 label="Tunneling Label"
                                 placeholder="None"
                                 isOptional
-                            />
+                            /> */}
                         </div>
                     )}
                 </div>
