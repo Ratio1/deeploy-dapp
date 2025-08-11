@@ -6,14 +6,15 @@ import Specifications from '@components/jobs/steps/Specifications';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerResources';
+import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import db from '@lib/storage/db';
-import { isValidId } from '@lib/utils';
+import { isValidProjectHash } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
-import { Job, JobType } from '@typedefs/deeploys';
+import { DraftJob, JobType } from '@typedefs/deeploys';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -23,8 +24,7 @@ import { z } from 'zod';
 const STEPS = ['Project', 'Specifications', 'Payment & Duration', 'Deployment'];
 
 function JobFormWrapper() {
-    const { id: projectId } = useParams();
-
+    const { projectHash } = useParams();
     const { step, jobType, setJobType } = useDeploymentContext() as DeploymentContextType;
 
     const getBaseSchemaDefaults = () => ({
@@ -53,7 +53,8 @@ function JobFormWrapper() {
             container: {
                 type: 'image',
                 containerImage: '',
-                containerRegistry: '',
+                containerRegistry: 'docker.com',
+                crVisibility: CR_VISIBILITY_OPTIONS[0],
                 crUsername: '',
                 crPassword: '',
             },
@@ -75,6 +76,7 @@ function JobFormWrapper() {
             pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
             customParams: [{ key: '', value: '' }],
             pipelineParams: [{ key: '', value: '' }],
+            pipelineInputType: 'void',
             chainstoreResponse: BOOLEAN_TYPES[1],
         },
     });
@@ -84,9 +86,11 @@ function JobFormWrapper() {
         specifications: {
             ...getBaseSchemaDefaults().specifications,
             containerType: serviceContainerTypes[0].name,
+            targetNodesCount: 1, // Service jobs are always single-node
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
+            envVars: [{ key: 'DB_PASSWORD', value: '' }],
         },
     });
 
@@ -125,22 +129,22 @@ function JobFormWrapper() {
     const onSubmit = async (data: z.infer<typeof jobSchema>) => {
         console.log('[JobFormWrapper] onSubmit', data);
 
-        if (!isValidId(projectId)) {
-            console.error('[JobFormWrapper] Invalid project ID');
-            toast.error('Invalid project ID.');
+        if (!isValidProjectHash(projectHash)) {
+            console.error('[JobFormWrapper] Invalid projectHash');
+            toast.error('Unable to find project.');
             return;
         }
 
         try {
             const job = {
-                projectId: parseInt(projectId as string),
+                projectHash,
                 jobType: data.jobType,
                 specifications: data.specifications,
                 paymentAndDuration: data.paymentAndDuration,
                 deployment: data.deployment,
             };
 
-            const jobId = await db.jobs.add(job as Job);
+            const jobId = await db.jobs.add(job as DraftJob);
 
             console.log('[JobFormWrapper] Job added successfully', jobId);
             toast.success('Job added successfully.');

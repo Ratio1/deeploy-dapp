@@ -1,6 +1,13 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { genericContainerTypes, gpuTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerResources';
+import {
+    ContainerOrWorkerType,
+    genericContainerTypes,
+    gpuTypes,
+    nativeWorkerTypes,
+    serviceContainerTypes,
+} from '@data/containerResources';
+import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
@@ -19,7 +26,6 @@ enum ProjectPage {
 
 // Specifications
 type BaseJobSpecifications = {
-    gpuType?: (typeof gpuTypes)[number]['name'];
     applicationType: (typeof APPLICATION_TYPES)[number];
     targetNodesCount: number;
 };
@@ -27,11 +33,13 @@ type BaseJobSpecifications = {
 type GenericJobSpecifications = BaseJobSpecifications & {
     type: 'Generic';
     containerType: (typeof genericContainerTypes)[number]['name'];
+    gpuType?: (typeof gpuTypes)[number]['name'];
 };
 
 type NativeJobSpecifications = BaseJobSpecifications & {
     type: 'Native';
     workerType: (typeof nativeWorkerTypes)[number]['name'];
+    gpuType?: (typeof gpuTypes)[number]['name'];
 };
 
 type ServiceJobSpecifications = BaseJobSpecifications & {
@@ -63,8 +71,9 @@ type GenericJobDeployment = BaseJobDeployment & {
               type: 'image';
               containerImage: string;
               containerRegistry: string;
-              crUsername: string;
-              crPassword: string;
+              crVisibility: (typeof CR_VISIBILITY_OPTIONS)[number];
+              crUsername?: string;
+              crPassword?: string;
           }
         | {
               type: 'worker';
@@ -83,6 +92,10 @@ type GenericJobDeployment = BaseJobDeployment & {
             type: (typeof DYNAMIC_ENV_TYPES)[number];
             value: string;
         }>;
+    }>;
+    volumes: Array<{
+        key: string;
+        value: string;
     }>;
     restartPolicy: (typeof POLICY_TYPES)[number];
     imagePullPolicy: (typeof POLICY_TYPES)[number];
@@ -118,49 +131,53 @@ type ServiceJobDeployment = BaseJobDeployment & {
             value: string;
         }>;
     }>;
+    volumes: Array<{
+        key: string;
+        value: string;
+    }>;
     serviceReplica: R1Address;
 };
 
 type JobDeployment = BaseJobDeployment & (GenericJobDeployment | NativeJobDeployment | ServiceJobDeployment);
 
-// Job
-type BaseJob = {
+// Draft Job
+type BaseDraftJob = {
     id: number;
-    projectId: number;
+    projectHash: string;
     jobType: JobType;
     specifications: JobSpecifications;
     paymentAndDuration: JobPaymentAndDuration;
     deployment: JobDeployment;
 };
 
-type GenericJob = BaseJob & {
+type GenericDraftJob = BaseDraftJob & {
     jobType: JobType.Generic;
     specifications: GenericJobSpecifications;
     deployment: GenericJobDeployment;
 };
 
-type NativeJob = BaseJob & {
+type NativeDraftJob = BaseDraftJob & {
     jobType: JobType.Native;
     specifications: NativeJobSpecifications;
     deployment: NativeJobDeployment;
 };
 
-type ServiceJob = BaseJob & {
+type ServiceDraftJob = BaseDraftJob & {
     jobType: JobType.Service;
     specifications: ServiceJobSpecifications;
     deployment: ServiceJobDeployment;
 };
 
-type Job = GenericJob | NativeJob | ServiceJob;
+type DraftJob = GenericDraftJob | NativeDraftJob | ServiceDraftJob;
 
-type Project = {
-    id: number;
-    uuid: string;
+type DraftProject = {
+    projectHash: string;
     name: string;
     color: string;
     createdAt: string;
 };
 
+// Running
 type RunningJob = {
     id: bigint;
     projectHash: string;
@@ -176,22 +193,30 @@ type RunningJob = {
     activeNodes: readonly EthAddress[];
 };
 
+type RunningJobWithResources = RunningJob & {
+    resources: {
+        jobType: JobType;
+        containerOrWorkerType: ContainerOrWorkerType;
+    };
+};
+
 type RunningProject = {
     projectHash: string;
 };
 
 export { JobType, ProjectPage };
 export type {
-    GenericJob,
+    DraftJob,
+    DraftProject,
+    GenericDraftJob,
     GenericJobSpecifications,
-    Job,
     JobPaymentAndDuration,
     JobSpecifications,
-    NativeJob,
+    NativeDraftJob,
     NativeJobSpecifications,
-    Project,
     RunningJob,
+    RunningJobWithResources,
     RunningProject,
-    ServiceJob,
+    ServiceDraftJob,
     ServiceJobSpecifications,
 };

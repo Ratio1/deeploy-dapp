@@ -1,6 +1,6 @@
 import { Button } from '@heroui/button';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { downloadDataAsJson } from '@lib/utils';
+import { downloadDataAsJson } from '@lib/deeploy-utils';
 import { useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import SubmitButton from '../../shared/SubmitButton';
@@ -45,7 +45,8 @@ function JobFormButtons({ steps }: Props) {
         const isFormValid = await trigger();
 
         if (!isFormValid) {
-            toast.error('Form validation failed, cannot download JSON.');
+            toast.error('Form validation failed.');
+            console.log(getValues());
             return;
         }
 

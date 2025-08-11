@@ -1,4 +1,5 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
+import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import {
@@ -27,10 +28,6 @@ const validations = {
         .min(3, 'Value must be at least 3 characters')
         .max(128, 'Value cannot exceed 128 characters')
         .regex(/^[^/]+\.[^/]+$/, 'Must be a valid domain format'),
-
-    crUsername: getStringSchema(3, 128),
-
-    crPassword: getStringSchema(3, 64),
 
     pipelineInputType: z
         .string({ required_error: 'Value is required' })
@@ -73,6 +70,7 @@ const validations = {
         ),
     customParams: getKeyValueEntriesArraySchema(50),
     pipelineParams: getKeyValueEntriesArraySchema(50),
+    volumes: getKeyValueEntriesArraySchema(),
 
     // Enum patterns
     restartPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
@@ -143,8 +141,9 @@ const imageContainerSchema = z.object({
     type: z.literal('image'),
     containerImage: validations.containerImage,
     containerRegistry: validations.containerRegistry,
-    crUsername: validations.crUsername,
-    crPassword: validations.crPassword,
+    crVisibility: z.enum(CR_VISIBILITY_OPTIONS, { required_error: 'Value is required' }),
+    crUsername: z.union([getStringSchema(3, 128), z.literal('')]).optional(),
+    crPassword: z.union([getStringSchema(3, 256), z.literal('')]).optional(),
 });
 
 const workerContainerSchema = z.object({
@@ -177,10 +176,29 @@ export const genericAppDeploymentSchema = applyTunnelingRefinements(
         port: validations.port,
         envVars: validations.envVars,
         dynamicEnvVars: validations.dynamicEnvVars,
+        volumes: validations.volumes,
         restartPolicy: validations.restartPolicy,
         imagePullPolicy: validations.imagePullPolicy,
     }),
-);
+).superRefine((data, ctx) => {
+    // Validate that crUsername and crPassword are provided when crVisibility is 'Private'
+    if (data.container.type === 'image' && data.container.crVisibility === 'Private') {
+        if (!data.container.crUsername) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Username is required',
+                path: ['container', 'crUsername'],
+            });
+        }
+        if (!data.container.crPassword) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Password/Authentication Token is required',
+                path: ['container', 'crPassword'],
+            });
+        }
+    }
+});
 
 export const nativeAppDeploymentSchema = applyTunnelingRefinements(
     baseDeploymentSchema.extend({
@@ -200,6 +218,7 @@ export const serviceAppDeploymentSchema = applyTunnelingRefinements(
         jobAlias: validations.jobAlias,
         envVars: validations.envVars,
         dynamicEnvVars: validations.dynamicEnvVars,
+        volumes: validations.volumes,
         serviceReplica: nodeSchema.shape.address,
     }),
 );

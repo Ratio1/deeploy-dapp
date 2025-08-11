@@ -7,6 +7,7 @@ import { routePath } from '@lib/routes/route-paths';
 import ActionButton from '@shared/ActionButton';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import EmptyData from '@shared/EmptyData';
+import { SmallTag } from '@shared/SmallTag';
 import StyledInput from '@shared/StyledInput';
 import { Tunnel } from '@typedefs/tunnels';
 import { useEffect, useState } from 'react';
@@ -47,6 +48,7 @@ export default function TunnelPage() {
             setTunnel(undefined);
 
             const { result: tunnel } = await getTunnel(id);
+            console.log(tunnel);
             setTunnel({
                 id: tunnel.id,
                 status: tunnel.status,
@@ -129,10 +131,28 @@ export default function TunnelPage() {
         }
     };
 
+    const getStatusTagVariant = () => {
+        if (!tunnel) {
+            return 'default';
+        }
+
+        switch (tunnel.status) {
+            case 'healthy':
+                return 'green';
+            case 'degraded':
+                return 'yellow';
+            case 'down':
+                return 'red';
+
+            default:
+                return 'default';
+        }
+    };
+
     if (!tunnel) {
         return (
             <div className="col mx-auto w-full max-w-[620px] gap-6">
-                <Skeleton className="min-h-10 w-64 rounded-lg" />
+                <Skeleton className="min-h-10 w-80 rounded-lg" />
 
                 <div className="row justify-between">
                     <Skeleton className="min-h-[38px] w-[242px] rounded-lg" />
@@ -154,7 +174,12 @@ export default function TunnelPage() {
                         </div>
                     </Link>
 
-                    <div className="text-2xl font-bold">{tunnel.alias}</div>
+                    <div className="row gap-3">
+                        <div className="text-2xl font-bold">{tunnel.alias}</div>
+                        <SmallTag variant={getStatusTagVariant()} isLarge>
+                            <div className="capitalize">{tunnel.status}</div>
+                        </SmallTag>
+                    </div>
                 </div>
 
                 <div className="row justify-between">

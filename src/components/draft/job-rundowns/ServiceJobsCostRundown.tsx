@@ -1,10 +1,11 @@
-import { ContainerOrWorkerType, GpuType, gpuTypes, serviceContainerTypes } from '@data/containerResources';
-import { getContainerOrWorkerTypeDescription, getShortAddressOrHash } from '@lib/utils';
+import { ContainerOrWorkerType, serviceContainerTypes } from '@data/containerResources';
+import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
+import { getShortAddressOrHash } from '@lib/utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
-import { ServiceJob } from '@typedefs/deeploys';
+import { ServiceDraftJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
 
-export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] }) {
+export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceDraftJob[] }) {
     return (
         <JobsCostRundown
             cardHeader={
@@ -15,14 +16,10 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
             }
             jobs={jobs}
             renderJob={(job) => {
-                const serviceJob = job as ServiceJob;
+                const serviceJob = job as ServiceDraftJob;
                 const containerType = serviceContainerTypes.find(
                     (type) => type.name === serviceJob.specifications.containerType,
                 ) as ContainerOrWorkerType;
-
-                const gpuType: GpuType | undefined = serviceJob.specifications.gpuType
-                    ? gpuTypes.find((type) => type.name === serviceJob.specifications.gpuType)
-                    : undefined;
 
                 const entries = [
                     // Alias
@@ -34,7 +31,6 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] })
                         label: 'Container Type',
                         value: `${containerType.name} (${getContainerOrWorkerTypeDescription(containerType)})`,
                     },
-                    ...(gpuType ? [{ label: 'GPU Type', value: `${gpuType.name} (${gpuType.gpus.join(', ')})` }] : []),
 
                     // Deployment
                     { label: 'Tunneling', value: serviceJob.deployment.enableTunneling },

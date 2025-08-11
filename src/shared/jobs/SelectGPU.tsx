@@ -53,7 +53,7 @@ export default function SelectGPU({ jobType }: Props) {
 
     return (
         <div className="col w-full gap-2">
-            <Label value="GPU (optional)" />
+            <Label value="GPU" isOptional />
 
             <Controller
                 name="specifications.gpuType"

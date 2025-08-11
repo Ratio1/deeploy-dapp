@@ -1,10 +1,10 @@
 import { ContainerOrWorkerType, genericContainerTypes, GpuType, gpuTypes } from '@data/containerResources';
-import { getContainerOrWorkerTypeDescription } from '@lib/utils';
+import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
-import { GenericJob } from '@typedefs/deeploys';
+import { GenericDraftJob } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
 
-export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] }) {
+export default function GenericJobsCostRundown({ jobs }: { jobs: GenericDraftJob[] }) {
     return (
         <JobsCostRundown
             cardHeader={
@@ -15,7 +15,7 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
             }
             jobs={jobs}
             renderJob={(job) => {
-                const genericJob = job as GenericJob;
+                const genericJob = job as GenericDraftJob;
                 const containerType = genericContainerTypes.find(
                     (type) => type.name === genericJob.specifications.containerType,
                 ) as ContainerOrWorkerType;
@@ -39,12 +39,15 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericJob[] })
 
                     // Deployment
                     {
-                        label: 'Container Image/Repo',
+                        label: `Container ${genericJob.deployment.container.type === 'image' ? 'Image' : 'Repository'}`,
                         value:
                             genericJob.deployment.container.type === 'image'
                                 ? genericJob.deployment.container.containerImage
                                 : genericJob.deployment.container.githubUrl,
                     },
+                    ...(genericJob.deployment.container.type === 'image'
+                        ? [{ label: 'Registry Visibility', value: genericJob.deployment.container.crVisibility }]
+                        : []),
                     { label: 'Port', value: genericJob.deployment.port },
                     { label: 'Tunneling', value: genericJob.deployment.enableTunneling },
                     ...(genericJob.deployment.enableTunneling === 'True' && genericJob.deployment.tunnelingLabel

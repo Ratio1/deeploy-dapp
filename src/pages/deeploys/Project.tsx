@@ -1,30 +1,33 @@
+import { CspEscrowAbi } from '@blockchain/CspEscrow';
+import JobFormWrapper from '@components/jobs/JobFormWrapper';
 import ProjectOverview from '@components/project/ProjectOverview';
+import { Skeleton } from '@heroui/skeleton';
+import { escrowContractAddress } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
-import { isValidId } from '@lib/utils';
-import { Job, ProjectPage, type Project } from '@typedefs/deeploys';
+import { isValidProjectHash } from '@lib/utils';
+import Payment from '@shared/projects/Payment';
+import { DraftJob, ProjectPage, RunningJob } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { usePublicClient } from 'wagmi';
 
 export default function Project() {
-    const { projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
+    const { jobType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
+    const [isLoading, setLoading] = useState(true);
+    const [runningJobs, setRunningJobs] = useState<RunningJob[]>([]);
+
+    const publicClient = usePublicClient();
 
     const navigate = useNavigate();
-    const { id } = useParams();
+    const { projectHash } = useParams();
 
-    // TODO: Replace with API call
-    const project: Project | undefined | null = useLiveQuery(
-        isValidId(id) ? () => db.projects.get(parseInt(id as string)) : () => undefined,
-        [isValidId, id],
-        null, // Default value returned while data is loading
-    );
-
-    // TODO: Replace with API call
-    const jobs: Job[] | undefined = useLiveQuery(
-        project ? () => db.jobs.where('projectId').equals(project.id).toArray() : () => undefined,
-        [project],
+    const draftJobs: DraftJob[] | undefined | null = useLiveQuery(
+        isValidProjectHash(projectHash) ? () => db.jobs.where('projectHash').equals(projectHash).toArray() : () => undefined,
+        [projectHash],
+        null,
     );
 
     // Init
@@ -33,18 +36,73 @@ export default function Project() {
     }, []);
 
     useEffect(() => {
-        if (project === undefined) {
+        if (publicClient && isValidProjectHash(projectHash)) {
+            fetchRunningJobs();
+        }
+    }, [publicClient, projectHash]);
+
+    useEffect(() => {
+        if (!isValidProjectHash(projectHash)) {
             navigate(routePath.notFound);
         }
-    }, [project]);
+    }, [projectHash]);
 
-    if (project === null) {
+    const fetchRunningJobs = async () => {
+        if (!publicClient) {
+            return;
+        }
+
+        setLoading(true);
+
+        const jobs: readonly RunningJob[] = await publicClient.readContract({
+            address: escrowContractAddress,
+            abi: CspEscrowAbi,
+            functionName: 'getAllJobs',
+        });
+
+        const projectJobs = jobs.filter((job) => job.projectHash === projectHash);
+
+        setRunningJobs(projectJobs);
+        setLoading(false);
+    };
+
+    if (isLoading || draftJobs === null) {
+        return (
+            <div className="col w-full gap-6">
+                <Skeleton className="min-h-10 w-80 rounded-lg" />
+
+                <div className="row justify-between">
+                    <Skeleton className="min-h-12 w-80 rounded-lg" />
+                    <Skeleton className="min-h-12 w-80 rounded-lg" />
+                </div>
+
+                <Skeleton className="min-h-[90px] w-full rounded-lg" />
+                <Skeleton className="min-h-[300px] w-full rounded-lg" />
+                <Skeleton className="min-h-[300px] w-full rounded-lg" />
+            </div>
+        );
+    }
+
+    if (!projectHash) {
         return <></>;
     }
 
-    if (project === undefined) {
-        return <></>;
-    }
-
-    return projectPage === ProjectPage.Payment ? <div>Project Payment</div> : <ProjectOverview project={project} jobs={jobs} />;
+    return !jobType ? (
+        <>
+            {projectPage === ProjectPage.Payment ? (
+                <Payment
+                    projectHash={projectHash}
+                    jobs={draftJobs}
+                    callback={() => {
+                        setProjectPage(ProjectPage.Overview);
+                        fetchRunningJobs();
+                    }}
+                />
+            ) : (
+                <ProjectOverview projectHash={projectHash} runningJobs={runningJobs} draftJobs={draftJobs} />
+            )}
+        </>
+    ) : (
+        <JobFormWrapper />
+    );
 }

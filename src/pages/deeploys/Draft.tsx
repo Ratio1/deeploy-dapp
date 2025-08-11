@@ -1,10 +1,10 @@
 import DraftOverview from '@components/draft/DraftOverview';
-import DraftPayment from '@components/draft/DraftPayment';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
-import { isValidId } from '@lib/utils';
-import { Job, ProjectPage, type Project } from '@typedefs/deeploys';
+import { isValidProjectHash } from '@lib/utils';
+import Payment from '@shared/projects/Payment';
+import { DraftJob, ProjectPage, type DraftProject } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -14,16 +14,16 @@ export default function Draft() {
     const { jobType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
-    const { id } = useParams();
+    const { projectHash } = useParams();
 
-    const project: Project | undefined | null = useLiveQuery(
-        isValidId(id) ? () => db.projects.get(parseInt(id as string)) : () => undefined,
-        [isValidId, id],
+    const project: DraftProject | undefined | null = useLiveQuery(
+        isValidProjectHash(projectHash) ? () => db.projects.get(projectHash) : () => undefined,
+        [isValidProjectHash, projectHash],
         null, // Default value returned while data is loading
     );
 
-    const jobs: Job[] | undefined = useLiveQuery(
-        project ? () => db.jobs.where('projectId').equals(project.id).toArray() : () => undefined,
+    const jobs: DraftJob[] | undefined = useLiveQuery(
+        project ? () => db.jobs.where('projectHash').equals(project.projectHash).toArray() : () => undefined,
         [project],
     );
 
@@ -42,14 +42,21 @@ export default function Draft() {
         return <></>;
     }
 
-    if (project === undefined) {
+    if (project === undefined || !isValidProjectHash(projectHash)) {
         return <></>;
     }
 
     return !jobType ? (
         <>
             {projectPage === ProjectPage.Payment ? (
-                <DraftPayment project={project} jobs={jobs} />
+                <Payment
+                    projectHash={projectHash}
+                    projectName={project.name}
+                    jobs={jobs}
+                    callback={() => {
+                        navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=running`);
+                    }}
+                />
             ) : (
                 <DraftOverview project={project} jobs={jobs} />
             )}

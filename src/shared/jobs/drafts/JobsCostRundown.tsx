@@ -1,7 +1,7 @@
-import { getJobCost, getJobsTotalCost } from '@lib/utils';
+import { getJobCost, getJobsTotalCost } from '@lib/deeploy-utils';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import { SmallTag } from '@shared/SmallTag';
-import { Job } from '@typedefs/deeploys';
+import { DraftJob } from '@typedefs/deeploys';
 
 export default function JobsCostRundown({
     cardHeader,
@@ -9,8 +9,8 @@ export default function JobsCostRundown({
     renderJob,
 }: {
     cardHeader: React.ReactNode;
-    jobs: Job[];
-    renderJob: (job: Job) => React.ReactNode;
+    jobs: DraftJob[];
+    renderJob: (job: DraftJob) => React.ReactNode;
 }) {
     return (
         <CompactCustomCard

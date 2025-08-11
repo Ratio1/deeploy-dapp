@@ -1,21 +1,21 @@
-import { ContainerOrWorkerType } from '@data/containerResources';
-import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
-import JobList from '@shared/jobs/projects/JobList';
+import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
+import { applyWidthClasses } from '@lib/utils';
+import RunningJobsList from '@shared/jobs/projects/RunningJobsList';
 import { SmallTag } from '@shared/SmallTag';
-import { GenericJob, Project } from '@typedefs/deeploys';
+import { RunningJobWithResources } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
 
 const widthClasses = [
     'min-w-[64px]', // id
     'min-w-[128px]', // alias
     'min-w-[90px]', // targetNodes
-    'min-w-[50px]', // type
+    'min-w-[68px]', // type
     'min-w-[300px]', // containerType
 ];
 
-function GenericJobList({ jobs, project }: { jobs: GenericJob[]; project: Project }) {
+function GenericRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
     return (
-        <JobList
+        <RunningJobsList
             cardHeader={
                 <div className="row gap-1.5">
                     <RiBox3Line className="text-primary-500 text-lg" />
@@ -24,31 +24,38 @@ function GenericJobList({ jobs, project }: { jobs: GenericJob[]; project: Projec
             }
             tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Type', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
-            project={project}
             renderJob={(job) => {
-                const genericJob = job as GenericJob;
-                const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
-                    genericJob.jobType,
-                    genericJob.specifications,
-                );
+                const { jobType, containerOrWorkerType } = job.resources;
+                const targetNodes = Number(job.numberOfNodesRequested);
 
                 return (
                     <>
                         <div className={widthClasses[0]}>
-                            <SmallTag key="id">{genericJob.id}</SmallTag>
+                            <SmallTag key="id">{Number(job.id)}</SmallTag>
                         </div>
 
                         <div className={widthClasses[1]}>
-                            <div className="font-medium">{genericJob.deployment.jobAlias}</div>
+                            <div className="font-medium">
+                                {jobType} Job #{Number(job.id)}
+                            </div>
                         </div>
 
-                        <div className={widthClasses[2]}>{genericJob.specifications.targetNodesCount}</div>
+                        <div className={widthClasses[2]}>
+                            <div className="font-medium">
+                                {targetNodes} node
+                                {targetNodes > 1 ? 's' : ''}
+                            </div>
+                        </div>
 
                         <div className={widthClasses[3]}>
+                            <SmallTag>Unknown</SmallTag>
+                        </div>
+
+                        {/* <div className={widthClasses[3]}>
                             <SmallTag variant={genericJob.specifications.gpuType ? 'green' : 'blue'}>
                                 {genericJob.specifications.gpuType ? 'GPU' : 'CPU'}
                             </SmallTag>
-                        </div>
+                        </div> */}
 
                         <div className={widthClasses[4]}>
                             {`${containerOrWorkerType.name} (${getContainerOrWorkerTypeDescription(containerOrWorkerType)})`}
@@ -60,4 +67,4 @@ function GenericJobList({ jobs, project }: { jobs: GenericJob[]; project: Projec
     );
 }
 
-export default GenericJobList;
+export default GenericRunningJobsList;

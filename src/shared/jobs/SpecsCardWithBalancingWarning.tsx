@@ -56,7 +56,7 @@ export default function SpecsCardWithBalancingWarning({ jobType }: { jobType: Jo
 
                     {hasWarning && (
                         <div className="text-warning-800 bg-warning-100 col gap-2 rounded-md p-3 text-sm">
-                            <div className="row gap-1">
+                            <div className="row gap-1.5">
                                 <RiErrorWarningLine className="mb-px text-[20px]" />
 
                                 <div>

@@ -75,7 +75,15 @@ const TunnelAliasModal = forwardRef<TunnelAliasModalRef, Props>(({ action }, ref
     };
 
     return (
-        <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="sm" shouldBlockScroll={false}>
+        <Modal
+            isOpen={isOpen}
+            onOpenChange={onOpenChange}
+            size="sm"
+            shouldBlockScroll={false}
+            classNames={{
+                closeButton: 'cursor-pointer',
+            }}
+        >
             <Form className="w-full" validationBehavior="native" onSubmit={onSubmit}>
                 <ModalContent>
                     <ModalHeader>{getModalTitle()}</ModalHeader>

@@ -7,6 +7,7 @@ import { projectSchema } from '@schemas/project';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { keccak256, toBytes } from 'viem';
 import { z } from 'zod';
 
 function CreateProject() {
@@ -22,15 +23,17 @@ function CreateProject() {
     });
 
     const onSubmit = async (data: z.infer<typeof projectSchema>) => {
+        const projectHash = keccak256(toBytes(crypto.randomUUID()));
+
         const project = {
             ...data,
-            uuid: crypto.randomUUID(),
+            projectHash,
             createdAt: new Date().toISOString(),
         };
 
         try {
-            const id = await db.projects.add(project);
-            navigate(`${routePath.deeploys}/${routePath.draft}/${id}`);
+            await db.projects.add(project);
+            navigate(`${routePath.deeploys}/${routePath.draft}/${projectHash}`);
         } catch (error) {
             console.error('[CreateProject] Error adding project:', error);
             toast.error('Failed to create project.');

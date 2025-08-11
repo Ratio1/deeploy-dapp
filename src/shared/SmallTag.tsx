@@ -3,7 +3,7 @@ import { FunctionComponent, PropsWithChildren } from 'react';
 
 export const SmallTag: FunctionComponent<
     PropsWithChildren<{
-        variant?: 'default' | 'green' | 'blue' | 'red' | 'orange' | 'emerald' | 'purple';
+        variant?: 'default' | 'green' | 'blue' | 'red' | 'orange' | 'emerald' | 'purple' | 'yellow';
         isLarge?: boolean;
     }>
 > = ({ children, variant = 'default', isLarge = false }) => (
@@ -19,6 +19,7 @@ export const SmallTag: FunctionComponent<
                 'bg-orange-100 text-orange-600': variant === 'orange',
                 'bg-emerald-100 text-emerald-600': variant === 'emerald',
                 'bg-purple-100 text-purple-600': variant === 'purple',
+                'bg-yellow-100 text-yellow-600': variant === 'yellow',
             })}
         >
             {children}

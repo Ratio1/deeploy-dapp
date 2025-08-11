@@ -2,7 +2,7 @@ import { routePath } from '@lib/routes/route-paths';
 import ActionButton from '@shared/ActionButton';
 import { Link } from 'react-router-dom';
 
-export default function CancelButton({ tab }: { tab: 'projects' | 'drafts' }) {
+export default function CancelButton({ tab }: { tab: 'running' | 'drafts' }) {
     return (
         <ActionButton
             className="slate-button"

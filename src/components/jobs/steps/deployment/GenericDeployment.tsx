@@ -34,11 +34,10 @@ function GenericDeployment() {
 
                     {enableTunneling === BOOLEAN_TYPES[0] && (
                         <div className="flex gap-4">
-                            <InputWithLabel name="deployment.tunnelingToken" label="Tunneling Token" placeholder="None" />
                             <InputWithLabel
-                                name="deployment.tunnelingLabel"
-                                label="Tunneling Label (optional)"
-                                placeholder="None"
+                                name="deployment.tunnelingToken"
+                                label="Tunnel Token"
+                                placeholder="Starts with 'ey'"
                             />
                         </div>
                     )}
@@ -51,6 +50,10 @@ function GenericDeployment() {
 
             <SlateCard title="Dynamic ENV Variables">
                 <DynamicEnvSection />
+            </SlateCard>
+
+            <SlateCard title="Volumes">
+                <KeyValueEntriesSection name="deployment.volumes" displayLabel="volumes" placeholders={['VOLUME', 'PATH']} />
             </SlateCard>
 
             <SlateCard title="Policies">

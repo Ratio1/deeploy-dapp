@@ -1,6 +1,6 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { ContainerOrWorkerType } from '@data/containerResources';
-import { getContainerOrWorkerType } from '@lib/utils';
+import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';
@@ -48,8 +48,9 @@ function ServiceDeployment() {
                             <InputWithLabel name="deployment.tunnelingToken" label="Tunneling Token" placeholder="None" />
                             <InputWithLabel
                                 name="deployment.tunnelingLabel"
-                                label="Tunneling Label (optional)"
+                                label="Tunneling Label"
                                 placeholder="None"
+                                isOptional
                             />
                         </div>
                     )}
@@ -57,11 +58,15 @@ function ServiceDeployment() {
             </SlateCard>
 
             <SlateCard title="ENV Variables">
-                <KeyValueEntriesSection name="deployment.envVars" />
+                <KeyValueEntriesSection name="deployment.envVars" disabledKeys={['DB_PASSWORD']} />
             </SlateCard>
 
             <SlateCard title="Dynamic ENV Variables">
                 <DynamicEnvSection />
+            </SlateCard>
+
+            <SlateCard title="Volumes">
+                <KeyValueEntriesSection name="deployment.volumes" displayLabel="volumes" placeholders={['VOLUME', 'PATH']} />
             </SlateCard>
 
             <SlateCard title="Other">

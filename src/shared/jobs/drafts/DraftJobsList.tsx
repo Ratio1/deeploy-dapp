@@ -1,6 +1,6 @@
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
+import { downloadDataAsJson } from '@lib/deeploy-utils';
 import db from '@lib/storage/db';
-import { downloadDataAsJson } from '@lib/utils';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import toast from 'react-hot-toast';
@@ -11,7 +11,7 @@ interface Job {
     [key: string]: any;
 }
 
-export default function JobList({
+export default function DraftJobsList({
     cardHeader,
     tableHeader,
     jobs,

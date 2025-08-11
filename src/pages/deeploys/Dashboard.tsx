@@ -1,6 +1,5 @@
 import Drafts from '@components/deeploys/Drafts';
-import { RunningRef } from '@components/deeploys/Projects';
-import Running from '@components/deeploys/Running';
+import Running, { RunningRef } from '@components/deeploys/Running';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import ActionButton from '@shared/ActionButton';

@@ -1,13 +1,18 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
+import { Button } from '@heroui/button';
 import { Skeleton } from '@heroui/skeleton';
+import { getApps } from '@lib/api/deeploy';
 import { escrowContractAddress } from '@lib/config';
+import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
+import { EthAddress } from '@typedefs/blockchain';
 import { RunningJob } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { RiDraftLine } from 'react-icons/ri';
-import { usePublicClient } from 'wagmi';
+import toast from 'react-hot-toast';
+import { RiDraftLine, RiRefreshLine } from 'react-icons/ri';
+import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
 import RunningCard from './RunningCard';
 
 export interface RunningRef {
@@ -21,12 +26,18 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
     const [projects, setProjects] = useState<Record<string, RunningJob[]>>({});
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-    const publicClient = usePublicClient();
+    const [isRefreshRequired, setRefreshRequired] = useState<boolean>(true);
+    const [isRefreshing, setRefreshing] = useState<boolean>(false);
 
-    // Init
+    const publicClient = usePublicClient();
+    const { address } = useAccount();
+    const { signMessageAsync } = useSignMessage();
+
     useEffect(() => {
-        fetchAllJobs();
-    }, []);
+        if (publicClient) {
+            fetchRunningJobs();
+        }
+    }, [publicClient]);
 
     useEffect(() => {
         if (projects) {
@@ -40,22 +51,69 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
         }
     }, [projects]);
 
-    const fetchAllJobs = async () => {
-        if (publicClient) {
-            const jobs: readonly RunningJob[] = await publicClient.readContract({
-                address: escrowContractAddress,
-                abi: CspEscrowAbi,
-                functionName: 'getAllJobs',
-            });
-
-            const projects = _.groupBy(jobs, 'projectHash');
-            console.log(projects);
-
-            setProjects(projects);
-            setProjectsCount(Object.keys(projects).length);
+    const fetchRunningJobs = async () => {
+        if (!publicClient) {
+            return;
         }
 
+        const jobs: readonly RunningJob[] = await publicClient.readContract({
+            address: escrowContractAddress,
+            abi: CspEscrowAbi,
+            functionName: 'getAllJobs',
+        });
+
+        const projects = _.groupBy(jobs, 'projectHash');
+        console.log('[Running] Projects:', projects);
+
+        setProjects(projects);
+        setProjectsCount(Object.keys(projects).length);
+
         setLoading(false);
+    };
+
+    const fetchApps = async () => {
+        if (!address) {
+            toast.error('Please connect your wallet.');
+            return;
+        }
+
+        setRefreshing(true);
+
+        try {
+            const request = await signAndBuildRequest(address);
+            const response = await getApps(request);
+            toast.success('Running jobs refreshed successfully.');
+
+            console.log('[Running] fetchApps', response);
+
+            setRefreshRequired(false);
+        } catch (error) {
+            console.error('[Running] fetchApps', error);
+            toast.error('Failed to refresh running jobs.');
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
+    const signAndBuildRequest = async (address: EthAddress) => {
+        const nonce = generateNonce();
+
+        const message = buildDeeployMessage({
+            nonce,
+        });
+
+        const signature = await signMessageAsync({
+            account: address,
+            message,
+        });
+
+        const request = {
+            nonce,
+            EE_ETH_SIGN: signature,
+            EE_ETH_SENDER: address,
+        };
+
+        return request;
     };
 
     const expandAll = () => {
@@ -91,14 +149,37 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
         <div className="list">
             <ListHeader>
                 <div className="row gap-6">
-                    <div className="min-w-[232px]">Name</div>
+                    <div className="min-w-[232px]">ID</div>
                     <div className="min-w-[80px]">Details</div>
-                    <div className="min-w-[164px]">Expiration Date</div>
+                    <div className="min-w-[164px]">End Date</div>
                     <div className="min-w-[200px]">Usage</div>
                 </div>
 
                 <div className="min-w-[124px]">Next payment due</div>
             </ListHeader>
+
+            {isRefreshRequired && (
+                <div className="text-warning-800 bg-warning-100 rounded-lg px-6 py-3 text-sm">
+                    <div className="row justify-between gap-4">
+                        <div className="row gap-1.5">
+                            <RiRefreshLine className="text-xl" />
+                            <div className="font-medium">Refresh required</div>
+                        </div>
+
+                        <div>
+                            <Button
+                                className="bg-warning-300 rounded-md"
+                                color="warning"
+                                size="sm"
+                                onPress={fetchApps}
+                                isLoading={isRefreshing}
+                            >
+                                <div className="text-[13px]">Refresh</div>
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {isLoading ? (
                 <>

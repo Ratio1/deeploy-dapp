@@ -1,10 +1,22 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { ERC20Abi } from '@blockchain/ERC20';
+import { DeeployFlowModal } from '@components/draft/DeeployFlowModal';
+import GenericJobsCostRundown from '@components/draft/job-rundowns/GenericJobsCostRundown';
+import NativeJobsCostRundown from '@components/draft/job-rundowns/NativeJobsCostRundown';
+import ServiceJobsCostRundown from '@components/draft/job-rundowns/ServiceJobsCostRundown';
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { createPipeline } from '@lib/api/deeploy';
 import { config, environment, escrowContractAddress, getCurrentEpoch } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
-import { buildDeeployMessage, getContainerOrWorkerType, getJobsTotalCost, sleep } from '@lib/utils';
+import {
+    buildDeeployMessage,
+    formatGenericJobPayload,
+    formatNativeJobPayload,
+    formatServiceJobPayload,
+    getContainerOrWorkerType,
+    getJobsTotalCost,
+} from '@lib/deeploy-utils';
+import { sleep } from '@lib/utils';
 import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { ConnectWalletWrapper } from '@shared/ConnectWalletWrapper';
@@ -12,21 +24,26 @@ import EmptyData from '@shared/EmptyData';
 import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
-import { GenericJob, Job, JobType, NativeJob, ServiceJob, type Project } from '@typedefs/deeploys';
+import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { addDays, differenceInDays, differenceInHours } from 'date-fns';
-import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiBox3Line, RiDraftLine } from 'react-icons/ri';
-import { decodeEventLog, keccak256, toBytes } from 'viem';
+import { decodeEventLog } from 'viem';
 import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wagmi';
-import ProjectIdentity from '../../shared/projects/ProjectIdentity';
-import { DeeployFlowModal } from './DeeployFlowModal';
-import GenericJobsCostRundown from './job-rundowns/GenericJobsCostRundown';
-import NativeJobsCostRundown from './job-rundowns/NativeJobsCostRundown';
-import ServiceJobsCostRundown from './job-rundowns/ServiceJobsCostRundown';
+import ProjectIdentity from '../jobs/projects/ProjectIdentity';
 
-export default function DraftPayment({ project, jobs }: { project: Project; jobs: Job[] | undefined }) {
+export default function Payment({
+    projectHash,
+    projectName,
+    jobs,
+    callback,
+}: {
+    projectHash: string;
+    projectName?: string;
+    jobs: DraftJob[] | undefined;
+    callback: () => void;
+}) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
 
     const [allowance, setAllowance] = useState<bigint>(0n);
@@ -59,210 +76,21 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         }
     }, [address, publicClient]);
 
-    const generateNonce = () => {
-        const now = new Date();
-        const unixTimestamp = now.getTime();
-        return `0x${unixTimestamp.toString(16)}`;
-    };
-
-    const formatEnvVars = (envVars: Array<{ key: string; value: string }>) => {
-        const formatted: Record<string, string> = {};
-        envVars.forEach((envVar) => {
-            if (envVar.key) {
-                formatted[envVar.key] = envVar.value;
-            }
-        });
-        return formatted;
-    };
-
-    const formatDynamicEnvVars = (dynamicEnvVars: Array<{ key: string; values: Array<{ type: string; value: string }> }>) => {
-        const formatted: Record<string, Array<{ type: string; value: string }>> = {};
-        dynamicEnvVars.forEach((dynamicEnvVar) => {
-            if (dynamicEnvVar.key) {
-                formatted[dynamicEnvVar.key] = dynamicEnvVar.values;
-            }
-        });
-        return formatted;
-    };
-
-    const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType) => {
-        return {
-            cpu: containerOrWorkerType.cores,
-            memory: `${containerOrWorkerType.ram}g`,
-        };
-    };
-
-    const formatTargetNodes = (targetNodes: Array<{ address: string }>) => {
-        return targetNodes.filter((node) => !_.isEmpty(node.address)).map((node) => node.address);
-    };
-
-    const getTargetNodesCount = (targetNodes: Array<{ address: string }>, specificationsTargetNodesCount: number) => {
-        return targetNodes.length > 0 ? 0 : specificationsTargetNodesCount;
-    };
-
-    const formatGenericJobPayload = (job: GenericJob) => {
-        const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-
-        const envVars = formatEnvVars(job.deployment.envVars);
-        const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
-        const containerResources = formatContainerResources(containerType);
-        const targetNodes = formatTargetNodes(job.deployment.targetNodes);
-        const targetNodesCount = getTargetNodesCount(job.deployment.targetNodes, job.specifications.targetNodesCount);
-
-        let image = 'repo/image:tag';
-        let crData = {
-            SERVER: 'docker.io',
-            USERNAME: 'user',
-            PASSWORD: 'password',
-        };
-
-        if (job.deployment.container.type === 'image') {
-            image = job.deployment.container.containerImage;
-            crData = {
-                SERVER: job.deployment.container.containerRegistry,
-                USERNAME: job.deployment.container.crUsername,
-                PASSWORD: job.deployment.container.crPassword,
-            };
-        } else {
-            console.error('Worker-based container not implemented yet.');
-        }
-
-        const nonce = generateNonce();
-
-        return {
-            app_alias: job.deployment.jobAlias,
-            plugin_signature: 'CONTAINER_APP_RUNNER',
-            nonce,
-            target_nodes: targetNodes,
-            target_nodes_count: targetNodesCount,
-            app_params: {
-                IMAGE: image,
-                CR_DATA: {}, // TODO: Use crData
-                CONTAINER_RESOURCES: containerResources,
-                PORT: job.deployment.port,
-                NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
-                NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
-                NGROK_ENABLED: job.deployment.enableTunneling === 'True',
-                NGROK_USE_API: true,
-                VOLUMES: {}, // TODO: Implement
-                ENV: envVars,
-                DYNAMIC_ENV: dynamicEnvVars,
-                RESTART_POLICY: job.deployment.restartPolicy.toLowerCase(),
-                IMAGE_PULL_POLICY: job.deployment.imagePullPolicy.toLowerCase(),
-            },
-            pipeline_input_type: 'void',
-            pipeline_input_uri: null,
-            chainstore_response: true,
-        };
-    };
-
-    const formatNativeJobPayload = (job: NativeJob) => {
-        const workerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-
-        const customParams: Record<string, string> = {};
-        job.deployment.customParams.forEach((param) => {
-            if (param.key) {
-                customParams[param.key] = param.value;
-            }
-        });
-
-        const pipelineParams: Record<string, string> = {};
-        job.deployment.pipelineParams.forEach((param) => {
-            if (param.key) {
-                pipelineParams[param.key] = param.value;
-            }
-        });
-
-        const nodeResourceRequirements = formatContainerResources(workerType);
-        const targetNodes = formatTargetNodes(job.deployment.targetNodes);
-        const targetNodesCount = getTargetNodesCount(job.deployment.targetNodes, job.specifications.targetNodesCount);
-
-        const nonce = generateNonce();
-
-        let appParams = {
-            PORT: job.deployment.port,
-            NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
-            NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
-            NGROK_ENABLED: job.deployment.enableTunneling === 'True',
-            NGROK_USE_API: true,
-            ENV: {},
-            DYNAMIC_ENV: {},
-        };
-
-        if (_.isEmpty(customParams)) {
-            appParams = {
-                ...appParams,
-                ...customParams,
-            };
-        }
-
-        return {
-            app_alias: job.deployment.jobAlias,
-            plugin_signature: job.deployment.pluginSignature,
-            nonce,
-            target_nodes: targetNodes,
-            target_nodes_count: targetNodesCount,
-            node_res_req: nodeResourceRequirements,
-            app_params: appParams,
-            pipeline_input_type: 'void', // TODO: job.deployment.pipelineInputType,
-            pipeline_input_uri: null, // TODO: job.deployment.pipelineInputUri,
-            pipeline_params: !_.isEmpty(pipelineParams) ? pipelineParams : {},
-            chainstore_response: false,
-        };
-    };
-
-    const formatServiceJobPayload = (job: ServiceJob) => {
-        const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-
-        const envVars = formatEnvVars(job.deployment.envVars);
-        const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
-        const containerResources = formatContainerResources(containerType);
-        const targetNodes = formatTargetNodes(job.deployment.targetNodes);
-
-        const nonce = generateNonce();
-
-        return {
-            app_alias: job.deployment.jobAlias,
-            plugin_signature: 'CONTAINER_APP_RUNNER',
-            nonce,
-            target_nodes: targetNodes,
-            target_nodes_count: 1,
-            service_replica: job.deployment.serviceReplica,
-            app_params: {
-                IMAGE: containerType.image,
-                CONTAINER_RESOURCES: containerResources,
-                PORT: containerType.port,
-                TUNNEL_ENGINE: 'ngrok',
-                NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
-                NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
-                NGROK_ENABLED: job.deployment.enableTunneling === 'True',
-                NGROK_USE_API: true,
-                ENV: envVars,
-                DYNAMIC_ENV: dynamicEnvVars,
-                RESTART_POLICY: 'always',
-                IMAGE_PULL_POLICY: 'always',
-            },
-            pipeline_input_type: 'void',
-            pipeline_input_uri: null,
-            chainstore_response: true,
-        };
-    };
-
-    const getJobPayloads = (jobs: Job[]) => {
+    const getJobPayloads = (jobs: DraftJob[]) => {
         return jobs.map((job) => {
             let payload = {};
 
             switch (job.jobType) {
                 case JobType.Generic:
-                    payload = formatGenericJobPayload(job as GenericJob);
+                    payload = formatGenericJobPayload(job as GenericDraftJob);
                     break;
 
                 case JobType.Native:
-                    payload = formatNativeJobPayload(job as NativeJob);
+                    payload = formatNativeJobPayload(job as NativeDraftJob);
                     break;
 
                 case JobType.Service:
-                    payload = formatServiceJobPayload(job as ServiceJob);
+                    payload = formatServiceJobPayload(job as ServiceDraftJob);
                     break;
 
                 default:
@@ -274,12 +102,16 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         });
     };
 
-    const signAndBuildRequest = async (jobId: number, projectHash: string, payload: any) => {
+    const signAndBuildRequest = async (jobId: number, payload: any) => {
         const payloadWithIdentifiers = {
             ...payload,
             job_id: jobId,
             project_id: projectHash,
         };
+
+        if (projectName) {
+            payloadWithIdentifiers.project_name = projectName;
+        }
 
         const message = buildDeeployMessage(payloadWithIdentifiers);
 
@@ -293,8 +125,6 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             EE_ETH_SIGN: signature,
             EE_ETH_SENDER: address,
         };
-
-        console.log(`(${payload.app_alias}) request`, request);
 
         return request;
     };
@@ -312,8 +142,6 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
         setLoading(true);
         deeployFlowModalRef.current?.open(jobs.length);
 
-        const projectHash = keccak256(toBytes(project.uuid));
-
         const args = jobs.map((job) => {
             const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
             const expiryDate = addDays(new Date(), job.paymentAndDuration.duration * 30);
@@ -326,7 +154,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
             return {
                 jobType: BigInt(containerType.jobType),
-                projectHash,
+                projectHash: projectHash as `0x${string}`,
                 lastExecutionEpoch,
                 numberOfNodesRequested: BigInt(job.specifications.targetNodesCount),
             };
@@ -367,7 +195,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             const requests = await Promise.all(
                 payloads.map((payload, index) => {
                     const jobId = Number(jobIds[index]);
-                    return signAndBuildRequest(jobId, projectHash, payload);
+                    return signAndBuildRequest(jobId, payload);
                 }),
             );
 
@@ -380,8 +208,12 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             );
 
             // Check for any failed deployments
-            const failedJobs = responses.filter((response) => response.status === 'rejected');
-            const successfulJobs = responses.filter((response) => response.status === 'fulfilled');
+            const failedJobs = responses.filter(
+                (response) => response.status === 'rejected' || response.value.status === 'fail',
+            );
+            const successfulJobs = responses.filter(
+                (response) => response.status === 'fulfilled' && response.value.status === 'success',
+            );
 
             if (failedJobs.length > 0) {
                 console.error('Some jobs failed to deploy:', failedJobs);
@@ -401,7 +233,8 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
-                }, 2000);
+                    callback();
+                }, 1000);
             } else {
                 deeployFlowModalRef.current?.displayError();
             }
@@ -431,8 +264,6 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
 
         const receipt = await watchTx(txHash, publicClient);
 
-        console.log('[DraftPayment] Approval receipt:', receipt);
-
         if (receipt.status === 'success') {
             await sleep(2000); // Wait for the allowance to be updated
             await fetchAllowance();
@@ -454,7 +285,7 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             args: [address, escrowContractAddress],
         });
 
-        console.log(`[DraftPayment] fetchAllowance: ${Number(result) / 10 ** 6} $USDC`);
+        // console.log(`[DraftPayment] fetchAllowance: ${Number(result) / 10 ** 6} $USDC`);
 
         setAllowance(result);
         return result;
@@ -493,9 +324,38 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <ProjectIdentity project={project} />
+                    <ProjectIdentity />
 
                     <div className="row gap-2">
+                        {/* {process.env.NODE_ENV === 'development' && (
+                            <ActionButton
+                                color="secondary"
+                                variant="solid"
+                                onPress={() => {
+                                    deeployFlowModalRef.current?.open(1);
+
+                                    setTimeout(() => {
+                                        deeployFlowModalRef.current?.progress('signMessages');
+                                    }, 1500);
+
+                                    setTimeout(() => {
+                                        deeployFlowModalRef.current?.progress('callDeeployApi');
+                                    }, 3000);
+
+                                    setTimeout(() => {
+                                        deeployFlowModalRef.current?.progress('done');
+                                    }, 4500);
+
+                                    setTimeout(() => {
+                                        deeployFlowModalRef.current?.close();
+                                        navigate(`${routePath.deeploys}/${routePath.project}/${projectHash}`);
+                                    }, 5500);
+                                }}
+                            >
+                                <div className="compact">Testing</div>
+                            </ActionButton>
+                        )} */}
+
                         <OverviewButton />
 
                         <ConnectWalletWrapper>
@@ -548,13 +408,12 @@ export default function DraftPayment({ project, jobs }: { project: Project; jobs
                     </>
                 )}
 
-                {/* No Jobs added */}
                 {!!jobs && jobs.length === 0 && (
                     <BorderedCard>
                         <div className="center-all">
                             <EmptyData
-                                title="No jobs added"
-                                description="Add a job first to proceed with payment"
+                                title="No job drafts"
+                                description="Add a new job first to proceed with payment"
                                 icon={<RiDraftLine />}
                             />
                         </div>

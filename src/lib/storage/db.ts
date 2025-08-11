@@ -1,15 +1,15 @@
-import { Job, Project } from '@typedefs/deeploys';
+import { DraftJob, DraftProject } from '@typedefs/deeploys';
 import { Dexie, type EntityTable } from 'dexie';
 
 // Only declare properties you want to index
 const db = new Dexie('Database') as Dexie & {
-    projects: EntityTable<Project, 'id'>;
-    jobs: EntityTable<Job, 'id'>;
+    projects: EntityTable<DraftProject, 'projectHash'>;
+    jobs: EntityTable<DraftJob, 'id'>;
 };
 
 db.version(1).stores({
-    projects: '++id, name, createdAt',
-    jobs: '++id, projectId',
+    projects: 'projectHash, name, createdAt',
+    jobs: '++id, projectHash',
 });
 
 export default db;

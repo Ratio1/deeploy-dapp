@@ -1,24 +1,5 @@
-import {
-    ContainerOrWorkerType,
-    genericContainerTypes,
-    GpuType,
-    gpuTypes,
-    nativeWorkerTypes,
-    serviceContainerTypes,
-} from '@data/containerResources';
-import { ClosableToastContent } from '@shared/ClosableToastContent';
-import {
-    GenericJobSpecifications,
-    Job,
-    JobSpecifications,
-    JobType,
-    NativeJobSpecifications,
-    ServiceJobSpecifications,
-} from '@typedefs/deeploys';
-import { throttle } from 'lodash';
 import { JSX } from 'react';
-import toast from 'react-hot-toast';
-import { RiCodeSSlashLine } from 'react-icons/ri';
+import { formatUnits } from 'viem';
 
 /**
  * Sleep function that returns a Promise that resolves after the specified delay
@@ -51,109 +32,23 @@ export function fN(num: number): string | number {
     return parseFloat(num.toFixed(2));
 }
 
-export function fBI(num: bigint, decimals: number): string {
-    num = num / 10n ** BigInt(decimals);
-    if (num >= 1_000_000n) {
-        const formattedNum = Number(num) / 1_000_000;
+export function fBI(num: bigint, decimals: number, precision: number = 2): string | number {
+    const numWithDecimals = num / 10n ** BigInt(decimals);
+
+    if (numWithDecimals >= 1_000_000n) {
+        const formattedNum = Number(numWithDecimals) / 1_000_000;
         return formattedNum % 1 === 0 ? `${formattedNum}M` : `${parseFloat(formattedNum.toFixed(2))}M`;
     }
-    if (num >= 1000n) {
-        const formattedNum = Number(num) / 1000;
+    if (numWithDecimals >= 1000n) {
+        const formattedNum = Number(numWithDecimals) / 1000;
         return formattedNum % 1 === 0 ? `${formattedNum}K` : `${parseFloat(formattedNum.toFixed(2))}K`;
     }
-    return num.toString();
+
+    const floatValue = parseFloat(formatUnits(num, decimals));
+    return parseFloat(floatValue.toFixed(precision));
 }
 
-export const throttledToastError = throttle(
-    (message: string) => {
-        toast.error(message);
-    },
-    5000,
-    { trailing: false },
-);
-
-export const throttledToastOracleError = throttle(
-    () => {
-        toast(
-            (t) => (
-                <ClosableToastContent toastId={t.id} variant="error" icon={<RiCodeSSlashLine className="text-red-600" />}>
-                    <div className="text-sm">Oracle state is not valid, please contact the development team.</div>
-                </ClosableToastContent>
-            ),
-            {
-                duration: 10000,
-                style: {
-                    width: '364px',
-                    maxWidth: '96vw',
-                },
-            },
-        );
-    },
-    5000,
-    { trailing: false },
-);
-
-export const arrayAverage = (numbers: number[]): number => {
-    if (numbers.length === 0) return 0;
-    return numbers.reduce((sum, num) => sum + num, 0) / numbers.length;
-};
-
-export const isValidId = (id: string | undefined) => id && !isNaN(parseInt(id)) && isFinite(parseInt(id));
-
-export const getDiscountPercentage = (paymentMonthsCount: number): number => {
-    // Disabled for now
-    return 0;
-};
-
-export const getJobCost = (job: Job): number => {
-    const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-    const gpuType: GpuType | undefined = getGpuType(job.specifications);
-
-    return (
-        job.paymentAndDuration.paymentMonthsCount *
-        job.specifications.targetNodesCount *
-        (containerOrWorkerType.monthlyBudgetPerWorker + (gpuType?.monthlyBudgetPerWorker ?? 0)) *
-        (1 - getDiscountPercentage(job.paymentAndDuration.paymentMonthsCount) / 100)
-    );
-};
-
-export const getJobsTotalCost = (jobs: Job[]): number => {
-    return jobs.reduce((acc, job) => {
-        return acc + getJobCost(job);
-    }, 0);
-};
-
-export const getContainerOrWorkerType = (jobType: JobType, specifications: JobSpecifications): ContainerOrWorkerType => {
-    const containerOrWorkerType: ContainerOrWorkerType = (
-        jobType === JobType.Generic
-            ? genericContainerTypes.find((type) => type.name === (specifications as GenericJobSpecifications).containerType)
-            : jobType === JobType.Native
-              ? nativeWorkerTypes.find((type) => type.name === (specifications as NativeJobSpecifications).workerType)
-              : serviceContainerTypes.find((type) => type.name === (specifications as ServiceJobSpecifications).containerType)
-    ) as ContainerOrWorkerType;
-
-    return containerOrWorkerType;
-};
-
-export const getGpuType = (specifications: JobSpecifications): GpuType | undefined => {
-    return specifications.gpuType ? gpuTypes.find((type) => type.name === specifications.gpuType) : undefined;
-};
-
-export const downloadDataAsJson = (data: any, filename: string) => {
-    const jsonString = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    // Clean up the URL object
-    URL.revokeObjectURL(url);
-};
+export const isValidProjectHash = (hash: string | undefined): hash is string => !!hash && hash.startsWith('0x');
 
 export function deepSort(obj: any): any {
     if (Array.isArray(obj)) {
@@ -172,28 +67,6 @@ export function deepSort(obj: any): any {
     return obj;
 }
 
-// Helper function to get minimal balancing for a container/worker type
-export const getMinimalBalancing = (type: string, containerOrWorkerType: string | undefined): number => {
-    if (type === 'Generic' && containerOrWorkerType) {
-        const found = genericContainerTypes.find((t) => t.name === containerOrWorkerType);
-        return found?.minimalBalancing || 1;
-    }
-    if (type === 'Native' && containerOrWorkerType) {
-        const found = nativeWorkerTypes.find((t) => t.name === containerOrWorkerType);
-        return found?.minimalBalancing || 1;
-    }
-    if (type === 'Service' && containerOrWorkerType) {
-        const found = serviceContainerTypes.find((t) => t.name === containerOrWorkerType);
-        return found?.minimalBalancing || 1;
-    }
-    return 1;
-};
-
-export const getContainerOrWorkerTypeDescription = (containerOrWorkerType: ContainerOrWorkerType): string => {
-    const storageString = `, ${containerOrWorkerType.storage} GiB storage`;
-    return `${containerOrWorkerType.cores} core${containerOrWorkerType.cores > 1 ? 's' : ''}, ${containerOrWorkerType.ram} GB RAM${containerOrWorkerType.storage ? storageString : ''}`;
-};
-
 export const applyWidthClasses = (elements: React.ReactNode[], widthClasses: string[]) => {
     return elements.map((element, index) => (
         <div key={index} className={widthClasses[index]}>
@@ -201,13 +74,3 @@ export const applyWidthClasses = (elements: React.ReactNode[], widthClasses: str
         </div>
     ));
 };
-
-export function buildDeeployMessage(data: Record<string, any>): string {
-    const cleaned = structuredClone(data);
-    delete cleaned.address;
-    delete cleaned.signature;
-
-    const sorted = deepSort(cleaned);
-    const json = JSON.stringify(sorted, null, 1).replaceAll('": ', '":');
-    return `Please sign this message for Deeploy: ${json}`;
-}

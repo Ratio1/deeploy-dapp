@@ -7,14 +7,15 @@ interface Props extends InputProps {
     name: string;
     label: string;
     placeholder: string;
+    isOptional?: boolean;
 }
 
-export default function InputWithLabel({ name, label, placeholder, ...props }: Props) {
+export default function InputWithLabel({ name, label, placeholder, isOptional, ...props }: Props) {
     const { control } = useFormContext();
 
     return (
         <div className="col w-full gap-2">
-            <Label value={label} />
+            <Label value={label} isOptional={isOptional} />
 
             <Controller
                 name={name}

@@ -1,32 +1,35 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
-import { applyWidthClasses, getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/utils';
-import JobList from '@shared/jobs/projects/JobList';
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
+import { applyWidthClasses } from '@lib/utils';
+import DraftJobsList from '@shared/jobs/drafts/DraftJobsList';
 import { SmallTag } from '@shared/SmallTag';
-import { NativeJob, Project } from '@typedefs/deeploys';
+import { JobType, NativeDraftJob } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
 const widthClasses = [
-    'min-w-[64px]', // id
     'min-w-[128px]', // alias
+    'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
     'min-w-[50px]', // type
-    'min-w-[300px]', // containerType
+    'min-w-[300px]', // workerType
 ];
 
-function NativeJobList({ jobs, project }: { jobs: NativeJob[]; project: Project }) {
+export default function NativeDraftJobsList({ jobs }: { jobs: NativeDraftJob[] }) {
+    const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
+
     return (
-        <JobList
+        <DraftJobsList
             cardHeader={
                 <div className="row gap-1.5">
                     <RiTerminalBoxLine className="text-lg text-green-600" />
                     <div className="compact">Native Apps</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Type', 'Worker Type'], widthClasses)}</>}
+            tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Type', 'Worker Type'], widthClasses)}</>}
             jobs={jobs}
-            project={project}
             renderJob={(job) => {
-                const nativeJob = job as NativeJob;
+                const nativeJob = job as NativeDraftJob;
                 const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
                     nativeJob.jobType,
                     nativeJob.specifications,
@@ -34,12 +37,13 @@ function NativeJobList({ jobs, project }: { jobs: NativeJob[]; project: Project 
 
                 return (
                     <>
-                        <div className={widthClasses[0]}>
-                            <SmallTag key="id">{nativeJob.id}</SmallTag>
-                        </div>
+                        <div className={widthClasses[0]}>{nativeJob.deployment.jobAlias}</div>
 
                         <div className={widthClasses[1]}>
-                            <div className="font-medium">{nativeJob.deployment.jobAlias}</div>
+                            <SmallTag>
+                                {nativeJob.paymentAndDuration.duration} month
+                                {nativeJob.paymentAndDuration.duration > 1 ? 's' : ''}
+                            </SmallTag>
                         </div>
 
                         <div className={widthClasses[2]}>{nativeJob.specifications.targetNodesCount}</div>
@@ -51,13 +55,15 @@ function NativeJobList({ jobs, project }: { jobs: NativeJob[]; project: Project 
                         </div>
 
                         <div className={widthClasses[4]}>
-                            {`${containerOrWorkerType.name} (${getContainerOrWorkerTypeDescription(containerOrWorkerType)})`}
+                            {containerOrWorkerType.name} ({getContainerOrWorkerTypeDescription(containerOrWorkerType)})
                         </div>
                     </>
                 );
             }}
+            onAddJob={() => {
+                setStep(2);
+                setJobType(JobType.Native);
+            }}
         />
     );
 }
-
-export default NativeJobList;
