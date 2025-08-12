@@ -67,7 +67,7 @@ const configs: {
 
 const domain = window.location.hostname;
 
-const domainMainnet = 'deeploy.ratio1.ai';
+const domainMainnet = 'deeploy-dapp.vercel.app'; // TODO: 'deeploy.ratio1.ai';
 const domainDevnet = 'devnet-deeploy.ratio1.ai';
 const domainTestnet = 'testnet-deeploy.ratio1.ai';
 

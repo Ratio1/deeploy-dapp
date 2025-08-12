@@ -3,7 +3,6 @@ import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
-import { CardItem } from '@shared/cards/CardItem';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { SmallTag } from '@shared/SmallTag';
 import { DraftJob, DraftProject } from '@typedefs/deeploys';
@@ -48,46 +47,30 @@ export default function DraftCard({ project }: { project: DraftProject }) {
     return (
         <Link to={`${routePath.deeploys}/${routePath.draft}/${project.projectHash}`}>
             <BorderedCard isHoverable>
-                <div className="row justify-between gap-3 lg:gap-6">
+                <div className="row justify-between gap-3 text-sm lg:gap-6">
                     <div className="min-w-[132px]">
-                        <CardItem label="ID" value={<SmallTag>{getShortAddressOrHash(project.projectHash, 6)}</SmallTag>} />
+                        <SmallTag>{getShortAddressOrHash(project.projectHash, 6)}</SmallTag>
                     </div>
 
                     <div className="min-w-[212px]">
-                        <CardItem
-                            label="Name"
-                            value={
-                                <div className="row gap-2">
-                                    <div
-                                        className="mt-px h-2.5 w-2.5 rounded-full"
-                                        style={{ backgroundColor: project.color }}
-                                    ></div>
-                                    <div>{project.name}</div>
-                                </div>
-                            }
-                            isBold
-                        />
+                        <div className="row gap-2">
+                            <div className="mt-px h-2.5 w-2.5 rounded-full" style={{ backgroundColor: project.color }}></div>
+                            <div className="font-medium">{project.name}</div>
+                        </div>
                     </div>
 
-                    <div className="min-w-[110px]">
-                        {!!jobs && <CardItem label="Jobs" value={<SmallTag>{jobs.length} jobs</SmallTag>} />}
-                    </div>
+                    <div className="min-w-[110px]">{!!jobs && <div className="font-medium">{jobs.length} jobs</div>}</div>
 
                     <div className="min-w-[212px]">
-                        <CardItem
-                            label="Created"
-                            value={
-                                <>
-                                    {new Date(project.createdAt).toLocaleString('en-US', {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        year: 'numeric',
-                                        hour: 'numeric',
-                                        minute: 'numeric',
-                                    })}
-                                </>
-                            }
-                        />
+                        <SmallTag>
+                            {new Date(project.createdAt).toLocaleString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: 'numeric',
+                                minute: 'numeric',
+                            })}
+                        </SmallTag>
                     </div>
 
                     <ContextMenuWithTrigger

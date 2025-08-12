@@ -1,5 +1,4 @@
 import { getCurrentEpoch, getNextEpochTimestamp } from '@lib/config';
-import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getShortAddressOrHash } from '@lib/utils';
 import { BigCard } from '@shared/cards/BigCard';
@@ -10,8 +9,7 @@ import React from 'react';
 import { RiTimeLine } from 'react-icons/ri';
 
 export default function Home() {
-    const { escrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
-    const { apps } = useDeploymentContext() as DeploymentContextType;
+    const { apps, escrowContractAddress } = useDeploymentContext() as DeploymentContextType;
 
     return (
         <div className="w-full flex-1">
@@ -34,19 +32,11 @@ export default function Home() {
                 <Card
                     title="Running Jobs"
                     value={
-                        !apps ? (
-                            <>...</>
-                        ) : (
-                            <>
-                                {
-                                    uniq(
-                                        Object.values(apps)
-                                            .map((app) => Object.keys(app))
-                                            .flat(),
-                                    ).length
-                                }
-                            </>
-                        )
+                        uniq(
+                            Object.values(apps)
+                                .map((app) => Object.keys(app))
+                                .flat(),
+                        ).length
                     }
                 />
 

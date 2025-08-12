@@ -7,8 +7,8 @@ import ServiceJobsCostRundown from '@components/draft/job-rundowns/ServiceJobsCo
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { createPipeline } from '@lib/api/deeploy';
 import { config, environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
-import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import {
     buildDeeployMessage,
     formatGenericJobPayload,
@@ -45,8 +45,8 @@ export default function Payment({
     jobs: DraftJob[] | undefined;
     callback: () => void;
 }) {
-    const { escrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
+    const { escrowContractAddress, setFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
 
     const [allowance, setAllowance] = useState<bigint>(0n);
     const [totalCost, setTotalCost] = useState<number>(0);
@@ -64,8 +64,13 @@ export default function Payment({
         displayError: () => void;
     }>(null);
 
+    // TODO: Remove
     useEffect(() => {
-        console.log('[DraftPayment] jobs', jobs);
+        console.log('[Payment] projectName', projectName);
+    }, [projectName]);
+
+    useEffect(() => {
+        console.log('[Payment] jobs', jobs);
 
         if (jobs) {
             setTotalCost(getJobsTotalCost(jobs) * (environment === 'mainnet' ? 1 : 24));
@@ -232,6 +237,7 @@ export default function Payment({
 
             if (successfulJobs.length === jobs.length) {
                 deeployFlowModalRef.current?.progress('done');
+                setFetchAppsRequired(true);
 
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
@@ -286,8 +292,6 @@ export default function Payment({
             functionName: 'allowance',
             args: [address, escrowContractAddress],
         });
-
-        // console.log(`[DraftPayment] fetchAllowance: ${Number(result) / 10 ** 6} $USDC`);
 
         setAllowance(result);
         return result;

@@ -1,14 +1,12 @@
-import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import JobFormWrapper from '@components/jobs/JobFormWrapper';
 import ProjectOverview from '@components/project/ProjectOverview';
 import { Skeleton } from '@heroui/skeleton';
-import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import Payment from '@shared/projects/Payment';
-import { DraftJob, ProjectPage, RunningJob } from '@typedefs/deeploys';
+import { DraftJob, ProjectPage, RunningJobWithAlias } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -16,10 +14,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { usePublicClient } from 'wagmi';
 
 export default function Project() {
-    const { escrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
-    const { jobType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
+    const { escrowContractAddress, jobType, projectPage, setProjectPage, getProjectName, fetchRunningJobsWithAliases } =
+        useDeploymentContext() as DeploymentContextType;
+
     const [isLoading, setLoading] = useState(true);
-    const [runningJobs, setRunningJobs] = useState<RunningJob[]>([]);
+    const [projectName, setProjectName] = useState<string | undefined>();
+    const [runningJobsWithAliases, setRunningJobsWithAliases] = useState<RunningJobWithAlias[]>([]);
 
     const publicClient = usePublicClient();
 
@@ -46,6 +46,8 @@ export default function Project() {
     useEffect(() => {
         if (!isValidProjectHash(projectHash)) {
             navigate(routePath.notFound);
+        } else {
+            setProjectName(getProjectName(projectHash));
         }
     }, [projectHash]);
 
@@ -57,16 +59,14 @@ export default function Project() {
 
         setLoading(true);
 
-        const jobs: readonly RunningJob[] = await publicClient.readContract({
-            address: escrowContractAddress,
-            abi: CspEscrowAbi,
-            functionName: 'getAllJobs',
-        });
-
-        const projectJobs = jobs.filter((job) => job.projectHash === projectHash);
-
-        setRunningJobs(projectJobs);
-        setLoading(false);
+        try {
+            const jobs: RunningJobWithAlias[] = await fetchRunningJobsWithAliases();
+            setRunningJobsWithAliases(jobs);
+        } catch (error) {
+            toast.error('Failed to fetch running jobs.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (isLoading || draftJobs === null) {
@@ -95,6 +95,7 @@ export default function Project() {
             {projectPage === ProjectPage.Payment ? (
                 <Payment
                     projectHash={projectHash}
+                    projectName={localStorage.getItem('projectName') || projectName}
                     jobs={draftJobs}
                     callback={() => {
                         setProjectPage(ProjectPage.Overview);
@@ -102,7 +103,7 @@ export default function Project() {
                     }}
                 />
             ) : (
-                <ProjectOverview projectHash={projectHash} runningJobs={runningJobs} draftJobs={draftJobs} />
+                <ProjectOverview projectName={projectName} runningJobs={runningJobsWithAliases} draftJobs={draftJobs} />
             )}
         </>
     ) : (

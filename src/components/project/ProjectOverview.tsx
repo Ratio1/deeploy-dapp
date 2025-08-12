@@ -9,7 +9,7 @@ import AddJobCard from '@shared/projects/AddJobCard';
 import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
 import SupportFooter from '@shared/SupportFooter';
-import { DraftJob, JobType, RunningJob, RunningJobWithResources } from '@typedefs/deeploys';
+import { DraftJob, JobType, RunningJobWithAlias, RunningJobWithResources } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { RiBox2Line, RiDraftLine, RiFileTextLine } from 'react-icons/ri';
@@ -19,20 +19,19 @@ import ServiceRunningJobsList from './job-lists/ServiceRunningJobsList';
 import ProjectStats from './ProjectStats';
 
 export default function ProjectOverview({
-    projectHash,
+    projectName,
     runningJobs,
     draftJobs,
 }: {
-    projectHash: string;
-    runningJobs: RunningJob[] | undefined;
+    projectName: string | undefined;
+    runningJobs: RunningJobWithAlias[] | undefined;
     draftJobs: DraftJob[] | undefined;
 }) {
     const [selectedTab, setSelectedTab] = useState<'runningJobs' | 'draftJobs'>('runningJobs');
     const [runningJobsWithResources, setRunningJobsWithResources] = useState<RunningJobWithResources[]>([]);
 
     useEffect(() => {
-        console.log('runningJobs', runningJobs);
-        console.log('draftJobs', draftJobs);
+        console.log({ projectName, runningJobs, draftJobs });
     }, [runningJobs, draftJobs]);
 
     useEffect(() => {
@@ -57,7 +56,7 @@ export default function ProjectOverview({
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <ProjectIdentity />
+                    <ProjectIdentity projectName={projectName} />
 
                     <div className="row gap-2">
                         <CancelButton tab="running" />

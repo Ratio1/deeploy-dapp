@@ -1,5 +1,6 @@
+import { EthAddress } from '@typedefs/blockchain';
 import { Apps } from '@typedefs/deeployApi';
-import { JobType, ProjectPage } from '@typedefs/deeploys';
+import { JobType, ProjectPage, RunningJobWithAlias } from '@typedefs/deeploys';
 import { createContext } from 'react';
 
 export interface DeploymentContextType {
@@ -14,7 +15,13 @@ export interface DeploymentContextType {
     setFetchAppsRequired: (isFetchAppsRequired: boolean | undefined) => void;
     isFetchingApps: boolean;
     fetchApps: () => void;
-    apps: Apps | undefined;
+    apps: Apps;
+    // Utils
+    getProjectName: (projectHash: string) => string | undefined;
+    fetchRunningJobsWithAliases: () => Promise<RunningJobWithAlias[]>;
+    // Escrow
+    escrowContractAddress: EthAddress | undefined;
+    setEscrowContractAddress: React.Dispatch<React.SetStateAction<EthAddress | undefined>>;
 }
 
 export const DeploymentContext = createContext<DeploymentContextType | null>(null);
