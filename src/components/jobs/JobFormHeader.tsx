@@ -5,6 +5,7 @@ import { getShortAddressOrHash, isValidProjectHash } from '@lib/utils';
 import { SmallTag } from '@shared/SmallTag';
 import { DraftProject, JobType } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useEffect, useState } from 'react';
 import { RiArrowLeftLine } from 'react-icons/ri';
 import { useParams } from 'react-router-dom';
 
@@ -13,18 +14,26 @@ interface Props {
 }
 
 function JobFormHeader({ steps }: Props) {
-    const { jobType, setJobType, step, setStep } = useDeploymentContext() as DeploymentContextType;
+    const { jobType, setJobType, step, setStep, getProjectName } = useDeploymentContext() as DeploymentContextType;
 
     const { projectHash } = useParams();
 
+    const [projectName, setProjectName] = useState<string | undefined>();
+
     // Only run the query if we have a valid ID
-    const project: DraftProject | undefined | null = useLiveQuery(
+    const draft: DraftProject | undefined | null = useLiveQuery(
         isValidProjectHash(projectHash) ? () => db.projects.get(projectHash) : () => undefined,
         [isValidProjectHash, projectHash],
         null, // Default value returned while data is loading
     );
 
-    if (project === null || !isValidProjectHash(projectHash)) {
+    useEffect(() => {
+        if (projectHash) {
+            setProjectName(getProjectName(projectHash));
+        }
+    }, [projectHash]);
+
+    if (draft === null || !isValidProjectHash(projectHash)) {
         return (
             <div className="col w-full gap-8">
                 <Skeleton className="min-h-[82.5px] w-full rounded-lg" />
@@ -37,13 +46,15 @@ function JobFormHeader({ steps }: Props) {
         <div className="col w-full gap-8">
             <div className="col gap-4">
                 <div className="row justify-between">
-                    {!project ? (
-                        <SmallTag isLarge>{getShortAddressOrHash(projectHash, 6)}</SmallTag>
-                    ) : (
+                    {projectName ? (
+                        <div className="big-title max-w-[280px] truncate">{projectName}</div>
+                    ) : draft !== undefined ? (
                         <div className="row gap-2">
-                            <div className="mt-px h-2.5 w-2.5 rounded-full" style={{ backgroundColor: project.color }}></div>
-                            <div className="big-title max-w-[280px] truncate">{project.name}</div>
+                            <div className="mt-px h-2.5 w-2.5 rounded-full" style={{ backgroundColor: draft.color }}></div>
+                            <div className="big-title max-w-[280px] truncate">{draft.name}</div>
                         </div>
+                    ) : (
+                        <SmallTag isLarge>{getShortAddressOrHash(projectHash, 6)}</SmallTag>
                     )}
 
                     <div className="big-title">

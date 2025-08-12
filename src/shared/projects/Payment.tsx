@@ -330,7 +330,7 @@ export default function Payment({
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <ProjectIdentity />
+                    <ProjectIdentity projectName={projectName} />
 
                     <div className="row gap-2">
                         {/* {process.env.NODE_ENV === 'development' && (
