@@ -1,4 +1,5 @@
 import { getApps } from '@lib/api/deeploy';
+import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import { EthAddress } from '@typedefs/blockchain';
 import { Apps } from '@typedefs/deeployApi';
@@ -9,7 +10,7 @@ import { useAccount, useSignMessage } from 'wagmi';
 import { DeploymentContext } from './context';
 
 export const DeploymentProvider = ({ children }) => {
-    const { address } = useAccount();
+    const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const { signMessageAsync } = useSignMessage();
 
     // Only 'undefined' if never fetched

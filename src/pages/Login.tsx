@@ -4,7 +4,7 @@ import LoginCard from '@components/auth/LoginCard';
 import RestrictedAccess from '@components/auth/RestrictedAccess';
 import { Spinner } from '@heroui/spinner';
 import { getNodeLastEpoch } from '@lib/api/oracles';
-import { config, environment } from '@lib/config';
+import { config, environment, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { EthAddress } from '@typedefs/blockchain';
@@ -17,7 +17,7 @@ function Login() {
     const { isSignedIn, setEscrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
     const { fetchLicenses } = useBlockchainContext() as BlockchainContextType;
 
-    const { address } = useAccount();
+    const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const publicClient = usePublicClient();
 
     const { open: modalOpen, openSIWE } = useModal();

@@ -1,5 +1,5 @@
 import { getAccount } from '@lib/api/backend';
-import { config } from '@lib/config';
+import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { useQuery } from '@tanstack/react-query';
 import { ApiAccount, EthAddress } from '@typedefs/blockchain';
 import { SIWESession, useModal, useSIWE } from 'connectkit';
@@ -9,7 +9,9 @@ import { useAccount } from 'wagmi';
 import { AuthenticationContext } from './context';
 
 export const AuthenticationProvider = ({ children }) => {
-    const { isConnected, address } = useAccount();
+    const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
+    const { isConnected } = useAccount();
+
     const { isSignedIn } = useSIWE({
         onSignIn: (session?: SIWESession) => {
             console.log('Signed in (SIWE):', session);

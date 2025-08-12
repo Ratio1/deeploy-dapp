@@ -5,6 +5,7 @@ import { Skeleton } from '@heroui/skeleton';
 import { getSecrets, getTunnels } from '@lib/api/tunnels';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { deepSort } from '@lib/utils';
+import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import EmptyData from '@shared/EmptyData';
 import { Tunnel } from '@typedefs/tunnels';
 import { useEffect, useState } from 'react';
@@ -24,7 +25,7 @@ function buildMessage(data: Record<string, any>): string {
 function Tunnels() {
     const { openTunnelCreateModal } = useTunnelsContext() as TunnelsContextType;
     const { signMessageAsync } = useSignMessage();
-    const { address } = useAccount();
+    const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
 
     const [secretsLoaded, setSecretsLoaded] = useState(false);
     const [tunnels, setTunnels] = useState<Tunnel[]>([]);

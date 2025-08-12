@@ -6,7 +6,7 @@ import NativeJobsCostRundown from '@components/draft/job-rundowns/NativeJobsCost
 import ServiceJobsCostRundown from '@components/draft/job-rundowns/ServiceJobsCostRundown';
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { createPipeline } from '@lib/api/deeploy';
-import { config, environment, getCurrentEpoch } from '@lib/config';
+import { config, environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import {
@@ -54,7 +54,7 @@ export default function Payment({
 
     const { data: walletClient } = useWalletClient();
     const publicClient = usePublicClient();
-    const { address } = useAccount();
+    const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const { signMessageAsync } = useSignMessage();
 
     const deeployFlowModalRef = useRef<{

@@ -4,6 +4,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { routePath } from '@lib/routes/route-paths';
 import { isParentRoute, isSimpleRoute, routes } from '@lib/routes/routes';
 import Login from '@pages/Login';
+import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAccount } from 'wagmi';
 
@@ -11,7 +12,7 @@ function App() {
     const { isSignedIn } = useAuthenticationContext() as AuthenticationContextType;
     const { isFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
 
-    const { address } = useAccount();
+    const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
 
     const isAuthenticated = isSignedIn && address !== undefined && isFetchAppsRequired !== undefined;
 
