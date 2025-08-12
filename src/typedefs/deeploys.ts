@@ -193,16 +193,16 @@ type RunningJob = {
     activeNodes: readonly EthAddress[];
 };
 
-type RunningJobWithResources = RunningJob & {
+type RunningJobWithAlias = RunningJob & {
+    alias: string;
+    projectName?: string;
+};
+
+type RunningJobWithResources = RunningJobWithAlias & {
     resources: {
         jobType: JobType;
         containerOrWorkerType: ContainerOrWorkerType;
     };
-};
-
-type RunningJobWithAlias = RunningJob & {
-    alias: string;
-    projectName?: string;
 };
 
 export { JobType, ProjectPage };

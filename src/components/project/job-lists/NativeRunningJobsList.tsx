@@ -6,10 +6,9 @@ import { RunningJobWithResources } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
 const widthClasses = [
-    'min-w-[64px]', // id
-    'min-w-[128px]', // alias
+    'min-w-[180px]', // alias
     'min-w-[90px]', // targetNodes
-    'min-w-[68px]', // type
+    'min-w-[50px]', // type
     'min-w-[300px]', // containerType
 ];
 
@@ -22,42 +21,32 @@ function NativeRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
                     <div className="compact">Native Apps</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Id', 'Alias', 'Target Nodes', 'Type', 'Worker Type'], widthClasses)}</>}
+            tableHeader={<>{applyWidthClasses(['Alias', 'Target Nodes', 'Type', 'Worker Type'], widthClasses)}</>}
             jobs={jobs}
             renderJob={(job) => {
-                const { jobType, containerOrWorkerType } = job.resources;
+                const { containerOrWorkerType } = job.resources;
                 const targetNodes = Number(job.numberOfNodesRequested);
 
                 return (
                     <>
                         <div className={widthClasses[0]}>
-                            <SmallTag key="id">{Number(job.id)}</SmallTag>
+                            <SmallTag variant="green">
+                                <div className="truncate">{job.alias}</div>
+                            </SmallTag>
                         </div>
 
                         <div className={widthClasses[1]}>
-                            <div className="font-medium">
-                                {jobType} Job #{Number(job.id)}
-                            </div>
-                        </div>
-
-                        <div className={widthClasses[2]}>
                             <div className="font-medium">
                                 {targetNodes} node
                                 {targetNodes > 1 ? 's' : ''}
                             </div>
                         </div>
 
-                        <div className={widthClasses[3]}>
-                            <SmallTag>Unknown</SmallTag>
+                        <div className={widthClasses[2]}>
+                            <SmallTag variant="blue">CPU</SmallTag>
                         </div>
 
-                        {/* <div className={widthClasses[3]}>
-                            <SmallTag variant={nativeJob.specifications.gpuType ? 'green' : 'blue'}>
-                                {nativeJob.specifications.gpuType ? 'GPU' : 'CPU'}
-                            </SmallTag>
-                        </div> */}
-
-                        <div className={widthClasses[4]}>
+                        <div className={widthClasses[3]}>
                             {`${containerOrWorkerType.name} (${getContainerOrWorkerTypeDescription(containerOrWorkerType)})`}
                         </div>
                     </>

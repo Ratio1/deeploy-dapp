@@ -9,7 +9,7 @@ import AddJobCard from '@shared/projects/AddJobCard';
 import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
 import SupportFooter from '@shared/SupportFooter';
-import { DraftJob, JobType, RunningJob, RunningJobWithResources } from '@typedefs/deeploys';
+import { DraftJob, JobType, RunningJobWithAlias, RunningJobWithResources } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { RiBox2Line, RiDraftLine, RiFileTextLine } from 'react-icons/ri';
@@ -24,7 +24,7 @@ export default function ProjectOverview({
     draftJobs,
 }: {
     projectName: string | undefined;
-    runningJobs: RunningJob[] | undefined;
+    runningJobs: RunningJobWithAlias[] | undefined;
     draftJobs: DraftJob[] | undefined;
 }) {
     const [selectedTab, setSelectedTab] = useState<'runningJobs' | 'draftJobs'>('runningJobs');

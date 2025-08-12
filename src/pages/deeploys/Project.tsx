@@ -1,4 +1,3 @@
-import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import JobFormWrapper from '@components/jobs/JobFormWrapper';
 import ProjectOverview from '@components/project/ProjectOverview';
 import { Skeleton } from '@heroui/skeleton';
@@ -7,7 +6,7 @@ import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import Payment from '@shared/projects/Payment';
-import { DraftJob, ProjectPage, RunningJob } from '@typedefs/deeploys';
+import { DraftJob, ProjectPage, RunningJobWithAlias } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -15,12 +14,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { usePublicClient } from 'wagmi';
 
 export default function Project() {
-    const { escrowContractAddress, jobType, projectPage, setProjectPage, getProjectName } =
+    const { escrowContractAddress, jobType, projectPage, setProjectPage, getProjectName, fetchRunningJobsWithAliases } =
         useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
     const [projectName, setProjectName] = useState<string | undefined>();
-    const [runningJobs, setRunningJobs] = useState<RunningJob[]>([]);
+    const [runningJobsWithAliases, setRunningJobsWithAliases] = useState<RunningJobWithAlias[]>([]);
 
     const publicClient = usePublicClient();
 
@@ -61,15 +60,8 @@ export default function Project() {
         setLoading(true);
 
         try {
-            const jobs: readonly RunningJob[] = await publicClient.readContract({
-                address: escrowContractAddress,
-                abi: CspEscrowAbi,
-                functionName: 'getAllJobs',
-            });
-
-            const projectJobs = jobs.filter((job) => job.projectHash === projectHash);
-
-            setRunningJobs(projectJobs);
+            const jobs: RunningJobWithAlias[] = await fetchRunningJobsWithAliases();
+            setRunningJobsWithAliases(jobs);
         } catch (error) {
             toast.error('Failed to fetch running jobs.');
         } finally {
@@ -111,7 +103,7 @@ export default function Project() {
                     }}
                 />
             ) : (
-                <ProjectOverview projectName={projectName} runningJobs={runningJobs} draftJobs={draftJobs} />
+                <ProjectOverview projectName={projectName} runningJobs={runningJobsWithAliases} draftJobs={draftJobs} />
             )}
         </>
     ) : (
