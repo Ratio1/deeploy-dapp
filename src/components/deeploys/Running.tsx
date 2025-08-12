@@ -1,14 +1,11 @@
-import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { Button } from '@heroui/button';
 import { Skeleton } from '@heroui/skeleton';
-import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
-import { RunningJob, RunningJobWithAlias } from '@typedefs/deeploys';
+import { RunningJobWithAlias } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import toast from 'react-hot-toast';
 import { RiDraftLine, RiRefreshLine } from 'react-icons/ri';
 import { usePublicClient } from 'wagmi';
 import RunningCard from './RunningCard';
@@ -19,8 +16,8 @@ export interface RunningRef {
 }
 
 const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => void }>(({ setProjectsCount }, ref) => {
-    const { escrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
-    const { apps, isFetchingApps, fetchApps, isFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
+    const { isFetchingApps, isFetchAppsRequired, fetchApps, fetchRunningJobsWithAliases } =
+        useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
 
@@ -31,7 +28,7 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
 
     useEffect(() => {
         if (publicClient) {
-            fetchRunningJobsWithAliases();
+            getProjectsWithJobs();
         }
     }, [publicClient]);
 
@@ -47,53 +44,13 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
         }
     }, [projects]);
 
-    const fetchRunningJobsWithAliases = async () => {
-        if (!publicClient || !escrowContractAddress) {
-            toast.error('Please connect your wallet.');
-            return;
-        }
+    const getProjectsWithJobs = async () => {
+        setLoading(true);
 
-        const runningJobs: readonly RunningJob[] = await publicClient.readContract({
-            address: escrowContractAddress,
-            abi: CspEscrowAbi,
-            functionName: 'getAllJobs',
-        });
-
-        console.log({ runningJobs });
-
-        const jobsWithAliases: RunningJobWithAlias[] = _(Object.values(apps))
-            .map((app) => {
-                const alias: string = Object.keys(app)[0];
-                const isDeployed = app[alias].is_deeployed;
-
-                if (!isDeployed) {
-                    return null;
-                }
-
-                const specs = app[alias].deeploy_specs;
-                const jobId = specs.job_id;
-
-                const job = runningJobs.find((job) => Number(job.id) === jobId && job.projectHash === specs.project_id);
-
-                if (!job) {
-                    return null;
-                }
-
-                return {
-                    alias,
-                    projectName: specs.project_name,
-                    ...job,
-                };
-            })
-            .filter((job) => job !== null)
-            .uniqBy((job) => job.alias)
-            .value();
-
+        const jobsWithAliases: RunningJobWithAlias[] = await fetchRunningJobsWithAliases();
         const projectsWithJobs = _.groupBy(jobsWithAliases, 'projectHash');
+
         setProjects(projectsWithJobs);
-
-        // console.log(projectsWithJobs);
-
         setProjectsCount(Object.keys(projectsWithJobs).length);
 
         setLoading(false);

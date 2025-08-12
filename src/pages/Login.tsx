@@ -7,6 +7,7 @@ import { getNodeLastEpoch } from '@lib/api/oracles';
 import { config, environment, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { EthAddress } from '@typedefs/blockchain';
 import { ConnectKitButton, useModal } from 'connectkit';
 import { useEffect, useState } from 'react';
@@ -14,8 +15,9 @@ import toast from 'react-hot-toast';
 import { useAccount, usePublicClient } from 'wagmi';
 
 function Login() {
-    const { isSignedIn, setEscrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
+    const { isSignedIn } = useAuthenticationContext() as AuthenticationContextType;
     const { fetchLicenses } = useBlockchainContext() as BlockchainContextType;
+    const { setEscrowContractAddress } = useDeploymentContext() as DeploymentContextType;
 
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const publicClient = usePublicClient();

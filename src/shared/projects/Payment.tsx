@@ -7,7 +7,6 @@ import ServiceJobsCostRundown from '@components/draft/job-rundowns/ServiceJobsCo
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { createPipeline } from '@lib/api/deeploy';
 import { config, environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
-import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import {
@@ -46,9 +45,8 @@ export default function Payment({
     jobs: DraftJob[] | undefined;
     callback: () => void;
 }) {
-    const { escrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
-    const { setFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
+    const { escrowContractAddress, setFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
 
     const [allowance, setAllowance] = useState<bigint>(0n);
     const [totalCost, setTotalCost] = useState<number>(0);

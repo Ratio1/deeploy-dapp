@@ -2,7 +2,6 @@ import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import JobFormWrapper from '@components/jobs/JobFormWrapper';
 import ProjectOverview from '@components/project/ProjectOverview';
 import { Skeleton } from '@heroui/skeleton';
-import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
@@ -16,8 +15,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { usePublicClient } from 'wagmi';
 
 export default function Project() {
-    const { escrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
-    const { jobType, projectPage, setProjectPage, getProjectName } = useDeploymentContext() as DeploymentContextType;
+    const { escrowContractAddress, jobType, projectPage, setProjectPage, getProjectName } =
+        useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
     const [projectName, setProjectName] = useState<string | undefined>();

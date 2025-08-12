@@ -1,18 +1,20 @@
+import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { getApps } from '@lib/api/deeploy';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import { EthAddress } from '@typedefs/blockchain';
 import { Apps } from '@typedefs/deeployApi';
-import { JobType, ProjectPage } from '@typedefs/deeploys';
-import { flatten } from 'lodash';
+import { JobType, ProjectPage, RunningJob, RunningJobWithAlias } from '@typedefs/deeploys';
+import _, { flatten } from 'lodash';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { useAccount, useSignMessage } from 'wagmi';
+import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
 import { DeploymentContext } from './context';
 
 export const DeploymentProvider = ({ children }) => {
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const { signMessageAsync } = useSignMessage();
+    const publicClient = usePublicClient();
 
     // Only 'undefined' if never fetched
     const [isFetchAppsRequired, setFetchAppsRequired] = useState<boolean | undefined>();
@@ -24,6 +26,8 @@ export const DeploymentProvider = ({ children }) => {
     const [jobType, setJobType] = useState<JobType | undefined>();
     const [step, setStep] = useState<number>(1);
     const [projectPage, setProjectPage] = useState<ProjectPage>(ProjectPage.Overview);
+
+    const [escrowContractAddress, setEscrowContractAddress] = useState<EthAddress | undefined>();
 
     const fetchApps = async () => {
         if (!address) {
@@ -81,6 +85,49 @@ export const DeploymentProvider = ({ children }) => {
         }
     };
 
+    const fetchRunningJobsWithAliases = async (): Promise<RunningJobWithAlias[]> => {
+        if (!publicClient || !escrowContractAddress) {
+            toast.error('Please connect your wallet and refresh this page.');
+            return [];
+        }
+
+        const runningJobs: readonly RunningJob[] = await publicClient.readContract({
+            address: escrowContractAddress,
+            abi: CspEscrowAbi,
+            functionName: 'getAllJobs',
+        });
+
+        const jobsWithAliases: RunningJobWithAlias[] = _(Object.values(apps))
+            .map((app) => {
+                const alias: string = Object.keys(app)[0];
+                const isDeployed = app[alias].is_deeployed;
+
+                if (!isDeployed) {
+                    return null;
+                }
+
+                const specs = app[alias].deeploy_specs;
+                const jobId = specs.job_id;
+
+                const job = runningJobs.find((job) => Number(job.id) === jobId && job.projectHash === specs.project_id);
+
+                if (!job) {
+                    return null;
+                }
+
+                return {
+                    alias,
+                    projectName: specs.project_name,
+                    ...job,
+                };
+            })
+            .filter((job) => job !== null)
+            .uniqBy((job) => job.alias)
+            .value();
+
+        return jobsWithAliases;
+    };
+
     return (
         <DeploymentContext.Provider
             value={{
@@ -98,6 +145,10 @@ export const DeploymentProvider = ({ children }) => {
                 apps,
                 // Utils
                 getProjectName,
+                fetchRunningJobsWithAliases,
+                // Escrow
+                escrowContractAddress,
+                setEscrowContractAddress,
             }}
         >
             {children}

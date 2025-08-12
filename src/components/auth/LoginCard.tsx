@@ -1,6 +1,5 @@
 import { Button } from '@heroui/button';
 import { isUsingDevAddress } from '@lib/config';
-import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
@@ -8,8 +7,8 @@ import { CopyableValue } from '@shared/CopyableValue';
 import { RiBox3Line } from 'react-icons/ri';
 
 export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
-    const { escrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
-    const { isFetchingApps, fetchApps, setFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
+    const { escrowContractAddress, isFetchingApps, fetchApps, setFetchAppsRequired } =
+        useDeploymentContext() as DeploymentContextType;
 
     return (
         <div className="center-all">
