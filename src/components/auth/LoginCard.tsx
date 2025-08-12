@@ -8,13 +8,12 @@ import { RiBox3Line } from 'react-icons/ri';
 
 export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
     const { escrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
-
     const { isFetchingApps, fetchApps } = useDeploymentContext() as DeploymentContextType;
 
     return (
         <div className="center-all">
             <BorderedCard>
-                <div className="col gap-5">
+                <div className="col gap-5 py-1">
                     <div className="compact text-center leading-none">
                         {!oraclesCount ? (
                             <>Your wallet does not own any oracles.</>

@@ -104,6 +104,3 @@ export const getNextEpochTimestamp = (): Date =>
 
 export const getLicenseAssignEpoch = (assignTimestamp: bigint) =>
     Math.floor((Number(assignTimestamp) - config.genesisDate.getTime() / 1000) / config.epochDurationInSeconds);
-
-// TODO: Fetch
-export const escrowContractAddress = '0x960ca4e854de626B1d6d8942ac60918847824d9D'; // '0x882130F66C4Bc83130Bc05104A64Ae4C899500e3';

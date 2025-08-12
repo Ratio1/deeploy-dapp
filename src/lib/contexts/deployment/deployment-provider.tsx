@@ -1,6 +1,7 @@
 import { getApps } from '@lib/api/deeploy';
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import { EthAddress } from '@typedefs/blockchain';
+import { Apps } from '@typedefs/deeployApi';
 import { JobType, ProjectPage } from '@typedefs/deeploys';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
@@ -11,10 +12,10 @@ export const DeploymentProvider = ({ children }) => {
     const { address } = useAccount();
     const { signMessageAsync } = useSignMessage();
 
-    const [isFetchingApps, setFetchingApps] = useState<boolean>(false);
-
     // Only 'undefined' if never fetched
     const [isFetchAppsRequired, setFetchAppsRequired] = useState<boolean | undefined>();
+    const [isFetchingApps, setFetchingApps] = useState<boolean>(false);
+    const [apps, setApps] = useState<Apps | undefined>();
 
     const [jobType, setJobType] = useState<JobType | undefined>();
     const [step, setStep] = useState<number>(1);
@@ -35,7 +36,8 @@ export const DeploymentProvider = ({ children }) => {
             // Setting this to false will trigger a re-render of the App component which in turn will navigate the user to the home page
             setFetchAppsRequired(false);
 
-            console.log(response);
+            setApps(response.apps);
+            console.log('Apps', response.apps);
         } catch (error) {
             console.error(error);
             toast.error('Failed to refresh running jobs.');
@@ -79,6 +81,7 @@ export const DeploymentProvider = ({ children }) => {
                 setFetchAppsRequired,
                 isFetchingApps,
                 fetchApps,
+                apps,
             }}
         >
             {children}

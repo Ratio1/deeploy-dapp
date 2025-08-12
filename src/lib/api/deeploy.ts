@@ -1,5 +1,6 @@
 import { config } from '@lib/config';
 import { EthAddress } from '@typedefs/blockchain';
+import { GetAppsResponse } from '@typedefs/deeployApi';
 import axios from 'axios';
 
 const axiosInstance = axios.create({
@@ -17,7 +18,11 @@ export const createPipeline = (request: {
         request,
     });
 
-export const getApps = (request: { EE_ETH_SIGN: EthAddress; EE_ETH_SENDER: EthAddress; nonce: string }) =>
+export const getApps = (request: {
+    EE_ETH_SIGN: EthAddress;
+    EE_ETH_SENDER: EthAddress;
+    nonce: string;
+}): Promise<GetAppsResponse> =>
     _doPost('/get_apps', {
         request,
     });
