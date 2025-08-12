@@ -111,26 +111,28 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
             </ListHeader>
 
             {/* TODO: Display only if a refresh is required */}
-            <div className="text-warning-800 bg-warning-100 rounded-lg px-6 py-3 text-sm">
-                <div className="row justify-between gap-4">
-                    <div className="row gap-1.5">
-                        <RiRefreshLine className="text-xl" />
-                        <div className="font-medium">Refresh required</div>
-                    </div>
+            {process.env.NODE_ENV === 'development' && (
+                <div className="text-warning-800 bg-warning-100 rounded-lg px-6 py-3 text-sm">
+                    <div className="row justify-between gap-4">
+                        <div className="row gap-1.5">
+                            <RiRefreshLine className="text-xl" />
+                            <div className="font-medium">Refresh required</div>
+                        </div>
 
-                    <div>
-                        <Button
-                            className="bg-warning-300 rounded-md"
-                            color="warning"
-                            size="sm"
-                            onPress={fetchApps}
-                            isLoading={isFetchingApps}
-                        >
-                            <div className="text-[13px]">Refresh</div>
-                        </Button>
+                        <div>
+                            <Button
+                                className="bg-warning-300 rounded-md"
+                                color="warning"
+                                size="sm"
+                                onPress={fetchApps}
+                                isLoading={isFetchingApps}
+                            >
+                                <div className="text-[13px]">Refresh</div>
+                            </Button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             {isLoading ? (
                 <>

@@ -3,8 +3,6 @@ import { addSeconds } from 'date-fns';
 import { Chain } from 'viem';
 import { base, baseSepolia } from 'wagmi/chains';
 
-// TODO: Clean-up unused values
-
 type Config = {
     deeployUrl: string;
     backendUrl: string;
@@ -73,7 +71,7 @@ const configs: {
 
 const domain = window.location.hostname;
 
-const domainMainnet = 'deeploy.ratio1.ai';
+const domainMainnet = 'deeploy-dapp.vercel.app'; // TODO: 'deeploy.ratio1.ai';
 const domainDevnet = 'devnet-deeploy.ratio1.ai';
 const domainTestnet = 'testnet-deeploy.ratio1.ai';
 
@@ -90,7 +88,7 @@ export const environment: 'mainnet' | 'testnet' | 'devnet' =
           ? ('devnet' as const)
           : domain === domainTestnet
             ? ('testnet' as const)
-            : ('devnet' as const);
+            : ('mainnet' as const);
 
 export const config = configs[environment];
 
@@ -111,4 +109,4 @@ export const getDevAddress = (): {
     address: import.meta.env.VITE_DEV_ADDRESS,
 });
 
-export const isUsingDevAddress = process.env.NODE_ENV === 'development' && false;
+export const isUsingDevAddress = process.env.NODE_ENV === 'development' && true;

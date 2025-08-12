@@ -1,4 +1,5 @@
 import { Button } from '@heroui/button';
+import { isUsingDevAddress } from '@lib/config';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getShortAddressOrHash } from '@lib/utils';
@@ -8,7 +9,7 @@ import { RiBox3Line } from 'react-icons/ri';
 
 export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
     const { escrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
-    const { isFetchingApps, fetchApps } = useDeploymentContext() as DeploymentContextType;
+    const { isFetchingApps, fetchApps, setFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
 
     return (
         <div className="center-all">
@@ -39,7 +40,17 @@ export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
                     )}
 
                     <div className="center-all">
-                        <Button color="primary" onPress={fetchApps} isLoading={isFetchingApps}>
+                        <Button
+                            color="primary"
+                            onPress={() => {
+                                if (isUsingDevAddress) {
+                                    setFetchAppsRequired(false); // Bypass
+                                } else {
+                                    fetchApps();
+                                }
+                            }}
+                            isLoading={isFetchingApps}
+                        >
                             <div className="row gap-1.5 px-2">
                                 <RiBox3Line className="text-lg" />
                                 <div className="text-sm">Get Apps</div>

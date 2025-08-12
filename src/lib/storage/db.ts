@@ -2,7 +2,7 @@ import { DraftJob, DraftProject } from '@typedefs/deeploys';
 import { Dexie, type EntityTable } from 'dexie';
 
 // Only declare properties you want to index
-const db = new Dexie('Database') as Dexie & {
+const db = new Dexie('ratio1-deeploy') as Dexie & {
     projects: EntityTable<DraftProject, 'projectHash'>;
     jobs: EntityTable<DraftJob, 'id'>;
 };

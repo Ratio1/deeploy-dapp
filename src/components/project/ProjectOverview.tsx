@@ -19,11 +19,9 @@ import ServiceRunningJobsList from './job-lists/ServiceRunningJobsList';
 import ProjectStats from './ProjectStats';
 
 export default function ProjectOverview({
-    projectHash,
     runningJobs,
     draftJobs,
 }: {
-    projectHash: string;
     runningJobs: RunningJob[] | undefined;
     draftJobs: DraftJob[] | undefined;
 }) {

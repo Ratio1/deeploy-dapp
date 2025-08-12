@@ -57,16 +57,21 @@ export default function Project() {
 
         setLoading(true);
 
-        const jobs: readonly RunningJob[] = await publicClient.readContract({
-            address: escrowContractAddress,
-            abi: CspEscrowAbi,
-            functionName: 'getAllJobs',
-        });
+        try {
+            const jobs: readonly RunningJob[] = await publicClient.readContract({
+                address: escrowContractAddress,
+                abi: CspEscrowAbi,
+                functionName: 'getAllJobs',
+            });
 
-        const projectJobs = jobs.filter((job) => job.projectHash === projectHash);
+            const projectJobs = jobs.filter((job) => job.projectHash === projectHash);
 
-        setRunningJobs(projectJobs);
-        setLoading(false);
+            setRunningJobs(projectJobs);
+        } catch (error) {
+            toast.error('Failed to fetch running jobs.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (isLoading || draftJobs === null) {
@@ -102,7 +107,7 @@ export default function Project() {
                     }}
                 />
             ) : (
-                <ProjectOverview projectHash={projectHash} runningJobs={runningJobs} draftJobs={draftJobs} />
+                <ProjectOverview runningJobs={runningJobs} draftJobs={draftJobs} />
             )}
         </>
     ) : (
