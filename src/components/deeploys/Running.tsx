@@ -53,11 +53,6 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
             return;
         }
 
-        if (!apps) {
-            toast.error('Unexpected error, please refresh this page.');
-            return;
-        }
-
         const runningJobs: readonly RunningJob[] = await publicClient.readContract({
             address: escrowContractAddress,
             abi: CspEscrowAbi,
@@ -169,7 +164,7 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
                 </div>
             )}
 
-            {isLoading || !apps ? (
+            {isLoading ? (
                 <>
                     {Array.from({ length: 4 }).map((_, index) => (
                         <Skeleton key={index} className="min-h-[104px] w-full rounded-lg" />

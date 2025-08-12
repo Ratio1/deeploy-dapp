@@ -34,19 +34,11 @@ export default function Home() {
                 <Card
                     title="Running Jobs"
                     value={
-                        !apps ? (
-                            <>...</>
-                        ) : (
-                            <>
-                                {
-                                    uniq(
-                                        Object.values(apps)
-                                            .map((app) => Object.keys(app))
-                                            .flat(),
-                                    ).length
-                                }
-                            </>
-                        )
+                        uniq(
+                            Object.values(apps)
+                                .map((app) => Object.keys(app))
+                                .flat(),
+                        ).length
                     }
                 />
 

@@ -14,7 +14,7 @@ export interface DeploymentContextType {
     setFetchAppsRequired: (isFetchAppsRequired: boolean | undefined) => void;
     isFetchingApps: boolean;
     fetchApps: () => void;
-    apps: Apps | undefined;
+    apps: Apps;
 }
 
 export const DeploymentContext = createContext<DeploymentContextType | null>(null);

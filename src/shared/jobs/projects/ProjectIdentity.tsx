@@ -4,7 +4,6 @@ import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { getShortAddressOrHash, isValidProjectHash } from '@lib/utils';
 import { SmallTag } from '@shared/SmallTag';
-import { Apps } from '@typedefs/deeployApi';
 import { DraftProject } from '@typedefs/deeploys';
 import { flatten } from 'lodash';
 import { useEffect, useState } from 'react';
@@ -30,7 +29,7 @@ export default function ProjectIdentity() {
         setDraft(draft);
     };
 
-    const getProjectName = (projectHash: string, apps: Apps) => {
+    const getProjectName = (projectHash: string) => {
         const sanitizedApps = flatten(Object.values(apps).map((app) => Object.values(app)));
 
         const project = sanitizedApps.find((app) => app.deeploy_specs.project_id === projectHash);
@@ -70,10 +69,11 @@ export default function ProjectIdentity() {
         );
     }
 
-    if (pathname.includes(routePath.project) && apps) {
+    if (pathname.includes(routePath.project)) {
         return (
             <div className="row gap-1.5">
-                {getProjectName(projectHash, apps)}
+                {getProjectName(projectHash)}
+
                 <SmallTag variant="green" isLarge>
                     Running
                 </SmallTag>

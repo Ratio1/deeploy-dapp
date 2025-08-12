@@ -16,7 +16,9 @@ export const DeploymentProvider = ({ children }) => {
     // Only 'undefined' if never fetched
     const [isFetchAppsRequired, setFetchAppsRequired] = useState<boolean | undefined>();
     const [isFetchingApps, setFetchingApps] = useState<boolean>(false);
-    const [apps, setApps] = useState<Apps | undefined>();
+
+    // Only used after logging in, at which point they can't be undefined
+    const [apps, setApps] = useState<Apps>({});
 
     const [jobType, setJobType] = useState<JobType | undefined>();
     const [step, setStep] = useState<number>(1);
