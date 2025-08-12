@@ -88,7 +88,7 @@ export const environment: 'mainnet' | 'testnet' | 'devnet' =
           ? ('devnet' as const)
           : domain === domainTestnet
             ? ('testnet' as const)
-            : ('mainnet' as const);
+            : ('devnet' as const);
 
 export const config = configs[environment];
 
@@ -109,4 +109,4 @@ export const getDevAddress = (): {
     address: import.meta.env.VITE_DEV_ADDRESS,
 });
 
-export const isUsingDevAddress = process.env.NODE_ENV === 'development' && true;
+export const isUsingDevAddress = process.env.NODE_ENV === 'development' && false;

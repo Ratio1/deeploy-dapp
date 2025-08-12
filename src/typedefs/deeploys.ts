@@ -200,8 +200,9 @@ type RunningJobWithResources = RunningJob & {
     };
 };
 
-type RunningProject = {
-    projectHash: string;
+type RunningJobWithAlias = RunningJob & {
+    alias: string;
+    projectName?: string;
 };
 
 export { JobType, ProjectPage };
@@ -215,8 +216,8 @@ export type {
     NativeDraftJob,
     NativeJobSpecifications,
     RunningJob,
+    RunningJobWithAlias,
     RunningJobWithResources,
-    RunningProject,
     ServiceDraftJob,
     ServiceJobSpecifications,
 };

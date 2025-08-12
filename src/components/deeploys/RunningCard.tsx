@@ -7,7 +7,7 @@ import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CardItem } from '@shared/cards/CardItem';
 import Usage from '@shared/projects/Usage';
 import { SmallTag } from '@shared/SmallTag';
-import { RunningJob } from '@typedefs/deeploys';
+import { RunningJob, RunningJobWithAlias } from '@typedefs/deeploys';
 import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
 import { addDays, differenceInDays, formatDistanceStrict } from 'date-fns';
 import _ from 'lodash';
@@ -21,15 +21,25 @@ export default function RunningCard({
     toggle,
 }: {
     projectHash: string;
-    jobs: RunningJob[];
+    jobs: RunningJobWithAlias[];
     expanded: boolean | undefined;
     toggle: () => void;
 }) {
-    const getDaysLeftUntilNextPayment = (job: RunningJob): any => {
+    const getDaysLeftUntilNextPayment = (job: RunningJobWithAlias): any => {
         const epochsCovered = Math.floor(
             Number(job.balance / (job.pricePerEpoch * job.numberOfNodesRequested * (environment === 'mainnet' ? 1n : 24n))),
         );
         return epochsCovered;
+    };
+
+    const getProjectName = (): React.ReactNode => {
+        const job = jobs.find((job) => !!job.projectName);
+
+        if (!job) {
+            return <SmallTag>{getShortAddressOrHash(projectHash, 6)}</SmallTag>;
+        }
+
+        return <SmallTag>{job.projectName}</SmallTag>;
     };
 
     return (
@@ -37,28 +47,24 @@ export default function RunningCard({
             <BorderedCard isHoverable>
                 <div className="row justify-between gap-6">
                     <div className="row gap-6">
+                        {/* Project name/hash and expand/collapse button */}
                         <div className="min-w-[232px]">
-                            <CardItem
-                                label="Project ID"
-                                value={
-                                    <div className="row gap-2">
-                                        <div
-                                            className="-m-1 cursor-pointer rounded-md p-1 hover:bg-slate-100"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                e.preventDefault();
-                                                toggle();
-                                            }}
-                                        >
-                                            <RiArrowRightSLine
-                                                className={`text-[22px] text-slate-400 transition-all ${expanded ? 'rotate-90' : ''}`}
-                                            />
-                                        </div>
+                            <div className="row gap-2">
+                                <div
+                                    className="-m-1 cursor-pointer rounded-md p-1 hover:bg-slate-100"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        toggle();
+                                    }}
+                                >
+                                    <RiArrowRightSLine
+                                        className={`text-[22px] text-slate-400 transition-all ${expanded ? 'rotate-90' : ''}`}
+                                    />
+                                </div>
 
-                                        <SmallTag>{getShortAddressOrHash(projectHash, 6)}</SmallTag>
-                                    </div>
-                                }
-                            />
+                                {getProjectName()}
+                            </div>
                         </div>
 
                         <div className="min-w-[80px]">
@@ -172,9 +178,7 @@ export default function RunningCard({
                                             </div>
 
                                             <div className="w-[163px]">
-                                                <SmallTag variant={jobTypeOption.color}>
-                                                    {jobType} Job #{Number(job.id)}
-                                                </SmallTag>
+                                                <SmallTag variant={jobTypeOption.color}>{job.alias}</SmallTag>
                                             </div>
                                         </div>
 

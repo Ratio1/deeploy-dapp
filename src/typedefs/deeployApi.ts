@@ -12,7 +12,7 @@ type Apps = {
                 job_id: number;
                 nr_target_nodes: number;
                 project_id: string; // projectHash
-                project_name: string;
+                project_name: string | undefined;
             };
             plugins: {
                 [pluginName: string]: {

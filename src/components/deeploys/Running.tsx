@@ -5,7 +5,7 @@ import { AuthenticationContextType, useAuthenticationContext } from '@lib/contex
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
-import { RunningJob } from '@typedefs/deeploys';
+import { RunningJob, RunningJobWithAlias } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -20,18 +20,18 @@ export interface RunningRef {
 
 const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => void }>(({ setProjectsCount }, ref) => {
     const { escrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
-    const { isFetchingApps, fetchApps } = useDeploymentContext() as DeploymentContextType;
+    const { apps, isFetchingApps, fetchApps, isFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
 
-    const [projects, setProjects] = useState<Record<string, RunningJob[]>>({});
+    const [projects, setProjects] = useState<Record<string, RunningJobWithAlias[]>>({});
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
     const publicClient = usePublicClient();
 
     useEffect(() => {
         if (publicClient) {
-            fetchRunningJobs();
+            fetchRunningJobsWithAliases();
         }
     }, [publicClient]);
 
@@ -47,23 +47,59 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
         }
     }, [projects]);
 
-    const fetchRunningJobs = async () => {
+    const fetchRunningJobsWithAliases = async () => {
         if (!publicClient || !escrowContractAddress) {
             toast.error('Please connect your wallet.');
             return;
         }
 
-        const jobs: readonly RunningJob[] = await publicClient.readContract({
+        if (!apps) {
+            toast.error('Unexpected error, please refresh this page.');
+            return;
+        }
+
+        const runningJobs: readonly RunningJob[] = await publicClient.readContract({
             address: escrowContractAddress,
             abi: CspEscrowAbi,
             functionName: 'getAllJobs',
         });
 
-        const projects = _.groupBy(jobs, 'projectHash');
-        console.log('[Running] Projects:', projects);
+        console.log({ runningJobs });
 
-        setProjects(projects);
-        setProjectsCount(Object.keys(projects).length);
+        const jobsWithAliases: RunningJobWithAlias[] = _(Object.values(apps))
+            .map((app) => {
+                const alias: string = Object.keys(app)[0];
+                const isDeployed = app[alias].is_deeployed;
+
+                if (!isDeployed) {
+                    return null;
+                }
+
+                const specs = app[alias].deeploy_specs;
+                const jobId = specs.job_id;
+
+                const job = runningJobs.find((job) => Number(job.id) === jobId && job.projectHash === specs.project_id);
+
+                if (!job) {
+                    return null;
+                }
+
+                return {
+                    alias,
+                    projectName: specs.project_name,
+                    ...job,
+                };
+            })
+            .filter((job) => job !== null)
+            .uniqBy((job) => job.alias)
+            .value();
+
+        const projectsWithJobs = _.groupBy(jobsWithAliases, 'projectHash');
+        setProjects(projectsWithJobs);
+
+        // console.log(projectsWithJobs);
+
+        setProjectsCount(Object.keys(projectsWithJobs).length);
 
         setLoading(false);
     };
@@ -110,8 +146,7 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
                 <div className="min-w-[124px]">Next payment due</div>
             </ListHeader>
 
-            {/* TODO: Display only if a refresh is required */}
-            {process.env.NODE_ENV === 'development' && (
+            {isFetchAppsRequired && (
                 <div className="text-warning-800 bg-warning-100 rounded-lg px-6 py-3 text-sm">
                     <div className="row justify-between gap-4">
                         <div className="row gap-1.5">
@@ -134,7 +169,7 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
                 </div>
             )}
 
-            {isLoading ? (
+            {isLoading || !apps ? (
                 <>
                     {Array.from({ length: 4 }).map((_, index) => (
                         <Skeleton key={index} className="min-h-[104px] w-full rounded-lg" />
