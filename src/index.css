@@ -42,6 +42,8 @@ layer(base);
     --margin-sider-with-padding: calc(250px + 1rem);
 
     --backdrop-blur-xs: 1px;
+
+    --heroui-radius-medium: 10px;
 }
 
 /*

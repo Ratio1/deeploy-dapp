@@ -1,5 +1,6 @@
 import Layout from '@components/layout/Layout';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import { isParentRoute, isSimpleRoute, routes } from '@lib/routes/routes';
 import Login from '@pages/Login';
@@ -7,7 +8,9 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAccount } from 'wagmi';
 
 function App() {
-    const { isSignedIn, isFetchAppsRequired } = useAuthenticationContext() as AuthenticationContextType;
+    const { isSignedIn } = useAuthenticationContext() as AuthenticationContextType;
+    const { isFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
+
     const { address } = useAccount();
 
     const isAuthenticated = isSignedIn && address !== undefined && isFetchAppsRequired !== undefined;

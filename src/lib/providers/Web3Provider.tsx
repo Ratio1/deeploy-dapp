@@ -115,6 +115,7 @@ export const Web3Provider = ({ children }) => {
                             '--ck-connectbutton-active-color': '#ffffff',
                             '--ck-connectbutton-font-size': '15px',
                             '--ck-connectbutton-font-weight': '600',
+                            '--ck-connectbutton-border-radius': '10px',
                         }}
                         options={{
                             enforceSupportedChains: true,

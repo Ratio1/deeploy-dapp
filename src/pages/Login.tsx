@@ -1,29 +1,31 @@
-import { Button } from '@heroui/button';
+import Logo from '@assets/logo.svg';
+import { PoAIManagerAbi } from '@blockchain/PoAIManager';
+import LoginCard from '@components/auth/LoginCard';
+import RestrictedAccess from '@components/auth/RestrictedAccess';
 import { Spinner } from '@heroui/spinner';
-import { getApps } from '@lib/api/deeploy';
 import { getNodeLastEpoch } from '@lib/api/oracles';
+import { config } from '@lib/config';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
-import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import { EthAddress } from '@typedefs/blockchain';
 import { ConnectKitButton, useModal } from 'connectkit';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiBox3Line } from 'react-icons/ri';
-import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
+import { useAccount, usePublicClient } from 'wagmi';
 
 function Login() {
-    const { isSignedIn, setFetchAppsRequired } = useAuthenticationContext() as AuthenticationContextType;
+    const { isSignedIn, setEscrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
     const { fetchLicenses } = useBlockchainContext() as BlockchainContextType;
 
     const { address } = useAccount();
-    const { signMessageAsync } = useSignMessage();
     const publicClient = usePublicClient();
 
     const { open: modalOpen, openSIWE } = useModal();
 
-    const [isRefreshing, setRefreshing] = useState<boolean>(false);
     const [isLoading, setLoading] = useState(false);
+    const [oraclesCount, setOraclesCount] = useState<number | undefined>();
+
+    const isConnected: boolean = isSignedIn && address !== undefined && publicClient !== undefined;
 
     // Init
     useEffect(() => {
@@ -34,71 +36,31 @@ function Login() {
 
     useEffect(() => {
         if (isConnected) {
-            checkOracleOwnership();
+            checkAccess();
         }
-    }, [isSignedIn, address, publicClient]);
+    }, [isConnected]);
 
-    const isConnected: boolean = isSignedIn && address !== undefined && publicClient !== undefined;
-
-    // TODO: Move to context
-    const fetchApps = async () => {
-        if (!address) {
-            toast.error('Please connect your wallet.');
+    const checkAccess = async () => {
+        if (!publicClient || !address) {
+            toast.error('Unexpected error, please refresh this page.');
             return;
         }
 
-        setRefreshing(true);
-
-        try {
-            const request = await signAndBuildRequest(address);
-            const response = await getApps(request);
-
-            // Setting this to false will trigger a re-render of the App component which in turn will navigate the user to the home page
-            setFetchAppsRequired(false);
-
-            console.log(response);
-        } catch (error) {
-            console.error(error);
-            toast.error('Failed to refresh running jobs.');
-        } finally {
-            setRefreshing(false);
-        }
-    };
-
-    // TODO: Move to context
-    const signAndBuildRequest = async (address: EthAddress) => {
-        const nonce = generateNonce();
-
-        const message = buildDeeployMessage({
-            nonce,
-        });
-
-        const signature = await signMessageAsync({
-            account: address,
-            message,
-        });
-
-        const request = {
-            nonce,
-            EE_ETH_SIGN: signature,
-            EE_ETH_SENDER: address,
-        };
-
-        return request;
-    };
-
-    // TODO: Implement
-    const checkOracleOwnership = async () => {
         setLoading(true);
 
         try {
-            console.log('[checkOracleOwnership] Checking oracle ownership');
+            const [oraclesCount, escrowScAddress] = await Promise.all([
+                fetchOraclesCount(),
+                publicClient.readContract({
+                    address: config.poAIManagerContractAddress,
+                    abi: PoAIManagerAbi,
+                    functionName: 'ownerToEscrow',
+                    args: [address],
+                }),
+            ]);
 
-            const licenses = await fetchLicenses();
-            const nodeResponses = await Promise.all(licenses.map((license) => getNodeLastEpoch(license.nodeAddress)));
-
-            const hasOracle = nodeResponses.some((nodeResponse) => nodeResponse.node_is_oracle);
-            console.log('[checkOracleOwnership] has oracle', hasOracle);
+            setOraclesCount(oraclesCount);
+            setEscrowContractAddress(escrowScAddress as EthAddress);
         } catch (error) {
             console.error('Error checking oracle ownership', error);
             toast.error('Error checking oracle ownership.');
@@ -107,25 +69,38 @@ function Login() {
         }
     };
 
-    return (
-        <div className="center-all min-h-screen w-full flex-1">
-            {isConnected && (
-                <>
-                    {isLoading ? (
-                        <Spinner />
-                    ) : (
-                        <div className="col gap-4">
-                            <ConnectKitButton showBalance />
+    const fetchOraclesCount = async (): Promise<number> => {
+        if (!publicClient || !address) {
+            throw new Error('No public client or address available.');
+        }
 
-                            <Button color="secondary" onPress={fetchApps} isLoading={isRefreshing}>
-                                <div className="row gap-1.5">
-                                    <RiBox3Line className="text-lg" />
-                                    <div className="text-sm">Get Apps</div>
-                                </div>
-                            </Button>
+        console.log('Checking oracle ownership');
+        const licenses = await fetchLicenses();
+        const availabilities = await Promise.all(licenses.map((license) => getNodeLastEpoch(license.nodeAddress)));
+
+        const oracles = availabilities.filter((nodeResponse) => nodeResponse.node_is_oracle);
+
+        return oracles.length;
+    };
+
+    return (
+        <div className="col relative min-h-screen w-full flex-1">
+            <div className="absolute top-0 right-0 left-0 flex items-start justify-between p-8">
+                <img src={Logo} alt="Logo" className="h-7" />
+                {isConnected && <ConnectKitButton showBalance />}
+            </div>
+
+            {isConnected && (
+                <div className="center-all flex-1">
+                    {isLoading ? (
+                        <div className="col items-center gap-2.5">
+                            <Spinner />
+                            <div className="font-medium">Authenticating</div>
                         </div>
+                    ) : (
+                        <>{!oraclesCount ? <RestrictedAccess /> : <LoginCard oraclesCount={oraclesCount} />}</>
                     )}
-                </>
+                </div>
             )}
         </div>
     );

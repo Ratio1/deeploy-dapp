@@ -1,7 +1,7 @@
 import { getAccount } from '@lib/api/backend';
 import { config } from '@lib/config';
 import { useQuery } from '@tanstack/react-query';
-import { ApiAccount } from '@typedefs/blockchain';
+import { ApiAccount, EthAddress } from '@typedefs/blockchain';
 import { SIWESession, useModal, useSIWE } from 'connectkit';
 import { throttle } from 'lodash';
 import { useEffect, useRef, useState } from 'react';
@@ -15,12 +15,10 @@ export const AuthenticationProvider = ({ children }) => {
             console.log('Signed in (SIWE):', session);
         },
     });
-
     const { open: modalOpen, openSIWE } = useModal();
-    const [account, setAccount] = useState<ApiAccount>();
 
-    // Only 'undefined' if never fetched
-    const [isFetchAppsRequired, setFetchAppsRequired] = useState<boolean | undefined>();
+    const [account, setAccount] = useState<ApiAccount>();
+    const [escrowContractAddress, setEscrowContractAddress] = useState<EthAddress | undefined>();
 
     // SIWE
     useEffect(() => {
@@ -79,9 +77,9 @@ export const AuthenticationProvider = ({ children }) => {
                 fetchAccount,
                 isFetchingAccount,
                 accountFetchError,
-                // get_apps
-                isFetchAppsRequired,
-                setFetchAppsRequired,
+                // Escrow
+                escrowContractAddress,
+                setEscrowContractAddress,
             }}
         >
             {children}

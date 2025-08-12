@@ -16,5 +16,4 @@ export const routePath = {
     support: '/support',
     //
     notFound: '/404',
-    notAllowed: '/not-allowed',
 };
