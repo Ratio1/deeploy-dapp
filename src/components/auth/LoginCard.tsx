@@ -20,7 +20,7 @@ export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
                         ) : (
                             <>
                                 Your wallet owns <span className="text-primary">{oraclesCount}</span> oracle
-                                {oraclesCount > 1 ? 's' : ''}.
+                                {oraclesCount > 1 ? 's' : ''}
                             </>
                         )}
                     </div>
