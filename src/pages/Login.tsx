@@ -4,7 +4,7 @@ import LoginCard from '@components/auth/LoginCard';
 import RestrictedAccess from '@components/auth/RestrictedAccess';
 import { Spinner } from '@heroui/spinner';
 import { getNodeLastEpoch } from '@lib/api/oracles';
-import { config } from '@lib/config';
+import { config, environment } from '@lib/config';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { EthAddress } from '@typedefs/blockchain';
@@ -88,6 +88,10 @@ function Login() {
             <div className="absolute top-0 right-0 left-0 flex items-start justify-between p-8">
                 <img src={Logo} alt="Logo" className="h-7" />
                 {isConnected && <ConnectKitButton showBalance />}
+            </div>
+
+            <div className="center-all absolute right-0 bottom-0 left-0 p-8">
+                <div className="compact text-center text-slate-500">{environment}</div>
             </div>
 
             {isConnected && (

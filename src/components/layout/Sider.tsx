@@ -1,4 +1,5 @@
 import Logo from '@assets/logo.svg';
+import { environment } from '@lib/config';
 import NetworkAndStatus from '@shared/NetworkAndStatus';
 import Navigation from './Navigation';
 
@@ -13,10 +14,12 @@ function Sider() {
                 <Navigation />
             </div>
 
-            <div className="col text-center">
+            <div className="col gap-2.5 text-center">
                 <div className="pt-1">
                     <NetworkAndStatus />
                 </div>
+
+                <div className="compact text-center text-slate-500">{environment}</div>
             </div>
         </div>
     );

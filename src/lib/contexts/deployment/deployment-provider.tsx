@@ -40,7 +40,7 @@ export const DeploymentProvider = ({ children }) => {
             console.log('Apps', response.apps);
         } catch (error) {
             console.error(error);
-            toast.error('Failed to refresh running jobs.');
+            toast.error('Failed to fetch running jobs.');
         } finally {
             setFetchingApps(false);
         }

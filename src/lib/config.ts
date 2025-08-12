@@ -104,3 +104,11 @@ export const getNextEpochTimestamp = (): Date =>
 
 export const getLicenseAssignEpoch = (assignTimestamp: bigint) =>
     Math.floor((Number(assignTimestamp) - config.genesisDate.getTime() / 1000) / config.epochDurationInSeconds);
+
+export const getDevAddress = (): {
+    address: EthAddress;
+} => ({
+    address: import.meta.env.VITE_DEV_ADDRESS,
+});
+
+export const isUsingDevAddress = process.env.NODE_ENV === 'development' && false;
