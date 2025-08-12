@@ -19,9 +19,11 @@ import ServiceRunningJobsList from './job-lists/ServiceRunningJobsList';
 import ProjectStats from './ProjectStats';
 
 export default function ProjectOverview({
+    projectName,
     runningJobs,
     draftJobs,
 }: {
+    projectName: string | undefined;
     runningJobs: RunningJob[] | undefined;
     draftJobs: DraftJob[] | undefined;
 }) {
@@ -29,8 +31,7 @@ export default function ProjectOverview({
     const [runningJobsWithResources, setRunningJobsWithResources] = useState<RunningJobWithResources[]>([]);
 
     useEffect(() => {
-        console.log('runningJobs', runningJobs);
-        console.log('draftJobs', draftJobs);
+        console.log({ projectName, runningJobs, draftJobs });
     }, [runningJobs, draftJobs]);
 
     useEffect(() => {
@@ -55,7 +56,7 @@ export default function ProjectOverview({
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <ProjectIdentity />
+                    <ProjectIdentity projectName={projectName} />
 
                     <div className="row gap-2">
                         <CancelButton tab="running" />

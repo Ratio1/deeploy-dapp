@@ -15,6 +15,8 @@ export interface DeploymentContextType {
     isFetchingApps: boolean;
     fetchApps: () => void;
     apps: Apps;
+    // Utils
+    getProjectName: (projectHash: string) => string | undefined;
 }
 
 export const DeploymentContext = createContext<DeploymentContextType | null>(null);

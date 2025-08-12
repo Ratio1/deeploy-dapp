@@ -17,8 +17,10 @@ import { usePublicClient } from 'wagmi';
 
 export default function Project() {
     const { escrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
-    const { jobType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
+    const { jobType, projectPage, setProjectPage, getProjectName } = useDeploymentContext() as DeploymentContextType;
+
     const [isLoading, setLoading] = useState(true);
+    const [projectName, setProjectName] = useState<string | undefined>();
     const [runningJobs, setRunningJobs] = useState<RunningJob[]>([]);
 
     const publicClient = usePublicClient();
@@ -46,6 +48,8 @@ export default function Project() {
     useEffect(() => {
         if (!isValidProjectHash(projectHash)) {
             navigate(routePath.notFound);
+        } else {
+            setProjectName(getProjectName(projectHash));
         }
     }, [projectHash]);
 
@@ -100,7 +104,7 @@ export default function Project() {
             {projectPage === ProjectPage.Payment ? (
                 <Payment
                     projectHash={projectHash}
-                    projectName={localStorage.getItem('projectName') || undefined}
+                    projectName={localStorage.getItem('projectName') || projectName}
                     jobs={draftJobs}
                     callback={() => {
                         setProjectPage(ProjectPage.Overview);
@@ -108,7 +112,7 @@ export default function Project() {
                     }}
                 />
             ) : (
-                <ProjectOverview runningJobs={runningJobs} draftJobs={draftJobs} />
+                <ProjectOverview projectName={projectName} runningJobs={runningJobs} draftJobs={draftJobs} />
             )}
         </>
     ) : (

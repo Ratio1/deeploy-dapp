@@ -1,18 +1,14 @@
 import { Skeleton } from '@heroui/skeleton';
-import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
-import { getShortAddressOrHash, isValidProjectHash } from '@lib/utils';
+import { getShortAddressOrHash } from '@lib/utils';
 import { SmallTag } from '@shared/SmallTag';
 import { DraftProject } from '@typedefs/deeploys';
-import { flatten } from 'lodash';
 import { useEffect, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 
 // To be used only inside a project/draft route
-export default function ProjectIdentity() {
-    const { apps } = useDeploymentContext() as DeploymentContextType;
-
+export default function ProjectIdentity({ projectName }: { projectName?: string }) {
     const { pathname } = useLocation();
     const { projectHash } = useParams();
 
@@ -29,20 +25,20 @@ export default function ProjectIdentity() {
         setDraft(draft);
     };
 
-    const getProjectName = (projectHash: string) => {
-        const sanitizedApps = flatten(Object.values(apps).map((app) => Object.values(app)));
-
-        const project = sanitizedApps.find((app) => app.deeploy_specs.project_id === projectHash);
-
-        if (project && project.deeploy_specs.project_name) {
-            return <div className="text-xl font-semibold">{project.deeploy_specs.project_name}</div>;
-        }
-
-        return <SmallTag isLarge>{getShortAddressOrHash(projectHash, 6)}</SmallTag>;
-    };
-
-    if (!isValidProjectHash(projectHash)) {
+    if (!projectHash) {
         return <Skeleton className="min-h-10 w-40 rounded-lg" />;
+    }
+
+    if (projectName) {
+        return (
+            <div className="row gap-1.5">
+                <div className="text-xl font-semibold">{projectName}</div>
+
+                <SmallTag variant="green" isLarge>
+                    Running
+                </SmallTag>
+            </div>
+        );
     }
 
     if (draft) {
@@ -69,10 +65,10 @@ export default function ProjectIdentity() {
         );
     }
 
-    if (pathname.includes(routePath.project)) {
+    if (pathname.includes(routePath.project) && !projectName) {
         return (
             <div className="row gap-1.5">
-                {getProjectName(projectHash)}
+                <SmallTag isLarge>{getShortAddressOrHash(projectHash, 6)}</SmallTag>
 
                 <SmallTag variant="green" isLarge>
                     Running
