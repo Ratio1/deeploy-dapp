@@ -1,7 +1,7 @@
 import { getAccount } from '@lib/api/backend';
-import { config } from '@lib/config';
+import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { useQuery } from '@tanstack/react-query';
-import { ApiAccount } from '@typedefs/blockchain';
+import { ApiAccount, EthAddress } from '@typedefs/blockchain';
 import { SIWESession, useModal, useSIWE } from 'connectkit';
 import { throttle } from 'lodash';
 import { useEffect, useRef, useState } from 'react';
@@ -9,28 +9,32 @@ import { useAccount } from 'wagmi';
 import { AuthenticationContext } from './context';
 
 export const AuthenticationProvider = ({ children }) => {
-    const { isConnected, address } = useAccount();
-    const { isSignedIn: authenticated } = useSIWE({
+    const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
+    const { isConnected } = useAccount();
+
+    const { isSignedIn } = useSIWE({
         onSignIn: (session?: SIWESession) => {
-            console.log('Signed in:', session);
+            console.log('Signed in (SIWE):', session);
         },
     });
     const { open: modalOpen, openSIWE } = useModal();
+
     const [account, setAccount] = useState<ApiAccount>();
+    const [escrowContractAddress, setEscrowContractAddress] = useState<EthAddress | undefined>();
 
     // SIWE
     useEffect(() => {
-        if (isConnected && !authenticated && !modalOpen && address !== config.safeAddress) {
+        if (isConnected && !isSignedIn && !modalOpen && address !== config.safeAddress) {
             openSIWE();
         }
-    }, [isConnected, authenticated, modalOpen, address]);
+    }, [isConnected, isSignedIn, modalOpen, address]);
 
     useEffect(() => {
-        if (authenticated) {
-            console.log('User is authenticated');
+        if (isSignedIn) {
+            console.log('User is signed in');
             fetchAccount();
         }
-    }, [authenticated]);
+    }, [isSignedIn]);
 
     const {
         refetch,
@@ -68,13 +72,16 @@ export const AuthenticationProvider = ({ children }) => {
         <AuthenticationContext.Provider
             value={{
                 // SIWE
-                authenticated,
+                isSignedIn,
                 // Account
                 account,
                 setAccount,
                 fetchAccount,
                 isFetchingAccount,
                 accountFetchError,
+                // Escrow
+                escrowContractAddress,
+                setEscrowContractAddress,
             }}
         >
             {children}

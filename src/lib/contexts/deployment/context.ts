@@ -1,3 +1,4 @@
+import { Apps } from '@typedefs/deeployApi';
 import { JobType, ProjectPage } from '@typedefs/deeploys';
 import { createContext } from 'react';
 
@@ -8,6 +9,12 @@ export interface DeploymentContextType {
     setStep: (step: number) => void;
     projectPage: ProjectPage;
     setProjectPage: (projectPage: ProjectPage) => void;
+    // Apps
+    isFetchAppsRequired: boolean | undefined;
+    setFetchAppsRequired: (isFetchAppsRequired: boolean | undefined) => void;
+    isFetchingApps: boolean;
+    fetchApps: () => void;
+    apps: Apps | undefined;
 }
 
 export const DeploymentContext = createContext<DeploymentContextType | null>(null);

@@ -2,7 +2,7 @@ import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import JobFormWrapper from '@components/jobs/JobFormWrapper';
 import ProjectOverview from '@components/project/ProjectOverview';
 import { Skeleton } from '@heroui/skeleton';
-import { escrowContractAddress } from '@lib/config';
+import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
@@ -11,10 +11,12 @@ import Payment from '@shared/projects/Payment';
 import { DraftJob, ProjectPage, RunningJob } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePublicClient } from 'wagmi';
 
 export default function Project() {
+    const { escrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
     const { jobType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
     const [isLoading, setLoading] = useState(true);
     const [runningJobs, setRunningJobs] = useState<RunningJob[]>([]);
@@ -48,7 +50,8 @@ export default function Project() {
     }, [projectHash]);
 
     const fetchRunningJobs = async () => {
-        if (!publicClient) {
+        if (!publicClient || !escrowContractAddress) {
+            toast.error('Please connect your wallet.');
             return;
         }
 

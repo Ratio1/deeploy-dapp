@@ -3,14 +3,11 @@ import { addSeconds } from 'date-fns';
 import { Chain } from 'viem';
 import { base, baseSepolia } from 'wagmi/chains';
 
-// TODO: Clean-up unused values
-
 type Config = {
     deeployUrl: string;
     backendUrl: string;
     oraclesUrl: string;
     poAIManagerContractAddress: EthAddress;
-    r1ContractAddress: EthAddress;
     ndContractAddress: EthAddress;
     mndContractAddress: EthAddress;
     safeAddress: EthAddress;
@@ -28,8 +25,7 @@ const configs: {
         deeployUrl: 'https://deeploy-api.ratio1.ai',
         backendUrl: 'https://dapp-api.ratio1.ai',
         oraclesUrl: 'https://oracle.ratio1.ai',
-        poAIManagerContractAddress: '0x9A41f43494fCD592577228fE8E4014f2D75d2aa3',
-        r1ContractAddress: '0x6444C6c2D527D85EA97032da9A7504d6d1448ecF',
+        poAIManagerContractAddress: '0xa8d7FFCE91a888872A9f5431B4Dd6c0c135055c1',
         ndContractAddress: '0xE658DF6dA3FB5d4FBa562F1D5934bd0F9c6bd423',
         mndContractAddress: '0x0C431e546371C87354714Fcc1a13365391A549E2',
         safeAddress: '0x2265539ae09c7A605A707E11a6ED4aF1d018750e',
@@ -43,8 +39,7 @@ const configs: {
         deeployUrl: 'https://testnet-deeploy-api.ratio1.ai',
         backendUrl: 'https://testnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://testnet-oracle.ratio1.ai',
-        poAIManagerContractAddress: '0x9A41f43494fCD592577228fE8E4014f2D75d2aa3',
-        r1ContractAddress: '0xCC96f389F45Fc08b4fa8e2bC4C7DA9920292ec64',
+        poAIManagerContractAddress: '0xCc7C4e0f4f25b57807F34227Fb446E68c8c36ce5',
         ndContractAddress: '0x18E86a5829CA1F02226FA123f30d90dCd7cFd0ED',
         mndContractAddress: '0xa8d7FFCE91a888872A9f5431B4Dd6c0c135055c1',
         safeAddress: '0x5afF90797f717Fe8432A1809b6b53A18863061D6',
@@ -58,8 +53,7 @@ const configs: {
         deeployUrl: 'https://devnet-deeploy-api.ratio1.ai', // 'https://2b1e1f9b0d35.ratio1.link' // 'https://devnet-deeploy-api.ratio1.ai'
         backendUrl: 'https://devnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://devnet-oracle.ratio1.ai',
-        poAIManagerContractAddress: '0x9A41f43494fCD592577228fE8E4014f2D75d2aa3',
-        r1ContractAddress: '0x277CbD0Cf25F4789Bc04035eCd03d811FAf73691',
+        poAIManagerContractAddress: '0xCc7C4e0f4f25b57807F34227Fb446E68c8c36ce5',
         ndContractAddress: '0x90025B92240E3070d5CdcB3f44D6411855c55a73',
         mndContractAddress: '0x17B8934dc5833CdBa1eF42D13D65D677C4727748',
         safeAddress: '0x20b1ebc9c13A6F4f3dfBdF9bc9299ec40Ac988e3',
@@ -105,5 +99,10 @@ export const getNextEpochTimestamp = (): Date =>
 export const getLicenseAssignEpoch = (assignTimestamp: bigint) =>
     Math.floor((Number(assignTimestamp) - config.genesisDate.getTime() / 1000) / config.epochDurationInSeconds);
 
-// TODO: Petrica 0x2f2b63811617a9c6b97535ffa4c9b3626cdae15c
-export const escrowContractAddress = '0x2f2b63811617a9c6b97535ffa4c9b3626cdae15c';
+export const getDevAddress = (): {
+    address: EthAddress;
+} => ({
+    address: import.meta.env.VITE_DEV_ADDRESS,
+});
+
+export const isUsingDevAddress = process.env.NODE_ENV === 'development' && false;

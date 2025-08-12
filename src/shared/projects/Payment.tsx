@@ -6,7 +6,8 @@ import NativeJobsCostRundown from '@components/draft/job-rundowns/NativeJobsCost
 import ServiceJobsCostRundown from '@components/draft/job-rundowns/ServiceJobsCostRundown';
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { createPipeline } from '@lib/api/deeploy';
-import { config, environment, escrowContractAddress, getCurrentEpoch } from '@lib/config';
+import { config, environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
+import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import {
     buildDeeployMessage,
@@ -44,6 +45,7 @@ export default function Payment({
     jobs: DraftJob[] | undefined;
     callback: () => void;
 }) {
+    const { escrowContractAddress } = useAuthenticationContext() as AuthenticationContextType;
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
 
     const [allowance, setAllowance] = useState<bigint>(0n);
@@ -52,7 +54,7 @@ export default function Payment({
 
     const { data: walletClient } = useWalletClient();
     const publicClient = usePublicClient();
-    const { address } = useAccount();
+    const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const { signMessageAsync } = useSignMessage();
 
     const deeployFlowModalRef = useRef<{
@@ -134,7 +136,7 @@ export default function Payment({
             return;
         }
 
-        if (!walletClient || !publicClient || !address) {
+        if (!walletClient || !publicClient || !address || !escrowContractAddress) {
             toast.error('Please refresh this page and try again.');
             return;
         }
@@ -248,12 +250,12 @@ export default function Payment({
     };
 
     const approve = async () => {
-        setLoading(true);
-
-        if (!walletClient || !publicClient || !address) {
+        if (!walletClient || !publicClient || !address || !escrowContractAddress) {
             toast.error('Please refresh this page and try again.');
             return;
         }
+
+        setLoading(true);
 
         const txHash = await walletClient.writeContract({
             address: config.usdcContractAddress,
@@ -273,8 +275,8 @@ export default function Payment({
     };
 
     const fetchAllowance = async (): Promise<bigint | undefined> => {
-        if (!publicClient || !address) {
-            console.error('fetchAllowance: No public client or address');
+        if (!publicClient || !address || !escrowContractAddress) {
+            toast.error('Please refresh this page and try again.');
             return;
         }
 

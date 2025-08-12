@@ -1,8 +1,6 @@
-import { DeploymentProvider } from '@lib/contexts/deployment';
 import { TunnelsProvider } from '@lib/contexts/tunnels/tunnels-provider';
 import NotFound from '@pages/404';
 import Account from '@pages/Account';
-import CSP from '@pages/CSP';
 import CreateProject from '@pages/deeploys/CreateProject';
 import Dashboard from '@pages/deeploys/Dashboard';
 import Draft from '@pages/deeploys/Draft';
@@ -96,9 +94,6 @@ export const routeInfo = {
     [routePath.notFound]: {
         title: 'Not Found',
     },
-    [routePath.notAllowed]: {
-        title: 'Not Allowed',
-    },
 };
 
 // Routes with icons are displayed in the main navigation
@@ -118,11 +113,7 @@ export const routes: AppRoute[] = [
             },
             {
                 path: routePath.createProject,
-                page: () => (
-                    <DeploymentProvider>
-                        <CreateProject />
-                    </DeploymentProvider>
-                ),
+                page: CreateProject,
             },
             {
                 path: routePath.legacyRequester,
@@ -157,19 +148,11 @@ export const routes: AppRoute[] = [
     // Routes which are not displayed in the main navigation
     {
         path: `${routePath.deeploys}/${routePath.draft}/:projectHash`,
-        page: () => (
-            <DeploymentProvider>
-                <Draft />
-            </DeploymentProvider>
-        ),
+        page: () => <Draft />,
     },
     {
         path: `${routePath.deeploys}/${routePath.project}/:projectHash`,
-        page: () => (
-            <DeploymentProvider>
-                <Project />
-            </DeploymentProvider>
-        ),
+        page: () => <Project />,
     },
     {
         path: `${routePath.tunnels}/:id`,
@@ -182,9 +165,5 @@ export const routes: AppRoute[] = [
     {
         path: routePath.notFound,
         page: NotFound,
-    },
-    {
-        path: routePath.notAllowed,
-        page: CSP,
     },
 ];

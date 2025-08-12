@@ -1,6 +1,6 @@
 import { Button } from '@heroui/button';
 import { SelectItem } from '@heroui/select';
-import { config, environment } from '@lib/config';
+import { config, environment, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { deepSort } from '@lib/utils';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
@@ -29,7 +29,7 @@ async function _doPost(endpoint: string, body: any) {
 }
 
 function LegacyRequester() {
-    const { address } = useAccount();
+    const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
 
     const [isLoading, setLoading] = useState(false);
 
