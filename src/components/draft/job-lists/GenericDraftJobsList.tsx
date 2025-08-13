@@ -12,7 +12,7 @@ const widthClasses = [
     'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
     'min-w-[50px]', // type
-    'min-w-[300px]', // containerType
+    'min-w-[310px]', // resources
 ];
 
 export default function GenericDraftJobsList({ jobs }: { jobs: GenericDraftJob[] }) {

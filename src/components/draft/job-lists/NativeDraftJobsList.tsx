@@ -12,7 +12,7 @@ const widthClasses = [
     'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
     'min-w-[50px]', // type
-    'min-w-[300px]', // workerType
+    'min-w-[310px]', // resources
 ];
 
 export default function NativeDraftJobsList({ jobs }: { jobs: NativeDraftJob[] }) {

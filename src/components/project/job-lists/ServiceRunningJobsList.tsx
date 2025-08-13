@@ -6,10 +6,10 @@ import { RunningJobWithResources } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
 
 const widthClasses = [
-    'min-w-[180px]', // alias
+    'min-w-[200px]', // alias
     'min-w-[90px]', // targetNodes
     'min-w-[50px]', // database
-    'min-w-[300px]', // containerType
+    'min-w-[310px]', // resources
 ];
 
 function ServiceRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
