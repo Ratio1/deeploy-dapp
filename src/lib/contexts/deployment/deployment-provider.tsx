@@ -45,7 +45,7 @@ export const DeploymentProvider = ({ children }) => {
             setFetchAppsRequired(false);
 
             setApps(response.apps);
-            console.log('Apps', response.apps);
+            console.log('[DeploymentProvider] fetchApps', response.apps);
         } catch (error) {
             console.error(error);
             toast.error('Failed to fetch running jobs.');

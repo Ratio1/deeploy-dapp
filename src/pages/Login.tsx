@@ -78,8 +78,9 @@ function Login() {
 
         console.log('Checking oracle ownership');
         const licenses = await fetchLicenses();
+        console.log('Licenses', licenses);
         const availabilities = await Promise.all(licenses.map((license) => getNodeLastEpoch(license.nodeAddress)));
-
+        console.log('Availabilities', availabilities);
         const oracles = availabilities.filter((nodeResponse) => nodeResponse.node_is_oracle);
 
         return oracles.length;
