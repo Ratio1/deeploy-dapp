@@ -6,10 +6,10 @@ import { RunningJobWithResources } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
 
 const widthClasses = [
-    'min-w-[180px]', // alias
+    'min-w-[200px]', // alias
     'min-w-[90px]', // targetNodes
     'min-w-[50px]', // type
-    'min-w-[300px]', // containerType
+    'min-w-[310px]', // resources
 ];
 
 function GenericRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {

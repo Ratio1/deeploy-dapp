@@ -12,7 +12,7 @@ const widthClasses = [
     'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
     'min-w-[70px]', // database
-    'min-w-[300px]', // containerType
+    'min-w-[310px]', // resources
 ];
 
 export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[] }) {

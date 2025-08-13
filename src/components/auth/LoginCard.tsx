@@ -1,7 +1,7 @@
 import { Button } from '@heroui/button';
 import { isUsingDevAddress } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { getShortAddressOrHash } from '@lib/utils';
+import { getShortAddressOrHash, isZeroAddress } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
 import { RiBox3Line } from 'react-icons/ri';
@@ -9,6 +9,8 @@ import { RiBox3Line } from 'react-icons/ri';
 export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
     const { escrowContractAddress, isFetchingApps, fetchApps, setFetchAppsRequired } =
         useDeploymentContext() as DeploymentContextType;
+
+    const isDisabled = !escrowContractAddress || isZeroAddress(escrowContractAddress);
 
     return (
         <div className="center-all">
@@ -25,7 +27,7 @@ export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
                         )}
                     </div>
 
-                    {!escrowContractAddress ? (
+                    {isDisabled ? (
                         <div className="row gap-2 rounded-lg bg-red-100 px-5 py-3 text-sm text-red-700">
                             <div>Your wallet does not have an associated escrow smart contract.</div>
                         </div>
@@ -49,6 +51,7 @@ export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
                                 }
                             }}
                             isLoading={isFetchingApps}
+                            isDisabled={process.env.NODE_ENV !== 'development' && isDisabled}
                         >
                             <div className="row gap-1.5 px-2">
                                 <RiBox3Line className="text-lg" />

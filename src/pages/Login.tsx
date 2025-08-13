@@ -61,7 +61,7 @@ function Login() {
                 }),
             ]);
 
-            setOraclesCount(oraclesCount);
+            setOraclesCount(process.env.NODE_ENV === 'development' ? 1 : oraclesCount);
             setEscrowContractAddress(escrowScAddress as EthAddress);
         } catch (error) {
             console.error('Error checking oracle ownership', error);
