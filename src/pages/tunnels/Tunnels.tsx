@@ -2,7 +2,7 @@ import TunnelCard from '@components/tunnels/TunnelCard';
 import { Alert } from '@heroui/alert';
 import { Button } from '@heroui/button';
 import { Skeleton } from '@heroui/skeleton';
-import { getSecrets, getTunnels } from '@lib/api/tunnels';
+import { addSecrets, getSecrets, getTunnels } from '@lib/api/tunnels';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { deepSort } from '@lib/utils';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
