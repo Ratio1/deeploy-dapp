@@ -172,8 +172,9 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
             CONTAINER_RESOURCES: containerResources,
             PORT: job.deployment.port,
             TUNNEL_ENGINE: 'cloudflare',
-            NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
-            NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
+            CLOUDFLARE_TOKEN: job.deployment.tunnelingToken || null,
+            // Not needed for Cloudflare
+            // NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
             TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
             NGROK_USE_API: true,
             VOLUMES: volumes,
@@ -213,8 +214,9 @@ export const formatNativeJobPayload = (job: NativeDraftJob) => {
 
     let appParams = {
         PORT: job.deployment.port,
-        NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
-        NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
+        CLOUDFLARE_TOKEN: job.deployment.tunnelingToken || null,
+        // Not needed for Cloudflare
+        // NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
         TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
         NGROK_USE_API: true,
         ENV: {},
