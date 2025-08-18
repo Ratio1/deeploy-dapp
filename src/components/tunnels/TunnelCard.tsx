@@ -64,7 +64,7 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
                                     className="cursor-pointer transition-all hover:opacity-60"
                                 >
                                     <div className="row text-primary gap-1">
-                                        <div className="font-roboto-mono text-sm">{tunnel.url}</div>
+                                        <div className="font-roboto-mono text-sm font-medium">{tunnel.url}</div>
                                         <RiExternalLinkLine className="mb-px text-[17px]" />
                                     </div>
                                 </Link>

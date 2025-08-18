@@ -51,11 +51,11 @@ export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
                                 }
                             }}
                             isLoading={isFetchingApps}
-                            isDisabled={process.env.NODE_ENV !== 'development' && isDisabled}
+                            isDisabled={isDisabled}
                         >
                             <div className="row gap-1.5 px-2">
                                 <RiBox3Line className="text-lg" />
-                                <div className="text-sm">Get Apps</div>
+                                <div className="text-sm">Authorize Login</div>
                             </div>
                         </Button>
                     </div>

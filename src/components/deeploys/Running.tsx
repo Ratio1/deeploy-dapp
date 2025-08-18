@@ -16,7 +16,7 @@ export interface RunningRef {
 }
 
 const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => void }>(({ setProjectsCount }, ref) => {
-    const { isFetchingApps, isFetchAppsRequired, fetchApps, fetchRunningJobsWithAliases } =
+    const { apps, isFetchingApps, isFetchAppsRequired, fetchApps, fetchRunningJobsWithAliases } =
         useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
@@ -30,7 +30,7 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
         if (publicClient) {
             getProjectsWithJobs();
         }
-    }, [publicClient]);
+    }, [publicClient, apps]);
 
     useEffect(() => {
         if (projects) {
@@ -45,6 +45,7 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
     }, [projects]);
 
     const getProjectsWithJobs = async () => {
+        console.log('getProjectsWithJobs', apps);
         setLoading(true);
 
         const jobsWithAliases: RunningJobWithAlias[] = await fetchRunningJobsWithAliases();

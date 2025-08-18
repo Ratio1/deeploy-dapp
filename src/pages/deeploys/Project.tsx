@@ -95,7 +95,7 @@ export default function Project() {
             {projectPage === ProjectPage.Payment ? (
                 <Payment
                     projectHash={projectHash}
-                    projectName={localStorage.getItem('projectName') || projectName}
+                    projectName={projectName}
                     jobs={draftJobs}
                     callback={() => {
                         setProjectPage(ProjectPage.Overview);

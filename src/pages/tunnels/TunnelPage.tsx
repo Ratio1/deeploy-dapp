@@ -190,7 +190,7 @@ export default function TunnelPage() {
                         className="cursor-pointer transition-all hover:opacity-60"
                     >
                         <div className="row text-primary gap-1">
-                            <div className="font-roboto-mono text-[15px]">{tunnel.url}</div>
+                            <div className="font-roboto-mono text-[15px] font-medium">{tunnel.url}</div>
                             <RiExternalLinkLine className="mb-px text-[17px]" />
                         </div>
                     </Link>
