@@ -29,7 +29,7 @@ export const DeploymentProvider = ({ children }) => {
 
     const [escrowContractAddress, setEscrowContractAddress] = useState<EthAddress | undefined>();
 
-    const fetchApps = async () => {
+    const fetchApps = async (): Promise<Apps | undefined> => {
         if (!address) {
             toast.error('Please connect your wallet.');
             return;
@@ -41,13 +41,20 @@ export const DeploymentProvider = ({ children }) => {
             const request = await signAndBuildGetAppsRequest(address);
             const response = await getApps(request);
 
+            if (!response.apps || response.status === 'fail') {
+                console.error(response);
+                throw new Error(`Failed to fetch running jobs: ${response.error || 'Unknown error'}`);
+            }
+
+            console.log('[DeploymentProvider] fetchApps', response.apps);
+            setApps(response.apps);
+
             // Setting this to false will trigger a re-render of the App component which in turn will navigate the user to the home page
             setFetchAppsRequired(false);
 
-            setApps(response.apps);
-            console.log('[DeploymentProvider] fetchApps', response.apps);
-        } catch (error) {
-            console.error(error);
+            return response.apps;
+        } catch (error: any) {
+            console.error(error.message);
             toast.error('Failed to fetch running jobs.');
         } finally {
             setFetchingApps(false);

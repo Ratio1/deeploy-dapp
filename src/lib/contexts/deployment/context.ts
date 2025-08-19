@@ -14,7 +14,7 @@ export interface DeploymentContextType {
     isFetchAppsRequired: boolean | undefined;
     setFetchAppsRequired: (isFetchAppsRequired: boolean | undefined) => void;
     isFetchingApps: boolean;
-    fetchApps: () => void;
+    fetchApps: () => Promise<Apps | undefined>;
     apps: Apps;
     // Utils
     getProjectName: (projectHash: string) => string | undefined;

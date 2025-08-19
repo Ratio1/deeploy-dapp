@@ -82,6 +82,7 @@ function Login() {
         const availabilities = await Promise.all(licenses.map((license) => getNodeLastEpoch(license.nodeAddress)));
         console.log('Availabilities', availabilities);
         const oracles = availabilities.filter((nodeResponse) => nodeResponse.node_is_oracle);
+        console.log('Oracles', oracles);
 
         return oracles.length;
     };

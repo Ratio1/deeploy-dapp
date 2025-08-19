@@ -27,7 +27,7 @@ type Apps = {
 };
 
 type GetAppsResponse = {
-    status: 'success' | string;
+    status: 'success' | 'fail' | string;
     apps: Apps;
     auth: {
         sender: EthAddress;
@@ -43,6 +43,7 @@ type GetAppsResponse = {
         current_epoch: number;
         uptime: string; // "HH:MM:SS" format
     };
+    error?: string;
     EE_SIGN: string;
     EE_SENDER: R1Address;
     EE_ETH_SENDER: EthAddress;

@@ -80,6 +80,7 @@ export const downloadDataAsJson = (data: any, filename: string) => {
 export const generateNonce = (): string => {
     const now = new Date();
     const unixTimestamp = now.getTime();
+    console.log({ now, unixTimestamp });
     return `0x${unixTimestamp.toString(16)}`;
 };
 
