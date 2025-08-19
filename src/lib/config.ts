@@ -67,13 +67,16 @@ const configs: {
 
 const domain = window.location.hostname;
 
-console.log(domain);
-
 const domainVercel = 'deeploy-dapp.vercel.app';
 
 const domainMainnet = 'deeploy.ratio1.ai';
 const domainDevnet = 'devnet-deeploy.ratio1.ai';
 const domainTestnet = 'testnet-deeploy.ratio1.ai';
+
+console.log('Mainnet', {
+    isMainnet: domain === domainMainnet,
+    isVercel: domain === domainVercel,
+});
 
 export const domains = {
     mainnet: domainMainnet,
