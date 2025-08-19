@@ -129,7 +129,7 @@ const baseDeploymentSchema = z.object({
     tunnelingToken: z
         .string()
         .min(3, 'Value must be at least 3 characters')
-        .max(128, 'Value cannot exceed 128 characters')
+        .max(512, 'Value cannot exceed 512 characters')
         .regex(
             /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
             'Only letters, numbers, spaces and special characters allowed',
