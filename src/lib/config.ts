@@ -67,6 +67,8 @@ const configs: {
 
 const domain = window.location.hostname;
 
+console.log(domain);
+
 const domainVercel = 'deeploy-dapp.vercel.app';
 
 const domainMainnet = 'deeploy.ratio1.ai';
@@ -86,7 +88,7 @@ export const environment: 'mainnet' | 'testnet' | 'devnet' =
           ? ('devnet' as const)
           : domain === domainTestnet
             ? ('testnet' as const)
-            : ('devnet' as const);
+            : ('mainnet' as const);
 
 export const config = configs[environment];
 
