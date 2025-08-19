@@ -149,6 +149,7 @@ export const DeploymentProvider = ({ children }) => {
                 setFetchAppsRequired,
                 isFetchingApps,
                 fetchApps,
+                setApps,
                 apps,
                 // Utils
                 getProjectName,
