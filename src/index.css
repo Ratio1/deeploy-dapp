@@ -103,7 +103,7 @@ layer(base);
 }
 
 .slate-button {
-    @apply bg-slate-150 hover:opacity-75!;
+    @apply bg-slate-150 hover:opacity-70!;
 }
 
 .compact {

@@ -1,18 +1,21 @@
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
+import { KeyValueEntry } from '@typedefs/deeploys';
 import { useEffect, useState } from 'react';
-import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
+import {
+    Controller,
+    FieldValues,
+    useFieldArray,
+    UseFieldArrayAppend,
+    UseFieldArrayRemove,
+    useFormContext,
+} from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import { RiAddLine } from 'react-icons/ri';
 import SecretValueToggle from './SecretValueToggle';
 import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
-
-// Define the type for key-value entries
-interface KeyValueEntry {
-    id: string;
-    key: string;
-    value: string;
-}
 
 // This component assumes it's being used in the deployment step
 export default function KeyValueEntriesSection({
@@ -24,6 +27,8 @@ export default function KeyValueEntriesSection({
     disabledKeys,
     placeholders = ['KEY', 'VALUE'],
     enableSecretValues = false,
+    parentFields,
+    parentMethods,
 }: {
     name: string;
     displayLabel?: string;
@@ -33,13 +38,22 @@ export default function KeyValueEntriesSection({
     disabledKeys?: string[];
     placeholders?: [string, string];
     enableSecretValues?: boolean;
+    parentFields?: KeyValueEntry[];
+    parentMethods?: {
+        fields: Record<'id', string>[];
+        append: UseFieldArrayAppend<FieldValues, string>;
+        remove: UseFieldArrayRemove;
+    };
 }) {
+    const confirm = useInteractionContext() as InteractionContextType;
     const { control, formState, trigger } = useFormContext();
 
-    const { fields, append, remove } = useFieldArray({
-        control: control,
-        name,
-    });
+    const { fields, append, remove } =
+        parentMethods ??
+        useFieldArray({
+            control,
+            name,
+        });
 
     // Explicitly type the fields to match the expected structure
     const entries = fields as KeyValueEntry[];
@@ -47,7 +61,7 @@ export default function KeyValueEntriesSection({
     const [fieldSecrets, setFieldSecrets] = useState<{ [id: string]: boolean }>({});
 
     useEffect(() => {
-        console.log('Received fields', entries);
+        // console.log('KeyValueEntriesSection Received entries', entries);
 
         entries.forEach((entry) => {
             if (fieldSecrets[entry.id] === undefined) {
@@ -214,13 +228,39 @@ export default function KeyValueEntriesSection({
             </div>
 
             {(maxEntries === undefined || entries.length < maxEntries) && (
-                <div
-                    className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
-                    onClick={() => {
-                        append({ key: '', value: '' });
-                    }}
-                >
-                    <RiAddLine className="text-lg" /> Add
+                <div className="row justify-between">
+                    <div
+                        className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
+                        onClick={() => {
+                            append({ key: '', value: '' });
+                        }}
+                    >
+                        <RiAddLine className="text-lg" /> Add
+                    </div>
+
+                    {entries.length > 1 && (
+                        <div
+                            className="compact cursor-pointer text-red-600 hover:opacity-50"
+                            onClick={async () => {
+                                try {
+                                    const confirmed = await confirm(<div>Are you sure you want to remove all entries?</div>);
+
+                                    if (!confirmed) {
+                                        return;
+                                    }
+
+                                    for (let i = entries.length - 1; i >= 0; i--) {
+                                        remove(i);
+                                    }
+                                } catch (error) {
+                                    console.error('Error removing all entries:', error);
+                                    toast.error('Failed to remove all entries.');
+                                }
+                            }}
+                        >
+                            Remove all
+                        </div>
+                    )}
                 </div>
             )}
         </div>

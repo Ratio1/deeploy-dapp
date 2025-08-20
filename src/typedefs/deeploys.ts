@@ -205,6 +205,12 @@ type RunningJobWithResources = RunningJobWithAlias & {
     };
 };
 
+export interface KeyValueEntry {
+    id: string;
+    key: string;
+    value: string;
+}
+
 export { JobType, ProjectPage };
 export type {
     DraftJob,
