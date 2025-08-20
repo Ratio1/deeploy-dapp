@@ -1,9 +1,18 @@
 import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
+import { useEffect, useState } from 'react';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine } from 'react-icons/ri';
+import SecretValueToggle from './SecretValueToggle';
 import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
+
+// Define the type for key-value entries
+interface KeyValueEntry {
+    id: string;
+    key: string;
+    value: string;
+}
 
 // This component assumes it's being used in the deployment step
 export default function KeyValueEntriesSection({
@@ -14,6 +23,7 @@ export default function KeyValueEntriesSection({
     predefinedEntries,
     disabledKeys,
     placeholders = ['KEY', 'VALUE'],
+    enableSecretValues = false,
 }: {
     name: string;
     displayLabel?: string;
@@ -22,6 +32,7 @@ export default function KeyValueEntriesSection({
     predefinedEntries?: { key: string; value: string }[];
     disabledKeys?: string[];
     placeholders?: [string, string];
+    enableSecretValues?: boolean;
 }) {
     const { control, formState, trigger } = useFormContext();
 
@@ -30,10 +41,36 @@ export default function KeyValueEntriesSection({
         name,
     });
 
+    // Explicitly type the fields to match the expected structure
+    const entries = fields as KeyValueEntry[];
+
+    const [fieldSecrets, setFieldSecrets] = useState<{ [id: string]: boolean }>({});
+
+    useEffect(() => {
+        console.log('Received fields', entries);
+
+        entries.forEach((entry) => {
+            if (fieldSecrets[entry.id] === undefined) {
+                setFieldSecrets((previous) => ({
+                    ...previous,
+                    [entry.id]: isKeySecret(entry.key),
+                }));
+            }
+        });
+    }, [entries]);
+
     // Get array-level errors
     const key = name.split('.')[1];
     const deploymentErrors = formState.errors.deployment as any;
     const errors = deploymentErrors?.[key];
+
+    const isKeySecret = (key: string | undefined) => {
+        if (!key) {
+            return false;
+        }
+
+        return key.toLowerCase().includes('password') || key.toLowerCase().includes('secret');
+    };
 
     return (
         <div className="col gap-4">
@@ -51,6 +88,8 @@ export default function KeyValueEntriesSection({
                                 <div key={entry.key} className="flex gap-3">
                                     <VariableSectionIndex index={index} />
 
+                                    {enableSecretValues && <SecretValueToggle isSecret={isKeySecret(entry.key)} isDisabled />}
+
                                     <div className="flex w-full gap-2">
                                         <StyledInput value={entry.key} isDisabled />
                                         <StyledInput value={entry.value} isDisabled />
@@ -64,16 +103,28 @@ export default function KeyValueEntriesSection({
                         </>
                     )}
 
-                    {fields.length === 0 ? (
+                    {entries.length === 0 ? (
                         <div className="text-sm text-slate-500 italic">No {displayLabel} added yet.</div>
                     ) : (
-                        fields.map((field, index) => {
+                        entries.map((entry: KeyValueEntry, index) => {
                             // Get the error for this specific entry
                             const entryError = errors?.[index];
 
                             return (
-                                <div key={field.id} className="flex gap-3">
+                                <div key={entry.id} className="flex gap-3">
                                     <VariableSectionIndex index={index + (predefinedEntries?.length ?? 0)} />
+
+                                    {enableSecretValues && (
+                                        <SecretValueToggle
+                                            isSecret={fieldSecrets[entry.id]}
+                                            onClick={() => {
+                                                setFieldSecrets((previous) => ({
+                                                    ...previous,
+                                                    [entry.id]: !previous[entry.id],
+                                                }));
+                                            }}
+                                        />
+                                    )}
 
                                     <div className="flex w-full gap-2">
                                         <Controller
@@ -97,7 +148,7 @@ export default function KeyValueEntriesSection({
                                                             field.onBlur();
 
                                                             // Trigger validation for the entire array to check for duplicate keys
-                                                            if (fields.length > 1) {
+                                                            if (entries.length > 1) {
                                                                 await trigger(name);
                                                             }
                                                         }}
@@ -131,17 +182,29 @@ export default function KeyValueEntriesSection({
                                                             const value = e.target.value;
                                                             field.onChange(value);
                                                         }}
-                                                        onBlur={field.onBlur}
+                                                        onBlur={async () => {
+                                                            field.onBlur();
+                                                        }}
                                                         isInvalid={hasError}
                                                         errorMessage={fieldState.error?.message || specificValueError?.message}
+                                                        type={fieldSecrets[entry.id] ? 'password' : 'text'}
                                                     />
                                                 );
                                             }}
                                         />
                                     </div>
 
-                                    <div className={disabledKeys?.includes((field as any).key) ? 'invisible' : ''}>
-                                        <VariableSectionRemove onClick={() => remove(index)} />
+                                    <div className={disabledKeys?.includes(entry.key) ? 'invisible' : ''}>
+                                        <VariableSectionRemove
+                                            onClick={() => {
+                                                remove(index);
+                                                setFieldSecrets((previous) => {
+                                                    const next = { ...previous };
+                                                    delete next[entry.id];
+                                                    return next;
+                                                });
+                                            }}
+                                        />
                                     </div>
                                 </div>
                             );
@@ -150,10 +213,12 @@ export default function KeyValueEntriesSection({
                 </div>
             </div>
 
-            {(maxEntries === undefined || fields.length < maxEntries) && (
+            {(maxEntries === undefined || entries.length < maxEntries) && (
                 <div
                     className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
-                    onClick={() => append({ key: '', value: '' })}
+                    onClick={() => {
+                        append({ key: '', value: '' });
+                    }}
                 >
                     <RiAddLine className="text-lg" /> Add
                 </div>

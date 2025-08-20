@@ -3,6 +3,7 @@ import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import ContainerSectionCard from '@shared/jobs/container/ContainerSectionCard';
 import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';
+import EnvVariablesSection from '@shared/jobs/EnvVariablesSection';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
@@ -45,7 +46,7 @@ function GenericDeployment() {
             </SlateCard>
 
             <SlateCard title="ENV Variables">
-                <KeyValueEntriesSection name="deployment.envVars" displayLabel="environment variables" />
+                <EnvVariablesSection />
             </SlateCard>
 
             <SlateCard title="Dynamic ENV Variables">
