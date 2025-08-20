@@ -5,7 +5,7 @@ import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import { EthAddress } from '@typedefs/blockchain';
 import { Apps } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithAlias } from '@typedefs/deeploys';
-import _, { flatten } from 'lodash';
+import _ from 'lodash';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
@@ -83,7 +83,7 @@ export const DeploymentProvider = ({ children }) => {
     };
 
     const getProjectName = (projectHash: string): string | undefined => {
-        const sanitizedApps = flatten(Object.values(apps).map((app) => Object.values(app)));
+        const sanitizedApps = _.flatten(Object.values(apps).map((app) => Object.values(app)));
 
         const project = sanitizedApps.find((app) => app.deeploy_specs.project_id === projectHash);
 
