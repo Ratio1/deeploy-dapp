@@ -1,10 +1,12 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { pluginSignaturesCustomParams } from '@data/default-values/customParams';
+import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
+import Label from '@shared/Label';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
@@ -60,25 +62,29 @@ function NativeDeployment() {
             <SlateCard title="Pipeline">
                 <div className="col gap-4">
                     <div className="flex gap-4">
-                        <InputWithLabel
+                        <SelectWithLabel
                             name="deployment.pipelineInputType"
                             label="Pipeline Input Type"
-                            placeholder="None"
-                            isDisabled
+                            options={PIPELINE_INPUT_TYPES}
                         />
+
                         <InputWithLabel
                             name="deployment.pipelineInputUri"
                             label="Pipeline Input URI"
                             placeholder="None"
-                            isDisabled
+                            isOptional
                         />
                     </div>
 
-                    <KeyValueEntriesSection
-                        name="deployment.pipelineParams"
-                        displayLabel="pipeline parameters"
-                        maxEntries={50}
-                    />
+                    <div className="col gap-2">
+                        <Label value="Pipeline Parameters" />
+
+                        <KeyValueEntriesSection
+                            name="deployment.pipelineParams"
+                            displayLabel="pipeline parameters"
+                            maxEntries={50}
+                        />
+                    </div>
                 </div>
             </SlateCard>
 

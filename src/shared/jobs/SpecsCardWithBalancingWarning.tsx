@@ -9,7 +9,7 @@ import { useFormContext } from 'react-hook-form';
 import { RiErrorWarningLine } from 'react-icons/ri';
 
 export default function SpecsCardWithBalancingWarning({ jobType }: { jobType: JobType }) {
-    const { watch } = useFormContext();
+    const { watch, setValue } = useFormContext();
 
     const containerOrWorkerTypeName: string = watch(
         `specifications.${jobType === JobType.Native ? 'workerType' : 'containerType'}`,
@@ -26,6 +26,12 @@ export default function SpecsCardWithBalancingWarning({ jobType }: { jobType: Jo
             ),
         );
     }, [containerOrWorkerTypeName]);
+
+    useEffect(() => {
+        if (containerOrWorkerType && containerOrWorkerType.minimalBalancing) {
+            setValue('specifications.targetNodesCount', containerOrWorkerType.minimalBalancing);
+        }
+    }, [containerOrWorkerType, setValue]);
 
     const hasWarning = !containerOrWorkerType
         ? false
