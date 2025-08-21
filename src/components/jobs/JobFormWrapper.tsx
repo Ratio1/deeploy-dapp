@@ -30,7 +30,7 @@ function JobFormWrapper() {
     const getBaseSchemaDefaults = () => ({
         specifications: {
             applicationType: APPLICATION_TYPES[0],
-            targetNodesCount: '', // Number inputs must have empty default values when resetting form
+            targetNodesCount: 1,
         },
         paymentAndDuration: {
             duration: 12,

@@ -50,7 +50,7 @@ const configs: {
         networks: [baseSepolia],
     },
     devnet: {
-        deeployUrl: 'https://devnet-deeploy-api.ratio1.ai', // 'https://2b1e1f9b0d35.ratio1.link' // 'https://devnet-deeploy-api.ratio1.ai'
+        deeployUrl: 'https://2b1e1f9b0d35.ratio1.link', // 'https://2b1e1f9b0d35.ratio1.link' // 'https://devnet-deeploy-api.ratio1.ai'
         backendUrl: 'https://devnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://devnet-oracle.ratio1.ai',
         poAIManagerContractAddress: '0xCc7C4e0f4f25b57807F34227Fb446E68c8c36ce5',
