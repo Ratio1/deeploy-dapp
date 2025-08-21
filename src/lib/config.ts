@@ -50,7 +50,7 @@ const configs: {
         networks: [baseSepolia],
     },
     devnet: {
-        deeployUrl: 'https://2b1e1f9b0d35.ratio1.link', // 'https://2b1e1f9b0d35.ratio1.link' // 'https://devnet-deeploy-api.ratio1.ai'
+        deeployUrl: 'https://devnet-deeploy-api.ratio1.ai', // 'https://2b1e1f9b0d35.ratio1.link' // 'https://devnet-deeploy-api.ratio1.ai'
         backendUrl: 'https://devnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://devnet-oracle.ratio1.ai',
         poAIManagerContractAddress: '0xCc7C4e0f4f25b57807F34227Fb446E68c8c36ce5',
@@ -67,7 +67,7 @@ const configs: {
 
 const domain = window.location.hostname;
 
-const domainMainnet = 'deeploy-dapp.vercel.app'; // TODO: 'deeploy.ratio1.ai';
+const domainMainnet = 'deeploy-dapp.vercel.app';
 const domainDevnet = 'devnet-deeploy.ratio1.ai';
 const domainTestnet = 'testnet-deeploy.ratio1.ai';
 
@@ -105,4 +105,4 @@ export const getDevAddress = (): {
     address: import.meta.env.VITE_DEV_ADDRESS,
 });
 
-export const isUsingDevAddress = process.env.NODE_ENV === 'development' && false;
+export const isUsingDevAddress = process.env.NODE_ENV === 'development' && true; // TODO: false

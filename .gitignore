@@ -26,3 +26,6 @@ dist-ssr
 # Scripts
 deploy-vercel.txt
 scripts/deploy-vercel.sh
+
+# Env files
+.env
