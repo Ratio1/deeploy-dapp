@@ -9,6 +9,7 @@ import {
 } from '@data/containerResources';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
+import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { EthAddress, R1Address } from './blockchain';
@@ -113,8 +114,8 @@ type NativeJobDeployment = BaseJobDeployment & {
         key: string;
         value: string;
     }>;
-    pipelineInputType: string;
-    pipelineInputUri: string;
+    pipelineInputType: (typeof PIPELINE_INPUT_TYPES)[number];
+    pipelineInputUri?: string;
     chainstoreResponse: (typeof BOOLEAN_TYPES)[number];
 };
 

@@ -241,7 +241,7 @@ export const formatNativeJobPayload = (job: NativeDraftJob) => {
         TUNNEL_ENGINE: 'cloudflare',
         app_params: appParams,
         pipeline_input_type: job.deployment.pipelineInputType,
-        pipeline_input_uri: job.deployment.pipelineInputUri,
+        pipeline_input_uri: job.deployment.pipelineInputUri || null,
         pipeline_params: !_.isEmpty(pipelineParams) ? pipelineParams : {},
         chainstore_response: false,
     };

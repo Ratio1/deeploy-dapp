@@ -7,6 +7,7 @@ import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerResources';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
+import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -76,7 +77,7 @@ function JobFormWrapper() {
             pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
             customParams: [{ key: '', value: '' }],
             pipelineParams: [{ key: '', value: '' }],
-            pipelineInputType: 'void',
+            pipelineInputType: PIPELINE_INPUT_TYPES[0],
             chainstoreResponse: BOOLEAN_TYPES[1],
         },
     });
