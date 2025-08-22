@@ -1,4 +1,4 @@
-name: Build and Push Mainnet Container
+name: Build and Push Testnet and Mainnet Images
 
 on:
   push:
@@ -25,6 +25,17 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Build & Push Testnet Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile_testnet
+          push: true
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+                ratio1/deeploy_ui:testnet          
       - name: Build & Push Mainnet Image
         uses: docker/build-push-action@v5
         with:
