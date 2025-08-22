@@ -67,7 +67,7 @@ const configs: {
 
 const domain = window.location.hostname;
 
-const domainMainnet = 'deeploy-dapp.vercel.app'; // TODO: 'deeploy.ratio1.ai';
+const domainMainnet = 'deeploy-dapp.vercel.app';
 const domainDevnet = 'devnet-deeploy.ratio1.ai';
 const domainTestnet = 'testnet-deeploy.ratio1.ai';
 
@@ -105,4 +105,4 @@ export const getDevAddress = (): {
     address: import.meta.env.VITE_DEV_ADDRESS,
 });
 
-export const isUsingDevAddress = process.env.NODE_ENV === 'development' && false;
+export const isUsingDevAddress = process.env.NODE_ENV === 'development' && true; // TODO: false

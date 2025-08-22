@@ -1,5 +1,6 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
+import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import {
@@ -28,11 +29,6 @@ const validations = {
         .min(3, 'Value must be at least 3 characters')
         .max(128, 'Value cannot exceed 128 characters')
         .regex(/^[^/]+\.[^/]+$/, 'Must be a valid domain format'),
-
-    pipelineInputType: z
-        .string({ required_error: 'Value is required' })
-        .min(2, 'Value must be at least 2 characters')
-        .max(256, 'Value cannot exceed 256 characters'),
 
     uri: z
         .string({ required_error: 'Value is required' })
@@ -207,8 +203,8 @@ export const nativeAppDeploymentSchema = applyTunnelingRefinements(
         port: validations.port,
         customParams: validations.customParams,
         pipelineParams: validations.pipelineParams,
-        pipelineInputType: validations.pipelineInputType,
-        pipelineInputUri: validations.uri,
+        pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
+        pipelineInputUri: validations.uri.optional(),
         chainstoreResponse: validations.chainstoreResponse,
     }),
 );
