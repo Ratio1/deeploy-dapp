@@ -2,17 +2,22 @@
 FROM node:18-slim AS builder
 WORKDIR /app
 
+# Build arguments for configuration
+ARG API_URL=https://devnet-deeploy-api.ratio1.ai
+ARG ENVIRONMENT=devnet
+
+# Set environment variables for the build process
+ENV VITE_API_URL=${API_URL}
+ENV VITE_ENVIRONMENT=${ENVIRONMENT}
 
 COPY package*.json ./
 RUN npm ci
-
 
 COPY . .
 RUN npm run build          # produces static files in /app/dist
 
 # ---- Runtime stage ---------
 FROM nginx:alpine
-
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 

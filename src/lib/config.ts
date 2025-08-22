@@ -22,7 +22,7 @@ const configs: {
     [key in 'mainnet' | 'testnet' | 'devnet']: Config;
 } = {
     mainnet: {
-        deeployUrl: 'https://deeploy-api.ratio1.ai',
+        deeployUrl: process.env.VITE_API_URL as string,
         backendUrl: 'https://dapp-api.ratio1.ai',
         oraclesUrl: 'https://oracle.ratio1.ai',
         poAIManagerContractAddress: '0xa8d7FFCE91a888872A9f5431B4Dd6c0c135055c1',
@@ -36,7 +36,7 @@ const configs: {
         networks: [base],
     },
     testnet: {
-        deeployUrl: 'https://testnet-deeploy-api.ratio1.ai',
+        deeployUrl: process.env.VITE_API_URL as string,
         backendUrl: 'https://testnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://testnet-oracle.ratio1.ai',
         poAIManagerContractAddress: '0xCc7C4e0f4f25b57807F34227Fb446E68c8c36ce5',
@@ -50,7 +50,7 @@ const configs: {
         networks: [baseSepolia],
     },
     devnet: {
-        deeployUrl: 'https://devnet-deeploy-api.ratio1.ai', // 'https://2b1e1f9b0d35.ratio1.link' // 'https://devnet-deeploy-api.ratio1.ai'
+        deeployUrl: process.env.VITE_API_URL as string,
         backendUrl: 'https://devnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://devnet-oracle.ratio1.ai',
         poAIManagerContractAddress: '0xCc7C4e0f4f25b57807F34227Fb446E68c8c36ce5',
@@ -65,26 +65,7 @@ const configs: {
     },
 };
 
-const domain = window.location.hostname;
-
-const domainMainnet = 'deeploy-dapp.vercel.app';
-const domainDevnet = 'devnet-deeploy.ratio1.ai';
-const domainTestnet = 'testnet-deeploy.ratio1.ai';
-
-export const domains = {
-    mainnet: domainMainnet,
-    devnet: domainDevnet,
-    testnet: domainTestnet,
-};
-
-export const environment: 'mainnet' | 'testnet' | 'devnet' =
-    domain === domainMainnet
-        ? ('mainnet' as const)
-        : domain === domainDevnet
-          ? ('devnet' as const)
-          : domain === domainTestnet
-            ? ('testnet' as const)
-            : ('devnet' as const);
+export const environment: 'mainnet' | 'testnet' | 'devnet' = process.env.VITE_ENVIRONMENT as 'mainnet' | 'testnet' | 'devnet';
 
 export const config = configs[environment];
 
