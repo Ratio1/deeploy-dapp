@@ -2,7 +2,7 @@ name: Build and Push Devnet Image
 
 on:
   push:
-    branches: [ development ]
+    branches: [ develop ]
   # also allow manual runs
   workflow_dispatch:
   
