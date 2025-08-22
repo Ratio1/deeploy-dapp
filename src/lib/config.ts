@@ -89,4 +89,4 @@ export const getDevAddress = (): {
     address: import.meta.env.VITE_DEV_ADDRESS,
 });
 
-export const isUsingDevAddress = import.meta.env.NODE_ENV === 'development' && true; // TODO: false
+export const isUsingDevAddress = import.meta.env.NODE_ENV === 'development' && false; // TODO: false

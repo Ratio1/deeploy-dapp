@@ -8,7 +8,7 @@ import { RiTerminalBoxLine } from 'react-icons/ri';
 const widthClasses = [
     'min-w-[200px]', // alias
     'min-w-[90px]', // targetNodes
-    'min-w-[50px]', // type
+    'min-w-[100px]', // compute type
     'min-w-[310px]', // resources
 ];
 
@@ -21,10 +21,10 @@ function NativeRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
                     <div className="compact">Native Apps</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Alias', 'Target Nodes', 'Type', 'Worker Type'], widthClasses)}</>}
+            tableHeader={<>{applyWidthClasses(['Alias', 'Target Nodes', 'Compute Type', 'Worker Type'], widthClasses)}</>}
             jobs={jobs}
             renderJob={(job) => {
-                const { containerOrWorkerType } = job.resources;
+                const { containerOrWorkerType, gpuType } = job.resources;
                 const targetNodes = Number(job.numberOfNodesRequested);
 
                 return (
@@ -43,7 +43,10 @@ function NativeRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
                         </div>
 
                         <div className={widthClasses[2]}>
-                            <SmallTag variant="blue">CPU</SmallTag>
+                            <div className="row gap-1">
+                                <SmallTag variant="blue">CPU</SmallTag>
+                                {gpuType && <SmallTag variant="green">GPU</SmallTag>}
+                            </div>
                         </div>
 
                         <div className={widthClasses[3]}>

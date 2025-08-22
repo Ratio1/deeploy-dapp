@@ -97,7 +97,7 @@ export default function RunningJobsList({
 
                             <ItemWithLabel label="Next payment due" value={<SmallTag variant="green">Paid in full</SmallTag>} />
 
-                            <div className="min-w-[386px]">
+                            <div className="min-w-[362px]">
                                 {/* Update when custom payment duration is implemented */}
                                 <DetailedUsage
                                     used={diffTimeFn(new Date(), requestDate)}
