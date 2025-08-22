@@ -9,6 +9,7 @@ export const routePath = {
     createProject: 'create-project',
     draft: 'draft',
     project: 'project',
+    job: 'job',
     //
     tunnels: '/tunnels',
     account: '/account',

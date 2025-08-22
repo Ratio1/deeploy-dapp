@@ -104,6 +104,8 @@ export const DeploymentProvider = ({ children }) => {
             functionName: 'getAllJobs',
         });
 
+        console.log('[DeploymentProvider] SC jobs', runningJobs);
+
         const jobsWithAliases: RunningJobWithAlias[] = _(Object.values(apps))
             .map((app) => {
                 const alias: string = Object.keys(app)[0];

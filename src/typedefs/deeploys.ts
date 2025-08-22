@@ -136,7 +136,7 @@ type ServiceJobDeployment = BaseJobDeployment & {
         key: string;
         value: string;
     }>;
-    serviceReplica: R1Address;
+    serviceReplica?: R1Address;
 };
 
 type JobDeployment = BaseJobDeployment & (GenericJobDeployment | NativeJobDeployment | ServiceJobDeployment);

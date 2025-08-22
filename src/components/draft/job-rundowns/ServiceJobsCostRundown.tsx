@@ -37,7 +37,12 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceDraftJob
                     ...(serviceJob.deployment.enableTunneling === 'True' && serviceJob.deployment.tunnelingLabel
                         ? [{ label: 'Tunneling Label', value: serviceJob.deployment.tunnelingLabel }]
                         : []),
-                    { label: 'Service Replica', value: getShortAddressOrHash(serviceJob.deployment.serviceReplica, 4, true) },
+                    {
+                        label: 'Service Replica',
+                        value: serviceJob.deployment.serviceReplica
+                            ? getShortAddressOrHash(serviceJob.deployment.serviceReplica, 4, true)
+                            : 'None',
+                    },
                 ];
 
                 return (

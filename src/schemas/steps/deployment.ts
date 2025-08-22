@@ -215,6 +215,6 @@ export const serviceAppDeploymentSchema = applyTunnelingRefinements(
         envVars: validations.envVars,
         dynamicEnvVars: validations.dynamicEnvVars,
         volumes: validations.volumes,
-        serviceReplica: nodeSchema.shape.address,
+        serviceReplica: nodeSchema.shape.address.optional(),
     }),
 );

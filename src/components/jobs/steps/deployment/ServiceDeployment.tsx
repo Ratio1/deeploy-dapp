@@ -69,7 +69,7 @@ function ServiceDeployment() {
             </SlateCard>
 
             <SlateCard title="Other">
-                <InputWithLabel name="deployment.serviceReplica" label="Service Replica" placeholder="0x_ai" />
+                <InputWithLabel name="deployment.serviceReplica" label="Service Replica" placeholder="0x_ai" isOptional />
             </SlateCard>
         </div>
     );
