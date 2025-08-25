@@ -46,8 +46,8 @@ function PaymentAndDuration() {
 
     const summaryItems = [
         {
-            label: 'GPU/CPU',
-            value: 'CPU',
+            label: 'Compute Type',
+            value: `CPU ${'gpuType' in specifications && specifications.gpuType ? ' & GPU' : ''}`,
         },
         {
             label: 'Container Type',
@@ -134,8 +134,9 @@ function PaymentAndDuration() {
                         aria-label="Payment (in advance)"
                         label="Full Payment"
                         defaultValue={12}
-                        maxValue={duration}
+                        maxValue={12}
                         minValue={1}
+                        // maxValue={duration} // (Enable for custom payment duration)
                         size="sm"
                         step={1}
                         isDisabled={true}
@@ -152,7 +153,8 @@ function PaymentAndDuration() {
                                 )}
                             </div>
                         )}
-                        value={paymentMonthsCount}
+                        value={12}
+                        // value={paymentMonthsCount} // (Enable for custom payment duration)
                         onChange={(value) => handlePaymentMonthsCountChange(value as number)}
                     />
 

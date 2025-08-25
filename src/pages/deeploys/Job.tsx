@@ -1,6 +1,6 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import JobPageLoading from '@components/loading/JobPageLoading';
-import { getRunningJobResources } from '@data/containerResources';
+import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { RunningJob } from '@typedefs/deeploys';
 import { useEffect, useState } from 'react';
@@ -39,9 +39,9 @@ export default function Job() {
                 args: [BigInt(jobId)],
             });
 
-            const resources = getRunningJobResources(runningJob.jobType);
+            const resources: RunningJobResources | undefined = getRunningJobResources(runningJob.jobType);
 
-            // TODO: RunningJobWithAlias, RunningJobWithResources
+            // TODO: Use existing code to format into RunningJobWithAlias, RunningJobWithResources
 
             console.log(runningJob);
             setJob(runningJob);

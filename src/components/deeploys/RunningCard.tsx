@@ -1,4 +1,4 @@
-import { getRunningJobResources } from '@data/containerResources';
+import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
 import { config, environment } from '@lib/config';
 import { addTimeFn, diffTimeFn } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
@@ -124,7 +124,7 @@ export default function RunningCard({
                 {expanded && (
                     <div className="col bg-slate-75 rounded-lg py-2 pr-2.5 text-sm">
                         {jobs?.map((job, index, array) => {
-                            const resources = getRunningJobResources(job.jobType);
+                            const resources: RunningJobResources | undefined = getRunningJobResources(job.jobType);
 
                             if (!resources) {
                                 return <div className="compact">Unknown job type</div>;

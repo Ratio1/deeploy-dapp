@@ -1,10 +1,10 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import {
-    ContainerOrWorkerType,
     genericContainerTypes,
     gpuTypes,
     nativeWorkerTypes,
+    RunningJobResources,
     serviceContainerTypes,
 } from '@data/containerResources';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
@@ -200,10 +200,7 @@ type RunningJobWithAlias = RunningJob & {
 };
 
 type RunningJobWithResources = RunningJobWithAlias & {
-    resources: {
-        jobType: JobType;
-        containerOrWorkerType: ContainerOrWorkerType;
-    };
+    resources: RunningJobResources;
 };
 
 export interface KeyValueEntry {

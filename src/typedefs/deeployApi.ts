@@ -8,7 +8,7 @@ type Apps = {
             last_config: string; // ISO-like timestamp string
             is_deeployed: boolean;
             deeploy_specs: {
-                initial_target_nodes: string[]; // TODO: R1Address[] but nodes have no "x_ai" prefix
+                initial_target_nodes: string[]; // R1 node addresses but nodes have no "x_ai" prefix
                 job_id: number;
                 nr_target_nodes: number;
                 project_id: string; // projectHash

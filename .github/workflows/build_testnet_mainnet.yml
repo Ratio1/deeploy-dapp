@@ -35,7 +35,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-                ratio1/deeploy_ui:testnet          
+                ratio1/deeploy_ui:testnet
+                          
       - name: Build & Push Mainnet Image
         uses: docker/build-push-action@v5
         with:
