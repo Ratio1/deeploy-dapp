@@ -4,6 +4,7 @@ import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';
+import EnvVariablesCard from '@shared/jobs/EnvVariablesCard';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import SelectWithLabel from '@shared/SelectWithLabel';
@@ -57,9 +58,7 @@ function ServiceDeployment() {
                 </div>
             </SlateCard>
 
-            <SlateCard title="ENV Variables">
-                <KeyValueEntriesSection name="deployment.envVars" disabledKeys={['DB_PASSWORD']} />
-            </SlateCard>
+            <EnvVariablesCard disabledKeys={['DB_PASSWORD']} />
 
             <SlateCard title="Dynamic ENV Variables">
                 <DynamicEnvSection />
@@ -70,7 +69,7 @@ function ServiceDeployment() {
             </SlateCard>
 
             <SlateCard title="Other">
-                <InputWithLabel name="deployment.serviceReplica" label="Service Replica" placeholder="0x_ai" />
+                <InputWithLabel name="deployment.serviceReplica" label="Service Replica" placeholder="0x_ai" isOptional />
             </SlateCard>
         </div>
     );

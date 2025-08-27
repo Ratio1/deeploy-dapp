@@ -1,8 +1,8 @@
-name: Build and Push Mainnet Container
+name: Build and Push Devnet Image
 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop ]
   # also allow manual runs
   workflow_dispatch:
   
@@ -25,14 +25,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build & Push Mainnet Image
+      - name: Build & Push Devnet Image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile_mainnet
+          file: ./Dockerfile_devnet
           push: true
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-                ratio1/deeploy_ui:mainnet
+                ratio1/deeploy_ui:devnet

@@ -64,11 +64,6 @@ export default function Payment({
         displayError: () => void;
     }>(null);
 
-    // TODO: Remove
-    useEffect(() => {
-        console.log('[Payment] projectName', projectName);
-    }, [projectName]);
-
     useEffect(() => {
         console.log('[Payment] jobs', jobs);
 

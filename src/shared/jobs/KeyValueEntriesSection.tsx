@@ -1,7 +1,19 @@
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
-import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
+import { KeyValueEntry } from '@typedefs/deeploys';
+import { useEffect, useState } from 'react';
+import {
+    Controller,
+    FieldValues,
+    useFieldArray,
+    UseFieldArrayAppend,
+    UseFieldArrayRemove,
+    useFormContext,
+} from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import { RiAddLine } from 'react-icons/ri';
+import SecretValueToggle from './SecretValueToggle';
 import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
 
@@ -14,6 +26,9 @@ export default function KeyValueEntriesSection({
     predefinedEntries,
     disabledKeys,
     placeholders = ['KEY', 'VALUE'],
+    enableSecretValues = false,
+    parentFields,
+    parentMethods,
 }: {
     name: string;
     displayLabel?: string;
@@ -22,18 +37,54 @@ export default function KeyValueEntriesSection({
     predefinedEntries?: { key: string; value: string }[];
     disabledKeys?: string[];
     placeholders?: [string, string];
+    enableSecretValues?: boolean;
+    parentFields?: KeyValueEntry[];
+    parentMethods?: {
+        fields: Record<'id', string>[];
+        append: UseFieldArrayAppend<FieldValues, string>;
+        remove: UseFieldArrayRemove;
+    };
 }) {
+    const confirm = useInteractionContext() as InteractionContextType;
     const { control, formState, trigger } = useFormContext();
 
-    const { fields, append, remove } = useFieldArray({
-        control: control,
-        name,
-    });
+    const { fields, append, remove } =
+        parentMethods ??
+        useFieldArray({
+            control,
+            name,
+        });
+
+    // Explicitly type the fields to match the expected structure
+    const entries = fields as KeyValueEntry[];
+
+    const [fieldSecrets, setFieldSecrets] = useState<{ [id: string]: boolean }>({});
+
+    useEffect(() => {
+        // console.log('KeyValueEntriesSection Received entries', entries);
+
+        entries.forEach((entry) => {
+            if (fieldSecrets[entry.id] === undefined) {
+                setFieldSecrets((previous) => ({
+                    ...previous,
+                    [entry.id]: isKeySecret(entry.key),
+                }));
+            }
+        });
+    }, [entries]);
 
     // Get array-level errors
     const key = name.split('.')[1];
     const deploymentErrors = formState.errors.deployment as any;
     const errors = deploymentErrors?.[key];
+
+    const isKeySecret = (key: string | undefined) => {
+        if (!key) {
+            return false;
+        }
+
+        return key.toLowerCase().includes('password') || key.toLowerCase().includes('secret');
+    };
 
     return (
         <div className="col gap-4">
@@ -51,6 +102,8 @@ export default function KeyValueEntriesSection({
                                 <div key={entry.key} className="flex gap-3">
                                     <VariableSectionIndex index={index} />
 
+                                    {enableSecretValues && <SecretValueToggle isSecret={isKeySecret(entry.key)} isDisabled />}
+
                                     <div className="flex w-full gap-2">
                                         <StyledInput value={entry.key} isDisabled />
                                         <StyledInput value={entry.value} isDisabled />
@@ -64,16 +117,28 @@ export default function KeyValueEntriesSection({
                         </>
                     )}
 
-                    {fields.length === 0 ? (
+                    {entries.length === 0 ? (
                         <div className="text-sm text-slate-500 italic">No {displayLabel} added yet.</div>
                     ) : (
-                        fields.map((field, index) => {
+                        entries.map((entry: KeyValueEntry, index) => {
                             // Get the error for this specific entry
                             const entryError = errors?.[index];
 
                             return (
-                                <div key={field.id} className="flex gap-3">
+                                <div key={entry.id} className="flex gap-3">
                                     <VariableSectionIndex index={index + (predefinedEntries?.length ?? 0)} />
+
+                                    {enableSecretValues && (
+                                        <SecretValueToggle
+                                            isSecret={fieldSecrets[entry.id]}
+                                            onClick={() => {
+                                                setFieldSecrets((previous) => ({
+                                                    ...previous,
+                                                    [entry.id]: !previous[entry.id],
+                                                }));
+                                            }}
+                                        />
+                                    )}
 
                                     <div className="flex w-full gap-2">
                                         <Controller
@@ -97,7 +162,7 @@ export default function KeyValueEntriesSection({
                                                             field.onBlur();
 
                                                             // Trigger validation for the entire array to check for duplicate keys
-                                                            if (fields.length > 1) {
+                                                            if (entries.length > 1) {
                                                                 await trigger(name);
                                                             }
                                                         }}
@@ -131,17 +196,29 @@ export default function KeyValueEntriesSection({
                                                             const value = e.target.value;
                                                             field.onChange(value);
                                                         }}
-                                                        onBlur={field.onBlur}
+                                                        onBlur={async () => {
+                                                            field.onBlur();
+                                                        }}
                                                         isInvalid={hasError}
                                                         errorMessage={fieldState.error?.message || specificValueError?.message}
+                                                        type={fieldSecrets[entry.id] ? 'password' : 'text'}
                                                     />
                                                 );
                                             }}
                                         />
                                     </div>
 
-                                    <div className={disabledKeys?.includes((field as any).key) ? 'invisible' : ''}>
-                                        <VariableSectionRemove onClick={() => remove(index)} />
+                                    <div className={disabledKeys?.includes(entry.key) ? 'invisible' : ''}>
+                                        <VariableSectionRemove
+                                            onClick={() => {
+                                                remove(index);
+                                                setFieldSecrets((previous) => {
+                                                    const next = { ...previous };
+                                                    delete next[entry.id];
+                                                    return next;
+                                                });
+                                            }}
+                                        />
                                     </div>
                                 </div>
                             );
@@ -150,12 +227,40 @@ export default function KeyValueEntriesSection({
                 </div>
             </div>
 
-            {(maxEntries === undefined || fields.length < maxEntries) && (
-                <div
-                    className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
-                    onClick={() => append({ key: '', value: '' })}
-                >
-                    <RiAddLine className="text-lg" /> Add
+            {(maxEntries === undefined || entries.length < maxEntries) && (
+                <div className="row justify-between">
+                    <div
+                        className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
+                        onClick={() => {
+                            append({ key: '', value: '' });
+                        }}
+                    >
+                        <RiAddLine className="text-lg" /> Add
+                    </div>
+
+                    {entries.length > 1 && (
+                        <div
+                            className="compact cursor-pointer text-red-600 hover:opacity-50"
+                            onClick={async () => {
+                                try {
+                                    const confirmed = await confirm(<div>Are you sure you want to remove all entries?</div>);
+
+                                    if (!confirmed) {
+                                        return;
+                                    }
+
+                                    for (let i = entries.length - 1; i >= 0; i--) {
+                                        remove(i);
+                                    }
+                                } catch (error) {
+                                    console.error('Error removing all entries:', error);
+                                    toast.error('Failed to remove all entries.');
+                                }
+                            }}
+                        >
+                            Remove all
+                        </div>
+                    )}
                 </div>
             )}
         </div>

@@ -8,7 +8,6 @@ type Config = {
     backendUrl: string;
     oraclesUrl: string;
     poAIManagerContractAddress: EthAddress;
-    r1ContractAddress: EthAddress;
     ndContractAddress: EthAddress;
     mndContractAddress: EthAddress;
     safeAddress: EthAddress;
@@ -23,11 +22,10 @@ const configs: {
     [key in 'mainnet' | 'testnet' | 'devnet']: Config;
 } = {
     mainnet: {
-        deeployUrl: 'https://deeploy-api.ratio1.ai',
+        deeployUrl: import.meta.env.VITE_API_URL as string,
         backendUrl: 'https://dapp-api.ratio1.ai',
         oraclesUrl: 'https://oracle.ratio1.ai',
         poAIManagerContractAddress: '0xa8d7FFCE91a888872A9f5431B4Dd6c0c135055c1',
-        r1ContractAddress: '0x6444C6c2D527D85EA97032da9A7504d6d1448ecF',
         ndContractAddress: '0xE658DF6dA3FB5d4FBa562F1D5934bd0F9c6bd423',
         mndContractAddress: '0x0C431e546371C87354714Fcc1a13365391A549E2',
         safeAddress: '0x2265539ae09c7A605A707E11a6ED4aF1d018750e',
@@ -38,11 +36,10 @@ const configs: {
         networks: [base],
     },
     testnet: {
-        deeployUrl: 'https://testnet-deeploy-api.ratio1.ai',
+        deeployUrl: import.meta.env.VITE_API_URL as string,
         backendUrl: 'https://testnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://testnet-oracle.ratio1.ai',
         poAIManagerContractAddress: '0xCc7C4e0f4f25b57807F34227Fb446E68c8c36ce5',
-        r1ContractAddress: '0xCC96f389F45Fc08b4fa8e2bC4C7DA9920292ec64',
         ndContractAddress: '0x18E86a5829CA1F02226FA123f30d90dCd7cFd0ED',
         mndContractAddress: '0xa8d7FFCE91a888872A9f5431B4Dd6c0c135055c1',
         safeAddress: '0x5afF90797f717Fe8432A1809b6b53A18863061D6',
@@ -53,11 +50,10 @@ const configs: {
         networks: [baseSepolia],
     },
     devnet: {
-        deeployUrl: 'https://devnet-deeploy-api.ratio1.ai', // 'https://2b1e1f9b0d35.ratio1.link' // 'https://devnet-deeploy-api.ratio1.ai'
+        deeployUrl: import.meta.env.VITE_API_URL as string,
         backendUrl: 'https://devnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://devnet-oracle.ratio1.ai',
         poAIManagerContractAddress: '0xCc7C4e0f4f25b57807F34227Fb446E68c8c36ce5',
-        r1ContractAddress: '0x277CbD0Cf25F4789Bc04035eCd03d811FAf73691',
         ndContractAddress: '0x90025B92240E3070d5CdcB3f44D6411855c55a73',
         mndContractAddress: '0x17B8934dc5833CdBa1eF42D13D65D677C4727748',
         safeAddress: '0x20b1ebc9c13A6F4f3dfBdF9bc9299ec40Ac988e3',
@@ -69,26 +65,10 @@ const configs: {
     },
 };
 
-const domain = window.location.hostname;
-
-const domainMainnet = 'deeploy-dapp.vercel.app'; // TODO: 'deeploy.ratio1.ai';
-const domainDevnet = 'devnet-deeploy.ratio1.ai';
-const domainTestnet = 'testnet-deeploy.ratio1.ai';
-
-export const domains = {
-    mainnet: domainMainnet,
-    devnet: domainDevnet,
-    testnet: domainTestnet,
-};
-
-export const environment: 'mainnet' | 'testnet' | 'devnet' =
-    domain === domainMainnet
-        ? ('mainnet' as const)
-        : domain === domainDevnet
-          ? ('devnet' as const)
-          : domain === domainTestnet
-            ? ('testnet' as const)
-            : ('mainnet' as const);
+export const environment: 'mainnet' | 'testnet' | 'devnet' = import.meta.env.VITE_ENVIRONMENT as
+    | 'mainnet'
+    | 'testnet'
+    | 'devnet';
 
 export const config = configs[environment];
 
@@ -109,4 +89,4 @@ export const getDevAddress = (): {
     address: import.meta.env.VITE_DEV_ADDRESS,
 });
 
-export const isUsingDevAddress = process.env.NODE_ENV === 'development' && false;
+export const isUsingDevAddress = import.meta.env.NODE_ENV === 'development' && false; // TODO: false

@@ -8,7 +8,7 @@ type Apps = {
             last_config: string; // ISO-like timestamp string
             is_deeployed: boolean;
             deeploy_specs: {
-                initial_target_nodes: string[]; // TODO: R1Address[] but nodes have no "x_ai" prefix
+                initial_target_nodes: string[]; // R1 node addresses but nodes have no "x_ai" prefix
                 job_id: number;
                 nr_target_nodes: number;
                 project_id: string; // projectHash
@@ -27,7 +27,7 @@ type Apps = {
 };
 
 type GetAppsResponse = {
-    status: 'success' | string;
+    status: 'success' | 'fail' | string;
     apps: Apps;
     auth: {
         sender: EthAddress;
@@ -43,6 +43,7 @@ type GetAppsResponse = {
         current_epoch: number;
         uptime: string; // "HH:MM:SS" format
     };
+    error?: string;
     EE_SIGN: string;
     EE_SENDER: R1Address;
     EE_ETH_SENDER: EthAddress;

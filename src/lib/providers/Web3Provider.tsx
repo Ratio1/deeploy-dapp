@@ -78,14 +78,13 @@ const siweConfig: SIWEConfig = {
 };
 
 const wagmiConfig = createConfig(
-    // TODO: Modify for Deeploy
     getDefaultConfig({
         chains: config.networks,
         walletConnectProjectId: projectId,
-        appName: 'Ratio1',
+        appName: 'Ratio1 Deeploy',
         appDescription:
             'Experience the power of Ratio1 AI OS, built on Ratio1 Protocol and powered by blockchain, democratizing AI to empower limitless innovation.',
-        appUrl: 'https://app.ratio1.ai',
+        appUrl: 'https://deeploy.ratio1.ai',
         appIcon: Favicon,
     }),
 );

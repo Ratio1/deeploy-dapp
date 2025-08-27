@@ -1,8 +1,8 @@
-name: Build and Push Testnet & Devnet Container
+name: Build and Push Testnet and Mainnet Images
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ main ]
   # also allow manual runs
   workflow_dispatch:
   
@@ -36,15 +36,15 @@ jobs:
           cache-to: type=gha,mode=max
           tags: |
                 ratio1/deeploy_ui:testnet
-
-      - name: Build & Push Devnet Image
+                          
+      - name: Build & Push Mainnet Image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile_devnet
+          file: ./Dockerfile_mainnet
           push: true
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-                ratio1/deeploy_ui:devnet
+                ratio1/deeploy_ui:mainnet

@@ -13,7 +13,7 @@ export default function Home() {
 
     return (
         <div className="w-full flex-1">
-            <div className="larger:grid-cols-3 grid gap-4">
+            <div className="grid grid-cols-3 gap-4">
                 <Card
                     title="Escrow SC Addr."
                     value={

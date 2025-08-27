@@ -4,6 +4,7 @@ import Account from '@pages/Account';
 import CreateProject from '@pages/deeploys/CreateProject';
 import Dashboard from '@pages/deeploys/Dashboard';
 import Draft from '@pages/deeploys/Draft';
+import Job from '@pages/deeploys/Job';
 import LegacyRequester from '@pages/deeploys/LegacyRequester';
 import Project from '@pages/deeploys/Project';
 import Docs from '@pages/Docs';
@@ -69,6 +70,10 @@ export const routeInfo = {
     [`${routePath.deeploys}/${routePath.project}`]: {
         title: 'Project',
         description: 'View and manage your project and its jobs',
+    },
+    [`${routePath.deeploys}/${routePath.job}`]: {
+        title: 'Job',
+        description: 'View manage & update your job',
     },
     [`${routePath.deeploys}/${routePath.legacyRequester}`]: {
         title: 'Legacy Requester',
@@ -153,6 +158,10 @@ export const routes: AppRoute[] = [
     {
         path: `${routePath.deeploys}/${routePath.project}/:projectHash`,
         page: () => <Project />,
+    },
+    {
+        path: `${routePath.deeploys}/${routePath.job}/:jobId`,
+        page: () => <Job />,
     },
     {
         path: `${routePath.tunnels}/:id`,

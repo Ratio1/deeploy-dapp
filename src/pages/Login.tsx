@@ -67,6 +67,7 @@ function Login() {
             console.error('Error checking oracle ownership', error);
             toast.error('Error checking oracle ownership.');
         } finally {
+            console.log('Finished checking oracle ownership');
             setLoading(false);
         }
     };
@@ -76,12 +77,11 @@ function Login() {
             throw new Error('No public client or address available.');
         }
 
-        console.log('Checking oracle ownership');
+        console.log('Checking oracle ownership...');
         const licenses = await fetchLicenses();
-        console.log('Licenses', licenses);
         const availabilities = await Promise.all(licenses.map((license) => getNodeLastEpoch(license.nodeAddress)));
-        console.log('Availabilities', availabilities);
         const oracles = availabilities.filter((nodeResponse) => nodeResponse.node_is_oracle);
+        console.log(`User owns ${oracles.length} oracle${oracles.length === 1 ? '' : 's'}`);
 
         return oracles.length;
     };

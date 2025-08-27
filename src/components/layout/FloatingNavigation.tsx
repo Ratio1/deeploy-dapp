@@ -13,7 +13,7 @@ function FloatingNavigation() {
     const baseClasses = 'center-all cursor-pointer rounded-full p-2 transition-all';
 
     return (
-        <div className="center-all fixed bottom-0 left-0 right-0 z-40 p-4">
+        <div className="center-all fixed right-0 bottom-0 left-0 z-40 p-4">
             <div className="center-all relative gap-2.5 rounded-full bg-slate-100 px-4 py-2 shadow-xl">
                 {routes
                     .filter((route) => !!route.icon)
@@ -23,7 +23,7 @@ function FloatingNavigation() {
                                 <Popover
                                     isOpen={isPopoverOpen}
                                     onOpenChange={(open) => setPopoverOpen(open)}
-                                    color="primary"
+                                    color="default"
                                     placement="top"
                                     offset={14}
                                     shouldCloseOnBlur={true}
@@ -42,7 +42,7 @@ function FloatingNavigation() {
                                                     to={`${route.path}/${child.path}`}
                                                     onClick={() => setPopoverOpen(false)}
                                                 >
-                                                    <div className="rounded-md bg-white/20 px-3 py-2 text-[15px] transition-all hover:opacity-70">
+                                                    <div className="rounded-md bg-slate-100 px-3 py-2 text-[15px] transition-all hover:opacity-70">
                                                         {routeInfo[`${route.path}/${child.path}`]?.routeTitle ||
                                                             routeInfo[`${route.path}/${child.path}`].title}
                                                     </div>

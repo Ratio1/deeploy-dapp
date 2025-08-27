@@ -12,7 +12,7 @@ export default function DynamicEnvSection() {
     const { control, formState, trigger } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
-        control: control,
+        control,
         name: 'deployment.dynamicEnvVars',
     });
 

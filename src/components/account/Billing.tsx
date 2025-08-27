@@ -74,75 +74,75 @@ function Billing() {
                     </div>
                 </CardWithHeader>
 
-                <div className="list">
-                    <ListHeader
-                        label={
-                            <div className="row w-full justify-between">
-                                <div className="text-body larger:text-[20px] text-lg leading-6 font-semibold">Invoices</div>
+                <div className="col gap-3">
+                    <div className="row w-full justify-between">
+                        <div className="text-body larger:text-xl text-lg leading-6 font-semibold">Invoices</div>
 
-                                <Select
-                                    className="max-w-48"
-                                    classNames={{
-                                        trigger: 'min-h-10 bg-slate-200 data-[hover=true]:bg-[#e0e3f0] rounded-lg shadow-none',
-                                        label: 'group-data-[filled=true]:-translate-y-5',
-                                        value: 'font-medium text-slate-600!',
-                                        selectorIcon: 'mt-0.5 mr-0.5',
-                                    }}
-                                    listboxProps={{
-                                        itemClasses: {
-                                            base: [
-                                                'rounded-[10px]',
-                                                'text-default-500',
-                                                'transition-opacity',
-                                                'data-[hover=true]:text-foreground',
-                                                'data-[hover=true]:bg-default-100',
-                                                'data-[selectable=true]:focus:bg-default-100',
-                                                'data-[pressed=true]:opacity-70',
-                                                'data-[focus-visible=true]:ring-default-500',
-                                                'px-3 py-2',
-                                            ],
-                                        },
-                                    }}
-                                    popoverProps={{
-                                        classNames: {
-                                            base: 'before:bg-default-200',
-                                            content: 'p-0 border-small border-divider bg-background',
-                                        },
-                                    }}
-                                    placeholder="Select a month"
-                                    variant="flat"
-                                    startContent={<RiCalendarEventLine className="mt-px text-[20px] text-slate-600" />}
-                                    selectedKeys={selectedMonth}
-                                    onSelectionChange={(value: SharedSelection) => {
-                                        if (value.anchorKey) {
-                                            setMonth(new Set<string>([value.anchorKey]));
-                                        }
-                                    }}
-                                >
-                                    {uniqueMonths.map((monthAndYear) => (
-                                        <SelectItem key={monthAndYear}>
-                                            {new Date(monthAndYear).toLocaleString('en-US', { month: 'long', year: 'numeric' })}
-                                        </SelectItem>
-                                    ))}
-                                </Select>
-                            </div>
-                        }
-                    >
-                        <div className="min-w-[150px]">Name</div>
-                        <div className="min-w-[150px]">Amount</div>
-                        <div className="min-w-[112px]">Status</div>
-                        <div className="min-w-[112px]">Date</div>
-                        <div className="min-w-[112px]"></div>
-                    </ListHeader>
+                        <Select
+                            className="max-w-48"
+                            classNames={{
+                                trigger:
+                                    'min-h-10 bg-slate-100 data-[hover=true]:bg-slate-150 rounded-lg shadow-none cursor-pointer',
+                                label: 'group-data-[filled=true]:-translate-y-5',
+                                value: 'font-medium text-slate-600!',
+                                selectorIcon: 'mt-0.5 mr-0.5',
+                            }}
+                            listboxProps={{
+                                itemClasses: {
+                                    base: [
+                                        'rounded-md',
+                                        'text-default-600',
+                                        'transition-opacity',
+                                        'data-[hover=true]:text-foreground',
+                                        'data-[hover=true]:bg-slate-100',
+                                        'data-[selectable=true]:focus:bg-slate-100',
+                                        'data-[pressed=true]:opacity-70',
+                                        'data-[focus-visible=true]:ring-default-500',
+                                        'px-3',
+                                    ],
+                                },
+                            }}
+                            popoverProps={{
+                                classNames: {
+                                    content: 'p-0 border-small rounded-lg',
+                                },
+                            }}
+                            placeholder="Select a month"
+                            variant="flat"
+                            startContent={<RiCalendarEventLine className="mt-px text-[20px] text-slate-600" />}
+                            selectedKeys={selectedMonth}
+                            onSelectionChange={(value: SharedSelection) => {
+                                if (value.anchorKey) {
+                                    setMonth(new Set<string>([value.anchorKey]));
+                                }
+                            }}
+                        >
+                            {uniqueMonths.map((monthAndYear) => (
+                                <SelectItem key={monthAndYear}>
+                                    {new Date(monthAndYear).toLocaleString('en-US', { month: 'long', year: 'numeric' })}
+                                </SelectItem>
+                            ))}
+                        </Select>
+                    </div>
 
-                    {invoices
-                        .filter((i) => selectedMonth.has(i.date.slice(0, 7)))
-                        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                        .map((invoice) => (
-                            <div key={invoice.id}>
-                                <InvoiceCard invoice={invoice} />
-                            </div>
-                        ))}
+                    <div className="list">
+                        <ListHeader>
+                            <div className="min-w-[150px]">Name</div>
+                            <div className="min-w-[150px]">Amount</div>
+                            <div className="min-w-[112px]">Status</div>
+                            <div className="min-w-[112px]">Date</div>
+                            <div className="min-w-[112px]"></div>
+                        </ListHeader>
+
+                        {invoices
+                            .filter((i) => selectedMonth.has(i.date.slice(0, 7)))
+                            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                            .map((invoice) => (
+                                <div key={invoice.id}>
+                                    <InvoiceCard invoice={invoice} />
+                                </div>
+                            ))}
+                    </div>
                 </div>
             </div>
         </>

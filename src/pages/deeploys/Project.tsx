@@ -1,6 +1,6 @@
 import JobFormWrapper from '@components/jobs/JobFormWrapper';
+import ProjectPageLoading from '@components/loading/ProjectPageLoading';
 import ProjectOverview from '@components/project/ProjectOverview';
-import { Skeleton } from '@heroui/skeleton';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
@@ -70,20 +70,7 @@ export default function Project() {
     };
 
     if (isLoading || draftJobs === null) {
-        return (
-            <div className="col w-full gap-6">
-                <Skeleton className="min-h-10 w-80 rounded-lg" />
-
-                <div className="row justify-between">
-                    <Skeleton className="min-h-12 w-80 rounded-lg" />
-                    <Skeleton className="min-h-12 w-80 rounded-lg" />
-                </div>
-
-                <Skeleton className="min-h-[90px] w-full rounded-lg" />
-                <Skeleton className="min-h-[300px] w-full rounded-lg" />
-                <Skeleton className="min-h-[300px] w-full rounded-lg" />
-            </div>
-        );
+        return <ProjectPageLoading />;
     }
 
     if (!projectHash) {
@@ -95,7 +82,7 @@ export default function Project() {
             {projectPage === ProjectPage.Payment ? (
                 <Payment
                     projectHash={projectHash}
-                    projectName={localStorage.getItem('projectName') || projectName}
+                    projectName={projectName}
                     jobs={draftJobs}
                     callback={() => {
                         setProjectPage(ProjectPage.Overview);

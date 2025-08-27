@@ -1,7 +1,7 @@
 import GenericDraftJobsList from '@components/draft/job-lists/GenericDraftJobsList';
 import NativeDraftJobsList from '@components/draft/job-lists/NativeDraftJobsList';
 import ServiceDraftJobsList from '@components/draft/job-lists/ServiceDraftJobsList';
-import { getRunningJobResources } from '@data/containerResources';
+import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
 import CustomTabs from '@shared/CustomTabs';
 import EmptyData from '@shared/EmptyData';
 import ProjectIdentity from '@shared/jobs/projects/ProjectIdentity';
@@ -37,7 +37,7 @@ export default function ProjectOverview({
     useEffect(() => {
         const runningJobsWithResources: RunningJobWithResources[] = _(runningJobs)
             .map((job) => {
-                const resources = getRunningJobResources(job.jobType);
+                const resources: RunningJobResources | undefined = getRunningJobResources(job.jobType);
 
                 if (!resources) {
                     return undefined;

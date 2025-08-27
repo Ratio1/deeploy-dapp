@@ -80,6 +80,7 @@ export const downloadDataAsJson = (data: any, filename: string) => {
 export const generateNonce = (): string => {
     const now = new Date();
     const unixTimestamp = now.getTime();
+    console.log({ now, unixTimestamp });
     return `0x${unixTimestamp.toString(16)}`;
 };
 
@@ -172,8 +173,9 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
             CONTAINER_RESOURCES: containerResources,
             PORT: job.deployment.port,
             TUNNEL_ENGINE: 'cloudflare',
-            NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
-            NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
+            CLOUDFLARE_TOKEN: job.deployment.tunnelingToken || null,
+            // Not needed for Cloudflare
+            // NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
             TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
             NGROK_USE_API: true,
             VOLUMES: volumes,
@@ -213,8 +215,9 @@ export const formatNativeJobPayload = (job: NativeDraftJob) => {
 
     let appParams = {
         PORT: job.deployment.port,
-        NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
-        NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
+        CLOUDFLARE_TOKEN: job.deployment.tunnelingToken || null,
+        // Not needed for Cloudflare
+        // NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
         TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
         NGROK_USE_API: true,
         ENV: {},
@@ -238,7 +241,7 @@ export const formatNativeJobPayload = (job: NativeDraftJob) => {
         TUNNEL_ENGINE: 'cloudflare',
         app_params: appParams,
         pipeline_input_type: job.deployment.pipelineInputType,
-        pipeline_input_uri: job.deployment.pipelineInputUri,
+        pipeline_input_uri: job.deployment.pipelineInputUri || null,
         pipeline_params: !_.isEmpty(pipelineParams) ? pipelineParams : {},
         chainstore_response: false,
     };

@@ -1,18 +1,27 @@
 import Layout from '@components/layout/Layout';
+import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import { isParentRoute, isSimpleRoute, routes } from '@lib/routes/routes';
 import Login from '@pages/Login';
-import { getDevAddress, isUsingDevAddress } from '@lib/config';
+import { useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAccount } from 'wagmi';
 
 function App() {
     const { isSignedIn } = useAuthenticationContext() as AuthenticationContextType;
-    const { isFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
+    const { isFetchAppsRequired, setFetchAppsRequired, setApps } = useDeploymentContext() as DeploymentContextType;
 
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
+    const { status } = useAccount();
+
+    useEffect(() => {
+        if (status === 'disconnected') {
+            setFetchAppsRequired(undefined);
+            setApps({});
+        }
+    }, [status]);
 
     const isAuthenticated = isSignedIn && address !== undefined && isFetchAppsRequired !== undefined;
 

@@ -5,7 +5,7 @@ import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import { EthAddress } from '@typedefs/blockchain';
 import { Apps } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithAlias } from '@typedefs/deeploys';
-import _, { flatten } from 'lodash';
+import _ from 'lodash';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
@@ -29,7 +29,7 @@ export const DeploymentProvider = ({ children }) => {
 
     const [escrowContractAddress, setEscrowContractAddress] = useState<EthAddress | undefined>();
 
-    const fetchApps = async () => {
+    const fetchApps = async (): Promise<Apps | undefined> => {
         if (!address) {
             toast.error('Please connect your wallet.');
             return;
@@ -41,13 +41,20 @@ export const DeploymentProvider = ({ children }) => {
             const request = await signAndBuildGetAppsRequest(address);
             const response = await getApps(request);
 
+            if (!response.apps || response.status === 'fail') {
+                console.error(response);
+                throw new Error(`Failed to fetch running jobs: ${response.error || 'Unknown error'}`);
+            }
+
+            console.log('[DeploymentProvider] fetchApps', response.apps);
+            setApps(response.apps);
+
             // Setting this to false will trigger a re-render of the App component which in turn will navigate the user to the home page
             setFetchAppsRequired(false);
 
-            setApps(response.apps);
-            console.log('[DeploymentProvider] fetchApps', response.apps);
-        } catch (error) {
-            console.error(error);
+            return response.apps;
+        } catch (error: any) {
+            console.error(error.message);
             toast.error('Failed to fetch running jobs.');
         } finally {
             setFetchingApps(false);
@@ -76,7 +83,7 @@ export const DeploymentProvider = ({ children }) => {
     };
 
     const getProjectName = (projectHash: string): string | undefined => {
-        const sanitizedApps = flatten(Object.values(apps).map((app) => Object.values(app)));
+        const sanitizedApps = _.flatten(Object.values(apps).map((app) => Object.values(app)));
 
         const project = sanitizedApps.find((app) => app.deeploy_specs.project_id === projectHash);
 
@@ -96,6 +103,8 @@ export const DeploymentProvider = ({ children }) => {
             abi: CspEscrowAbi,
             functionName: 'getAllJobs',
         });
+
+        console.log('[DeploymentProvider] SC jobs', runningJobs);
 
         const jobsWithAliases: RunningJobWithAlias[] = _(Object.values(apps))
             .map((app) => {
@@ -142,6 +151,7 @@ export const DeploymentProvider = ({ children }) => {
                 setFetchAppsRequired,
                 isFetchingApps,
                 fetchApps,
+                setApps,
                 apps,
                 // Utils
                 getProjectName,

@@ -8,7 +8,7 @@ import { RiBox3Line } from 'react-icons/ri';
 const widthClasses = [
     'min-w-[200px]', // alias
     'min-w-[90px]', // targetNodes
-    'min-w-[50px]', // type
+    'min-w-[100px]', // compute type
     'min-w-[310px]', // resources
 ];
 
@@ -21,10 +21,10 @@ function GenericRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
                     <div className="compact">Generic Apps</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Alias', 'Target Nodes', 'Type', 'Container Type'], widthClasses)}</>}
+            tableHeader={<>{applyWidthClasses(['Alias', 'Target Nodes', 'Compute Type', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
             renderJob={(job) => {
-                const { containerOrWorkerType } = job.resources;
+                const { containerOrWorkerType, gpuType } = job.resources;
                 const targetNodes = Number(job.numberOfNodesRequested);
 
                 return (
@@ -43,7 +43,10 @@ function GenericRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
                         </div>
 
                         <div className={widthClasses[2]}>
-                            <SmallTag variant="blue">CPU</SmallTag>
+                            <div className="row gap-1">
+                                <SmallTag variant="blue">CPU</SmallTag>
+                                {gpuType && <SmallTag variant="green">GPU</SmallTag>}
+                            </div>
                         </div>
 
                         <div className={widthClasses[3]}>

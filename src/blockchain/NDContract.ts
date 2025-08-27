@@ -320,17 +320,30 @@ export const NDContractAbi = [
             {
                 indexed: false,
                 internalType: 'uint256',
-                name: 'tokenAmount',
+                name: 'r1Amount',
                 type: 'uint256',
             },
             {
                 indexed: false,
                 internalType: 'uint256',
-                name: 'ethAmount',
+                name: 'usdcAmount',
                 type: 'uint256',
             },
         ],
         name: 'LiquidityAdded',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'usdcAmount',
+                type: 'uint256',
+            },
+        ],
+        name: 'LiquidityReserved',
         type: 'event',
     },
     {
@@ -759,6 +772,19 @@ export const NDContractAbi = [
         type: 'function',
     },
     {
+        inputs: [],
+        name: 'directAddLpPercentage',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
         inputs: [
             {
                 internalType: 'uint256',
@@ -873,10 +899,39 @@ export const NDContractAbi = [
                         name: 'isBanned',
                         type: 'bool',
                     },
+                    {
+                        internalType: 'uint256',
+                        name: 'usdcPoaiRewards',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'r1PoaiRewards',
+                        type: 'uint256',
+                    },
                 ],
                 internalType: 'struct LicenseInfo[]',
                 name: '',
                 type: 'tuple[]',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'address',
+                name: 'nodeAddress',
+                type: 'address',
+            },
+        ],
+        name: 'getNodeOwner',
+        outputs: [
+            {
+                internalType: 'address',
+                name: '',
+                type: 'address',
             },
         ],
         stateMutability: 'view',
@@ -1011,6 +1066,45 @@ export const NDContractAbi = [
         type: 'function',
     },
     {
+        inputs: [],
+        name: 'lastLicensePrice',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'lastLicensePriceTier',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'lastLicensePriceTimestamp',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
         inputs: [
             {
                 internalType: 'uint256',
@@ -1075,6 +1169,19 @@ export const NDContractAbi = [
         name: 'linkNode',
         outputs: [],
         stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'maxAllowedPriceDifference',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+            },
+        ],
+        stateMutability: 'view',
         type: 'function',
     },
     {
@@ -1156,6 +1263,19 @@ export const NDContractAbi = [
                 internalType: 'bool',
                 name: '',
                 type: 'bool',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'poaiManager',
+        outputs: [
+            {
+                internalType: 'contract IPoAIManager',
+                name: '',
+                type: 'address',
             },
         ],
         stateMutability: 'view',
@@ -1295,12 +1415,51 @@ export const NDContractAbi = [
     {
         inputs: [
             {
+                internalType: 'uint256',
+                name: 'newDirectAddLpPercentage',
+                type: 'uint256',
+            },
+        ],
+        name: 'setDirectAddLpPercentage',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
                 internalType: 'address',
                 name: 'mndContract_',
                 type: 'address',
             },
         ],
         name: 'setMNDContract',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'uint256',
+                name: 'newMaxAllowedPriceDifference',
+                type: 'uint256',
+            },
+        ],
+        name: 'setMaxAllowedPriceDifference',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'address',
+                name: '_poaiManager',
+                type: 'address',
+            },
+        ],
+        name: 'setPoAIManager',
         outputs: [],
         stateMutability: 'nonpayable',
         type: 'function',
