@@ -31,7 +31,6 @@ export async function addSecrets(payload: {
     nonce: string;
     EE_ETH_SIGN: string;
     EE_ETH_SENDER: string;
-    csp_address: string;
     cloudflare_account_id: string;
     cloudflare_api_key: string;
     cloudflare_zone_id: string;

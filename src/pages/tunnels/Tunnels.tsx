@@ -1,9 +1,10 @@
+import AddTunnelingSecrets from '@components/tunnels/AddTunnelingSecrets';
 import TunnelCard from '@components/tunnels/TunnelCard';
 import { Alert } from '@heroui/alert';
 import { Button } from '@heroui/button';
 import { Skeleton } from '@heroui/skeleton';
 import { Spinner } from '@heroui/spinner';
-import { addSecrets, getSecrets, getTunnels } from '@lib/api/tunnels';
+import { getSecrets, getTunnels } from '@lib/api/tunnels';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
@@ -12,7 +13,7 @@ import { DetailedAlert } from '@shared/DetailedAlert';
 import EmptyData from '@shared/EmptyData';
 import { Tunnel } from '@typedefs/tunnels';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { RiAddLine, RiDoorLockLine, RiDraftLine } from 'react-icons/ri';
 import { useAccount, useSignMessage } from 'wagmi';
 
@@ -46,12 +47,16 @@ function Tunnels() {
 
     const checkSecrets = async () => {
         const tunnelingSecrets = await getSingleton('tunnelingSecrets');
-        console.log('tunnelingSecrets', tunnelingSecrets);
 
         if (!tunnelingSecrets) {
             setSecretsState(SecretsState.NotStoredLocally);
-            setLoading(false);
+        } else {
+            console.log('Tunneling secrets stored locally');
+            setSecretsState(SecretsState.AddedAndStoredLocally);
         }
+
+        setLoading(false);
+        fetchTunnels();
     };
 
     const fetchSecrets = async () => {
@@ -89,7 +94,7 @@ function Tunnels() {
                 });
 
                 setSecretsState(SecretsState.AddedAndStoredLocally);
-                fetchTunnels();
+                setTimeout(() => fetchTunnels());
                 toast.success('Secrets fetched successfully.');
             } else {
                 setSecretsState(SecretsState.NotAdded);
@@ -100,46 +105,6 @@ function Tunnels() {
         } finally {
             setFetchingSecrets(false);
         }
-    };
-
-    const addSecretsF = async () => {
-        if (!address) {
-            return;
-        }
-
-        const nonce = generateNonce();
-        const csp_address = '0x496d6e08b8d684795752867B274E94a26395EA59';
-        const cloudflare_account_id = '84abdbe27b36ef8e3e73e3f2a2bbf556';
-        const cloudflare_api_key = 'e68VwdFqHHuVslNk_VcwQll0c_-pMlcwD-xKYAsZ';
-        const cloudflare_zone_id = 'cd309a9ea91258ac68709f04c67d4fbb';
-        const cloudflare_domain = 'ratio1.link';
-
-        const message = buildDeeployMessage({
-            nonce,
-            csp_address,
-            cloudflare_account_id,
-            cloudflare_api_key,
-            cloudflare_zone_id,
-            cloudflare_domain,
-        });
-
-        const signature = await signMessageAsync({
-            account: address,
-            message,
-        });
-
-        const payload = {
-            nonce,
-            EE_ETH_SIGN: signature,
-            EE_ETH_SENDER: address,
-            csp_address,
-            cloudflare_account_id,
-            cloudflare_api_key,
-            cloudflare_zone_id,
-            cloudflare_domain,
-        };
-
-        await addSecrets(payload);
     };
 
     const fetchTunnels = async () => {
@@ -162,7 +127,6 @@ function Tunnels() {
                     custom_hostnames: t.metadata.custom_hostnames,
                 }));
 
-            console.log('tunnels', tunnelsArray);
             setTunnels(tunnelsArray);
         } catch (e: any) {
             setError('An error occurred while fetching the tunnels.');
@@ -189,7 +153,8 @@ function Tunnels() {
                     description={
                         <div className="col text-[15px]">
                             <div>
-                                Your <span className="text-primary">Cloudflare</span> secrets are not available locally.
+                                Your <span className="text-primary font-medium">Cloudflare</span> secrets are not available
+                                locally.
                             </div>
                             <div>You need to sign a message in order to fetch them.</div>
                         </div>
@@ -213,22 +178,19 @@ function Tunnels() {
                     description={
                         <div className="col text-[15px]">
                             <div>
-                                Your <span className="text-primary">Cloudflare</span> secrets are not set.
+                                Your <span className="text-primary font-medium">Cloudflare</span> secrets are not set.
                             </div>
                             <div>Please obtain and add them using the form below.</div>
                         </div>
                     }
+                    fullWidth
                 >
-                    <Button
-                        color="primary"
-                        variant="solid"
-                        onPress={() => {
-                            console.log('addSecrets');
+                    <AddTunnelingSecrets
+                        onSuccess={() => {
+                            setSecretsState(SecretsState.AddedAndStoredLocally);
+                            fetchTunnels();
                         }}
-                        isLoading={isFetchingSecrets}
-                    >
-                        Add Secrets
-                    </Button>
+                    />
                 </DetailedAlert>
             </div>
         );
