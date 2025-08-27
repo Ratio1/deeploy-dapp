@@ -64,9 +64,12 @@ export const DeploymentProvider = ({ children }) => {
     const signAndBuildGetAppsRequest = async (address: EthAddress) => {
         const nonce = generateNonce();
 
-        const message = buildDeeployMessage({
-            nonce,
-        });
+        const message = buildDeeployMessage(
+            {
+                nonce,
+            },
+            'Please sign this message to fetch your running jobs: ',
+        );
 
         const signature = await signMessageAsync({
             account: address,

@@ -3,24 +3,14 @@ import { Alert } from '@heroui/alert';
 import { Button } from '@heroui/button';
 import { Skeleton } from '@heroui/skeleton';
 import { addSecrets, getSecrets, getTunnels } from '@lib/api/tunnels';
-import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
-import { deepSort } from '@lib/utils';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
+import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
+import { buildDeeployMessage } from '@lib/deeploy-utils';
 import EmptyData from '@shared/EmptyData';
 import { Tunnel } from '@typedefs/tunnels';
 import { useEffect, useState } from 'react';
 import { RiAddLine, RiDraftLine } from 'react-icons/ri';
 import { useAccount, useSignMessage } from 'wagmi';
-
-function buildMessage(data: Record<string, any>): string {
-    const cleaned = structuredClone(data);
-    delete cleaned.address;
-    delete cleaned.signature;
-
-    const sorted = deepSort(cleaned);
-    const json = JSON.stringify(sorted, null, 1).replaceAll('": ', '":');
-    return `Please sign this message to manage your tunnels: ${json}`;
-}
 
 function Tunnels() {
     const { openTunnelCreateModal } = useTunnelsContext() as TunnelsContextType;
@@ -46,22 +36,70 @@ function Tunnels() {
 
     const requestSecrets = async () => {
         const nonce = `0x${Date.now().toString(16)}`;
-        const message = buildMessage({
-            nonce,
-        });
+        const message = buildDeeployMessage(
+            {
+                nonce,
+            },
+            'Please sign this message to manage your tunnels: ',
+        );
+
         const signature = await signMessageAsync({
             account: address,
             message,
         });
+
         const payload = {
             nonce,
             EE_ETH_SIGN: signature,
             EE_ETH_SENDER: address,
         };
+
         const secrets = await getSecrets(payload);
+
         localStorage.setItem('tunnel_secrets', JSON.stringify(secrets.result));
+
         setSecretsLoaded(true);
         fetchTunnels();
+    };
+
+    const addSecretsF = async () => {
+        if (!address) {
+            return;
+        }
+
+        const nonce = `0x${Date.now().toString(16)}`;
+        const csp_address = '0x496d6e08b8d684795752867B274E94a26395EA59';
+        const cloudflare_account_id = '84abdbe27b36ef8e3e73e3f2a2bbf556';
+        const cloudflare_api_key = 'e68VwdFqHHuVslNk_VcwQll0c_-pMlcwD-xKYAsZ';
+        const cloudflare_zone_id = 'cd309a9ea91258ac68709f04c67d4fbb';
+        const cloudflare_domain = 'ratio1.link';
+
+        const message = buildDeeployMessage({
+            nonce,
+            csp_address,
+            cloudflare_account_id,
+            cloudflare_api_key,
+            cloudflare_zone_id,
+            cloudflare_domain,
+        });
+
+        const signature = await signMessageAsync({
+            account: address,
+            message,
+        });
+
+        const payload = {
+            nonce,
+            EE_ETH_SIGN: signature,
+            EE_ETH_SENDER: address,
+            csp_address,
+            cloudflare_account_id,
+            cloudflare_api_key,
+            cloudflare_zone_id,
+            cloudflare_domain,
+        };
+
+        await addSecrets(payload);
     };
 
     const fetchTunnels = async () => {

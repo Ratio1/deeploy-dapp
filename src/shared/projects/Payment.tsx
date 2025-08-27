@@ -115,7 +115,7 @@ export default function Payment({
             payloadWithIdentifiers.project_name = projectName;
         }
 
-        const message = buildDeeployMessage(payloadWithIdentifiers);
+        const message = buildDeeployMessage(payloadWithIdentifiers, 'Please sign this message for Deeploy: ');
 
         const signature = await signMessageAsync({
             account: address,

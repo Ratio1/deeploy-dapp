@@ -308,14 +308,14 @@ export const getContainerOrWorkerTypeDescription = (containerOrWorkerType: Conta
     return `${containerOrWorkerType.cores} core${containerOrWorkerType.cores > 1 ? 's' : ''}, ${containerOrWorkerType.ram} GB RAM${containerOrWorkerType.storage ? storageString : ''}`;
 };
 
-export function buildDeeployMessage(data: Record<string, any>): string {
+export function buildDeeployMessage(data: Record<string, any>, prefix: string = ''): string {
     const cleaned = structuredClone(data);
     delete cleaned.address;
     delete cleaned.signature;
 
     const sorted = deepSort(cleaned);
     const json = JSON.stringify(sorted, null, 1).replaceAll('": ', '":');
-    return `Please sign this message for Deeploy: ${json}`;
+    return `${prefix}${json}`;
 }
 
 export const addTimeFn = environment === 'mainnet' ? addDays : addHours;
