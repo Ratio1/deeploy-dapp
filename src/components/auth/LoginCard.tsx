@@ -1,6 +1,6 @@
 import { PoAIManagerAbi } from '@blockchain/PoAIManager';
 import { Button } from '@heroui/button';
-import { config, isUsingDevAddress } from '@lib/config';
+import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getShortAddressOrHash, isZeroAddress } from '@lib/utils';
@@ -125,6 +125,9 @@ export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
                             color="primary"
                             onPress={() => {
                                 if (isUsingDevAddress) {
+                                    console.log(
+                                        `Using dev address ${getShortAddressOrHash(getDevAddress().address, 4, true)}, bypassing login`,
+                                    );
                                     setFetchAppsRequired(false); // Bypass
                                 } else {
                                     fetchApps();

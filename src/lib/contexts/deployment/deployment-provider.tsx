@@ -68,7 +68,7 @@ export const DeploymentProvider = ({ children }) => {
             {
                 nonce,
             },
-            'Please sign this message to fetch your running jobs: ',
+            'Please sign this message for Deeploy: ',
         );
 
         const signature = await signMessageAsync({

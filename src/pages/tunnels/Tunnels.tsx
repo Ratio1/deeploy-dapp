@@ -2,64 +2,104 @@ import TunnelCard from '@components/tunnels/TunnelCard';
 import { Alert } from '@heroui/alert';
 import { Button } from '@heroui/button';
 import { Skeleton } from '@heroui/skeleton';
+import { Spinner } from '@heroui/spinner';
 import { addSecrets, getSecrets, getTunnels } from '@lib/api/tunnels';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
-import { buildDeeployMessage } from '@lib/deeploy-utils';
+import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
+import { getSingleton, setSingleton } from '@lib/storage/db';
+import { DetailedAlert } from '@shared/DetailedAlert';
 import EmptyData from '@shared/EmptyData';
 import { Tunnel } from '@typedefs/tunnels';
 import { useEffect, useState } from 'react';
-import { RiAddLine, RiDraftLine } from 'react-icons/ri';
+import { toast } from 'react-hot-toast';
+import { RiAddLine, RiDoorLockLine, RiDraftLine } from 'react-icons/ri';
 import { useAccount, useSignMessage } from 'wagmi';
+
+enum SecretsState {
+    NotStoredLocally = 'not_stored_locally',
+    NotAdded = 'not_added',
+    AddedAndStoredLocally = 'added_and_stored_locally',
+}
 
 function Tunnels() {
     const { openTunnelCreateModal } = useTunnelsContext() as TunnelsContextType;
     const { signMessageAsync } = useSignMessage();
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
 
-    const [secretsLoaded, setSecretsLoaded] = useState(false);
+    const [isLoading, setLoading] = useState(true); // The loading state of the whole page
+
+    const [isFetchingSecrets, setFetchingSecrets] = useState(false);
+    const [secretsState, setSecretsState] = useState<SecretsState | undefined>();
+
     const [tunnels, setTunnels] = useState<Tunnel[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [isFetchingTunnels, setFetchingTunnels] = useState(true);
 
     const [error, setError] = useState<string | null>(null);
 
     // Init
     useEffect(() => {
-        const secretsLoaded = !!localStorage.getItem('tunnel_secrets');
-        setSecretsLoaded(secretsLoaded);
-        if (secretsLoaded) {
-            fetchTunnels();
-        } else {
-            setTunnels([]);
+        if (address) {
+            checkSecrets();
         }
     }, [address]);
 
-    const requestSecrets = async () => {
-        const nonce = `0x${Date.now().toString(16)}`;
-        const message = buildDeeployMessage(
-            {
+    const checkSecrets = async () => {
+        const tunnelingSecrets = await getSingleton('tunnelingSecrets');
+        console.log('tunnelingSecrets', tunnelingSecrets);
+
+        if (!tunnelingSecrets) {
+            setSecretsState(SecretsState.NotStoredLocally);
+            setLoading(false);
+        }
+    };
+
+    const fetchSecrets = async () => {
+        try {
+            setFetchingSecrets(true);
+
+            const nonce = generateNonce();
+            const message = buildDeeployMessage(
+                {
+                    nonce,
+                },
+                'Please sign this message to manage your tunnels: ',
+            );
+
+            const signature = await signMessageAsync({
+                account: address,
+                message,
+            });
+
+            const payload = {
                 nonce,
-            },
-            'Please sign this message to manage your tunnels: ',
-        );
+                EE_ETH_SIGN: signature,
+                EE_ETH_SENDER: address,
+            };
 
-        const signature = await signMessageAsync({
-            account: address,
-            message,
-        });
+            const response = await getSecrets(payload);
+            const secrets = response.result;
 
-        const payload = {
-            nonce,
-            EE_ETH_SIGN: signature,
-            EE_ETH_SENDER: address,
-        };
+            if (secrets) {
+                await setSingleton('tunnelingSecrets', {
+                    cloudflareAccountId: secrets.cloudflare_account_id,
+                    cloudflareApiKey: secrets.cloudflare_api_key,
+                    cloudflareZoneId: secrets.cloudflare_zone_id,
+                    cloudflareDomain: secrets.cloudflare_domain,
+                });
 
-        const secrets = await getSecrets(payload);
-
-        localStorage.setItem('tunnel_secrets', JSON.stringify(secrets.result));
-
-        setSecretsLoaded(true);
-        fetchTunnels();
+                setSecretsState(SecretsState.AddedAndStoredLocally);
+                fetchTunnels();
+                toast.success('Secrets fetched successfully.');
+            } else {
+                setSecretsState(SecretsState.NotAdded);
+            }
+        } catch (error) {
+            console.error(error);
+            setError('An error occurred while fetching the secrets.');
+        } finally {
+            setFetchingSecrets(false);
+        }
     };
 
     const addSecretsF = async () => {
@@ -67,7 +107,7 @@ function Tunnels() {
             return;
         }
 
-        const nonce = `0x${Date.now().toString(16)}`;
+        const nonce = generateNonce();
         const csp_address = '0x496d6e08b8d684795752867B274E94a26395EA59';
         const cloudflare_account_id = '84abdbe27b36ef8e3e73e3f2a2bbf556';
         const cloudflare_api_key = 'e68VwdFqHHuVslNk_VcwQll0c_-pMlcwD-xKYAsZ';
@@ -103,7 +143,7 @@ function Tunnels() {
     };
 
     const fetchTunnels = async () => {
-        setLoading(true);
+        setFetchingTunnels(true);
         setError(null);
 
         try {
@@ -122,77 +162,130 @@ function Tunnels() {
                     custom_hostnames: t.metadata.custom_hostnames,
                 }));
 
-            console.log(tunnelsArray);
-
+            console.log('tunnels', tunnelsArray);
             setTunnels(tunnelsArray);
         } catch (e: any) {
             setError('An error occurred while fetching the tunnels.');
             console.error(e);
         } finally {
-            setLoading(false);
+            setFetchingTunnels(false);
         }
     };
 
+    if (isLoading || !secretsState) {
+        return (
+            <div className="center-all w-full flex-1">
+                <Spinner />
+            </div>
+        );
+    }
+
+    if (secretsState === SecretsState.NotStoredLocally) {
+        return (
+            <div className="center-all w-full flex-1">
+                <DetailedAlert
+                    icon={<RiDoorLockLine />}
+                    title="Secrets Required"
+                    description={
+                        <div className="col text-[15px]">
+                            <div>
+                                Your <span className="text-primary">Cloudflare</span> secrets are not available locally.
+                            </div>
+                            <div>You need to sign a message in order to fetch them.</div>
+                        </div>
+                    }
+                >
+                    <Button color="primary" variant="solid" onPress={() => fetchSecrets()} isLoading={isFetchingSecrets}>
+                        Get Secrets
+                    </Button>
+                </DetailedAlert>
+            </div>
+        );
+    }
+
+    if (secretsState === SecretsState.NotAdded) {
+        return (
+            <div className="center-all w-full flex-1">
+                <DetailedAlert
+                    variant="red"
+                    icon={<RiDoorLockLine />}
+                    title="Missing Secrets"
+                    description={
+                        <div className="col text-[15px]">
+                            <div>
+                                Your <span className="text-primary">Cloudflare</span> secrets are not set.
+                            </div>
+                            <div>Please obtain and add them using the form below.</div>
+                        </div>
+                    }
+                >
+                    <Button
+                        color="primary"
+                        variant="solid"
+                        onPress={() => {
+                            console.log('addSecrets');
+                        }}
+                        isLoading={isFetchingSecrets}
+                    >
+                        Add Secrets
+                    </Button>
+                </DetailedAlert>
+            </div>
+        );
+    }
+
     return (
         <div className="w-full flex-1">
-            {secretsLoaded ? (
-                <div className="col mx-auto max-w-[620px] gap-8">
-                    <div className="flex items-start justify-between">
-                        <div className="text-2xl font-bold">Tunnels</div>
+            <div className="col mx-auto max-w-[620px] gap-8">
+                <div className="flex items-start justify-between">
+                    <div className="text-2xl font-bold">Tunnels</div>
 
-                        <Button color="primary" variant="solid" onPress={() => openTunnelCreateModal(() => fetchTunnels())}>
-                            <div className="row gap-1">
-                                <RiAddLine className="text-lg" />
-                                <div className="compact">Add Tunnel</div>
-                            </div>
-                        </Button>
-                    </div>
-
-                    {error && !loading && (
-                        <Alert
-                            color="danger"
-                            title={error}
-                            classNames={{
-                                base: 'items-center',
-                            }}
-                        />
-                    )}
-
-                    <div className="col gap-4">
-                        {loading ? (
-                            <>
-                                {Array.from({ length: 4 }).map((_, index) => (
-                                    <Skeleton key={index} className="min-h-[104px] w-full rounded-lg" />
-                                ))}
-                            </>
-                        ) : (
-                            <>
-                                {tunnels.length === 0 && !error && (
-                                    <div className="center-all">
-                                        <EmptyData
-                                            title="No tunnels added"
-                                            description="Create a tunnel to get started"
-                                            icon={<RiDraftLine />}
-                                        />
-                                    </div>
-                                )}
-
-                                {tunnels.map((tunnel) => (
-                                    <div key={tunnel.id}>
-                                        <TunnelCard tunnel={tunnel} fetchTunnels={fetchTunnels} />
-                                    </div>
-                                ))}
-                            </>
-                        )}
-                    </div>
+                    <Button color="primary" variant="solid" onPress={() => openTunnelCreateModal(() => fetchTunnels())}>
+                        <div className="row gap-1">
+                            <RiAddLine className="text-lg" />
+                            <div className="compact">Add Tunnel</div>
+                        </div>
+                    </Button>
                 </div>
-            ) : (
-                <Button color="primary" variant="solid" onPress={() => requestSecrets()}>
-                    <div className="row gap-1">
-                        <div className="compact">Request Secrets</div>
-                    </div>
-                </Button>
-            )}
+
+                {error && !isFetchingTunnels && (
+                    <Alert
+                        color="danger"
+                        title={error}
+                        classNames={{
+                            base: 'items-center',
+                        }}
+                    />
+                )}
+
+                <div className="col gap-4">
+                    {isFetchingTunnels ? (
+                        <>
+                            {Array.from({ length: 4 }).map((_, index) => (
+                                <Skeleton key={index} className="min-h-[104px] w-full rounded-lg" />
+                            ))}
+                        </>
+                    ) : (
+                        <>
+                            {tunnels.length === 0 && !error && (
+                                <div className="center-all">
+                                    <EmptyData
+                                        title="No tunnels added"
+                                        description="Create a tunnel to get started"
+                                        icon={<RiDraftLine />}
+                                    />
+                                </div>
+                            )}
+
+                            {tunnels.map((tunnel) => (
+                                <div key={tunnel.id}>
+                                    <TunnelCard tunnel={tunnel} fetchTunnels={fetchTunnels} />
+                                </div>
+                            ))}
+                        </>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }
