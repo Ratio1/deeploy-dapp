@@ -7,6 +7,7 @@ interface Props {
     title: string;
     description: JSX.Element;
     largeTitle?: boolean;
+    fullWidth?: boolean;
 }
 
 export const DetailedAlert: FunctionComponent<PropsWithChildren<Props>> = ({
@@ -16,6 +17,7 @@ export const DetailedAlert: FunctionComponent<PropsWithChildren<Props>> = ({
     title,
     description,
     largeTitle = false,
+    fullWidth = false,
 }) => {
     const bgColorClass = {
         primary: 'bg-primary-100',
@@ -29,13 +31,13 @@ export const DetailedAlert: FunctionComponent<PropsWithChildren<Props>> = ({
 
     return (
         <div className="col items-center gap-6">
-            <div className={`center-all rounded-full ${bgColorClass[variant]} p-5`}>
+            <div className={`center-all rounded-full ${bgColorClass[variant]} p-4`}>
                 <div className={`text-3xl ${textColorClass[variant]}`}>{icon}</div>
             </div>
 
             <div className="col gap-2 text-center">
                 <div
-                    className={clsx('font-bold uppercase tracking-wider text-primary-800', {
+                    className={clsx('text-primary-800 font-bold tracking-wider uppercase', {
                         'text-xl': !largeTitle,
                         'text-4xl': largeTitle,
                     })}
@@ -45,7 +47,7 @@ export const DetailedAlert: FunctionComponent<PropsWithChildren<Props>> = ({
 
                 <div className="text-slate-500">{description}</div>
 
-                {!!children && <div className="mx-auto pt-4">{children}</div>}
+                {!!children && <div className={clsx('mx-auto pt-4', { 'w-full': fullWidth })}>{children}</div>}
             </div>
         </div>
     );

@@ -1,3 +1,5 @@
+import { getSingleton } from '@lib/storage/db';
+import { EthAddress } from '@typedefs/blockchain';
 import axios from 'axios';
 
 // Tunnels API
@@ -7,15 +9,44 @@ const axiosInstance = axios.create({
     baseURL: tunnelsBaseUrl,
 });
 
+export async function checkSecrets(cspAddress: EthAddress): Promise<any> {
+    const { data } = await axiosInstance.get(`/check_secrets_exist?csp_address=${cspAddress}`);
+
+    if (data.result.error) {
+        throw new Error(data.result.error);
+    }
+    return data;
+}
+
 export async function getSecrets(payload: any): Promise<{
-    result: {
-        cloudflare_account_id: string;
-        cloudflare_api_key: string;
-        cloudflare_zone_id: string;
-        cloudflare_domain: string;
-    }[];
+    result:
+        | {
+              cloudflare_account_id: string;
+              cloudflare_api_key: string;
+              cloudflare_zone_id: string;
+              cloudflare_domain: string;
+          }
+        | undefined;
 }> {
     const { data } = await axiosInstance.post(`/get_secrets`, {
+        payload,
+    });
+    if (data.result.error) {
+        throw new Error(data.result.error);
+    }
+    return data;
+}
+
+export async function addSecrets(payload: {
+    nonce: string;
+    EE_ETH_SIGN: string;
+    EE_ETH_SENDER: string;
+    cloudflare_account_id: string;
+    cloudflare_api_key: string;
+    cloudflare_zone_id: string;
+    cloudflare_domain: string;
+}) {
+    const { data } = await axiosInstance.post(`/add_secrets`, {
         payload,
     });
     if (data.result.error) {
@@ -38,17 +69,21 @@ export async function getTunnels(): Promise<{
         };
     }[];
 }> {
-    const tunnelSecrets = JSON.parse(localStorage.getItem('tunnel_secrets') ?? '{}');
-    if (!tunnelSecrets) {
-        throw new Error('Tunnel secrets not found. Please request secrets first.');
+    const tunnelingSecrets = await getSingleton('tunnelingSecrets');
+
+    if (!tunnelingSecrets) {
+        throw new Error('Tunneling secrets not found. Please set secrets first.');
     }
-    const { cloudflare_account_id, cloudflare_api_key } = tunnelSecrets;
+    const { cloudflareAccountId, cloudflareApiKey } = tunnelingSecrets;
+
     const { data } = await axiosInstance.get(
-        `/get_tunnels?cloudflare_account_id=${cloudflare_account_id}&cloudflare_api_key=${cloudflare_api_key}`,
+        `/get_tunnels?cloudflare_account_id=${cloudflareAccountId}&cloudflare_api_key=${cloudflareApiKey}`,
     );
+
     if (data.result.error) {
         throw new Error(data.result.error);
     }
+
     return data;
 }
 

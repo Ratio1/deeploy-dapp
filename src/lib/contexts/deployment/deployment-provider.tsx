@@ -64,9 +64,12 @@ export const DeploymentProvider = ({ children }) => {
     const signAndBuildGetAppsRequest = async (address: EthAddress) => {
         const nonce = generateNonce();
 
-        const message = buildDeeployMessage({
-            nonce,
-        });
+        const message = buildDeeployMessage(
+            {
+                nonce,
+            },
+            'Please sign this message for Deeploy: ',
+        );
 
         const signature = await signMessageAsync({
             account: address,
@@ -133,6 +136,8 @@ export const DeploymentProvider = ({ children }) => {
             .filter((job) => job !== null)
             .uniqBy((job) => job.alias)
             .value();
+
+        console.log('[DeploymentProvider] Jobs with running apps data', jobsWithAliases);
 
         return jobsWithAliases;
     };

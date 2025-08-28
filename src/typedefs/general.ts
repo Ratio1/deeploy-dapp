@@ -20,4 +20,11 @@ enum AuthState {
     NotConnected = 'notConnected',
 }
 
-export type { AuthState, BillingInfo, Invoice };
+type TunnelingSecrets = {
+    cloudflareAccountId: string;
+    cloudflareApiKey: string;
+    cloudflareZoneId: string;
+    cloudflareDomain: string;
+};
+
+export type { AuthState, BillingInfo, Invoice, TunnelingSecrets };
