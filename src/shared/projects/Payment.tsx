@@ -268,7 +268,7 @@ export default function Payment({
         const receipt = await watchTx(txHash, publicClient);
 
         if (receipt.status === 'success') {
-            await sleep(2000); // Wait for the allowance to be updated
+            await sleep(250); // Wait for the allowance to be updated
             await fetchAllowance();
         } else {
             toast.error('Approval failed, please try again.');
@@ -328,35 +328,6 @@ export default function Payment({
                     <ProjectIdentity projectName={projectName} />
 
                     <div className="row gap-2">
-                        {/* {process.env.NODE_ENV === 'development' && (
-                            <ActionButton
-                                color="secondary"
-                                variant="solid"
-                                onPress={() => {
-                                    deeployFlowModalRef.current?.open(1);
-
-                                    setTimeout(() => {
-                                        deeployFlowModalRef.current?.progress('signMessages');
-                                    }, 1500);
-
-                                    setTimeout(() => {
-                                        deeployFlowModalRef.current?.progress('callDeeployApi');
-                                    }, 3000);
-
-                                    setTimeout(() => {
-                                        deeployFlowModalRef.current?.progress('done');
-                                    }, 4500);
-
-                                    setTimeout(() => {
-                                        deeployFlowModalRef.current?.close();
-                                        navigate(`${routePath.deeploys}/${routePath.project}/${projectHash}`);
-                                    }, 5500);
-                                }}
-                            >
-                                <div className="compact">Testing</div>
-                            </ActionButton>
-                        )} */}
-
                         <OverviewButton />
 
                         <ConnectWalletWrapper>
