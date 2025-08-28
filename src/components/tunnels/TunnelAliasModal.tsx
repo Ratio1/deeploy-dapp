@@ -1,6 +1,7 @@
 import { Form } from '@heroui/form';
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@heroui/modal';
 import { createTunnel, renameTunnel } from '@lib/api/tunnels';
+import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
 import SubmitButton from '@shared/SubmitButton';
@@ -17,6 +18,8 @@ interface TunnelAliasModalRef {
 }
 
 const TunnelAliasModal = forwardRef<TunnelAliasModalRef, Props>(({ action }, ref) => {
+    const { tunnelingSecrets } = useTunnelsContext() as TunnelsContextType;
+
     const [isLoading, setLoading] = useState<boolean>(false);
     const [alias, setAlias] = useState<string>('');
 
@@ -48,10 +51,14 @@ const TunnelAliasModal = forwardRef<TunnelAliasModalRef, Props>(({ action }, ref
             setLoading(true);
 
             try {
+                if (!tunnelingSecrets) {
+                    throw new Error('Tunneling secrets not found.');
+                }
+
                 if (action === 'rename' && tunnel) {
-                    await renameTunnel(tunnel.id, alias.trim());
+                    await renameTunnel(tunnel.id, alias.trim(), tunnelingSecrets);
                 } else {
-                    await createTunnel(alias.trim());
+                    await createTunnel(alias.trim(), tunnelingSecrets);
                 }
 
                 toast.success(`Tunnel ${action === 'rename' ? 'renamed' : 'created'} successfully.`);

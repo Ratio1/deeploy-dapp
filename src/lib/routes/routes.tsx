@@ -1,4 +1,3 @@
-import { TunnelsProvider } from '@lib/contexts/tunnels/tunnels-provider';
 import NotFound from '@pages/404';
 import Account from '@pages/Account';
 import CreateProject from '@pages/deeploys/CreateProject';
@@ -128,11 +127,7 @@ export const routes: AppRoute[] = [
     },
     {
         path: routePath.tunnels,
-        page: () => (
-            <TunnelsProvider>
-                <Tunnels />
-            </TunnelsProvider>
-        ),
+        page: () => <Tunnels />,
         icon: <RiCodeBoxLine />,
     },
     {
@@ -165,11 +160,7 @@ export const routes: AppRoute[] = [
     },
     {
         path: `${routePath.tunnels}/:id`,
-        page: () => (
-            <TunnelsProvider>
-                <TunnelPage />
-            </TunnelsProvider>
-        ),
+        page: () => <TunnelPage />,
     },
     {
         path: routePath.notFound,

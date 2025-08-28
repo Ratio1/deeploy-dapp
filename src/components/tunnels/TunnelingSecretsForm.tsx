@@ -2,19 +2,26 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { addSecrets } from '@lib/api/tunnels';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { buildDeeployMessage } from '@lib/deeploy-utils';
-import { setSingleton } from '@lib/storage/db';
 import { addSecretsSchema } from '@schemas/secrets';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import SubmitButton from '@shared/SubmitButton';
+import { TunnelingSecrets } from '@typedefs/general';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import { RiPencilLine } from 'react-icons/ri';
 import { generateNonce } from 'siwe';
 import { useAccount, useSignMessage } from 'wagmi';
 import { z } from 'zod';
 
-export default function AddTunnelingSecrets({ onSuccess }: { onSuccess: () => void }) {
+export default function TunnelingSecretsForm({
+    onSuccess,
+    wrapInCard = false,
+}: {
+    onSuccess: (secrets: TunnelingSecrets) => void;
+    wrapInCard?: boolean;
+}) {
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const { signMessageAsync } = useSignMessage();
 
@@ -62,19 +69,19 @@ export default function AddTunnelingSecrets({ onSuccess }: { onSuccess: () => vo
             const response = await addSecrets(payload);
 
             if (response.result?.success) {
-                await setSingleton('tunnelingSecrets', {
+                const secrets = {
                     cloudflareAccountId: data.accountId,
                     cloudflareApiKey: data.apiKey,
                     cloudflareZoneId: data.zoneId,
                     cloudflareDomain: data.domain,
-                });
+                };
 
-                onSuccess();
+                onSuccess(secrets);
             } else {
                 throw new Error(response.result?.error);
             }
         } catch (error) {
-            console.error('[AddTunnelingSecrets] Error adding secrets:', error);
+            console.error('[TunnelingSecretsForm] Error adding secrets:', error);
             toast.error('Failed to add secrets, please try again.');
         } finally {
             setLoading(false);
@@ -82,26 +89,34 @@ export default function AddTunnelingSecrets({ onSuccess }: { onSuccess: () => vo
     };
 
     const onError = (errors: any) => {
-        console.log('[AddTunnelingSecrets] Validation errors:', errors);
+        console.log('[TunnelingSecretsForm] Validation errors:', errors);
     };
+
+    const getContentWithWrapper = (children: React.ReactNode) => (wrapInCard ? <SlateCard>{children}</SlateCard> : children);
 
     return (
         <div className="w-full flex-1">
             <div className="mx-auto">
                 <FormProvider {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit, onError)}>
-                        <div className="col w-full gap-6">
+                        <div className="col w-full gap-4">
                             <div className="col w-full gap-4 text-left">
-                                <SlateCard>
-                                    <InputWithLabel name="accountId" label="Account ID" placeholder="" />
-                                    <InputWithLabel name="zoneId" label="Zone ID" placeholder="" />
-                                    <InputWithLabel name="apiKey" label="API Key" placeholder="" />
-                                    <InputWithLabel name="domain" label="Domain" placeholder="domain.com" />
-                                </SlateCard>
+                                {getContentWithWrapper(
+                                    <>
+                                        <InputWithLabel name="accountId" label="Account ID" placeholder="" autoFocus />
+                                        <InputWithLabel name="zoneId" label="Zone ID" placeholder="" />
+                                        <InputWithLabel name="apiKey" label="API Key" placeholder="" />
+                                        <InputWithLabel name="domain" label="Domain" placeholder="domain.com" />
+                                    </>,
+                                )}
                             </div>
 
-                            <div className="center-all">
-                                <SubmitButton label="Add Secrets" isLoading={isLoading} />
+                            <div className="center-all col gap-4">
+                                <div className="text-center text-sm">
+                                    Please <span className="text-primary font-medium">sign a message</span> to add your secrets.
+                                </div>
+
+                                <SubmitButton label="Add Secrets" icon={<RiPencilLine />} isLoading={isLoading} />
                             </div>
                         </div>
                     </form>

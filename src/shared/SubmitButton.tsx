@@ -1,7 +1,15 @@
 import { Button } from '@heroui/button';
 import { useEffect, useState } from 'react';
 
-function SubmitButton({ label = 'Submit', isLoading = false }: { label?: string; isLoading?: boolean }) {
+function SubmitButton({
+    label = 'Submit',
+    icon,
+    isLoading = false,
+}: {
+    label?: string;
+    icon?: React.ReactNode;
+    isLoading?: boolean;
+}) {
     const [isVisible, setVisible] = useState(false);
 
     // Rendering is delayed because of a bug which triggers form validation otherwise
@@ -14,7 +22,10 @@ function SubmitButton({ label = 'Submit', isLoading = false }: { label?: string;
         <>
             {isVisible && (
                 <Button type="submit" color="primary" variant="solid" isLoading={isLoading}>
-                    <div>{label}</div>
+                    <div className="row gap-1.5">
+                        {!!icon && <div className="text-lg">{icon}</div>}
+                        <div className="compact">{label}</div>
+                    </div>
                 </Button>
             )}
         </>

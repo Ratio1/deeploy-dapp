@@ -142,7 +142,7 @@ export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
                                 }
                             }}
                             isLoading={isFetchingApps}
-                            isDisabled={!hasContract}
+                            isDisabled={!hasContract && !isUsingDevAddress}
                         >
                             <div className="row gap-1.5">
                                 <RiPencilLine className="text-lg" />

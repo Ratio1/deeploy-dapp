@@ -24,7 +24,8 @@ import {
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 export default function TunnelPage() {
-    const { openTunnelRenameModal, openTunnelTokenModal, openTunnelDNSModal } = useTunnelsContext() as TunnelsContextType;
+    const { tunnelingSecrets, openTunnelRenameModal, openTunnelTokenModal, openTunnelDNSModal } =
+        useTunnelsContext() as TunnelsContextType;
     const confirm = useInteractionContext() as InteractionContextType;
 
     const navigate = useNavigate();
@@ -37,18 +38,25 @@ export default function TunnelPage() {
     const [isLoading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        fetchTunnel(id);
-    }, [id]);
+        if (tunnelingSecrets && id) {
+            fetchTunnel(id);
+        }
+    }, [id, tunnelingSecrets]);
 
     const fetchTunnel = async (id: string | undefined) => {
         try {
             if (!id) {
                 throw new Error('Invalid tunnel ID.');
             }
+
+            if (!tunnelingSecrets) {
+                throw new Error('Tunneling secrets not found.');
+            }
+
             setTunnel(undefined);
 
-            const { result: tunnel } = await getTunnel(id);
-            console.log(tunnel);
+            const { result: tunnel } = await getTunnel(id, tunnelingSecrets);
+
             setTunnel({
                 id: tunnel.id,
                 status: tunnel.status,
@@ -65,14 +73,25 @@ export default function TunnelPage() {
     };
 
     const onDeleteTunnel = async () => {
-        if (!tunnel) return;
+        if (!tunnel) {
+            return;
+        }
 
         try {
+            if (!tunnelingSecrets) {
+                throw new Error('Tunneling secrets not found.');
+            }
+
             await confirm(<div>Are you sure you want to delete this tunnel?</div>, {
                 onConfirm: async () => {
-                    await deleteTunnel(tunnel.id);
-                    toast.success('Tunnel deleted successfully.');
-                    navigate(routePath.tunnels);
+                    try {
+                        await deleteTunnel(tunnel.id, tunnelingSecrets);
+                        toast.success('Tunnel deleted successfully.');
+                        navigate(routePath.tunnels);
+                    } catch (error: any) {
+                        console.error('Error deleting tunnel:', error);
+                        toast.error(error.message);
+                    }
                 },
             });
         } catch (error) {
@@ -82,20 +101,28 @@ export default function TunnelPage() {
     };
 
     const onViewDNS = (hostname: string) => {
-        if (!tunnel) return;
+        if (!tunnel) {
+            return;
+        }
 
         openTunnelDNSModal(hostname, tunnel.url);
     };
 
     const onAddDomain = async (e: React.FormEvent<HTMLFormElement>) => {
-        if (!tunnel) return;
+        if (!tunnel) {
+            return;
+        }
 
         e.preventDefault();
         setLoading(true);
 
         try {
+            if (!tunnelingSecrets) {
+                throw new Error('Tunneling secrets not found.');
+            }
+
             const sanitizedDomain = domain.trim().toLowerCase();
-            await addTunnelHostname(tunnel.id, sanitizedDomain);
+            await addTunnelHostname(tunnel.id, sanitizedDomain, tunnelingSecrets);
             toast.success('Domain added successfully.');
             setDomain('');
             fetchTunnel(id);
@@ -109,9 +136,15 @@ export default function TunnelPage() {
     };
 
     const onDeleteDomain = async (hostnameId: string, hostname: string) => {
-        if (!tunnel) return;
+        if (!tunnel) {
+            return;
+        }
 
         try {
+            if (!tunnelingSecrets) {
+                throw new Error('Tunneling secrets not found.');
+            }
+
             await confirm(
                 <div className="col gap-3">
                     <div>Are you sure you want to delete the following domain?</div>
@@ -119,7 +152,7 @@ export default function TunnelPage() {
                 </div>,
                 {
                     onConfirm: async () => {
-                        await removeTunnelHostname(tunnel.id, hostnameId);
+                        await removeTunnelHostname(tunnel.id, hostnameId, tunnelingSecrets);
                         toast.success('Domain deleted successfully.');
                         fetchTunnel(id);
                     },
@@ -239,7 +272,7 @@ export default function TunnelPage() {
                     }
                     footer={
                         <Form className="w-full" validationBehavior="native" onSubmit={onAddDomain}>
-                            <div className="row w-full justify-between gap-2">
+                            <div className="flex w-full items-start justify-between gap-2">
                                 <StyledInput
                                     value={domain}
                                     onValueChange={(value) => setDomain(value)}
@@ -296,7 +329,7 @@ export default function TunnelPage() {
                             ))}
                         </>
                     ) : (
-                        <div className="center-all py-4">
+                        <div className="center-all py-8">
                             <EmptyData
                                 title="No linked domains"
                                 description="Domains linked to the tunnel will appear here"
