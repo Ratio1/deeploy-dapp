@@ -54,7 +54,7 @@ function JobFormWrapper() {
             container: {
                 type: 'image',
                 containerImage: '',
-                containerRegistry: 'docker.com',
+                containerRegistry: 'docker.io',
                 crVisibility: CR_VISIBILITY_OPTIONS[0],
                 crUsername: '',
                 crPassword: '',

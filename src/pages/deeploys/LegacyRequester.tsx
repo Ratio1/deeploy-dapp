@@ -73,7 +73,7 @@ function LegacyRequester() {
                                     memory: '512m',
                                 },
 
-                                CR: 'docker.com',
+                                CR: 'docker.io',
                                 CR_PASSWORD: 'password',
                                 CR_USER: 'user',
                                 RESTART_POLICY: 'always',
