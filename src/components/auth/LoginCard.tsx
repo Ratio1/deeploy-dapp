@@ -10,7 +10,7 @@ import { SmallTag } from '@shared/SmallTag';
 import { EthAddress } from '@typedefs/blockchain';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiBox3Line, RiFileTextLine } from 'react-icons/ri';
+import { RiFileTextLine, RiPencilLine } from 'react-icons/ri';
 import { decodeEventLog } from 'viem';
 import { usePublicClient, useWalletClient } from 'wagmi';
 
@@ -103,13 +103,21 @@ export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
                             <div>Your wallet does not have an associated escrow smart contract.</div>
                         </div>
                     ) : (
-                        <div className="row gap-8 rounded-lg bg-slate-100 px-5 py-3">
+                        <div className="row justify-between gap-8 rounded-lg bg-slate-100 px-5 py-3">
                             <div className="compact text-slate-500">Escrow SC Addr.</div>
                             <CopyableValue value={escrowContractAddress}>
                                 <div className="text-sm text-slate-400">{getShortAddressOrHash(escrowContractAddress, 4)}</div>
                             </CopyableValue>
                         </div>
                     )}
+
+                    <div className="col text-center text-sm">
+                        <div>
+                            Please <span className="text-primary font-medium">sign a message</span> in order to securely
+                        </div>
+
+                        <div> fetch your Deeploy data.</div>
+                    </div>
 
                     <div className="center-all gap-2">
                         {!hasContract && (
@@ -137,8 +145,8 @@ export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
                             isDisabled={!hasContract}
                         >
                             <div className="row gap-1.5">
-                                <RiBox3Line className="text-lg" />
-                                <div className="text-sm">Authorize Login</div>
+                                <RiPencilLine className="text-lg" />
+                                <div className="text-sm">Sign to Login</div>
                             </div>
                         </Button>
                     </div>
