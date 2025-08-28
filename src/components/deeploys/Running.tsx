@@ -1,14 +1,12 @@
 import { Button } from '@heroui/button';
 import { Skeleton } from '@heroui/skeleton';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { routePath } from '@lib/routes/route-paths';
 import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
 import { RunningJobWithAlias } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { RiDraftLine, RiRefreshLine } from 'react-icons/ri';
-import { Link } from 'react-router-dom';
 import { usePublicClient } from 'wagmi';
 import RunningCard from './RunningCard';
 
@@ -102,11 +100,11 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
             </ListHeader>
 
             {/* TODO: Remove */}
-            {process.env.NODE_ENV === 'development' && (
+            {/* {process.env.NODE_ENV === 'development' && (
                 <Button variant="solid" color="secondary" as={Link} to={`${routePath.deeploys}/${routePath.job}/70`}>
                     <div className="compact">Go to Job</div>
                 </Button>
-            )}
+            )} */}
 
             {isFetchAppsRequired && (
                 <div className="text-warning-800 bg-warning-100 rounded-lg px-6 py-3 text-sm">

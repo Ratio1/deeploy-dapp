@@ -4,7 +4,7 @@ import { Alert } from '@heroui/alert';
 import { Button } from '@heroui/button';
 import { Skeleton } from '@heroui/skeleton';
 import { Spinner } from '@heroui/spinner';
-import { getSecrets, getTunnels } from '@lib/api/tunnels';
+import { checkSecrets, getSecrets, getTunnels } from '@lib/api/tunnels';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
@@ -14,13 +14,13 @@ import EmptyData from '@shared/EmptyData';
 import { Tunnel } from '@typedefs/tunnels';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiAddLine, RiDoorLockLine, RiDraftLine } from 'react-icons/ri';
+import { RiAddLine, RiDoorLockLine, RiDraftLine, RiPencilLine } from 'react-icons/ri';
 import { useAccount, useSignMessage } from 'wagmi';
 
 enum SecretsState {
-    NotStoredLocally = 'not_stored_locally',
-    NotAdded = 'not_added',
-    AddedAndStoredLocally = 'added_and_stored_locally',
+    NotStoredLocally = 'not_stored_locally', // Secrets exist on the server but not locally
+    NotAdded = 'not_added', // Secrets don't exist on the server
+    AddedAndStoredLocally = 'added_and_stored_locally', // Secrets exist on the server and locally
 }
 
 function Tunnels() {
@@ -41,22 +41,34 @@ function Tunnels() {
     // Init
     useEffect(() => {
         if (address) {
-            checkSecrets();
+            init();
         }
     }, [address]);
 
-    const checkSecrets = async () => {
+    const init = async () => {
+        if (!address) {
+            return;
+        }
+
         const tunnelingSecrets = await getSingleton('tunnelingSecrets');
 
         if (!tunnelingSecrets) {
-            setSecretsState(SecretsState.NotStoredLocally);
+            const { result } = await checkSecrets(address);
+
+            if (result?.exists) {
+                console.log('Secrets exist on the server but not locally');
+                setSecretsState(SecretsState.NotStoredLocally);
+            } else {
+                console.log('Secrets do not exist on the server');
+                setSecretsState(SecretsState.NotAdded);
+            }
         } else {
             console.log('Tunneling secrets stored locally');
             setSecretsState(SecretsState.AddedAndStoredLocally);
+            fetchTunnels();
         }
 
         setLoading(false);
-        fetchTunnels();
     };
 
     const fetchSecrets = async () => {
@@ -152,16 +164,19 @@ function Tunnels() {
                     title="Secrets Required"
                     description={
                         <div className="col text-[15px]">
+                            <div>Your Cloudflare secrets are not available locally.</div>
                             <div>
-                                Your <span className="text-primary font-medium">Cloudflare</span> secrets are not available
-                                locally.
+                                You need to <span className="text-primary font-medium">sign a message</span> in order to fetch
+                                them.
                             </div>
-                            <div>You need to sign a message in order to fetch them.</div>
                         </div>
                     }
                 >
                     <Button color="primary" variant="solid" onPress={() => fetchSecrets()} isLoading={isFetchingSecrets}>
-                        Get Secrets
+                        <div className="row gap-1.5">
+                            <RiPencilLine className="text-lg" />
+                            <div className="compact">Get Secrets</div>
+                        </div>
                     </Button>
                 </DetailedAlert>
             </div>
@@ -177,9 +192,7 @@ function Tunnels() {
                     title="Missing Secrets"
                     description={
                         <div className="col text-[15px]">
-                            <div>
-                                Your <span className="text-primary font-medium">Cloudflare</span> secrets are not set.
-                            </div>
+                            <div>Your Cloudflare secrets are not set.</div>
                             <div>Please obtain and add them using the form below.</div>
                         </div>
                     }
@@ -199,9 +212,7 @@ function Tunnels() {
     return (
         <div className="w-full flex-1">
             <div className="col mx-auto max-w-[620px] gap-8">
-                <div className="flex items-start justify-between">
-                    <div className="text-2xl font-bold">Tunnels</div>
-
+                <div className="flex justify-end">
                     <Button color="primary" variant="solid" onPress={() => openTunnelCreateModal(() => fetchTunnels())}>
                         <div className="row gap-1">
                             <RiAddLine className="text-lg" />

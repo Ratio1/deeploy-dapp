@@ -137,6 +137,8 @@ export const DeploymentProvider = ({ children }) => {
             .uniqBy((job) => job.alias)
             .value();
 
+        console.log('[DeploymentProvider] Jobs with running apps data', jobsWithAliases);
+
         return jobsWithAliases;
     };
 

@@ -1,4 +1,5 @@
 import { getSingleton } from '@lib/storage/db';
+import { EthAddress } from '@typedefs/blockchain';
 import axios from 'axios';
 
 // Tunnels API
@@ -7,6 +8,15 @@ const tunnelsBaseUrl = 'https://1f8b266e9dbf.ratio1.link';
 const axiosInstance = axios.create({
     baseURL: tunnelsBaseUrl,
 });
+
+export async function checkSecrets(cspAddress: EthAddress): Promise<any> {
+    const { data } = await axiosInstance.get(`/check_secrets_exist?csp_address=${cspAddress}`);
+
+    if (data.result.error) {
+        throw new Error(data.result.error);
+    }
+    return data;
+}
 
 export async function getSecrets(payload: any): Promise<{
     result:
