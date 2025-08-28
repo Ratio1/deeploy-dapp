@@ -1,4 +1,3 @@
-import { getSingleton } from '@lib/storage/db';
 import { EthAddress } from '@typedefs/blockchain';
 import axios from 'axios';
 
@@ -55,7 +54,10 @@ export async function addSecrets(payload: {
     return data;
 }
 
-export async function getTunnels(): Promise<{
+export async function getTunnels(
+    cloudflareAccountId: string,
+    cloudflareApiKey: string,
+): Promise<{
     result: {
         id: string;
         connections: { colo_name: string; opened_at: string; origin_ip: string }[];
@@ -69,13 +71,6 @@ export async function getTunnels(): Promise<{
         };
     }[];
 }> {
-    const tunnelingSecrets = await getSingleton('tunnelingSecrets');
-
-    if (!tunnelingSecrets) {
-        throw new Error('Tunneling secrets not found. Please set secrets first.');
-    }
-    const { cloudflareAccountId, cloudflareApiKey } = tunnelingSecrets;
-
     const { data } = await axiosInstance.get(
         `/get_tunnels?cloudflare_account_id=${cloudflareAccountId}&cloudflare_api_key=${cloudflareApiKey}`,
     );
