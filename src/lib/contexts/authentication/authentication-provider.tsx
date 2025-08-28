@@ -2,7 +2,6 @@ import { getAccount } from '@lib/api/backend';
 import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { useQuery } from '@tanstack/react-query';
 import { ApiAccount } from '@typedefs/blockchain';
-import { TunnelingSecrets } from '@typedefs/general';
 import { SIWESession, useModal, useSIWE } from 'connectkit';
 import { throttle } from 'lodash';
 import { useEffect, useRef, useState } from 'react';
@@ -21,8 +20,6 @@ export const AuthenticationProvider = ({ children }) => {
     const { open: modalOpen, openSIWE } = useModal();
 
     const [account, setAccount] = useState<ApiAccount>();
-
-    const [tunnelingSecrets, setTunnelingSecrets] = useState<TunnelingSecrets | undefined>();
 
     // SIWE
     useEffect(() => {
@@ -81,9 +78,6 @@ export const AuthenticationProvider = ({ children }) => {
                 fetchAccount,
                 isFetchingAccount,
                 accountFetchError,
-                // Tunneling
-                tunnelingSecrets,
-                setTunnelingSecrets,
             }}
         >
             {children}

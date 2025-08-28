@@ -6,7 +6,6 @@ import { Skeleton } from '@heroui/skeleton';
 import { Spinner } from '@heroui/spinner';
 import { checkSecrets, getSecrets, getTunnels } from '@lib/api/tunnels';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
-import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import ActionButton from '@shared/ActionButton';
@@ -20,9 +19,7 @@ import { RiAddLine, RiDoorLockLine, RiDraftLine, RiErrorWarningLine, RiPencilLin
 import { useAccount, useSignMessage } from 'wagmi';
 
 function Tunnels() {
-    const { tunnelingSecrets, setTunnelingSecrets } = useAuthenticationContext() as AuthenticationContextType;
-
-    const { openTunnelCreateModal } = useTunnelsContext() as TunnelsContextType;
+    const { tunnelingSecrets, setTunnelingSecrets, openTunnelCreateModal } = useTunnelsContext() as TunnelsContextType;
     const { signMessageAsync } = useSignMessage();
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
 
@@ -47,7 +44,7 @@ function Tunnels() {
 
     useEffect(() => {
         if (tunnelingSecrets) {
-            console.log('Tunneling secrets exist, fetching tunnels...');
+            // console.log('Tunneling secrets exist, fetching tunnels...');
             fetchTunnels();
         }
     }, [tunnelingSecrets]);
@@ -58,9 +55,11 @@ function Tunnels() {
         }
 
         if (!tunnelingSecrets) {
+            // console.log('No tunneling secrets stored, checking if they exist on the server...');
             const { result } = await checkSecrets(address);
             setSecretsExist(!!result?.exists);
         } else {
+            // console.log('Tunneling secrets exist, skipping secrets fetch');
             setSecretsExist(true);
         }
 

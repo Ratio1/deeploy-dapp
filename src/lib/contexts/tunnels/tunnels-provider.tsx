@@ -1,8 +1,9 @@
 import TunnelAliasModal from '@components/tunnels/TunnelAliasModal';
 import TunnelDNSModal from '@components/tunnels/TunnelDNSModal';
 import TunnelTokenModal from '@components/tunnels/TunnelTokenModal';
+import { TunnelingSecrets } from '@typedefs/general';
 import { Tunnel } from '@typedefs/tunnels';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { TunnelsContext } from './context';
 
 export const TunnelsProvider = ({ children }) => {
@@ -10,6 +11,8 @@ export const TunnelsProvider = ({ children }) => {
     const tunnelCreateModalRef = useRef<{ trigger: (callback: () => any, tunnel?: Tunnel) => void }>(null);
     const tunnelTokenModalRef = useRef<{ trigger: (token: string, alias?: string) => void }>(null);
     const tunnelDNSModalRef = useRef<{ trigger: (hostname: string, url: string) => void }>(null);
+
+    const [tunnelingSecrets, setTunnelingSecrets] = useState<TunnelingSecrets | undefined>();
 
     const openTunnelRenameModal = (tunnel: Tunnel, callback: () => any) => {
         if (tunnelRenameModalRef.current) {
@@ -42,6 +45,9 @@ export const TunnelsProvider = ({ children }) => {
                 openTunnelCreateModal,
                 openTunnelTokenModal,
                 openTunnelDNSModal,
+                // Secrets
+                tunnelingSecrets,
+                setTunnelingSecrets,
             }}
         >
             {children}

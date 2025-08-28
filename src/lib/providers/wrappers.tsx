@@ -2,6 +2,7 @@ import ScrollToTop from '@components/layout/ScrollToTop';
 import { HeroUIProvider } from '@heroui/system';
 import { DeploymentProvider } from '@lib/contexts/deployment';
 import { InteractionProvider } from '@lib/contexts/interaction';
+import { TunnelsProvider } from '@lib/contexts/tunnels';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -21,7 +22,9 @@ export function Wrappers({ children }: { children: React.ReactNode }) {
                         <AuthenticationProvider>
                             <BlockchainProvider>
                                 <DeploymentProvider>
-                                    <InteractionProvider>{children}</InteractionProvider>
+                                    <TunnelsProvider>
+                                        <InteractionProvider>{children}</InteractionProvider>
+                                    </TunnelsProvider>
                                 </DeploymentProvider>
                             </BlockchainProvider>
                         </AuthenticationProvider>

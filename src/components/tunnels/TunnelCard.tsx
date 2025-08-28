@@ -13,13 +13,17 @@ import { RiExternalLinkLine, RiLinkM } from 'react-icons/ri';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; fetchTunnels: () => Promise<void> }) {
-    const { openTunnelRenameModal, openTunnelTokenModal } = useTunnelsContext() as TunnelsContextType;
+    const { tunnelingSecrets, openTunnelRenameModal, openTunnelTokenModal } = useTunnelsContext() as TunnelsContextType;
     const confirm = useInteractionContext() as InteractionContextType;
 
     const navigate = useNavigate();
 
     const onDeleteTunnel = async () => {
         try {
+            if (!tunnelingSecrets) {
+                throw new Error('Tunneling secrets not found.');
+            }
+
             await confirm(
                 <div className="col gap-3">
                     <div>Are you sure you want to delete the following tunnel?</div>
@@ -27,7 +31,7 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
                 </div>,
                 {
                     onConfirm: async () => {
-                        await deleteTunnel(tunnel.id);
+                        await deleteTunnel(tunnel.id, tunnelingSecrets);
                         fetchTunnels();
                         toast.success('Tunnel deleted successfully.');
                     },
