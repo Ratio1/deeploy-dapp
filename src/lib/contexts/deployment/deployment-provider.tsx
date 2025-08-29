@@ -107,25 +107,34 @@ export const DeploymentProvider = ({ children }) => {
             functionName: 'getAllJobs',
         });
 
-        console.log('[DeploymentProvider] SC jobs', runningJobs);
+        console.log('[DeploymentProvider] Smart contract jobs', runningJobs);
 
-        let jobsWithAliases: RunningJobWithAlias[] = _(Object.values(apps))
-            .map((app) => {
-                const alias: string = Object.keys(app)[0];
-                const isDeployed = app[alias].is_deeployed;
+        const uniqueAppsWithAliases = _(Object.values(apps))
+            .map((nodeApps) => {
+                return Object.entries(nodeApps).map(([alias, app]) => {
+                    return {
+                        alias,
+                        ...app,
+                    };
+                });
+            })
+            .flatten()
+            .filter((app) => app.is_deeployed)
+            .uniqBy((app) => app.alias)
+            .value();
 
-                if (!isDeployed) {
-                    console.log('[DeploymentProvider] Job not deployed yet, filtering out', app);
-                    return null;
-                }
+        console.log('[DeploymentProvider] Unique deployed apps with aliases', uniqueAppsWithAliases);
 
-                const specs = app[alias].deeploy_specs;
+        const jobsWithAliases: RunningJobWithAlias[] = _(uniqueAppsWithAliases)
+            .map((appWithAlias) => {
+                const alias: string = appWithAlias.alias;
+                const specs = appWithAlias.deeploy_specs;
                 const jobId = specs.job_id;
 
                 const job = runningJobs.find((job) => Number(job.id) === jobId && job.projectHash === specs.project_id);
 
                 if (!job) {
-                    console.log('[DeploymentProvider] Job not found in SC, filtering out', alias, app);
+                    console.log(`[DeploymentProvider] App ${alias} has no matching job in the smart contract`, appWithAlias);
                     return null;
                 }
 
@@ -138,11 +147,7 @@ export const DeploymentProvider = ({ children }) => {
             .filter((job) => job !== null)
             .value();
 
-        console.log('[DeploymentProvider] Jobs before filtering for uniqueness', jobsWithAliases);
-
-        jobsWithAliases = _.uniqBy(jobsWithAliases, (job) => job.alias);
-
-        console.log('[DeploymentProvider] Unique jobs with running apps data', jobsWithAliases);
+        console.log('[DeploymentProvider] Running jobs with aliases', jobsWithAliases);
 
         return jobsWithAliases;
     };
