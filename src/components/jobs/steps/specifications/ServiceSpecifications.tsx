@@ -3,6 +3,7 @@ import { serviceContainerTypes } from '@data/containerResources';
 import { SlateCard } from '@shared/cards/SlateCard';
 import ContainerResourcesInfo from '@shared/jobs/ContainerResourcesInfo';
 import SelectContainerOrWorkerType from '@shared/jobs/SelectContainerOrWorkerType';
+import JobTags from '@shared/jobs/target-nodes/JobTags';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { JobType } from '@typedefs/deeploys';
@@ -26,13 +27,16 @@ export default function ServiceSpecifications() {
 
             <SlateCard>
                 <div className="flex gap-4">
+                    <NumberInputWithLabel name="specifications.targetNodesCount" label="Target Nodes Count" isDisabled />
+
                     <SelectWithLabel
                         name="specifications.applicationType"
                         label="Application Type"
                         options={APPLICATION_TYPES}
                     />
-                    <NumberInputWithLabel name="specifications.targetNodesCount" label="Target Nodes Count" isDisabled />
                 </div>
+
+                <JobTags />
             </SlateCard>
         </div>
     );
