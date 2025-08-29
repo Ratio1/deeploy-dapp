@@ -32,6 +32,7 @@ function JobFormWrapper() {
         specifications: {
             applicationType: APPLICATION_TYPES[0],
             targetNodesCount: 1,
+            jobTags: [],
         },
         paymentAndDuration: {
             duration: 12,
@@ -142,7 +143,10 @@ function JobFormWrapper() {
                 jobType: data.jobType,
                 specifications: data.specifications,
                 paymentAndDuration: data.paymentAndDuration,
-                deployment: data.deployment,
+                deployment: {
+                    ...data.deployment,
+                    jobAlias: data.deployment.jobAlias.toLowerCase(),
+                },
             };
 
             const jobId = await db.jobs.add(job as DraftJob);

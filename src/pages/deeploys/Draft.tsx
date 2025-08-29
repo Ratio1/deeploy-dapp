@@ -3,6 +3,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
+import ProjectIdentity from '@shared/jobs/projects/ProjectIdentity';
 import Payment from '@shared/projects/Payment';
 import { DraftJob, ProjectPage, type DraftProject } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -46,6 +47,8 @@ export default function Draft() {
         return <></>;
     }
 
+    const getProjectIdentity = () => <ProjectIdentity projectName={project.name} />;
+
     return !jobType ? (
         <>
             {projectPage === ProjectPage.Payment ? (
@@ -56,9 +59,10 @@ export default function Draft() {
                     callback={() => {
                         navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=running`);
                     }}
+                    projectIdentity={getProjectIdentity()}
                 />
             ) : (
-                <DraftOverview project={project} jobs={jobs} />
+                <DraftOverview project={project} jobs={jobs} projectIdentity={getProjectIdentity()} />
             )}
         </>
     ) : (
