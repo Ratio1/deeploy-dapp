@@ -61,7 +61,11 @@ export default function Project() {
 
         try {
             const jobs: RunningJobWithAlias[] = await fetchRunningJobsWithAliases();
-            setRunningJobsWithAliases(jobs);
+            const projectJobs = jobs.filter((job) => job.projectHash === projectHash);
+
+            console.log('[Project] Project jobs', projectJobs);
+
+            setRunningJobsWithAliases(projectJobs);
         } catch (error) {
             toast.error('Failed to fetch running jobs.');
         } finally {
