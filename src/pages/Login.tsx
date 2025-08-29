@@ -3,11 +3,12 @@ import { PoAIManagerAbi } from '@blockchain/PoAIManager';
 import LoginCard from '@components/auth/LoginCard';
 import RestrictedAccess from '@components/auth/RestrictedAccess';
 import { Spinner } from '@heroui/spinner';
-import { getNodeLastEpoch } from '@lib/api/oracles';
-import { config, environment, getDevAddress, isUsingDevAddress } from '@lib/config';
+import { getMultiNodeEpochsRange } from '@lib/api/oracles';
+import { config, environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { isZeroAddress } from '@lib/utils';
 import { EthAddress } from '@typedefs/blockchain';
 import { ConnectKitButton, useModal } from 'connectkit';
 import { useEffect, useState } from 'react';
@@ -78,9 +79,26 @@ function Login() {
         }
 
         console.log('Checking oracle ownership...');
-        const licenses = await fetchLicenses();
-        const availabilities = await Promise.all(licenses.map((license) => getNodeLastEpoch(license.nodeAddress)));
+
+        const linkedLicenses = (await fetchLicenses()).filter((license) => !isZeroAddress(license.nodeAddress));
+        const currentEpoch = getCurrentEpoch();
+
+        const nodesWithRanges = linkedLicenses.reduce(
+            (acc, license) => {
+                acc[license.nodeAddress] = [currentEpoch - 1, currentEpoch - 1];
+                return acc;
+            },
+            {} as Record<EthAddress, [number, number]>,
+        );
+
+        if (Object.keys(nodesWithRanges).length === 0) {
+            return 0;
+        }
+
+        const response = await getMultiNodeEpochsRange(nodesWithRanges);
+        const availabilities = linkedLicenses.map((license) => response[license.nodeAddress]);
         const oracles = availabilities.filter((nodeResponse) => nodeResponse.node_is_oracle);
+
         console.log(`User owns ${oracles.length} oracle${oracles.length === 1 ? '' : 's'}`);
 
         return oracles.length;

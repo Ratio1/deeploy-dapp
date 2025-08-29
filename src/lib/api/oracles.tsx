@@ -26,12 +26,21 @@ export const getNodeInfo = (
     node_is_online: boolean;
 }> => getNodeLastEpoch(nodeAddress).then(({ node_alias, node_is_online }) => ({ node_alias, node_is_online }));
 
+export const getMultiNodeEpochsRange = (nodesWithRanges: Record<types.EthAddress, [number, number]>) => {
+    return _doPost<types.OraclesDefaultResult & Record<types.EthAddress, types.OraclesAvailabilityResult>>(
+        '/multi_node_epochs_range',
+        {
+            dct_eth_nodes_request: nodesWithRanges,
+        },
+    );
+};
+
 // *****
 // INTERNAL HELPERS
 // *****
 
 async function _doGet<T>(endpoint: string) {
-    const { data } = await axiosOracles.get<{
+    const { data } = await axiosInstance.get<{
         result: (
             | {
                   error: string;
@@ -51,7 +60,24 @@ async function _doGet<T>(endpoint: string) {
     return data.result;
 }
 
-const axiosOracles = axios.create({
+async function _doPost<T>(endpoint: string, body: any) {
+    const { data } = await axiosInstance.post<{
+        result: types.OraclesDefaultResult &
+            (
+                | {
+                      error: string;
+                  }
+                | T
+            );
+        node_addr: `0xai${string}`;
+    }>(endpoint, body);
+    if ('error' in data.result) {
+        throw new Error(data.result.error);
+    }
+    return data.result;
+}
+
+const axiosInstance = axios.create({
     baseURL: oraclesUrl,
     headers: {
         Accept: 'application/json',
@@ -59,7 +85,7 @@ const axiosOracles = axios.create({
     },
 });
 
-axiosOracles.interceptors.response.use(
+axiosInstance.interceptors.response.use(
     (response) => {
         return response;
     },
