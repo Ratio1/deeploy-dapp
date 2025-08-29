@@ -167,6 +167,7 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
         nonce,
         target_nodes: targetNodes,
         target_nodes_count: targetNodesCount,
+        job_tags: job.specifications.jobTags,
         app_params: {
             IMAGE: image,
             CR_DATA: crData,
@@ -237,6 +238,7 @@ export const formatNativeJobPayload = (job: NativeDraftJob) => {
         nonce,
         target_nodes: targetNodes,
         target_nodes_count: targetNodesCount,
+        job_tags: job.specifications.jobTags,
         node_res_req: nodeResourceRequirements,
         TUNNEL_ENGINE: 'cloudflare',
         app_params: appParams,
@@ -264,6 +266,7 @@ export const formatServiceJobPayload = (job: ServiceDraftJob) => {
         nonce,
         target_nodes: targetNodes,
         target_nodes_count: 1, // Service jobs are always single-node
+        job_tags: job.specifications.jobTags,
         service_replica: job.deployment.serviceReplica,
         app_params: {
             IMAGE: containerType.image,

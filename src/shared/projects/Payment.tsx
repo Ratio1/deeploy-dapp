@@ -17,6 +17,7 @@ import {
     getContainerOrWorkerType,
     getJobsTotalCost,
 } from '@lib/deeploy-utils';
+import db from '@lib/storage/db';
 import { sleep } from '@lib/utils';
 import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
@@ -32,18 +33,19 @@ import toast from 'react-hot-toast';
 import { RiBox3Line, RiDraftLine } from 'react-icons/ri';
 import { decodeEventLog } from 'viem';
 import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wagmi';
-import ProjectIdentity from '../jobs/projects/ProjectIdentity';
 
 export default function Payment({
     projectHash,
     projectName,
     jobs,
     callback,
+    projectIdentity,
 }: {
     projectHash: string;
     projectName?: string;
     jobs: DraftJob[] | undefined;
     callback: () => void;
+    projectIdentity: React.ReactNode;
 }) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
     const { escrowContractAddress, setFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
@@ -228,11 +230,17 @@ export default function Payment({
                     successfulJobs.map((r) => (r as PromiseFulfilledResult<any>).value),
                 );
                 toast.success(`${successfulJobs.length} job${successfulJobs.length > 1 ? 's' : ''} deployed successfully.`);
+
+                // If at least one job was deployed, delete the projectdraft
+                await db.projects.delete(projectHash);
             }
 
             if (successfulJobs.length === jobs.length) {
                 deeployFlowModalRef.current?.progress('done');
                 setFetchAppsRequired(true);
+
+                // Delete all job drafts
+                await db.jobs.where('projectHash').equals(projectHash).delete();
 
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
@@ -325,7 +333,7 @@ export default function Payment({
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <ProjectIdentity projectName={projectName} />
+                    {projectIdentity}
 
                     <div className="row gap-2">
                         <OverviewButton />

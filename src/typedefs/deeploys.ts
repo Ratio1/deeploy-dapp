@@ -29,6 +29,7 @@ enum ProjectPage {
 type BaseJobSpecifications = {
     applicationType: (typeof APPLICATION_TYPES)[number];
     targetNodesCount: number;
+    jobTags: string[];
 };
 
 type GenericJobSpecifications = BaseJobSpecifications & {

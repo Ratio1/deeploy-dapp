@@ -29,18 +29,6 @@ export default function ProjectIdentity({ projectName }: { projectName?: string 
         return <Skeleton className="min-h-10 w-40 rounded-lg" />;
     }
 
-    if (projectName) {
-        return (
-            <div className="row gap-1.5">
-                <div className="text-xl font-semibold">{projectName}</div>
-
-                <SmallTag variant="green" isLarge>
-                    Running
-                </SmallTag>
-            </div>
-        );
-    }
-
     if (draft) {
         return (
             <div className="col gap-0.5">
@@ -65,6 +53,18 @@ export default function ProjectIdentity({ projectName }: { projectName?: string 
         );
     }
 
+    if (projectName) {
+        return (
+            <div className="row gap-1.5">
+                <div className="text-xl font-semibold">{projectName}</div>
+
+                <SmallTag variant="green" isLarge>
+                    Running
+                </SmallTag>
+            </div>
+        );
+    }
+
     if (pathname.includes(routePath.project) && !projectName) {
         return (
             <div className="row gap-1.5">
@@ -77,5 +77,5 @@ export default function ProjectIdentity({ projectName }: { projectName?: string 
         );
     }
 
-    return <Skeleton className="min-h-10 w-40 rounded-lg" />;
+    return <div></div>;
 }

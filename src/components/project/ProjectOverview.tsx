@@ -4,7 +4,6 @@ import ServiceDraftJobsList from '@components/draft/job-lists/ServiceDraftJobsLi
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
 import CustomTabs from '@shared/CustomTabs';
 import EmptyData from '@shared/EmptyData';
-import ProjectIdentity from '@shared/jobs/projects/ProjectIdentity';
 import AddJobCard from '@shared/projects/AddJobCard';
 import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
@@ -22,10 +21,12 @@ export default function ProjectOverview({
     projectName,
     runningJobs,
     draftJobs,
+    projectIdentity,
 }: {
     projectName: string | undefined;
     runningJobs: RunningJobWithAlias[] | undefined;
     draftJobs: DraftJob[] | undefined;
+    projectIdentity: React.ReactNode;
 }) {
     const [selectedTab, setSelectedTab] = useState<'runningJobs' | 'draftJobs'>('runningJobs');
     const [runningJobsWithResources, setRunningJobsWithResources] = useState<RunningJobWithResources[]>([]);
@@ -56,7 +57,7 @@ export default function ProjectOverview({
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <ProjectIdentity projectName={projectName} />
+                    {projectIdentity}
 
                     <div className="row gap-2">
                         <CancelButton tab="running" />

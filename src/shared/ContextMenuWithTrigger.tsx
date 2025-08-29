@@ -38,6 +38,7 @@ export default function ContextMenuWithTrigger({ items }: Props) {
                 itemClasses={{
                     base: [
                         'rounded-md',
+                        'text-default-500',
                         'transition-opacity',
                         'data-[hover=true]:text-foreground',
                         'data-[hover=true]:bg-slate-100',
@@ -54,28 +55,34 @@ export default function ContextMenuWithTrigger({ items }: Props) {
                     e.preventDefault();
                 }}
             >
-                {items.map((item) => (
-                    <DropdownItem key={item.key} onPress={item.onPress}>
-                        {!item.icon || !item.description ? (
-                            <div
-                                className={clsx('font-medium', {
-                                    'text-danger': item.key === 'delete',
-                                })}
-                            >
-                                {item.label}
-                            </div>
-                        ) : (
-                            <div className="row gap-2">
-                                <div className="pr-0.5 text-2xl text-slate-500">{item.icon}</div>
-
-                                <div className="col">
-                                    <div className="-mb-0.5 font-medium">{item.label}</div>
-                                    <div className="text-[13px] text-slate-500">{item.description}</div>
-                                </div>
-                            </div>
-                        )}
+                <>
+                    <DropdownItem key="title" isReadOnly>
+                        <div className="text-sm text-slate-700">Actions</div>
                     </DropdownItem>
-                ))}
+
+                    {items.map((item) => (
+                        <DropdownItem key={item.key} onPress={item.onPress}>
+                            {!item.icon || !item.description ? (
+                                <div
+                                    className={clsx('font-medium', {
+                                        'text-danger': item.key === 'delete',
+                                    })}
+                                >
+                                    {item.label}
+                                </div>
+                            ) : (
+                                <div className="row gap-2">
+                                    <div className="pr-0.5 text-[22px] text-slate-500">{item.icon}</div>
+
+                                    <div className="col">
+                                        <div className="text-body leading-4 font-medium">{item.label}</div>
+                                        <div className="text-[13px] text-slate-500">{item.description}</div>
+                                    </div>
+                                </div>
+                            )}
+                        </DropdownItem>
+                    ))}
+                </>
             </DropdownMenu>
         </Dropdown>
     );

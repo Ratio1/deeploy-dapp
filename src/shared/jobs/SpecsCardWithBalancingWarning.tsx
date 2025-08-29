@@ -7,6 +7,7 @@ import { JobType } from '@typedefs/deeploys';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { RiErrorWarningLine } from 'react-icons/ri';
+import JobTags from './target-nodes/JobTags';
 
 export default function SpecsCardWithBalancingWarning({ jobType }: { jobType: JobType }) {
     const { watch, setValue } = useFormContext();
@@ -42,12 +43,6 @@ export default function SpecsCardWithBalancingWarning({ jobType }: { jobType: Jo
             {!!containerOrWorkerType && (
                 <div className="col gap-4">
                     <div className="flex gap-4">
-                        <SelectWithLabel
-                            name="specifications.applicationType"
-                            label="Application Type"
-                            options={APPLICATION_TYPES}
-                        />
-
                         <NumberInputWithLabel
                             name="specifications.targetNodesCount"
                             label="Target Nodes Count"
@@ -58,7 +53,15 @@ export default function SpecsCardWithBalancingWarning({ jobType }: { jobType: Jo
                             }
                             hasWarning={hasWarning}
                         />
+
+                        <SelectWithLabel
+                            name="specifications.applicationType"
+                            label="Application Type"
+                            options={APPLICATION_TYPES}
+                        />
                     </div>
+
+                    <JobTags />
 
                     {hasWarning && (
                         <div className="text-warning-800 bg-warning-100 col gap-2 rounded-md p-3 text-sm">
