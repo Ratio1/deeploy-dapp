@@ -109,12 +109,13 @@ export const DeploymentProvider = ({ children }) => {
 
         console.log('[DeploymentProvider] SC jobs', runningJobs);
 
-        const jobsWithAliases: RunningJobWithAlias[] = _(Object.values(apps))
+        let jobsWithAliases: RunningJobWithAlias[] = _(Object.values(apps))
             .map((app) => {
                 const alias: string = Object.keys(app)[0];
                 const isDeployed = app[alias].is_deeployed;
 
                 if (!isDeployed) {
+                    console.log('[DeploymentProvider] Job not deployed yet, filtering out', app);
                     return null;
                 }
 
@@ -124,6 +125,7 @@ export const DeploymentProvider = ({ children }) => {
                 const job = runningJobs.find((job) => Number(job.id) === jobId && job.projectHash === specs.project_id);
 
                 if (!job) {
+                    console.log('[DeploymentProvider] Job not found in SC, filtering out', alias, app);
                     return null;
                 }
 
@@ -134,10 +136,13 @@ export const DeploymentProvider = ({ children }) => {
                 };
             })
             .filter((job) => job !== null)
-            .uniqBy((job) => job.alias)
             .value();
 
-        console.log('[DeploymentProvider] Jobs with running apps data', jobsWithAliases);
+        console.log('[DeploymentProvider] Jobs before filtering for uniqueness', jobsWithAliases);
+
+        jobsWithAliases = _.uniqBy(jobsWithAliases, (job) => job.alias);
+
+        console.log('[DeploymentProvider] Unique jobs with running apps data', jobsWithAliases);
 
         return jobsWithAliases;
     };
