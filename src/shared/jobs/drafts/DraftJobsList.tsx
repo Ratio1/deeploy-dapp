@@ -24,7 +24,7 @@ export default function DraftJobsList({
     renderJob: (job: Job) => React.ReactNode;
     onAddJob: () => void;
 }) {
-    const confirm = useInteractionContext() as InteractionContextType;
+    const { confirm } = useInteractionContext() as InteractionContextType;
 
     const onDownloadJson = (job: Job) => {
         downloadDataAsJson(job, `Deeploy-${job.jobType}-job-${job.id}.json`);

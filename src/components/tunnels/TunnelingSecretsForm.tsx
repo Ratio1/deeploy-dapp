@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { addSecrets } from '@lib/api/tunnels';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { buildDeeployMessage } from '@lib/deeploy-utils';
 import { addSecretsSchema } from '@schemas/secrets';
 import { SlateCard } from '@shared/cards/SlateCard';
@@ -22,6 +23,8 @@ export default function TunnelingSecretsForm({
     onSuccess: (secrets: TunnelingSecrets) => void;
     wrapInCard?: boolean;
 }) {
+    const { openSignMessageModal, closeSignMessageModal } = useInteractionContext() as InteractionContextType;
+
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const { signMessageAsync } = useSignMessage();
 
@@ -51,10 +54,14 @@ export default function TunnelingSecretsForm({
                 cloudflare_domain: data.domain,
             });
 
+            openSignMessageModal();
+
             const signature = await signMessageAsync({
                 account: address,
                 message,
             });
+
+            closeSignMessageModal();
 
             const payload = {
                 nonce,
@@ -80,9 +87,16 @@ export default function TunnelingSecretsForm({
             } else {
                 throw new Error(response.result?.error);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('[TunnelingSecretsForm] Error adding secrets:', error);
-            toast.error('Failed to add secrets, please try again.');
+
+            if (error?.message.includes('User rejected the request')) {
+                toast.error('Please sign the message to continue.');
+            } else {
+                toast.error('Failed to add secrets, please try again.');
+            }
+
+            closeSignMessageModal();
         } finally {
             setLoading(false);
         }

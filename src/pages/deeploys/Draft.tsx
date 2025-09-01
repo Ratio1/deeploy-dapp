@@ -12,7 +12,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import JobFormWrapper from '../../components/jobs/JobFormWrapper';
 
 export default function Draft() {
-    const { jobType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
+    const { jobType, setJobType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
     const { projectHash } = useParams();
@@ -23,7 +23,7 @@ export default function Draft() {
         null, // Default value returned while data is loading
     );
 
-    const jobs: DraftJob[] | undefined = useLiveQuery(
+    const draftJobs: DraftJob[] | undefined = useLiveQuery(
         project ? () => db.jobs.where('projectHash').equals(project.projectHash).toArray() : () => undefined,
         [project],
     );
@@ -31,6 +31,7 @@ export default function Draft() {
     // Init
     useEffect(() => {
         setProjectPage(ProjectPage.Overview);
+        setJobType(undefined);
     }, []);
 
     useEffect(() => {
@@ -43,7 +44,7 @@ export default function Draft() {
         return <></>;
     }
 
-    if (project === undefined || !isValidProjectHash(projectHash)) {
+    if (project === undefined || draftJobs === undefined || !isValidProjectHash(projectHash)) {
         return <></>;
     }
 
@@ -55,17 +56,17 @@ export default function Draft() {
                 <Payment
                     projectHash={projectHash}
                     projectName={project.name}
-                    jobs={jobs}
+                    jobs={draftJobs}
                     callback={() => {
                         navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=running`);
                     }}
                     projectIdentity={getProjectIdentity()}
                 />
             ) : (
-                <DraftOverview project={project} jobs={jobs} projectIdentity={getProjectIdentity()} />
+                <DraftOverview project={project} draftJobs={draftJobs} projectIdentity={getProjectIdentity()} />
             )}
         </>
     ) : (
-        <JobFormWrapper />
+        <JobFormWrapper projectName={project.name} draftJobsCount={draftJobs.length} />
     );
 }

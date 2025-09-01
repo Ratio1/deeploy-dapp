@@ -12,7 +12,7 @@ import { RiDeleteBinLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
 
 export default function DraftCard({ project }: { project: DraftProject }) {
-    const confirm = useInteractionContext() as InteractionContextType;
+    const { confirm } = useInteractionContext() as InteractionContextType;
 
     const jobs: DraftJob[] | undefined = useLiveQuery(
         () => db.jobs.where('projectHash').equals(project.projectHash).toArray(),

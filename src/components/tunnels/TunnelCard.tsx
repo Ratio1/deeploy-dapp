@@ -14,7 +14,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; fetchTunnels: () => Promise<void> }) {
     const { tunnelingSecrets, openTunnelRenameModal, openTunnelTokenModal } = useTunnelsContext() as TunnelsContextType;
-    const confirm = useInteractionContext() as InteractionContextType;
+    const { confirm } = useInteractionContext() as InteractionContextType;
 
     const navigate = useNavigate();
 

@@ -108,7 +108,7 @@ function Login() {
         <div className="col relative min-h-screen w-full flex-1">
             <div className="absolute top-0 right-0 left-0 flex items-start justify-between p-8">
                 <img src={Logo} alt="Logo" className="h-7" />
-                {isConnected && <ConnectKitButton showBalance />}
+                {isConnected && <ConnectKitButton />}
             </div>
 
             <div className="center-all absolute right-0 bottom-0 left-0 p-8">

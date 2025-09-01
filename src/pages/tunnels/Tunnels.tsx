@@ -6,6 +6,7 @@ import { Skeleton } from '@heroui/skeleton';
 import { Spinner } from '@heroui/spinner';
 import { checkSecrets, getSecrets, getTunnels } from '@lib/api/tunnels';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import ActionButton from '@shared/ActionButton';
@@ -19,7 +20,9 @@ import { RiAddLine, RiDoorLockLine, RiDraftLine, RiErrorWarningLine, RiPencilLin
 import { useAccount, useSignMessage } from 'wagmi';
 
 function Tunnels() {
+    const { openSignMessageModal, closeSignMessageModal } = useInteractionContext() as InteractionContextType;
     const { tunnelingSecrets, setTunnelingSecrets, openTunnelCreateModal } = useTunnelsContext() as TunnelsContextType;
+
     const { signMessageAsync } = useSignMessage();
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
 
@@ -78,10 +81,14 @@ function Tunnels() {
                 'Please sign this message to manage your tunnels: ',
             );
 
+            openSignMessageModal();
+
             const signature = await signMessageAsync({
                 account: address,
                 message,
             });
+
+            closeSignMessageModal();
 
             const payload = {
                 nonce,
@@ -105,9 +112,16 @@ function Tunnels() {
             } else {
                 throw new Error('No secrets available on the server.');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            setError('An error occurred while fetching your secrets.');
+
+            if (error?.message.includes('User rejected the request')) {
+                toast.error('Please sign the message to continue.');
+            } else {
+                setError('An error occurred while fetching your secrets.');
+            }
+
+            closeSignMessageModal();
         } finally {
             setFetchingSecrets(false);
         }

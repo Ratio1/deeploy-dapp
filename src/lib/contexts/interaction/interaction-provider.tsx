@@ -1,12 +1,14 @@
 import { Button } from '@heroui/button';
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/modal';
 import { useDisclosure } from '@heroui/use-disclosure';
+import { SignMessageModal } from '@shared/SignMessageModal';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ConfirmOptions } from '.';
-import { InteractionContext, InteractionContextType } from './context';
+import { InteractionContext } from './context';
 
 export const InteractionProvider = ({ children }) => {
+    // Confirmation Modal
     const [content, setContent] = useState<React.ReactNode>();
     const [isLoading, setLoading] = useState(false);
     const [modalSize, setModalSize] = useState<'sm' | 'md' | 'lg'>('sm');
@@ -15,16 +17,26 @@ export const InteractionProvider = ({ children }) => {
     const resolver = useRef<((v: boolean) => void) | undefined>(undefined);
     const callback = useRef<(() => Promise<any>) | undefined>(undefined);
 
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const {
+        isOpen: isConfirmationModalOpen,
+        onOpen: onConfirmationModalOpen,
+        onClose: onConfirmationModalClose,
+    } = useDisclosure();
 
-    const confirm: InteractionContextType = (content: React.ReactNode, options?: ConfirmOptions) => {
+    // Sign Message Modal
+    const signMessageModalRef = useRef<{
+        open: () => void;
+        close: () => void;
+    }>(null);
+
+    const confirm = (content: React.ReactNode, options?: ConfirmOptions) => {
         setContent(content);
         setLoading(false);
 
         setModalSize(options?.modalSize || 'sm');
         setConfirmButtonClassNames(options?.confirmButtonClassNames || 'bg-red-500');
 
-        onOpen();
+        onConfirmationModalOpen();
 
         return new Promise<boolean>((resolve) => {
             resolver.current = resolve;
@@ -39,7 +51,7 @@ export const InteractionProvider = ({ children }) => {
             try {
                 await callback.current();
                 resolver.current?.(true);
-                onClose();
+                onConfirmationModalClose();
             } catch (error) {
                 console.error('Error in confirmation function:', error);
                 toast.error('Unexpected error occurred, please try again.');
@@ -48,13 +60,13 @@ export const InteractionProvider = ({ children }) => {
             }
         } else {
             resolver.current?.(true);
-            onClose();
+            onConfirmationModalClose();
         }
     };
 
     const handleCancel = () => {
         resolver.current?.(false);
-        onClose();
+        onConfirmationModalClose();
     };
 
     const handleOpenChange = (open: boolean) => {
@@ -63,14 +75,23 @@ export const InteractionProvider = ({ children }) => {
         }
     };
 
+    const openSignMessageModal = () => {
+        signMessageModalRef.current?.open();
+    };
+
+    const closeSignMessageModal = () => {
+        signMessageModalRef.current?.close();
+    };
+
     return (
-        <InteractionContext.Provider value={confirm}>
+        <InteractionContext.Provider value={{ confirm, openSignMessageModal, closeSignMessageModal }}>
             {children}
 
+            {/* Confirmation Modal */}
             <Modal
-                isOpen={isOpen}
+                isOpen={isConfirmationModalOpen}
                 size={modalSize}
-                onClose={onClose}
+                onClose={onConfirmationModalClose}
                 onOpenChange={handleOpenChange}
                 classNames={{
                     closeButton: 'cursor-pointer',
@@ -95,6 +116,9 @@ export const InteractionProvider = ({ children }) => {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
+
+            {/* Sign Message Modal */}
+            <SignMessageModal ref={signMessageModalRef} />
         </InteractionContext.Provider>
     );
 };

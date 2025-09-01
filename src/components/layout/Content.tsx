@@ -30,7 +30,7 @@ function Content() {
                 <div className="col gap-1.5">
                     {!!title && (
                         <div className="row">
-                            <div className="text-[26px] font-bold leading-none lg:text-[28px]">{title}</div>
+                            <div className="text-[26px] leading-none font-bold lg:text-[28px]">{title}</div>
                         </div>
                     )}
 
@@ -38,7 +38,7 @@ function Content() {
                 </div>
 
                 <div className="flex">
-                    <ConnectKitButton showBalance />
+                    <ConnectKitButton />
                 </div>
             </div>
 

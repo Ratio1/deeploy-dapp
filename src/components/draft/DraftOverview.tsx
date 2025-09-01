@@ -18,14 +18,14 @@ import ServiceDraftJobsList from './job-lists/ServiceDraftJobsList';
 
 export default function DraftOverview({
     project,
-    jobs,
+    draftJobs,
     projectIdentity,
 }: {
     project: DraftProject;
-    jobs: DraftJob[] | undefined;
+    draftJobs: DraftJob[] | undefined;
     projectIdentity: React.ReactNode;
 }) {
-    const confirm = useInteractionContext() as InteractionContextType;
+    const { confirm } = useInteractionContext() as InteractionContextType;
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -66,27 +66,27 @@ export default function DraftOverview({
                             </div>
                         </ActionButton>
 
-                        <PaymentButton isDisabled={jobs?.length === 0} />
+                        <PaymentButton isDisabled={draftJobs?.length === 0} />
                     </div>
                 </div>
 
                 {/* Stats */}
-                <DraftStats jobs={jobs} />
+                <DraftStats jobs={draftJobs} />
 
                 {/* Add Job */}
                 <AddJobCard />
 
                 {/* Jobs */}
-                {!!jobs && !!jobs.length && (
+                {!!draftJobs && !!draftJobs.length && (
                     <>
-                        {jobs.filter((job) => job.jobType === JobType.Generic).length > 0 && (
-                            <GenericDraftJobsList jobs={jobs.filter((job) => job.jobType === JobType.Generic)} />
+                        {draftJobs.filter((job) => job.jobType === JobType.Generic).length > 0 && (
+                            <GenericDraftJobsList jobs={draftJobs.filter((job) => job.jobType === JobType.Generic)} />
                         )}
-                        {jobs.filter((job) => job.jobType === JobType.Native).length > 0 && (
-                            <NativeDraftJobsList jobs={jobs.filter((job) => job.jobType === JobType.Native)} />
+                        {draftJobs.filter((job) => job.jobType === JobType.Native).length > 0 && (
+                            <NativeDraftJobsList jobs={draftJobs.filter((job) => job.jobType === JobType.Native)} />
                         )}
-                        {jobs.filter((job) => job.jobType === JobType.Service).length > 0 && (
-                            <ServiceDraftJobsList jobs={jobs.filter((job) => job.jobType === JobType.Service)} />
+                        {draftJobs.filter((job) => job.jobType === JobType.Service).length > 0 && (
+                            <ServiceDraftJobsList jobs={draftJobs.filter((job) => job.jobType === JobType.Service)} />
                         )}
                     </>
                 )}

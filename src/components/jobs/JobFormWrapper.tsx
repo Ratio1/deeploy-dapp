@@ -24,7 +24,7 @@ import { z } from 'zod';
 
 const STEPS = ['Project', 'Specifications', 'Payment & Duration', 'Deployment'];
 
-function JobFormWrapper() {
+function JobFormWrapper({ projectName, draftJobsCount }) {
     const { projectHash } = useParams();
     const { step, jobType, setJobType } = useDeploymentContext() as DeploymentContextType;
 
@@ -127,6 +127,22 @@ function JobFormWrapper() {
             form.setValue('jobType', jobType);
         }
     }, [jobType, form]);
+
+    useEffect(() => {
+        if (jobType && form) {
+            setDefaultJobAlias(jobType);
+        }
+    }, [jobType, form]);
+
+    const setDefaultJobAlias = (jobType: JobType) => {
+        if (jobType === JobType.Service) {
+            // Service jobs already set their own alias using the selected db system
+            return;
+        }
+
+        const defaultJobAlias = `${projectName}-${jobType}-app-${draftJobsCount + 1}`.toLowerCase();
+        form.setValue('deployment.jobAlias', defaultJobAlias);
+    };
 
     const onSubmit = async (data: z.infer<typeof jobSchema>) => {
         console.log('[JobFormWrapper] onSubmit', data);
