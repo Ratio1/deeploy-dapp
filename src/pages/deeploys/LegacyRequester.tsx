@@ -1,6 +1,7 @@
 import { Button } from '@heroui/button';
 import { SelectItem } from '@heroui/select';
 import { config, environment, getDevAddress, isUsingDevAddress } from '@lib/config';
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { deepSort } from '@lib/utils';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
@@ -29,6 +30,8 @@ async function _doPost(endpoint: string, body: any) {
 }
 
 function LegacyRequester() {
+    const { openSignMessageModal, closeSignMessageModal } = useInteractionContext() as InteractionContextType;
+
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
 
     const [isLoading, setLoading] = useState(false);
@@ -155,10 +158,14 @@ function LegacyRequester() {
 
             console.log(JSON.stringify(message));
 
+            openSignMessageModal();
+
             const signature = await signMessageAsync({
                 account: address,
                 message,
             });
+
+            closeSignMessageModal();
 
             console.log('Signature', signature);
 
@@ -186,8 +193,14 @@ function LegacyRequester() {
             if (error.message.includes('Expected') && error.message.includes('JSON')) {
                 toast.error('Invalid JSON format.');
             } else {
-                toast.error('Error sending request.');
+                if (error?.message.includes('User rejected the request')) {
+                    toast.error('Please sign the message to continue.');
+                } else {
+                    toast.error('Error sending request.');
+                }
             }
+
+            closeSignMessageModal();
         } finally {
             setLoading(false);
         }

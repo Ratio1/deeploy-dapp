@@ -26,7 +26,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 export default function TunnelPage() {
     const { tunnelingSecrets, openTunnelRenameModal, openTunnelTokenModal, openTunnelDNSModal } =
         useTunnelsContext() as TunnelsContextType;
-    const confirm = useInteractionContext() as InteractionContextType;
+    const { confirm } = useInteractionContext() as InteractionContextType;
 
     const navigate = useNavigate();
     const { id } = useParams();

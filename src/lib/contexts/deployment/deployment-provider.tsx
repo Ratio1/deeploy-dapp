@@ -2,11 +2,12 @@ import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { getApps } from '@lib/api/deeploy';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
+import { SignMessageModal } from '@shared/SignMessageModal';
 import { EthAddress } from '@typedefs/blockchain';
 import { Apps } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithAlias } from '@typedefs/deeploys';
 import _ from 'lodash';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
 import { DeploymentContext } from './context';
@@ -28,6 +29,11 @@ export const DeploymentProvider = ({ children }) => {
     const [projectPage, setProjectPage] = useState<ProjectPage>(ProjectPage.Overview);
 
     const [escrowContractAddress, setEscrowContractAddress] = useState<EthAddress | undefined>();
+
+    const signMessageModalRef = useRef<{
+        open: () => void;
+        close: () => void;
+    }>(null);
 
     const fetchApps = async (): Promise<Apps | undefined> => {
         if (!address) {
@@ -55,7 +61,14 @@ export const DeploymentProvider = ({ children }) => {
             return response.apps;
         } catch (error: any) {
             console.error(error.message);
-            toast.error('Failed to fetch running jobs.');
+
+            if (error?.message.includes('User rejected the request')) {
+                toast.error('Please sign the message to continue.');
+            } else {
+                toast.error('Failed to fetch running jobs.');
+            }
+
+            signMessageModalRef.current?.close();
         } finally {
             setFetchingApps(false);
         }
@@ -71,10 +84,14 @@ export const DeploymentProvider = ({ children }) => {
             'Please sign this message for Deeploy: ',
         );
 
+        signMessageModalRef.current?.open();
+
         const signature = await signMessageAsync({
             account: address,
             message,
         });
+
+        signMessageModalRef.current?.close();
 
         const request = {
             nonce,
@@ -122,8 +139,6 @@ export const DeploymentProvider = ({ children }) => {
             .filter((app) => app.is_deeployed)
             .uniqBy((app) => app.alias)
             .value();
-
-        console.log('[DeploymentProvider] Unique deployed apps with aliases', uniqueAppsWithAliases);
 
         const jobsWithAliases: RunningJobWithAlias[] = _(uniqueAppsWithAliases)
             .map((appWithAlias) => {
@@ -177,6 +192,8 @@ export const DeploymentProvider = ({ children }) => {
             }}
         >
             {children}
+
+            <SignMessageModal ref={signMessageModalRef} />
         </DeploymentContext.Provider>
     );
 };

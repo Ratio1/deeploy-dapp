@@ -25,7 +25,7 @@ export default function DraftOverview({
     draftJobs: DraftJob[] | undefined;
     projectIdentity: React.ReactNode;
 }) {
-    const confirm = useInteractionContext() as InteractionContextType;
+    const { confirm } = useInteractionContext() as InteractionContextType;
     const navigate = useNavigate();
 
     useEffect(() => {

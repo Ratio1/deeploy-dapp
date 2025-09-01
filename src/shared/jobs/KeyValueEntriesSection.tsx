@@ -45,7 +45,7 @@ export default function KeyValueEntriesSection({
         remove: UseFieldArrayRemove;
     };
 }) {
-    const confirm = useInteractionContext() as InteractionContextType;
+    const { confirm } = useInteractionContext() as InteractionContextType;
     const { control, formState, trigger } = useFormContext();
 
     const { fields, append, remove } =
