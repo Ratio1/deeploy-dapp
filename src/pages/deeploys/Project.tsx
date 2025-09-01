@@ -15,8 +15,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { usePublicClient } from 'wagmi';
 
 export default function Project() {
-    const { escrowContractAddress, jobType, projectPage, setProjectPage, getProjectName, fetchRunningJobsWithAliases } =
-        useDeploymentContext() as DeploymentContextType;
+    const {
+        escrowContractAddress,
+        jobType,
+        setJobType,
+        projectPage,
+        setProjectPage,
+        getProjectName,
+        fetchRunningJobsWithAliases,
+    } = useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
     const [projectName, setProjectName] = useState<string | undefined>();
@@ -36,6 +43,7 @@ export default function Project() {
     // Init
     useEffect(() => {
         setProjectPage(ProjectPage.Overview);
+        setJobType(undefined);
     }, []);
 
     useEffect(() => {
@@ -78,7 +86,7 @@ export default function Project() {
         return <ProjectPageLoading />;
     }
 
-    if (!projectHash) {
+    if (!projectHash || !projectName || draftJobs === undefined) {
         return <></>;
     }
 
@@ -99,7 +107,6 @@ export default function Project() {
                 />
             ) : (
                 <ProjectOverview
-                    projectName={projectName}
                     runningJobs={runningJobsWithAliases}
                     draftJobs={draftJobs}
                     projectIdentity={getProjectIdentity()}
@@ -107,6 +114,6 @@ export default function Project() {
             )}
         </>
     ) : (
-        <JobFormWrapper />
+        <JobFormWrapper projectName={projectName} draftJobsCount={draftJobs.length} />
     );
 }

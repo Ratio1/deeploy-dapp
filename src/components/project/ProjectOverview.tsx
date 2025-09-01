@@ -18,22 +18,16 @@ import ServiceRunningJobsList from './job-lists/ServiceRunningJobsList';
 import ProjectStats from './ProjectStats';
 
 export default function ProjectOverview({
-    projectName,
     runningJobs,
     draftJobs,
     projectIdentity,
 }: {
-    projectName: string | undefined;
     runningJobs: RunningJobWithAlias[] | undefined;
     draftJobs: DraftJob[] | undefined;
     projectIdentity: React.ReactNode;
 }) {
     const [selectedTab, setSelectedTab] = useState<'runningJobs' | 'draftJobs'>('runningJobs');
     const [runningJobsWithResources, setRunningJobsWithResources] = useState<RunningJobWithResources[]>([]);
-
-    useEffect(() => {
-        console.log({ projectName, runningJobs, draftJobs });
-    }, [runningJobs, draftJobs]);
 
     useEffect(() => {
         const runningJobsWithResources: RunningJobWithResources[] = _(runningJobs)
