@@ -23,18 +23,21 @@ function NativeRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
             }
             tableHeader={<>{applyWidthClasses(['Alias', 'Target Nodes', 'Compute Type', 'Worker Type'], widthClasses)}</>}
             jobs={jobs}
+            renderAlias={(job) => {
+                return (
+                    <div className={widthClasses[0]}>
+                        <SmallTag variant="green">
+                            <div className="truncate">{job.alias}</div>
+                        </SmallTag>
+                    </div>
+                );
+            }}
             renderJob={(job) => {
                 const { containerOrWorkerType, gpuType } = job.resources;
                 const targetNodes = Number(job.numberOfNodesRequested);
 
                 return (
                     <>
-                        <div className={widthClasses[0]}>
-                            <SmallTag variant="green">
-                                <div className="truncate">{job.alias}</div>
-                            </SmallTag>
-                        </div>
-
                         <div className={widthClasses[1]}>
                             <div className="font-medium">
                                 {targetNodes} node

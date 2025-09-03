@@ -26,6 +26,7 @@ import EmptyData from '@shared/EmptyData';
 import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
+import { UsdcValue } from '@shared/UsdcValue';
 import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { addDays, differenceInDays, differenceInHours } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
@@ -329,7 +330,7 @@ export default function Payment({
     };
 
     return (
-        <div className="col gap-12">
+        <div className="col flex-1 justify-between gap-12">
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
@@ -362,9 +363,8 @@ export default function Payment({
                             <div className="text-[15px] font-medium text-slate-500">Total Amount Due</div>
 
                             <div className="row gap-1.5">
-                                <div className="text-primary text-[19px] font-semibold">
-                                    <span className="text-slate-500">$USDC</span>{' '}
-                                    {parseFloat(totalCost.toFixed(2)).toLocaleString()}
+                                <div className="text-[19px] font-semibold">
+                                    <UsdcValue value={parseFloat(totalCost.toFixed(2)).toLocaleString()} />
                                 </div>
 
                                 {environment !== 'mainnet' && <SmallTag variant="blue">Adjusted for 1-hour epochs</SmallTag>}

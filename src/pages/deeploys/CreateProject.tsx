@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { projectSchema } from '@schemas/project';
+import SupportFooter from '@shared/SupportFooter';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -45,14 +46,16 @@ function CreateProject() {
     };
 
     return (
-        <div className="w-full flex-1">
-            <div className="mx-auto max-w-[466px]">
+        <div className="col flex-1 justify-between gap-12">
+            <div className="mx-auto w-sm">
                 <FormProvider {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit, onError)}>
                         <ProjectForm />
                     </form>
                 </FormProvider>
             </div>
+
+            <SupportFooter />
         </div>
     );
 }

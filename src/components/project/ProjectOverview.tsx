@@ -8,7 +8,7 @@ import AddJobCard from '@shared/projects/AddJobCard';
 import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
 import SupportFooter from '@shared/SupportFooter';
-import { DraftJob, JobType, RunningJobWithAlias, RunningJobWithResources } from '@typedefs/deeploys';
+import { DraftJob, JobType, RunningJobWithDetails, RunningJobWithResources } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { RiBox2Line, RiDraftLine, RiFileTextLine } from 'react-icons/ri';
@@ -22,7 +22,7 @@ export default function ProjectOverview({
     draftJobs,
     projectIdentity,
 }: {
-    runningJobs: RunningJobWithAlias[] | undefined;
+    runningJobs: RunningJobWithDetails[] | undefined;
     draftJobs: DraftJob[] | undefined;
     projectIdentity: React.ReactNode;
 }) {
@@ -43,11 +43,13 @@ export default function ProjectOverview({
             .filter((job) => job !== undefined)
             .value();
 
+        console.log('[ProjectOverview] runningJobsWithResources', runningJobsWithResources);
+
         setRunningJobsWithResources(runningJobsWithResources);
     }, [runningJobs]);
 
     return (
-        <div className="col gap-12">
+        <div className="col flex-1 justify-between gap-12">
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">

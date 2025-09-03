@@ -6,7 +6,7 @@ import { RunningJobWithResources } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
 
 const widthClasses = [
-    'min-w-[200px]', // alias
+    'min-w-[240px]', // alias
     'min-w-[90px]', // targetNodes
     'min-w-[100px]', // compute type
     'min-w-[310px]', // resources
@@ -23,18 +23,21 @@ function GenericRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
             }
             tableHeader={<>{applyWidthClasses(['Alias', 'Target Nodes', 'Compute Type', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
+            renderAlias={(job) => {
+                return (
+                    <div className={widthClasses[0]}>
+                        <SmallTag variant="blue">
+                            <div className="truncate">{job.alias}</div>
+                        </SmallTag>
+                    </div>
+                );
+            }}
             renderJob={(job) => {
                 const { containerOrWorkerType, gpuType } = job.resources;
                 const targetNodes = Number(job.numberOfNodesRequested);
 
                 return (
                     <>
-                        <div className={widthClasses[0]}>
-                            <SmallTag variant="blue">
-                                <div className="truncate">{job.alias}</div>
-                            </SmallTag>
-                        </div>
-
                         <div className={widthClasses[1]}>
                             <div className="font-medium">
                                 {targetNodes} node

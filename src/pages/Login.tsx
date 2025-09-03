@@ -39,7 +39,11 @@ function Login() {
 
     useEffect(() => {
         if (isConnected) {
-            checkAccess();
+            if (isUsingDevAddress) {
+                bypassAccess();
+            } else {
+                checkAccess();
+            }
         }
     }, [isConnected]);
 
@@ -69,6 +73,35 @@ function Login() {
             toast.error('Error checking oracle ownership.');
         } finally {
             console.log('Finished checking oracle ownership');
+            setLoading(false);
+        }
+    };
+
+    const bypassAccess = async () => {
+        if (!publicClient || !address) {
+            toast.error('Unexpected error, please refresh this page.');
+            return;
+        }
+
+        setLoading(true);
+
+        console.log('Bypassing oracle ownership...');
+
+        try {
+            const escrowScAddress = await publicClient.readContract({
+                address: config.poAIManagerContractAddress,
+                abi: PoAIManagerAbi,
+                functionName: 'ownerToEscrow',
+                args: [address],
+            });
+
+            setOraclesCount(1);
+            setEscrowContractAddress(escrowScAddress as EthAddress);
+        } catch (error) {
+            console.error('Error bypassing oracle ownership', error);
+            toast.error('Error bypassing oracle ownership.');
+        } finally {
+            console.log('Finished bypassing oracle ownership');
             setLoading(false);
         }
     };

@@ -68,7 +68,7 @@ export default function DraftJobsList({
             }
         >
             {/* Table Header */}
-            <div className="row compact justify-between gap-2 px-4 py-3 text-slate-500">
+            <div className="row justify-between gap-2 px-4 py-3 text-[13px] font-medium text-slate-500">
                 {tableHeader}
 
                 {/* Accounts for the context menu button */}

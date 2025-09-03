@@ -11,14 +11,14 @@ export default function JobTags() {
         <div className="flex">
             <Checkbox
                 icon={<RiSuitcaseLine />}
-                isSelected={jobTags?.includes('EE_NODETAG_KYB')}
+                isSelected={jobTags?.includes('IS_KYB')}
                 onValueChange={(value) => {
                     if (value) {
-                        setValue('specifications.jobTags', [...jobTags, 'EE_NODETAG_KYB']);
+                        setValue('specifications.jobTags', [...jobTags, 'IS_KYB']);
                     } else {
                         setValue(
                             'specifications.jobTags',
-                            jobTags?.filter((tag) => tag !== 'EE_NODETAG_KYB'),
+                            jobTags?.filter((tag) => tag !== 'IS_KYB'),
                         );
                     }
                 }}
