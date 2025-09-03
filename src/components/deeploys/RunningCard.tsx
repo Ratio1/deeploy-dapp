@@ -4,13 +4,14 @@ import { addTimeFn, diffTimeFn } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
+import Expander from '@shared/Expander';
 import Usage from '@shared/projects/Usage';
 import { SmallTag } from '@shared/SmallTag';
-import { RunningJob, RunningJobWithAlias } from '@typedefs/deeploys';
+import { RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
 import { addDays, differenceInDays, formatDistanceStrict } from 'date-fns';
 import _ from 'lodash';
-import { RiArrowRightSLine, RiCalendarLine } from 'react-icons/ri';
+import { RiCalendarLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
 
 export default function RunningCard({
@@ -20,11 +21,11 @@ export default function RunningCard({
     toggle,
 }: {
     projectHash: string;
-    jobs: RunningJobWithAlias[];
+    jobs: RunningJobWithDetails[];
     expanded: boolean | undefined;
     toggle: () => void;
 }) {
-    const getDaysLeftUntilNextPayment = (job: RunningJobWithAlias): any => {
+    const getDaysLeftUntilNextPayment = (job: RunningJobWithDetails): any => {
         const epochsCovered = Math.floor(
             Number(job.balance / (job.pricePerEpoch * job.numberOfNodesRequested * (environment === 'mainnet' ? 1n : 24n))),
         );
@@ -53,7 +54,7 @@ export default function RunningCard({
         );
     };
 
-    const getProjectName = (): React.ReactNode => {
+    const getProjectIdentity = (): React.ReactNode => {
         const job = jobs.find((job) => !!job.projectName);
 
         if (!job) {
@@ -64,155 +65,144 @@ export default function RunningCard({
     };
 
     return (
-        <Link to={`${routePath.deeploys}/${routePath.project}/${projectHash}`}>
-            <BorderedCard isHoverable>
-                <div className="row justify-between gap-6">
-                    <div className="row gap-6">
-                        {/* Project name and expand/collapse button */}
-                        <div className="min-w-[232px]">
-                            <div className="row gap-2">
-                                <div
-                                    className="-m-1 cursor-pointer rounded-md p-1 hover:bg-slate-100"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        e.preventDefault();
-                                        toggle();
-                                    }}
-                                >
-                                    <RiArrowRightSLine
-                                        className={`text-[22px] text-slate-400 transition-all ${expanded ? 'rotate-90' : ''}`}
-                                    />
-                                </div>
+        <BorderedCard>
+            <div className="row justify-between gap-6">
+                <div className="row gap-6">
+                    {/* Project name and expand/collapse button */}
+                    <div className="min-w-[232px]">
+                        <div className="row gap-2">
+                            <Expander expanded={expanded} onToggle={toggle} />
 
-                                {getProjectName()}
-                            </div>
-                        </div>
-
-                        <div className="min-w-[80px]">
-                            <div className="text-[13px] font-medium">
-                                {jobs.length} job{jobs.length > 1 ? 's' : ''}
-                            </div>
-                        </div>
-
-                        <div className="min-w-[164px]">
-                            <SmallTag>
-                                <div className="row gap-1">
-                                    <RiCalendarLine className="text-sm" />
-
-                                    {addTimeFn(
-                                        config.genesisDate,
-                                        Number(
-                                            (_.maxBy(jobs, (job) => job.lastExecutionEpoch) as RunningJob).lastExecutionEpoch,
-                                        ),
-                                    ).toLocaleString(undefined, {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        year: 'numeric',
-                                    })}
-                                </div>
-                            </SmallTag>
-                        </div>
-
-                        <div className="min-w-[200px]">
-                            <div className="font-medium text-slate-500">—</div>
+                            <Link to={`${routePath.deeploys}/${routePath.project}/${projectHash}`} className="hover:opacity-75">
+                                {getProjectIdentity()}
+                            </Link>
                         </div>
                     </div>
 
-                    <div className="row min-w-[124px]">{getNextPaymentDue()}</div>
+                    <div className="min-w-[80px]">
+                        <div className="text-[13px] font-medium">
+                            {jobs.length} job{jobs.length > 1 ? 's' : ''}
+                        </div>
+                    </div>
+
+                    <div className="min-w-[164px]">
+                        <SmallTag>
+                            <div className="row gap-1">
+                                <RiCalendarLine className="text-sm" />
+
+                                {addTimeFn(
+                                    config.genesisDate,
+                                    Number((_.maxBy(jobs, (job) => job.lastExecutionEpoch) as RunningJob).lastExecutionEpoch),
+                                ).toLocaleString(undefined, {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                })}
+                            </div>
+                        </SmallTag>
+                    </div>
+
+                    <div className="min-w-[200px]">
+                        <div className="font-medium text-slate-500">—</div>
+                    </div>
                 </div>
 
-                {expanded && (
-                    <div className="col bg-slate-75 rounded-lg py-2 pr-2.5 text-sm">
-                        {jobs?.map((job, index, array) => {
-                            const resources: RunningJobResources | undefined = getRunningJobResources(job.jobType);
+                <div className="row min-w-[124px]">{getNextPaymentDue()}</div>
+            </div>
 
-                            if (!resources) {
-                                return <div className="compact">Unknown job type</div>;
-                            }
+            {expanded && (
+                <div className="col bg-slate-75 rounded-lg py-2 pr-2.5 text-sm">
+                    {jobs?.map((job, index, array) => {
+                        const resources: RunningJobResources | undefined = getRunningJobResources(job.jobType);
 
-                            const { jobType } = resources;
+                        if (!resources) {
+                            return <div className="compact">Unknown job type</div>;
+                        }
 
-                            const jobTypeOption = jobTypeOptions.find(
-                                (option) => option.id === jobType.toLowerCase(),
-                            ) as JobTypeOption;
+                        const { jobType } = resources;
 
-                            const targetNodes = Number(job.numberOfNodesRequested);
+                        const jobTypeOption = jobTypeOptions.find(
+                            (option) => option.id === jobType.toLowerCase(),
+                        ) as JobTypeOption;
 
-                            const requestDate = new Date(Number(job.requestTimestamp) * 1000);
-                            const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
+                        const targetNodes = Number(job.numberOfNodesRequested);
 
-                            const daysLeftUntilExpiration = differenceInDays(expirationDate, new Date());
-                            const daysLeftUntilNextPayment = getDaysLeftUntilNextPayment(job);
+                        const requestDate = new Date(Number(job.requestTimestamp) * 1000);
+                        const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
 
-                            return (
-                                <div key={job.id} className="row">
-                                    <div className="row flex-1 gap-6">
-                                        <div className="row gap-1.5">
-                                            {/* Tree Line */}
-                                            <div className="row relative mr-2 ml-2.5">
-                                                <div className="h-10 w-0.5 bg-slate-300"></div>
-                                                <div className="h-0.5 w-5 bg-slate-300"></div>
+                        const daysLeftUntilExpiration = differenceInDays(expirationDate, new Date());
+                        const daysLeftUntilNextPayment = getDaysLeftUntilNextPayment(job);
 
-                                                {index === array.length - 1 && (
-                                                    <div className="bg-slate-75 absolute bottom-0 left-0 h-[19px] w-0.5"></div>
-                                                )}
-                                            </div>
+                        return (
+                            <div key={job.id} className="row">
+                                <div className="row flex-1 gap-6">
+                                    <div className="row gap-1.5">
+                                        {/* Tree Line */}
+                                        <div className="row relative mr-2 ml-2.5">
+                                            <div className="h-10 w-0.5 bg-slate-300"></div>
+                                            <div className="h-0.5 w-5 bg-slate-300"></div>
 
-                                            <div className={`text-[17px] ${jobTypeOption.textColorClass}`}>
-                                                {jobTypeOption.icon}
-                                            </div>
+                                            {index === array.length - 1 && (
+                                                <div className="bg-slate-75 absolute bottom-0 left-0 h-[19px] w-0.5"></div>
+                                            )}
+                                        </div>
 
-                                            <div className="w-[163px]">
+                                        <div className={`text-[17px] ${jobTypeOption.textColorClass}`}>
+                                            {jobTypeOption.icon}
+                                        </div>
+
+                                        <div className="w-[163px]">
+                                            <Link
+                                                to={`${routePath.deeploys}/${routePath.job}/${job.id}`}
+                                                className="hover:opacity-75"
+                                            >
                                                 <SmallTag variant={jobTypeOption.color}>{job.alias}</SmallTag>
-                                            </div>
-                                        </div>
-
-                                        <div className="min-w-[80px] text-[13px] font-medium">
-                                            {targetNodes} node
-                                            {targetNodes > 1 ? 's' : ''}
-                                        </div>
-
-                                        <div className="min-w-[164px]">
-                                            <SmallTag>
-                                                <div className="row gap-1">
-                                                    <RiCalendarLine className="text-sm" />
-
-                                                    {expirationDate.toLocaleString(undefined, {
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                        year: 'numeric',
-                                                    })}
-                                                </div>
-                                            </SmallTag>
-                                        </div>
-
-                                        <div className="w-[200px]">
-                                            <Usage
-                                                used={diffTimeFn(new Date(), requestDate)}
-                                                total={diffTimeFn(expirationDate, requestDate) + 1}
-                                                isColored
-                                            />
+                                            </Link>
                                         </div>
                                     </div>
 
-                                    <div className="row min-w-[114px]">
-                                        {daysLeftUntilNextPayment >= daysLeftUntilExpiration ? (
-                                            <SmallTag variant="green">Paid in full</SmallTag>
-                                        ) : (
-                                            <SmallTag variant={daysLeftUntilNextPayment > 15 ? 'default' : 'red'}>
-                                                {formatDistanceStrict(
-                                                    addDays(new Date(), daysLeftUntilNextPayment),
-                                                    new Date(),
-                                                )}
-                                            </SmallTag>
-                                        )}
+                                    <div className="min-w-[80px] text-[13px] font-medium">
+                                        {targetNodes} node
+                                        {targetNodes > 1 ? 's' : ''}
+                                    </div>
+
+                                    <div className="min-w-[164px]">
+                                        <SmallTag>
+                                            <div className="row gap-1">
+                                                <RiCalendarLine className="text-sm" />
+
+                                                {expirationDate.toLocaleString(undefined, {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric',
+                                                })}
+                                            </div>
+                                        </SmallTag>
+                                    </div>
+
+                                    <div className="w-[200px]">
+                                        <Usage
+                                            used={diffTimeFn(new Date(), requestDate)}
+                                            total={diffTimeFn(expirationDate, requestDate) + 1}
+                                            isColored
+                                        />
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </BorderedCard>
-        </Link>
+
+                                <div className="row min-w-[114px]">
+                                    {daysLeftUntilNextPayment >= daysLeftUntilExpiration ? (
+                                        <SmallTag variant="green">Paid in full</SmallTag>
+                                    ) : (
+                                        <SmallTag variant={daysLeftUntilNextPayment > 15 ? 'default' : 'red'}>
+                                            {formatDistanceStrict(addDays(new Date(), daysLeftUntilNextPayment), new Date())}
+                                        </SmallTag>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </BorderedCard>
     );
 }

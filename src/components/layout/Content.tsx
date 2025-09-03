@@ -34,7 +34,7 @@ function Content() {
                         </div>
                     )}
 
-                    {!!description && <div className="text-base text-slate-500 lg:text-lg">{description}</div>}
+                    {!!description && <div className="text-base text-slate-500 lg:text-[17px]">{description}</div>}
                 </div>
 
                 <div className="flex">

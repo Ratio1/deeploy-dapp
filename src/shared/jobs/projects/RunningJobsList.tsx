@@ -1,23 +1,31 @@
 import { config } from '@lib/config';
 import { addTimeFn, diffTimeFn } from '@lib/deeploy-utils';
+import { routePath } from '@lib/routes/route-paths';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
+import Expander from '@shared/Expander';
 import DetailedUsage from '@shared/projects/DetailedUsage';
 import { SmallTag } from '@shared/SmallTag';
 import { RunningJobWithResources } from '@typedefs/deeploys';
+import { useState } from 'react';
 import { RiEditLine } from 'react-icons/ri';
+import { Link } from 'react-router-dom';
 
 export default function RunningJobsList({
     cardHeader,
     tableHeader,
     jobs,
+    renderAlias,
     renderJob,
 }: {
     cardHeader: React.ReactNode;
     tableHeader: React.ReactNode;
     jobs: RunningJobWithResources[];
+    renderAlias: (job: RunningJobWithResources) => React.ReactNode;
     renderJob: (job: RunningJobWithResources) => React.ReactNode;
 }) {
+    const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
     return (
         <CompactCustomCard
             header={
@@ -33,7 +41,7 @@ export default function RunningJobsList({
             }
         >
             {/* Table Header */}
-            <div className="row compact justify-between gap-2 px-4 py-3 text-slate-500">
+            <div className="row justify-between gap-2 px-4 py-3 text-[13px] font-medium text-slate-500">
                 {tableHeader}
 
                 {/* Accounts for the context menu button */}
@@ -48,6 +56,25 @@ export default function RunningJobsList({
                     <div key={job.id} className="col gap-4 border-t-2 border-slate-200/65 px-4 py-5 text-[13px]">
                         {/* Content */}
                         <div className="row justify-between gap-2">
+                            <div className="row gap-2">
+                                <Expander
+                                    expanded={expanded[job.id.toString()]}
+                                    onToggle={() =>
+                                        setExpanded({ ...expanded, [job.id.toString()]: !expanded[job.id.toString()] })
+                                    }
+                                />
+
+                                {/* Negative margin takes into account the width of the Expander */}
+                                <div className="-mr-[30px]">
+                                    <Link
+                                        to={`${routePath.deeploys}/${routePath.job}/${job.id.toString()}`}
+                                        className="hover:opacity-75"
+                                    >
+                                        {renderAlias(job)}
+                                    </Link>
+                                </div>
+                            </div>
+
                             {renderJob(job)}
 
                             <ContextMenuWithTrigger
@@ -63,49 +90,63 @@ export default function RunningJobsList({
                             />
                         </div>
 
-                        {/* Footer */}
-                        <div className="row bg-slate-75 justify-between gap-2 rounded-lg px-4 py-4">
-                            <ItemWithLabel
-                                label="Start Date"
-                                value={
-                                    <div className="leading-none">
-                                        {requestDate.toLocaleDateString(undefined, {
-                                            month: 'short',
-                                            day: 'numeric',
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                        })}
+                        {/* Details */}
+                        {expanded[job.id.toString()] && (
+                            <div className="col bg-slate-75 gap-2.5 rounded-lg px-5 py-4">
+                                <div className="text-lg font-semibold">Details</div>
+
+                                <div className="row justify-between gap-2">
+                                    <ItemWithLabel
+                                        label="Start Date"
+                                        value={
+                                            <div className="leading-none">
+                                                {requestDate.toLocaleDateString(undefined, {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                })}
+                                            </div>
+                                        }
+                                    />
+
+                                    <ItemWithLabel
+                                        label="End Date"
+                                        value={
+                                            <div className="row gap-1.5">
+                                                <div className="leading-none">
+                                                    {expirationDate.toLocaleDateString(undefined, {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                    })}
+                                                </div>
+
+                                                <SmallTag>Epoch {Number(job.lastExecutionEpoch)}</SmallTag>
+                                            </div>
+                                        }
+                                    />
+
+                                    <ItemWithLabel
+                                        label="Next payment due"
+                                        value={<div className="font-medium text-green-600">Paid in full</div>}
+                                        // value={<SmallTag variant="green">Paid in full</SmallTag>}
+                                    />
+
+                                    <div className="min-w-[350px]">
+                                        {/* Update when custom payment duration is implemented */}
+                                        <DetailedUsage
+                                            used={diffTimeFn(new Date(), requestDate)}
+                                            paid={diffTimeFn(expirationDate, requestDate) + 1}
+                                            total={diffTimeFn(expirationDate, requestDate) + 1}
+                                        />
                                     </div>
-                                }
-                            />
-
-                            <ItemWithLabel
-                                label="End Date"
-                                value={
-                                    <div className="leading-none">
-                                        {expirationDate.toLocaleDateString(undefined, {
-                                            month: 'short',
-                                            day: 'numeric',
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                        })}
-                                    </div>
-                                }
-                            />
-
-                            <ItemWithLabel label="Next payment due" value={<SmallTag variant="green">Paid in full</SmallTag>} />
-
-                            <div className="min-w-[362px]">
-                                {/* Update when custom payment duration is implemented */}
-                                <DetailedUsage
-                                    used={diffTimeFn(new Date(), requestDate)}
-                                    paid={diffTimeFn(expirationDate, requestDate) + 1}
-                                    total={diffTimeFn(expirationDate, requestDate) + 1}
-                                />
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 );
             })}
@@ -115,9 +156,9 @@ export default function RunningJobsList({
 
 function ItemWithLabel({ label, value }: { label: string; value: string | React.ReactNode }) {
     return (
-        <div className="col gap-1">
+        <div className="col">
             <div className="font-medium text-slate-500">{label}</div>
-            {value}
+            <div className="row min-h-[22px]">{value}</div>
         </div>
     );
 }

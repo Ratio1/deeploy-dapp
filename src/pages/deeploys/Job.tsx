@@ -1,21 +1,29 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
+import JobFullUsage from '@components/job/JobFullUsage';
+import JobStats from '@components/job/JobStats';
 import JobPageLoading from '@components/loading/JobPageLoading';
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { RunningJob } from '@typedefs/deeploys';
+import { routePath } from '@lib/routes/route-paths';
+import ActionButton from '@shared/ActionButton';
+import { SmallTag } from '@shared/SmallTag';
+import SupportFooter from '@shared/SupportFooter';
+import { RunningJob, RunningJobWithDetails, RunningJobWithResources } from '@typedefs/deeploys';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { useParams } from 'react-router-dom';
+import { RiArrowLeftLine } from 'react-icons/ri';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { usePublicClient } from 'wagmi';
 
 export default function Job() {
-    const { apps, escrowContractAddress } = useDeploymentContext() as DeploymentContextType;
+    const { apps, escrowContractAddress, formatRunningJobsWithDetails } = useDeploymentContext() as DeploymentContextType;
 
+    const navigate = useNavigate();
     const publicClient = usePublicClient();
     const { jobId } = useParams();
 
     const [isLoading, setLoading] = useState(true);
-    const [job, setJob] = useState<RunningJob | undefined>();
+    const [job, setJob] = useState<RunningJobWithResources | undefined>();
 
     useEffect(() => {
         if (publicClient && jobId && escrowContractAddress) {
@@ -25,7 +33,7 @@ export default function Job() {
 
     const fetchJob = async () => {
         if (!publicClient || !jobId || !escrowContractAddress) {
-            toast.error('Please refresh this page.');
+            toast.error('Please refresh this page and try again.');
             return;
         }
 
@@ -39,14 +47,29 @@ export default function Job() {
                 args: [BigInt(jobId)],
             });
 
+            if (!runningJob.id) {
+                throw new Error('Job missing from the smart contract.');
+            }
+
             const resources: RunningJobResources | undefined = getRunningJobResources(runningJob.jobType);
+            const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails([runningJob]);
 
-            // TODO: Use existing code to format into RunningJobWithAlias, RunningJobWithResources
+            if (!resources || runningJobsWithDetails.length !== 1) {
+                throw new Error('Invalid job, unable to fetch resources.');
+            }
 
-            console.log(runningJob);
-            setJob(runningJob);
+            const runningJobWithResources: RunningJobWithResources = {
+                ...runningJobsWithDetails[0],
+                resources,
+            };
+
+            console.log(runningJobWithResources);
+
+            setJob(runningJobWithResources);
         } catch (error) {
-            toast.error('Failed to fetch running jobs.');
+            console.error(error);
+            toast.error('Failed to fetch running job details.');
+            navigate(routePath.notFound);
         } finally {
             setLoading(false);
         }
@@ -56,11 +79,42 @@ export default function Job() {
         return <JobPageLoading />;
     }
 
-    // TODO: If the jobId is not valid or the job cannot be found in the smart contract, route to 404
-
     return (
-        <div className="col gap-6">
-            <div className="text-lg font-semibold">Job #{Number(job.id)}</div>
+        <div className="col flex-1 justify-between gap-12">
+            <div className="col gap-6">
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                    <div className="row gap-1.5">
+                        <div className="text-xl font-semibold">{job.alias}</div>
+
+                        <SmallTag variant="green" isLarge>
+                            Running
+                        </SmallTag>
+                    </div>
+
+                    <div className="row gap-2">
+                        <ActionButton
+                            className="slate-button"
+                            color="default"
+                            as={Link}
+                            to={`${routePath.deeploys}/${routePath.project}/${job.projectHash}`}
+                        >
+                            <div className="row gap-1.5">
+                                <RiArrowLeftLine className="text-lg" />
+                                <div className="compact">Project</div>
+                            </div>
+                        </ActionButton>
+                    </div>
+                </div>
+
+                {/* Stats */}
+                <JobStats job={job} />
+
+                {/* Usage */}
+                <JobFullUsage job={job} />
+            </div>
+
+            <SupportFooter />
         </div>
     );
 }

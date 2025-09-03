@@ -23,18 +23,21 @@ function ServiceRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
             }
             tableHeader={<>{applyWidthClasses(['Alias', 'Target Nodes', 'Database', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
+            renderAlias={(job) => {
+                return (
+                    <div className={widthClasses[0]}>
+                        <SmallTag variant="purple">
+                            <div className="truncate">{job.alias}</div>
+                        </SmallTag>
+                    </div>
+                );
+            }}
             renderJob={(job) => {
                 const { containerOrWorkerType } = job.resources;
                 const targetNodes = Number(job.numberOfNodesRequested);
 
                 return (
                     <>
-                        <div className={widthClasses[0]}>
-                            <SmallTag variant="purple">
-                                <div className="truncate">{job.alias}</div>
-                            </SmallTag>
-                        </div>
-
                         <div className={widthClasses[1]}>
                             <div className="font-medium">
                                 {targetNodes} node

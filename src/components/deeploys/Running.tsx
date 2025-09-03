@@ -3,7 +3,7 @@ import { Skeleton } from '@heroui/skeleton';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
-import { RunningJobWithAlias } from '@typedefs/deeploys';
+import { RunningJobWithDetails } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { RiDraftLine, RiRefreshLine } from 'react-icons/ri';
@@ -16,12 +16,12 @@ export interface RunningRef {
 }
 
 const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => void }>(({ setProjectsCount }, ref) => {
-    const { apps, isFetchingApps, isFetchAppsRequired, fetchApps, fetchRunningJobsWithAliases } =
+    const { apps, isFetchingApps, isFetchAppsRequired, fetchApps, fetchRunningJobsWithDetails } =
         useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
 
-    const [projects, setProjects] = useState<Record<string, RunningJobWithAlias[]>>({});
+    const [projects, setProjects] = useState<Record<string, RunningJobWithDetails[]>>({});
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
     const publicClient = usePublicClient();
@@ -48,8 +48,8 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
         console.log('getProjectsWithJobs', apps);
         setLoading(true);
 
-        const jobsWithAliases: RunningJobWithAlias[] = await fetchRunningJobsWithAliases();
-        const projectsWithJobs = _.groupBy(jobsWithAliases, 'projectHash');
+        const jobsWithDetails: RunningJobWithDetails[] = await fetchRunningJobsWithDetails();
+        const projectsWithJobs = _.groupBy(jobsWithDetails, 'projectHash');
 
         setProjects(projectsWithJobs);
         setProjectsCount(Object.keys(projectsWithJobs).length);
@@ -98,13 +98,6 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
 
                 <div className="min-w-[124px]">Next payment due</div>
             </ListHeader>
-
-            {/* TODO: Remove */}
-            {/* {process.env.NODE_ENV === 'development' && (
-                <Button variant="solid" color="secondary" as={Link} to={`${routePath.deeploys}/${routePath.job}/70`}>
-                    <div className="compact">Go to Job</div>
-                </Button>
-            )} */}
 
             {isFetchAppsRequired && (
                 <div className="text-warning-800 bg-warning-100 rounded-lg px-6 py-3 text-sm">

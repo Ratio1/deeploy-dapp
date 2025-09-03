@@ -195,12 +195,13 @@ type RunningJob = {
     activeNodes: readonly EthAddress[];
 };
 
-type RunningJobWithAlias = RunningJob & {
+type RunningJobWithDetails = RunningJob & {
     alias: string;
     projectName?: string;
+    nodes: string[];
 };
 
-type RunningJobWithResources = RunningJobWithAlias & {
+type RunningJobWithResources = RunningJobWithDetails & {
     resources: RunningJobResources;
 };
 
@@ -221,7 +222,7 @@ export type {
     NativeDraftJob,
     NativeJobSpecifications,
     RunningJob,
-    RunningJobWithAlias,
+    RunningJobWithDetails,
     RunningJobWithResources,
     ServiceDraftJob,
     ServiceJobSpecifications,

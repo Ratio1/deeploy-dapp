@@ -7,7 +7,7 @@ import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import ProjectIdentity from '@shared/jobs/projects/ProjectIdentity';
 import Payment from '@shared/projects/Payment';
-import { DraftJob, ProjectPage, RunningJobWithAlias } from '@typedefs/deeploys';
+import { DraftJob, ProjectPage, RunningJobWithDetails } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -22,12 +22,12 @@ export default function Project() {
         projectPage,
         setProjectPage,
         getProjectName,
-        fetchRunningJobsWithAliases,
+        fetchRunningJobsWithDetails,
     } = useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
     const [projectName, setProjectName] = useState<string | undefined>();
-    const [runningJobsWithAliases, setRunningJobsWithAliases] = useState<RunningJobWithAlias[]>([]);
+    const [runningJobsWithDetails, setRunningJobsWithDetails] = useState<RunningJobWithDetails[]>([]);
 
     const publicClient = usePublicClient();
 
@@ -69,12 +69,12 @@ export default function Project() {
         setLoading(true);
 
         try {
-            const jobs: RunningJobWithAlias[] = await fetchRunningJobsWithAliases();
+            const jobs: RunningJobWithDetails[] = await fetchRunningJobsWithDetails();
             const projectJobs = jobs.filter((job) => job.projectHash === projectHash);
 
             console.log('[Project] Project jobs', projectJobs);
 
-            setRunningJobsWithAliases(projectJobs);
+            setRunningJobsWithDetails(projectJobs);
         } catch (error) {
             toast.error('Failed to fetch running jobs.');
         } finally {
@@ -107,7 +107,7 @@ export default function Project() {
                 />
             ) : (
                 <ProjectOverview
-                    runningJobs={runningJobsWithAliases}
+                    runningJobs={runningJobsWithDetails}
                     draftJobs={draftJobs}
                     projectIdentity={getProjectIdentity()}
                 />

@@ -1,8 +1,8 @@
 import { ContainerOrWorkerType, GpuType } from '@data/containerResources';
 import { getContainerOrWorkerType, getGpuType } from '@lib/deeploy-utils';
-import { BorderedCard } from '@shared/cards/BorderedCard';
+import CardWithItems from '@shared/jobs/projects/CardWithItems';
+import { UsdcValue } from '@shared/UsdcValue';
 import { DraftJob, JobType } from '@typedefs/deeploys';
-import clsx from 'clsx';
 
 export default function DraftStats({ jobs }: { jobs: DraftJob[] | undefined }) {
     if (!jobs || jobs.length === 0) {
@@ -19,36 +19,20 @@ export default function DraftStats({ jobs }: { jobs: DraftJob[] | undefined }) {
         );
     };
 
-    return (
-        <BorderedCard isLight={false}>
-            <div className="row justify-between">
-                <Item label="Total Jobs" value={jobs.length} />
+    const items = [
+        {
+            label: 'Total Jobs',
+            value: jobs.length,
+        },
+        {
+            label: 'Total Target Nodes',
+            value: jobs.reduce((acc, job) => acc + job.specifications.targetNodesCount, 0),
+        },
+        {
+            label: 'Monthly Cost Estimate',
+            value: <UsdcValue value={jobs.reduce((acc, job) => acc + getJobMonthlyCost(job), 0)} />,
+        },
+    ];
 
-                <Item
-                    label="Total Target Nodes"
-                    value={jobs.reduce((acc, job) => acc + job.specifications.targetNodesCount, 0)}
-                />
-
-                <Item
-                    label="Monthly Cost Estimate"
-                    value={
-                        <div className="text-primary">
-                            <span className="text-slate-500">$USDC</span>{' '}
-                            {jobs.reduce((acc, job) => acc + getJobMonthlyCost(job), 0)}
-                        </div>
-                    }
-                    isLast
-                />
-            </div>
-        </BorderedCard>
-    );
-}
-
-function Item({ label, value, isLast = false }: { label: string; value: string | React.ReactNode; isLast?: boolean }) {
-    return (
-        <div className="col gap-0.5">
-            <div className={clsx('text-[15px] font-medium text-slate-500', isLast && 'text-right')}>{label}</div>
-            <div className="text-[19px] font-semibold">{value}</div>
-        </div>
-    );
+    return <CardWithItems items={items} />;
 }

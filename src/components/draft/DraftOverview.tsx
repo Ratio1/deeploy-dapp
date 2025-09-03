@@ -50,7 +50,7 @@ export default function DraftOverview({
     };
 
     return (
-        <div className="col gap-12">
+        <div className="col flex-1 justify-between gap-12">
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">

@@ -5,7 +5,7 @@ import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import { SignMessageModal } from '@shared/SignMessageModal';
 import { EthAddress } from '@typedefs/blockchain';
 import { Apps } from '@typedefs/deeployApi';
-import { JobType, ProjectPage, RunningJob, RunningJobWithAlias } from '@typedefs/deeploys';
+import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -112,7 +112,7 @@ export const DeploymentProvider = ({ children }) => {
         }
     };
 
-    const fetchRunningJobsWithAliases = async (): Promise<RunningJobWithAlias[]> => {
+    const fetchRunningJobsWithDetails = async (): Promise<RunningJobWithDetails[]> => {
         if (!publicClient || !escrowContractAddress) {
             toast.error('Please connect your wallet and refresh this page.');
             return [];
@@ -126,6 +126,11 @@ export const DeploymentProvider = ({ children }) => {
 
         console.log('[DeploymentProvider] Smart contract jobs', runningJobs);
 
+        const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(runningJobs);
+        return runningJobsWithDetails;
+    };
+
+    const formatRunningJobsWithDetails = (runningJobs: readonly RunningJob[]): RunningJobWithDetails[] => {
         const uniqueAppsWithAliases = _(Object.values(apps))
             .map((nodeApps) => {
                 return Object.entries(nodeApps).map(([alias, app]) => {
@@ -140,7 +145,7 @@ export const DeploymentProvider = ({ children }) => {
             .uniqBy((app) => app.alias)
             .value();
 
-        const jobsWithAliases: RunningJobWithAlias[] = _(uniqueAppsWithAliases)
+        const runningJobsWithDetails: RunningJobWithDetails[] = _(uniqueAppsWithAliases)
             .map((appWithAlias) => {
                 const alias: string = appWithAlias.alias;
                 const specs = appWithAlias.deeploy_specs;
@@ -149,22 +154,22 @@ export const DeploymentProvider = ({ children }) => {
                 const job = runningJobs.find((job) => Number(job.id) === jobId && job.projectHash === specs.project_id);
 
                 if (!job) {
-                    console.log(`[DeploymentProvider] App ${alias} has no matching job in the smart contract`, appWithAlias);
                     return null;
                 }
 
                 return {
                     alias,
                     projectName: specs.project_name,
+                    nodes: Object.keys(apps).filter((node) => apps[node][alias] !== undefined),
                     ...job,
                 };
             })
             .filter((job) => job !== null)
             .value();
 
-        console.log('[DeploymentProvider] Running jobs with aliases', jobsWithAliases);
+        console.log('[DeploymentProvider] Running jobs with details', runningJobsWithDetails);
 
-        return jobsWithAliases;
+        return runningJobsWithDetails;
     };
 
     return (
@@ -185,7 +190,8 @@ export const DeploymentProvider = ({ children }) => {
                 apps,
                 // Utils
                 getProjectName,
-                fetchRunningJobsWithAliases,
+                fetchRunningJobsWithDetails,
+                formatRunningJobsWithDetails,
                 // Escrow
                 escrowContractAddress,
                 setEscrowContractAddress,
