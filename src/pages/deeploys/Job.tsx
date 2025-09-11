@@ -71,7 +71,7 @@ export default function Job() {
                 (option) => option.id === resources.jobType.toLowerCase(),
             ) as JobTypeOption;
 
-            console.log({ runningJobWithResources, jobTypeOption });
+            console.log(runningJobWithResources);
 
             setJobTypeOption(jobTypeOption);
             setJob(runningJobWithResources);
@@ -94,12 +94,20 @@ export default function Job() {
                 {/* Header */}
                 <div className="flex items-start justify-between">
                     <div className="row gap-1.5">
-                        <div className={`text-xl ${jobTypeOption.textColorClass}`}>{jobTypeOption.icon}</div>
-                        <div className="text-xl font-semibold">{job.alias}</div>
+                        <Link to={`${routePath.deeploys}/${routePath.project}/${job.projectHash}`} className="hover:underline">
+                            <div className="text-xl font-semibold">{job.projectName}</div>
+                        </Link>
 
-                        <SmallTag variant="green" isLarge>
-                            Running
-                        </SmallTag>
+                        <div className="mb-0.5 ml-1 text-xl font-semibold text-slate-500">/</div>
+
+                        <div className="row gap-1.5">
+                            <div className={`text-xl ${jobTypeOption.textColorClass}`}>{jobTypeOption.icon}</div>
+                            <div className="text-xl font-semibold">{job.alias}</div>
+
+                            <SmallTag variant="green" isLarge>
+                                Running
+                            </SmallTag>
+                        </div>
                     </div>
 
                     <div className="row gap-2">

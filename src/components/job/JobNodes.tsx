@@ -21,19 +21,21 @@ export default function JobNodes({
                 </div>
             }
             footer={
-                <div className="row compact justify-between">
+                <div className="row compact justify-between text-slate-600">
                     <div className="row gap-1">
                         <RiTimeLine className="text-lg" />
                         <div>Last Change Timestamp</div>
                     </div>
 
-                    <div className="text-slate-600">{new Date(Number(lastNodesChangeTimestamp) * 1000).toLocaleString()}</div>
+                    <div>
+                        {!lastNodesChangeTimestamp ? 'N/A' : new Date(Number(lastNodesChangeTimestamp) * 1000).toLocaleString()}
+                    </div>
                 </div>
             }
         >
             {nodes.map((node) => {
                 return (
-                    <div key={node} className="row border-t-2 border-slate-200/65 px-4 py-3 text-[13px]">
+                    <div key={node} className="row border-t-2 border-slate-200/65 px-4 py-3 text-[13px] font-medium">
                         {node}
                     </div>
                 );

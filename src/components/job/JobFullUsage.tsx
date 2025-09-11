@@ -24,7 +24,7 @@ export default function JobFullUsage({ job }: { job: RunningJobWithResources }) 
         },
         {
             label: 'Payment Covered',
-            value: `${paid} epochs`,
+            value: `${paid - elapsed} epochs`,
         },
         {
             label: 'Unpaid',
