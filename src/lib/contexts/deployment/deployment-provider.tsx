@@ -3,7 +3,7 @@ import { getApps } from '@lib/api/deeploy';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import { SignMessageModal } from '@shared/SignMessageModal';
-import { EthAddress } from '@typedefs/blockchain';
+import { EthAddress, R1Address } from '@typedefs/blockchain';
 import { Apps } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 import _ from 'lodash';
@@ -160,7 +160,7 @@ export const DeploymentProvider = ({ children }) => {
                 return {
                     alias,
                     projectName: specs.project_name,
-                    nodes: Object.keys(apps).filter((node) => apps[node][alias] !== undefined),
+                    nodes: Object.keys(apps).filter((node) => apps[node][alias] !== undefined) as R1Address[],
                     ...job,
                 };
             })
