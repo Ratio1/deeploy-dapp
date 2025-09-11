@@ -32,7 +32,7 @@ function Item({ label, value, isLast = false }: { label: string; value: string |
     return (
         <div className={clsx('col', isLast && 'text-right')}>
             <div className="text-[15px] font-medium text-slate-500">{label}</div>
-            <div className="text-[19px] font-semibold">{value}</div>
+            <div className="text-lg font-semibold">{value}</div>
         </div>
     );
 }

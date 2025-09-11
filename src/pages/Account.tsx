@@ -1,4 +1,4 @@
-import Billing from '@components/account/Billing';
+import Invoicing from '@components/account/Invoicing';
 import Overview from '@components/account/Overview';
 import { routePath } from '@lib/routes/route-paths';
 import CustomTabs from '@shared/CustomTabs';
@@ -7,14 +7,14 @@ import { RiApps2Line, RiBillLine } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
 
 function Account() {
-    const [selectedTab, setSelectedTab] = useState<'overview' | 'billing'>('overview');
+    const [selectedTab, setSelectedTab] = useState<'overview' | 'invoicing'>('overview');
     const navigate = useNavigate();
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
 
-        if (tab && (tab === 'overview' || tab === 'billing')) {
+        if (tab && (tab === 'overview' || tab === 'invoicing')) {
             setSelectedTab(tab);
         }
     }, [window.location.search]);
@@ -29,8 +29,8 @@ function Account() {
                         icon: <RiApps2Line />,
                     },
                     {
-                        key: 'billing',
-                        title: 'Billing',
+                        key: 'invoicing',
+                        title: 'Invoicing',
                         icon: <RiBillLine />,
                     },
                 ]}
@@ -41,7 +41,7 @@ function Account() {
             />
 
             {selectedTab === 'overview' && <Overview />}
-            {selectedTab === 'billing' && <Billing />}
+            {selectedTab === 'invoicing' && <Invoicing />}
         </div>
     );
 }

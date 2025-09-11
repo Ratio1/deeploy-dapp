@@ -1,5 +1,6 @@
 import { cn } from '@heroui/theme';
 import { FunctionComponent, JSX, PropsWithChildren } from 'react';
+import { BorderedCard } from './BorderedCard';
 
 interface Props {
     icon: JSX.Element;
@@ -10,8 +11,8 @@ interface Props {
 
 export const CardWithHeader: FunctionComponent<PropsWithChildren<Props>> = ({ children, icon, title, label, isDisabled }) => {
     return (
-        <div className="col bg-light gap-0 overflow-hidden rounded-xl border border-[#e3e4e8]">
-            <div className="larger:px-8 larger:py-6 bg-slate-100 px-6 py-4">
+        <BorderedCard disableWrapper isBorderDark>
+            <div className="bg-slate-100 px-4 py-4 lg:px-6">
                 <div className="row justify-between">
                     <div className="row gap-2 lg:gap-2.5">
                         <div className={cn('bg-primary rounded-full p-1.5 text-lg text-white', isDisabled && 'bg-slate-500')}>
@@ -26,7 +27,7 @@ export const CardWithHeader: FunctionComponent<PropsWithChildren<Props>> = ({ ch
                 </div>
             </div>
 
-            <div className="h-full px-6 py-4 lg:px-8 lg:py-6">{children}</div>
-        </div>
+            <div className="h-full px-6 py-4">{children}</div>
+        </BorderedCard>
     );
 };

@@ -4,6 +4,7 @@ import { routePath } from '@lib/routes/route-paths';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import Expander from '@shared/Expander';
+import ItemWithLabel from '@shared/ItemWithLabel';
 import DetailedUsage from '@shared/projects/DetailedUsage';
 import { SmallTag } from '@shared/SmallTag';
 import { RunningJobWithResources } from '@typedefs/deeploys';
@@ -41,7 +42,7 @@ export default function RunningJobsList({
             }
         >
             {/* Table Header */}
-            <div className="row justify-between gap-2 px-4 py-3 text-[13px] font-medium text-slate-500">
+            <div className="row justify-between gap-2 px-4 py-3 text-sm font-medium text-slate-500">
                 {tableHeader}
 
                 {/* Accounts for the context menu button */}
@@ -53,7 +54,7 @@ export default function RunningJobsList({
                 const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
 
                 return (
-                    <div key={job.id} className="col gap-4 border-t-2 border-slate-200/65 px-4 py-5 text-[13px]">
+                    <div key={job.id} className="col gap-4 border-t-2 border-slate-200/65 px-4 py-5 text-sm">
                         {/* Content */}
                         <div className="row justify-between gap-2">
                             <div className="row gap-2">
@@ -93,7 +94,7 @@ export default function RunningJobsList({
                         {/* Details */}
                         {expanded[job.id.toString()] && (
                             <div className="col bg-slate-75 gap-2.5 rounded-lg px-5 py-4">
-                                <div className="text-lg font-semibold">Details</div>
+                                <div className="text-base font-semibold">Details</div>
 
                                 <div className="row justify-between gap-2">
                                     <ItemWithLabel
@@ -151,14 +152,5 @@ export default function RunningJobsList({
                 );
             })}
         </CompactCustomCard>
-    );
-}
-
-function ItemWithLabel({ label, value }: { label: string; value: string | React.ReactNode }) {
-    return (
-        <div className="col">
-            <div className="font-medium text-slate-500">{label}</div>
-            <div className="row min-h-[22px]">{value}</div>
-        </div>
     );
 }

@@ -28,7 +28,7 @@ layer(base);
     --color-light: #fcfcfd;
     --color-primary: #1b47f7;
 
-    --color-slate-75: oklch(97.8% 0.004 247.9);
+    --color-slate-75: #f6f8fa;
     --color-slate-150: #e9edf2;
 
     --outline-width-3: 3px;
@@ -99,7 +99,7 @@ layer(base);
 }
 
 .list {
-    @apply flex w-full flex-col gap-3 overflow-x-auto;
+    @apply flex w-full flex-col gap-2 overflow-x-auto lg:gap-3;
 }
 
 .slate-button {
