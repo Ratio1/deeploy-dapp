@@ -38,7 +38,6 @@ layer(base);
     --shadow-warning: 0 0 0 3px #fdedd3;
 
     --width-sider: 250px;
-
     --margin-sider-with-padding: calc(250px + 1rem);
 
     --backdrop-blur-xs: 1px;

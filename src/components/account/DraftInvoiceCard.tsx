@@ -1,9 +1,12 @@
+import { Button } from '@heroui/button';
+import { downloadCspDraft } from '@lib/api/backend';
 import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
 import ItemWithLabel from '@shared/ItemWithLabel';
 import { InvoiceDraft } from '@typedefs/general';
-import { RiArrowRightLine } from 'react-icons/ri';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function DraftInvoiceCard({
     draft,
@@ -14,6 +17,21 @@ export default function DraftInvoiceCard({
     isExpanded: boolean;
     toggle: () => void;
 }) {
+    const [isLoading, setLoading] = useState<boolean>(false);
+
+    const downloadDraft = async (draftId: string) => {
+        try {
+            setLoading(true);
+            const draft = await downloadCspDraft(draftId);
+            console.log('Draft', draft);
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to download draft.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <BorderedCard isHoverable onClick={toggle}>
             <div className="col gap-4">
@@ -35,19 +53,22 @@ export default function DraftInvoiceCard({
 
                     <div className="min-w-[118px] font-medium">${draft.totalUsdcAmount.toFixed(2)}</div>
 
-                    <div
-                        className="min-w-[92px]"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-
-                            console.log('Download', draft.invoiceId);
-                        }}
-                    >
-                        <div className="row cursor-pointer gap-1 hover:opacity-50">
-                            <div className="compact">Download</div>
-                            <RiArrowRightLine className="mt-px text-lg" />
-                        </div>
+                    <div className="flex min-w-[124px] justify-end">
+                        <Button
+                            className="border-2 border-slate-200 bg-white data-[hover=true]:!opacity-65"
+                            isLoading={isLoading}
+                            size="sm"
+                            color="primary"
+                            variant="flat"
+                            onPress={() => {
+                                if (!isLoading) {
+                                    console.log('Download', draft.draftId);
+                                    downloadDraft(draft.draftId);
+                                }
+                            }}
+                        >
+                            <div className="text-sm">Download</div>
+                        </Button>
                     </div>
                 </div>
 
@@ -76,10 +97,8 @@ export default function DraftInvoiceCard({
                             <ItemWithLabel
                                 label="Invoice ID"
                                 value={
-                                    <CopyableValue value={draft.invoiceId}>
-                                        <div className="text-sm text-slate-400">
-                                            {getShortAddressOrHash(draft.invoiceId, 8)}
-                                        </div>
+                                    <CopyableValue value={draft.draftId}>
+                                        <div className="text-sm text-slate-400">{getShortAddressOrHash(draft.draftId, 8)}</div>
                                     </CopyableValue>
                                 }
                             />

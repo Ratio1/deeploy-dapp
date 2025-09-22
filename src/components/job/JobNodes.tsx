@@ -1,4 +1,7 @@
+import { getShortAddressOrHash } from '@lib/utils';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
+import { CopyableValue } from '@shared/CopyableValue';
+import { SmallTag } from '@shared/SmallTag';
 import { R1Address } from '@typedefs/blockchain';
 import { RiTimeLine } from 'react-icons/ri';
 
@@ -33,13 +36,15 @@ export default function JobNodes({
                 </div>
             }
         >
-            {nodes.map((node) => {
-                return (
-                    <div key={node} className="row border-t-2 border-slate-200/65 px-4 py-3 text-[13px] font-medium">
-                        {node}
-                    </div>
-                );
-            })}
+            <div className="row flex-wrap gap-4 px-4 py-3">
+                {nodes.map((node) => {
+                    return (
+                        <CopyableValue key={node} value={node}>
+                            <SmallTag isLarge>{getShortAddressOrHash(node, 4)}</SmallTag>
+                        </CopyableValue>
+                    );
+                })}
+            </div>
         </CompactCustomCard>
     );
 }

@@ -25,6 +25,10 @@ export default function BillingMonthSelect({
         }
     }, [selectedMonths]);
 
+    if (!uniqueMonths || uniqueMonths.length === 0) {
+        return null;
+    }
+
     if (!selectedMonths) {
         return <Skeleton className="h-10 w-48 rounded-lg" />;
     }

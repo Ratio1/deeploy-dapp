@@ -47,12 +47,13 @@ export const DeploymentProvider = ({ children }) => {
             const request = await signAndBuildGetAppsRequest(address);
             const response = await getApps(request);
 
+            console.log('[DeploymentProvider] fetchApps', response);
+
             if (!response.apps || response.status === 'fail') {
                 console.error(response);
                 throw new Error(`Failed to fetch running jobs: ${response.error || 'Unknown error'}`);
             }
 
-            console.log('[DeploymentProvider] fetchApps', response.apps);
             setApps(response.apps);
 
             // Setting this to false will trigger a re-render of the App component which in turn will navigate the user to the home page

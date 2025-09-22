@@ -1,17 +1,5 @@
 import { EthAddress } from './blockchain';
 
-type InvoiceDraft = {
-    invoiceId: string;
-    creationTimestamp: string;
-    userAddress: EthAddress;
-    cspOwnerAddress: EthAddress;
-    totalUsdcAmount: number;
-    invoiceSeries: string;
-    invoiceNumber: number;
-    nodeOwnerName: string;
-    cspOwnerName: string;
-};
-
 type BillingInfo = {
     companyName: string;
     billingEmail: string;
@@ -32,6 +20,18 @@ type TunnelingSecrets = {
     cloudflareApiKey: string;
     cloudflareZoneId: string;
     cloudflareDomain: string;
+};
+
+type InvoiceDraft = {
+    draftId: string;
+    creationTimestamp: string;
+    userAddress: EthAddress;
+    cspOwnerAddress: EthAddress;
+    totalUsdcAmount: number;
+    invoiceSeries: string;
+    invoiceNumber: number;
+    nodeOwnerName: string;
+    cspOwnerName: string;
 };
 
 export type { AuthState, BillingInfo, InvoiceDraft, TunnelingSecrets };
