@@ -19,7 +19,7 @@ export default function CardWithItems({
 
             <div className="row justify-between">
                 {items.map((item, index) => (
-                    <Item index={index} label={item.label} value={item.value} isLast={index === items.length - 1} />
+                    <Item key={index} label={item.label} value={item.value} isLast={index === items.length - 1} />
                 ))}
             </div>
 
@@ -28,21 +28,11 @@ export default function CardWithItems({
     );
 }
 
-function Item({
-    index,
-    label,
-    value,
-    isLast = false,
-}: {
-    index: string | number;
-    label: string;
-    value: string | React.ReactNode;
-    isLast?: boolean;
-}) {
+function Item({ label, value, isLast = false }: { label: string; value: string | React.ReactNode; isLast?: boolean }) {
     return (
-        <div key={index} className={clsx('col', isLast && 'text-right')}>
+        <div className={clsx('col', isLast && 'text-right')}>
             <div className="text-[15px] font-medium text-slate-500">{label}</div>
-            <div className="text-[19px] font-semibold">{value}</div>
+            <div className="text-[17px] font-semibold">{value}</div>
         </div>
     );
 }

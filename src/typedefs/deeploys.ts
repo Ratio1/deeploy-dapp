@@ -198,7 +198,7 @@ type RunningJob = {
 type RunningJobWithDetails = RunningJob & {
     alias: string;
     projectName?: string;
-    nodes: string[];
+    nodes: R1Address[];
 };
 
 type RunningJobWithResources = RunningJobWithDetails & {

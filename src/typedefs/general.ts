@@ -1,9 +1,4 @@
-type Invoice = {
-    id: string;
-    amount: number;
-    status: 'paid' | 'unpaid';
-    date: string;
-};
+import { EthAddress } from './blockchain';
 
 type BillingInfo = {
     companyName: string;
@@ -27,4 +22,16 @@ type TunnelingSecrets = {
     cloudflareDomain: string;
 };
 
-export type { AuthState, BillingInfo, Invoice, TunnelingSecrets };
+type InvoiceDraft = {
+    draftId: string;
+    creationTimestamp: string;
+    userAddress: EthAddress;
+    cspOwnerAddress: EthAddress;
+    totalUsdcAmount: number;
+    invoiceSeries: string;
+    invoiceNumber: number;
+    nodeOwnerName: string;
+    cspOwnerName: string;
+};
+
+export type { AuthState, BillingInfo, InvoiceDraft, TunnelingSecrets };

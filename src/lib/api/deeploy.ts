@@ -3,10 +3,6 @@ import { EthAddress } from '@typedefs/blockchain';
 import { GetAppsResponse } from '@typedefs/deeployApi';
 import axios from 'axios';
 
-const axiosInstance = axios.create({
-    baseURL: config.deeployUrl,
-});
-
 export const createPipeline = (request: {
     EE_ETH_SIGN: EthAddress;
     EE_ETH_SENDER: EthAddress;
@@ -14,7 +10,7 @@ export const createPipeline = (request: {
     project_id: EthAddress;
     [key: string]: string | number | boolean | null | undefined;
 }) =>
-    _doPost('/create_pipeline', {
+    _doPostDeeploy('/create_pipeline', {
         request,
     });
 
@@ -23,11 +19,55 @@ export const getApps = (request: {
     EE_ETH_SENDER: EthAddress;
     nonce: string;
 }): Promise<GetAppsResponse> =>
-    _doPost('/get_apps', {
+    _doPostDeeploy('/get_apps', {
         request,
     });
 
-async function _doPost(endpoint: string, body: any) {
-    const { data } = await axiosInstance.post(endpoint, body);
+export const axiosDeeploy = axios.create({
+    baseURL: config.deeployUrl,
+});
+
+axiosDeeploy.interceptors.request.use(
+    async (config) => {
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    },
+);
+
+axiosDeeploy.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    async (error) => {
+        const originalRequest = error.config;
+        if (error.response.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (refreshToken) {
+                return axiosDeeploy
+                    .post('/auth/refresh', {
+                        refreshToken: refreshToken,
+                    })
+                    .then((res) => {
+                        if (res.status === 200) {
+                            localStorage.setItem('accessToken', res.data.accessToken);
+                            return axiosDeeploy(originalRequest);
+                        }
+                        return axiosDeeploy(originalRequest);
+                    });
+            }
+        }
+        return error.response;
+    },
+);
+
+async function _doPostDeeploy<T>(endpoint: string, body: any) {
+    const { data } = await axiosDeeploy.post(endpoint, body);
     return data.result;
 }

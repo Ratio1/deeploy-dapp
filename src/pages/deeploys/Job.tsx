@@ -1,5 +1,7 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import JobFullUsage from '@components/job/JobFullUsage';
+import JobNodes from '@components/job/JobNodes';
+import JobResources from '@components/job/JobResources';
 import JobStats from '@components/job/JobStats';
 import JobPageLoading from '@components/loading/JobPageLoading';
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
@@ -9,6 +11,7 @@ import ActionButton from '@shared/ActionButton';
 import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
 import { RunningJob, RunningJobWithDetails, RunningJobWithResources } from '@typedefs/deeploys';
+import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiArrowLeftLine } from 'react-icons/ri';
@@ -16,7 +19,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { usePublicClient } from 'wagmi';
 
 export default function Job() {
-    const { apps, escrowContractAddress, formatRunningJobsWithDetails } = useDeploymentContext() as DeploymentContextType;
+    const { escrowContractAddress, formatRunningJobsWithDetails } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
     const publicClient = usePublicClient();
@@ -24,6 +27,7 @@ export default function Job() {
 
     const [isLoading, setLoading] = useState(true);
     const [job, setJob] = useState<RunningJobWithResources | undefined>();
+    const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
 
     useEffect(() => {
         if (publicClient && jobId && escrowContractAddress) {
@@ -63,8 +67,13 @@ export default function Job() {
                 resources,
             };
 
+            const jobTypeOption = jobTypeOptions.find(
+                (option) => option.id === resources.jobType.toLowerCase(),
+            ) as JobTypeOption;
+
             console.log(runningJobWithResources);
 
+            setJobTypeOption(jobTypeOption);
             setJob(runningJobWithResources);
         } catch (error) {
             console.error(error);
@@ -75,7 +84,7 @@ export default function Job() {
         }
     };
 
-    if (isLoading || !job) {
+    if (isLoading || !job || !jobTypeOption) {
         return <JobPageLoading />;
     }
 
@@ -85,11 +94,20 @@ export default function Job() {
                 {/* Header */}
                 <div className="flex items-start justify-between">
                     <div className="row gap-1.5">
-                        <div className="text-xl font-semibold">{job.alias}</div>
+                        <Link to={`${routePath.deeploys}/${routePath.project}/${job.projectHash}`} className="hover:underline">
+                            <div className="text-xl font-semibold">{job.projectName}</div>
+                        </Link>
 
-                        <SmallTag variant="green" isLarge>
-                            Running
-                        </SmallTag>
+                        <div className="mb-0.5 ml-1 text-xl font-semibold text-slate-500">/</div>
+
+                        <div className="row gap-1.5">
+                            <div className={`text-xl ${jobTypeOption.textColorClass}`}>{jobTypeOption.icon}</div>
+                            <div className="text-xl font-semibold">{job.alias}</div>
+
+                            <SmallTag variant="green" isLarge>
+                                Running
+                            </SmallTag>
+                        </div>
                     </div>
 
                     <div className="row gap-2">
@@ -112,6 +130,12 @@ export default function Job() {
 
                 {/* Usage */}
                 <JobFullUsage job={job} />
+
+                {/* Resources */}
+                <JobResources resources={job.resources} />
+
+                {/* Nodes */}
+                <JobNodes nodes={job.nodes} lastNodesChangeTimestamp={job.lastNodesChangeTimestamp} />
             </div>
 
             <SupportFooter />

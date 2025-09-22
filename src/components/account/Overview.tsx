@@ -26,11 +26,15 @@ function Overview() {
     }, []);
 
     useEffect(() => {
+        console.log('[Overview] Apps', apps);
+
         const uniqueProjectHashes = _(Object.values(apps))
             .map((app) => {
-                const alias: string = Object.keys(app)[0];
-                const specs = app[alias].deeploy_specs;
-                return specs.project_id;
+                return Object.values(app);
+            })
+            .flatten()
+            .map((value) => {
+                return value.deeploy_specs.project_id;
             })
             .uniq()
             .value();
@@ -68,7 +72,7 @@ function Overview() {
 
                 <CardWithHeader icon={<RiDiscountPercentLine />} title="Offers Available">
                     <div className="col h-full w-full gap-4">
-                        <ValueWithLabel label="Offers available for you" value={3} />
+                        <ValueWithLabel label="Offers available for you" value={0} />
 
                         <Button className="mt-1 px-3" variant="bordered" isDisabled>
                             <div className="compact">Check Offers</div>

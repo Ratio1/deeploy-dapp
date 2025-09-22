@@ -1,7 +1,9 @@
 import { config } from '@lib/config';
+import { InvoiceDraft } from '@typedefs/general';
 import axios from 'axios';
 import * as types from 'typedefs/blockchain';
 
+// Ratio1 dApp API
 const backendUrl = config.backendUrl;
 
 // *****
@@ -11,6 +13,37 @@ const backendUrl = config.backendUrl;
 export const getAccount = async () => _doGet<types.ApiAccount>('accounts/account');
 
 export const ping = async () => _doGet<any>('/auth/nodeData');
+
+export const getInvoiceDrafts = async (): Promise<InvoiceDraft[]> => _doGet<any>('/invoice-draft/get-csp-drafts');
+
+export const downloadCspDraft = async (draftId: string) => {
+    const res = await axiosDapp.get(`/invoice-draft/download-csp-draft?draftId=${draftId}`, {
+        responseType: 'blob',
+    });
+
+    if (res.status !== 200) {
+        throw new Error(`Download failed with status ${res.status}.`);
+    }
+
+    // Check if the response is an error (blob with error content)
+    if (res.data.type === 'application/json') {
+        const text = await res.data.text();
+        const errorData = JSON.parse(text);
+
+        if (errorData.error) {
+            throw new Error(errorData.error);
+        }
+    }
+
+    const urlObj = URL.createObjectURL(res.data);
+    const a = document.createElement('a');
+    a.href = urlObj;
+    a.download = draftId;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(urlObj), 0);
+};
 
 // *****
 // POST
@@ -30,7 +63,7 @@ export const initSumsubSession = (type: 'individual' | 'company') => _doPost<str
 // *****
 
 async function _doGet<T>(endpoint: string) {
-    const { data } = await axiosBackend.get<{
+    const { data } = await axiosDapp.get<{
         data: T;
         error: string;
     }>(endpoint);
@@ -41,7 +74,7 @@ async function _doGet<T>(endpoint: string) {
 }
 
 async function _doPost<T>(endpoint: string, body: any) {
-    const { data } = await axiosBackend.post<{
+    const { data } = await axiosDapp.post<{
         data: T;
         error: string;
     }>(endpoint, body);
@@ -51,7 +84,7 @@ async function _doPost<T>(endpoint: string, body: any) {
     return data.data;
 }
 
-const axiosBackend = axios.create({
+const axiosDapp = axios.create({
     baseURL: backendUrl,
     headers: {
         Accept: 'application/json',
@@ -59,7 +92,7 @@ const axiosBackend = axios.create({
     },
 });
 
-axiosBackend.interceptors.request.use(
+axiosDapp.interceptors.request.use(
     async (config) => {
         const token = localStorage.getItem('accessToken');
         if (token) {
@@ -72,7 +105,7 @@ axiosBackend.interceptors.request.use(
     },
 );
 
-axiosBackend.interceptors.response.use(
+axiosDapp.interceptors.response.use(
     (response) => {
         return response;
     },
@@ -82,16 +115,16 @@ axiosBackend.interceptors.response.use(
             originalRequest._retry = true;
             const refreshToken = localStorage.getItem('refreshToken');
             if (refreshToken) {
-                return axiosBackend
+                return axiosDapp
                     .post('/auth/refresh', {
                         refreshToken: refreshToken,
                     })
                     .then((res) => {
                         if (res.status === 200) {
                             localStorage.setItem('accessToken', res.data.accessToken);
-                            return axiosBackend(originalRequest);
+                            return axiosDapp(originalRequest);
                         }
-                        return axiosBackend(originalRequest);
+                        return axiosDapp(originalRequest);
                     });
             }
         }
