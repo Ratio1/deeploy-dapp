@@ -1,24 +1,18 @@
 import { Skeleton } from '@heroui/skeleton';
 import { getInvoiceDrafts } from '@lib/api/backend';
 import { BorderedCard } from '@shared/cards/BorderedCard';
+import { DetailedAlert } from '@shared/DetailedAlert';
 import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
 import { InvoiceDraft } from '@typedefs/general';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiDraftLine, RiErrorWarningLine, RiFileInfoLine } from 'react-icons/ri';
+import { RiCloseCircleLine, RiDraftLine, RiFileInfoLine } from 'react-icons/ri';
 import BillingMonthSelect from './BillingMonthSelect';
 import DraftInvoiceCard from './DraftInvoiceCard';
 
 function Invoicing() {
-    const [billingInfo, _setBillingInfo] = useState({
-        companyName: '—',
-        billingEmail: '—',
-        vatNumber: '—',
-        paymentAddress: '—',
-    });
-
     const [uniqueMonths, setUniqueMonths] = useState<string[]>([]);
     const [invoiceDrafts, setInvoiceDrafts] = useState<InvoiceDraft[] | undefined>();
 
@@ -62,8 +56,9 @@ function Invoicing() {
             setUniqueMonths(months);
         } catch (error: any) {
             console.error(error);
-            setError(error.message);
-            toast.error('Failed to fetch invoice drafts.');
+            const errorMessage = 'Failed to fetch invoice drafts';
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -112,9 +107,14 @@ function Invoicing() {
                             ))}
                         </>
                     ) : error !== null ? (
-                        <div className="row gap-1.5 rounded-lg bg-red-100 p-4 text-red-700">
-                            <RiErrorWarningLine className="text-xl" />
-                            <div className="text-sm font-medium">{error}</div>
+                        <div className="py-8 lg:py-12">
+                            <DetailedAlert
+                                variant="red"
+                                icon={<RiCloseCircleLine />}
+                                title="Error"
+                                description={<div>{error}</div>}
+                                isCompact
+                            />
                         </div>
                     ) : invoiceDrafts === undefined || selectedMonth === undefined || !invoiceDrafts.length ? (
                         <div className="center-all w-full p-14">

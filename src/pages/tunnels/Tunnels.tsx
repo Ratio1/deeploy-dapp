@@ -16,7 +16,7 @@ import { TunnelingSecrets } from '@typedefs/general';
 import { Tunnel } from '@typedefs/tunnels';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiAddLine, RiDoorLockLine, RiDraftLine, RiErrorWarningLine, RiPencilLine } from 'react-icons/ri';
+import { RiAddLine, RiCloseCircleLine, RiDoorLockLine, RiDraftLine, RiPencilLine } from 'react-icons/ri';
 import { useAccount, useSignMessage } from 'wagmi';
 
 function Tunnels() {
@@ -242,9 +242,14 @@ function Tunnels() {
                     </div>
 
                     {error && !isFetchingTunnels && (
-                        <div className="row gap-1.5 rounded-lg bg-red-100 p-4 text-red-700">
-                            <RiErrorWarningLine className="text-xl" />
-                            <div className="text-sm font-medium">{error}</div>
+                        <div className="py-8 lg:py-12">
+                            <DetailedAlert
+                                variant="red"
+                                icon={<RiCloseCircleLine />}
+                                title="Error"
+                                description={<div>{error}</div>}
+                                isCompact
+                            />
                         </div>
                     )}
 
