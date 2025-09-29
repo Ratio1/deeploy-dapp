@@ -32,6 +32,44 @@ export const CspEscrowAbi = [
                 type: 'uint256',
             },
             {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'burnCorrection',
+                type: 'uint256',
+            },
+        ],
+        name: 'JobBalanceReconciled',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'closeTimestamp',
+                type: 'uint256',
+            },
+        ],
+        name: 'JobClosed',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+            {
                 indexed: true,
                 internalType: 'address',
                 name: 'owner',
@@ -51,6 +89,31 @@ export const CspEscrowAbi = [
             },
         ],
         name: 'JobCreated',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'newLastExecutionEpoch',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'additionalAmount',
+                type: 'uint256',
+            },
+        ],
+        name: 'JobDurationExtended',
         type: 'event',
     },
     {
@@ -102,18 +165,24 @@ export const CspEscrowAbi = [
             },
             {
                 indexed: false,
-                internalType: 'address[]',
-                name: 'activeNodes',
-                type: 'address[]',
+                internalType: 'address',
+                name: 'nodeAddress',
+                type: 'address',
+            },
+            {
+                indexed: false,
+                internalType: 'address',
+                name: 'nodeOwner',
+                type: 'address',
             },
             {
                 indexed: false,
                 internalType: 'uint256',
-                name: 'totalAmount',
+                name: 'usdcAmount',
                 type: 'uint256',
             },
         ],
-        name: 'RewardsAllocated',
+        name: 'RewardsAllocatedV2',
         type: 'event',
     },
     {
@@ -134,11 +203,17 @@ export const CspEscrowAbi = [
             {
                 indexed: false,
                 internalType: 'uint256',
-                name: 'totalAmount',
+                name: 'usdcAmount',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'r1Amount',
                 type: 'uint256',
             },
         ],
-        name: 'RewardsClaimed',
+        name: 'RewardsClaimedV2',
         type: 'event',
     },
     {
@@ -168,7 +243,7 @@ export const CspEscrowAbi = [
                 type: 'uint256',
             },
         ],
-        name: 'allJobs',
+        name: 'activeJobs',
         outputs: [
             {
                 internalType: 'uint256',
@@ -208,6 +283,25 @@ export const CspEscrowAbi = [
             },
         ],
         stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+            },
+        ],
+        name: 'closedJobs',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+            },
+        ],
+        stateMutability: 'view',
         type: 'function',
     },
     {
@@ -278,8 +372,101 @@ export const CspEscrowAbi = [
         type: 'function',
     },
     {
+        inputs: [
+            {
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+            {
+                internalType: 'uint256',
+                name: 'newLastExecutionEpoch',
+                type: 'uint256',
+            },
+        ],
+        name: 'extendJobDuration',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
         inputs: [],
-        name: 'getAllJobs',
+        name: 'getActiveJobs',
+        outputs: [
+            {
+                components: [
+                    {
+                        internalType: 'uint256',
+                        name: 'id',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'bytes32',
+                        name: 'projectHash',
+                        type: 'bytes32',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'requestTimestamp',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'startTimestamp',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'lastNodesChangeTimestamp',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'jobType',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'pricePerEpoch',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'lastExecutionEpoch',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'numberOfNodesRequested',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'int256',
+                        name: 'balance',
+                        type: 'int256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'lastAllocatedEpoch',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'address[]',
+                        name: 'activeNodes',
+                        type: 'address[]',
+                    },
+                ],
+                internalType: 'struct JobDetails[]',
+                name: '',
+                type: 'tuple[]',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'getClosedJobs',
         outputs: [
             {
                 components: [
@@ -355,6 +542,19 @@ export const CspEscrowAbi = [
     {
         inputs: [],
         name: 'getCurrentEpoch',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'getFirstClosableJobId',
         outputs: [
             {
                 internalType: 'uint256',
@@ -463,6 +663,19 @@ export const CspEscrowAbi = [
             },
         ],
         stateMutability: 'pure',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'getTotalJobsBalance',
+        outputs: [
+            {
+                internalType: 'int256',
+                name: 'totalBalance',
+                type: 'int256',
+            },
+        ],
+        stateMutability: 'view',
         type: 'function',
     },
     {
@@ -601,6 +814,13 @@ export const CspEscrowAbi = [
             },
         ],
         stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'reconcileJobsBalance',
+        outputs: [],
+        stateMutability: 'nonpayable',
         type: 'function',
     },
     {
