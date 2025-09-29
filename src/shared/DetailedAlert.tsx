@@ -8,6 +8,7 @@ interface Props {
     description: JSX.Element;
     largeTitle?: boolean;
     fullWidth?: boolean;
+    isCompact?: boolean;
 }
 
 export const DetailedAlert: FunctionComponent<PropsWithChildren<Props>> = ({
@@ -18,6 +19,7 @@ export const DetailedAlert: FunctionComponent<PropsWithChildren<Props>> = ({
     description,
     largeTitle = false,
     fullWidth = false,
+    isCompact = false,
 }) => {
     const bgColorClass = {
         primary: 'bg-primary-100',
@@ -30,12 +32,12 @@ export const DetailedAlert: FunctionComponent<PropsWithChildren<Props>> = ({
     };
 
     return (
-        <div className="col items-center gap-6">
+        <div className={clsx('col items-center', { 'gap-4': isCompact, 'gap-6': !isCompact })}>
             <div className={`center-all rounded-full ${bgColorClass[variant]} p-4`}>
                 <div className={`text-3xl ${textColorClass[variant]}`}>{icon}</div>
             </div>
 
-            <div className="col gap-2 text-center">
+            <div className={clsx('col text-center', { 'gap-1': isCompact, 'gap-2': !isCompact })}>
                 <div
                     className={clsx('text-primary-800 font-bold tracking-wider uppercase', {
                         'text-xl': !largeTitle,

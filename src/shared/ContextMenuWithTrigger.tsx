@@ -1,5 +1,5 @@
 import { Button } from '@heroui/button';
-import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/dropdown';
+import { Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger } from '@heroui/dropdown';
 import clsx from 'clsx';
 import { RiMoreFill } from 'react-icons/ri';
 
@@ -55,11 +55,7 @@ export default function ContextMenuWithTrigger({ items }: Props) {
                     e.preventDefault();
                 }}
             >
-                <>
-                    <DropdownItem key="title" isReadOnly>
-                        <div className="text-sm text-slate-700">Actions</div>
-                    </DropdownItem>
-
+                <DropdownSection title="Actions" className="mb-0 list-none">
                     {items.map((item) => (
                         <DropdownItem key={item.key} onPress={item.onPress}>
                             {!item.icon || !item.description ? (
@@ -82,7 +78,7 @@ export default function ContextMenuWithTrigger({ items }: Props) {
                             )}
                         </DropdownItem>
                     ))}
-                </>
+                </DropdownSection>
             </DropdownMenu>
         </Dropdown>
     );

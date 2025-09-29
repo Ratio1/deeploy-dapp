@@ -41,13 +41,75 @@ export const PoAIManagerAbi = [
                 type: 'uint256',
             },
             {
+                indexed: true,
+                internalType: 'address',
+                name: 'oracle',
+                type: 'address',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'remainingCooldownTime',
+                type: 'uint256',
+            },
+        ],
+        name: 'ConsensusCooldownEnforced',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'oraclesCount',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'proposalsCount',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'maxAgreementCount',
+                type: 'uint256',
+            },
+        ],
+        name: 'ConsensusNotReached',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+            {
                 indexed: false,
                 internalType: 'address[]',
                 name: 'activeNodes',
                 type: 'address[]',
             },
+            {
+                indexed: false,
+                internalType: 'address[]',
+                name: 'participants',
+                type: 'address[]',
+            },
         ],
-        name: 'ConsensusReached',
+        name: 'ConsensusReachedV2',
         type: 'event',
     },
     {
@@ -118,12 +180,18 @@ export const PoAIManagerAbi = [
             },
             {
                 indexed: false,
+                internalType: 'address[]',
+                name: 'newActiveNodes',
+                type: 'address[]',
+            },
+            {
+                indexed: false,
                 internalType: 'bytes32',
                 name: 'nodesHash',
                 type: 'bytes32',
             },
         ],
-        name: 'NodeUpdateSubmitted',
+        name: 'NodeUpdateSubmittedV2',
         type: 'event',
     },
     {
@@ -171,6 +239,19 @@ export const PoAIManagerAbi = [
         type: 'event',
     },
     {
+        inputs: [],
+        name: 'CONSENSUS_COOLDOWN_PERIOD',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
         inputs: [
             {
                 internalType: 'uint256',
@@ -205,6 +286,19 @@ export const PoAIManagerAbi = [
             },
         ],
         name: 'claimRewardsForNode',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'address[]',
+                name: 'nodeAddrs',
+                type: 'address[]',
+            },
+        ],
+        name: 'claimRewardsForNodes',
         outputs: [],
         stateMutability: 'nonpayable',
         type: 'function',
@@ -263,6 +357,31 @@ export const PoAIManagerAbi = [
     },
     {
         inputs: [],
+        name: 'getAllCspsWithOwner',
+        outputs: [
+            {
+                components: [
+                    {
+                        internalType: 'address',
+                        name: 'cspAddress',
+                        type: 'address',
+                    },
+                    {
+                        internalType: 'address',
+                        name: 'cspOwner',
+                        type: 'address',
+                    },
+                ],
+                internalType: 'struct CspWithOwner[]',
+                name: '',
+                type: 'tuple[]',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
         name: 'getAllEscrows',
         outputs: [
             {
@@ -301,6 +420,19 @@ export const PoAIManagerAbi = [
                 internalType: 'address[]',
                 name: '',
                 type: 'address[]',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'getFirstClosableJobId',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
             },
         ],
         stateMutability: 'view',
@@ -424,13 +556,88 @@ export const PoAIManagerAbi = [
         type: 'function',
     },
     {
+        inputs: [
+            {
+                internalType: 'address',
+                name: 'nodeAddress',
+                type: 'address',
+            },
+        ],
+        name: 'getNodePoAIRewards',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: 'usdcRewards',
+                type: 'uint256',
+            },
+            {
+                internalType: 'uint256',
+                name: 'r1Rewards',
+                type: 'uint256',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+        ],
+        name: 'getRemainingCooldownTime',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
         inputs: [],
+        name: 'getTotalEscrowsBalance',
+        outputs: [
+            {
+                internalType: 'int256',
+                name: 'totalBalance',
+                type: 'int256',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'address',
+                name: 'oracle',
+                type: 'address',
+            },
+        ],
         name: 'getUnvalidatedJobIds',
         outputs: [
             {
                 internalType: 'uint256[]',
                 name: '',
                 type: 'uint256[]',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'hasReconciled',
+        outputs: [
+            {
+                internalType: 'bool',
+                name: '',
+                type: 'bool',
             },
         ],
         stateMutability: 'view',
@@ -503,6 +710,25 @@ export const PoAIManagerAbi = [
                 internalType: 'bool',
                 name: '',
                 type: 'bool',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+            },
+        ],
+        name: 'jobConsensusTimestamp',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
             },
         ],
         stateMutability: 'view',
@@ -680,6 +906,13 @@ export const PoAIManagerAbi = [
             },
         ],
         stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'reconcileAllJobsBalance',
+        outputs: [],
+        stateMutability: 'nonpayable',
         type: 'function',
     },
     {

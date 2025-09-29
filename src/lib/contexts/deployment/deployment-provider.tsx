@@ -122,7 +122,7 @@ export const DeploymentProvider = ({ children }) => {
         const runningJobs: readonly RunningJob[] = await publicClient.readContract({
             address: escrowContractAddress,
             abi: CspEscrowAbi,
-            functionName: 'getAllJobs',
+            functionName: 'getActiveJobs',
         });
 
         console.log('[DeploymentProvider] Smart contract jobs', runningJobs);
