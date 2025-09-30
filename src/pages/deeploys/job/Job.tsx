@@ -1,4 +1,6 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
+import JobBreadcrumbs from '@components/job/JobBreadcrumbs';
+import JobConfiguration from '@components/job/JobConfiguration';
 import JobFullUsage from '@components/job/JobFullUsage';
 import JobNodes from '@components/job/JobNodes';
 import JobResources from '@components/job/JobResources';
@@ -8,13 +10,11 @@ import { getRunningJobResources, RunningJobResources } from '@data/containerReso
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import ActionButton from '@shared/ActionButton';
-import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
 import { RunningJob, RunningJobWithDetails, RunningJobWithResources } from '@typedefs/deeploys';
-import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiArrowLeftLine } from 'react-icons/ri';
+import { RiArrowLeftLine, RiEdit2Line } from 'react-icons/ri';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { usePublicClient } from 'wagmi';
 
@@ -27,7 +27,6 @@ export default function Job() {
 
     const [isLoading, setLoading] = useState(true);
     const [job, setJob] = useState<RunningJobWithResources | undefined>();
-    const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
 
     useEffect(() => {
         if (publicClient && jobId && escrowContractAddress) {
@@ -67,13 +66,7 @@ export default function Job() {
                 resources,
             };
 
-            const jobTypeOption = jobTypeOptions.find(
-                (option) => option.id === resources.jobType.toLowerCase(),
-            ) as JobTypeOption;
-
             console.log(runningJobWithResources);
-
-            setJobTypeOption(jobTypeOption);
             setJob(runningJobWithResources);
         } catch (error) {
             console.error(error);
@@ -84,7 +77,11 @@ export default function Job() {
         }
     };
 
-    if (isLoading || !job || !jobTypeOption) {
+    const onEdit = () => {
+        navigate(routePath.edit, { state: { job } });
+    };
+
+    if (isLoading || !job) {
         return <JobPageLoading />;
     }
 
@@ -93,22 +90,7 @@ export default function Job() {
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <div className="row gap-1.5">
-                        <Link to={`${routePath.deeploys}/${routePath.project}/${job.projectHash}`} className="hover:underline">
-                            <div className="text-xl font-semibold">{job.projectName}</div>
-                        </Link>
-
-                        <div className="mb-0.5 ml-1 text-xl font-semibold text-slate-500">/</div>
-
-                        <div className="row gap-1.5">
-                            <div className={`text-xl ${jobTypeOption.textColorClass}`}>{jobTypeOption.icon}</div>
-                            <div className="text-xl font-semibold">{job.alias}</div>
-
-                            <SmallTag variant="green" isLarge>
-                                Running
-                            </SmallTag>
-                        </div>
-                    </div>
+                    <JobBreadcrumbs job={job} />
 
                     <div className="row gap-2">
                         <ActionButton
@@ -122,6 +104,13 @@ export default function Job() {
                                 <div className="compact">Project</div>
                             </div>
                         </ActionButton>
+
+                        <ActionButton color="primary" variant="solid" onPress={onEdit}>
+                            <div className="row gap-1.5">
+                                <RiEdit2Line className="text-lg" />
+                                <div className="compact">Edit</div>
+                            </div>
+                        </ActionButton>
                     </div>
                 </div>
 
@@ -133,6 +122,9 @@ export default function Job() {
 
                 {/* Resources */}
                 <JobResources resources={job.resources} />
+
+                {/* Configuration */}
+                <JobConfiguration config={job.config} />
 
                 {/* Nodes */}
                 <JobNodes nodes={job.nodes} lastNodesChangeTimestamp={job.lastNodesChangeTimestamp} />

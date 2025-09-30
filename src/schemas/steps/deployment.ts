@@ -112,7 +112,19 @@ const baseDeploymentSchema = z.object({
             message: 'Duplicate addresses are not allowed',
         },
     ),
+    spareNodes: z.array(nodeSchema).refine(
+        (nodes) => {
+            const addresses = nodes.map((node) => node.address?.trim()).filter((address) => address && address !== ''); // Only non-empty addresses
+
+            const uniqueAddresses = new Set(addresses);
+            return uniqueAddresses.size === addresses.length;
+        },
+        {
+            message: 'Duplicate addresses are not allowed',
+        },
+    ),
     enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
+    allowReplicationInTheWild: z.boolean(),
     tunnelingLabel: z
         .string()
         .min(3, 'Value must be at least 3 characters')
@@ -165,56 +177,58 @@ const workerContainerSchema = z.object({
 
 const dualContainerSchema = z.discriminatedUnion('type', [imageContainerSchema, workerContainerSchema]);
 
-export const genericAppDeploymentSchema = applyTunnelingRefinements(
-    baseDeploymentSchema.extend({
-        jobAlias: validations.jobAlias,
-        container: dualContainerSchema,
-        port: validations.port,
-        envVars: validations.envVars,
-        dynamicEnvVars: validations.dynamicEnvVars,
-        volumes: validations.volumes,
-        restartPolicy: validations.restartPolicy,
-        imagePullPolicy: validations.imagePullPolicy,
-    }),
-).superRefine((data, ctx) => {
-    // Validate that crUsername and crPassword are provided when crVisibility is 'Private'
-    if (data.container.type === 'image' && data.container.crVisibility === 'Private') {
-        if (!data.container.crUsername) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Username is required',
-                path: ['container', 'crUsername'],
-            });
-        }
-        if (!data.container.crPassword) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Password/Authentication Token is required',
-                path: ['container', 'crPassword'],
-            });
-        }
-    }
+const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
+    jobAlias: validations.jobAlias,
+    container: dualContainerSchema,
+    port: validations.port,
+    envVars: validations.envVars,
+    dynamicEnvVars: validations.dynamicEnvVars,
+    volumes: validations.volumes,
+    restartPolicy: validations.restartPolicy,
+    imagePullPolicy: validations.imagePullPolicy,
 });
 
-export const nativeAppDeploymentSchema = applyTunnelingRefinements(
-    baseDeploymentSchema.extend({
-        jobAlias: validations.jobAlias,
-        pluginSignature: validations.pluginSignature,
-        port: validations.port,
-        customParams: validations.customParams,
-        pipelineParams: validations.pipelineParams,
-        pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
-        pipelineInputUri: validations.uri.optional(),
-        chainstoreResponse: validations.chainstoreResponse,
-    }),
+export const genericAppDeploymentSchema = applyTunnelingRefinements(genericAppDeploymentSchemaWihtoutRefinements).superRefine(
+    (data, ctx) => {
+        // Validate that crUsername and crPassword are provided when crVisibility is 'Private'
+        if (data.container.type === 'image' && data.container.crVisibility === 'Private') {
+            if (!data.container.crUsername) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Username is required',
+                    path: ['container', 'crUsername'],
+                });
+            }
+            if (!data.container.crPassword) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Password/Authentication Token is required',
+                    path: ['container', 'crPassword'],
+                });
+            }
+        }
+    },
 );
 
-export const serviceAppDeploymentSchema = applyTunnelingRefinements(
-    baseDeploymentSchema.extend({
-        jobAlias: validations.jobAlias,
-        envVars: validations.envVars,
-        dynamicEnvVars: validations.dynamicEnvVars,
-        volumes: validations.volumes,
-        serviceReplica: nodeSchema.shape.address.optional(),
-    }),
-);
+const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
+    jobAlias: validations.jobAlias,
+    pluginSignature: validations.pluginSignature,
+    port: validations.port,
+    customParams: validations.customParams,
+    pipelineParams: validations.pipelineParams,
+    pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
+    pipelineInputUri: validations.uri.optional(),
+    chainstoreResponse: validations.chainstoreResponse,
+});
+
+export const nativeAppDeploymentSchema = applyTunnelingRefinements(nativeAppDeploymentSchemaWihtoutRefinements);
+
+const serviceAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
+    jobAlias: validations.jobAlias,
+    envVars: validations.envVars,
+    dynamicEnvVars: validations.dynamicEnvVars,
+    volumes: validations.volumes,
+    serviceReplica: nodeSchema.shape.address.optional(),
+});
+
+export const serviceAppDeploymentSchema = applyTunnelingRefinements(serviceAppDeploymentSchemaWihtoutRefinements);

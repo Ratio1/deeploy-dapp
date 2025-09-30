@@ -93,7 +93,7 @@ function Invoicing() {
 
                 <div className="list">
                     <ListHeader>
-                        <div className="min-w-[62px]">Number</div>
+                        <div className="min-w-[122px]">Number</div>
                         <div className="min-w-[122px]">Date</div>
                         <div className="min-w-[170px]">Node Operator</div>
                         <div className="min-w-[118px]">Amount ($USDC)</div>

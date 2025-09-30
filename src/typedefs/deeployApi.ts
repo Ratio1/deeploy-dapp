@@ -1,3 +1,4 @@
+import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { EthAddress, R1Address } from './blockchain';
 
 type Apps = {
@@ -20,10 +21,33 @@ type Apps = {
                     start: string; // ISO-like timestamp string
                     last_alive: string; // ISO-like timestamp string
                     last_error: string | null;
+                    instance_conf: JobConfig;
                 }[];
             };
         };
     };
+};
+
+type JobConfig = {
+    CHAINSTORE_PEERS: string[];
+    CHAINSTORE_RESPONSE_KEY: string;
+    CLOUDFLARE_TOKEN: string | null;
+    CONTAINER_RESOURCES: {
+        cpu: number;
+        memory: string;
+    };
+    CR_DATA: Record<string, any>;
+    DYNAMIC_ENV: Record<string, { type: (typeof DYNAMIC_ENV_TYPES)[number]; value: string }[]>;
+    ENV: Record<string, any>;
+    IMAGE: string;
+    IMAGE_PULL_POLICY: string;
+    INSTANCE_ID: string;
+    NGROK_USE_API: boolean;
+    PORT: number;
+    RESTART_POLICY: string;
+    TUNNEL_ENGINE: string;
+    TUNNEL_ENGINE_ENABLED: boolean;
+    VOLUMES: Record<string, any>;
 };
 
 type GetAppsResponse = {
@@ -51,4 +75,4 @@ type GetAppsResponse = {
     EE_HASH: string;
 };
 
-export type { Apps, GetAppsResponse };
+export type { Apps, GetAppsResponse, JobConfig };

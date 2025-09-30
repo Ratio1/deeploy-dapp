@@ -1,11 +1,14 @@
+import { Checkbox } from '@heroui/checkbox';
 import { Switch } from '@heroui/switch';
 import { SlateCard } from '@shared/cards/SlateCard';
 import TargetNodesSection from '@shared/jobs/target-nodes/TargetNodesSection';
 import { SmallTag } from '@shared/SmallTag';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { RiAsterisk } from 'react-icons/ri';
+import SpareNodesSection from './SpareNodesSection';
 
-function TargetNodesCard() {
+function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
     const { watch } = useFormContext();
 
     const [autoAssign, setAutoAssign] = useState(true);
@@ -13,11 +16,18 @@ function TargetNodesCard() {
 
     const targetNodesCount: number = watch('specifications.targetNodesCount');
 
+    const allowReplicationInTheWild: boolean = watch('deployment.allowReplicationInTheWild');
+
     useEffect(() => {
         if (autoAssign) {
             setValue(
                 'deployment.targetNodes',
                 Array.from({ length: targetNodesCount }, () => ({ address: '' })),
+            );
+
+            setValue(
+                'deployment.spareNodes',
+                Array.from({ length: 1 }, () => ({ address: '' })),
             );
         }
     }, [autoAssign, targetNodesCount]);
@@ -26,12 +36,40 @@ function TargetNodesCard() {
         <SlateCard
             title="Target Nodes"
             label={
-                <Switch isSelected={autoAssign} onValueChange={setAutoAssign} size="sm">
-                    <SmallTag variant={autoAssign ? 'blue' : 'default'}>Auto-Assignment</SmallTag>
-                </Switch>
+                !isEditingJob ? (
+                    <Switch isSelected={autoAssign} onValueChange={setAutoAssign} size="sm">
+                        <SmallTag variant={autoAssign ? 'blue' : 'default'}>Auto-Assignment</SmallTag>
+                    </Switch>
+                ) : null
             }
         >
-            <TargetNodesSection autoAssign={autoAssign} />
+            <TargetNodesSection autoAssign={isEditingJob ? false : autoAssign} isEditingJob={isEditingJob} />
+
+            {!autoAssign && (
+                <div className="col gap-4">
+                    <div className="text-[17px] leading-none font-medium">Backup Nodes</div>
+
+                    <SpareNodesSection />
+
+                    <div className="col gap-2.5">
+                        <Checkbox
+                            isSelected={allowReplicationInTheWild}
+                            onValueChange={(value) => {
+                                setValue('deployment.allowReplicationInTheWild', value);
+                            }}
+                        >
+                            <div className="compact text-slate-600">Allow deployment beyond chosen nodes</div>
+                        </Checkbox>
+
+                        <div className="flex items-start gap-0.5">
+                            <RiAsterisk className="text-primary mt-0.5 text-[10px]" />
+                            <div className="text-sm text-slate-500 italic">
+                                Jobs will run on any other available nodes if your target/backup nodes are not available.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </SlateCard>
     );
 }

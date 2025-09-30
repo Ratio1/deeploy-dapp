@@ -9,12 +9,16 @@ import {
 import {
     DraftJob,
     GenericDraftJob,
+    GenericJobDeployment,
     GenericJobSpecifications,
     JobSpecifications,
     JobType,
     NativeDraftJob,
+    NativeJobDeployment,
     NativeJobSpecifications,
+    RunningJobWithResources,
     ServiceDraftJob,
+    ServiceJobDeployment,
     ServiceJobSpecifications,
 } from '@typedefs/deeploys';
 import { addDays, addHours, differenceInDays, differenceInHours } from 'date-fns';
@@ -84,10 +88,10 @@ export const generateNonce = (): string => {
     return `0x${unixTimestamp.toString(16)}`;
 };
 
-export const formatEnvVars = (envVars: { key: string; value: string }[]) => {
+export const formatEnvVars = (envVars: { key: string | undefined; value: string | undefined }[]) => {
     const formatted: Record<string, string> = {};
     envVars.forEach((envVar) => {
-        if (envVar.key) {
+        if (envVar.key && envVar.value) {
             formatted[envVar.key] = envVar.value;
         }
     });
@@ -121,7 +125,7 @@ export const formatContainerResources = (containerOrWorkerType: ContainerOrWorke
     };
 };
 
-export const formatTargetNodes = (targetNodes: { address: string }[]): string[] => {
+export const formatNodes = (targetNodes: { address: string }[]): string[] => {
     return _(targetNodes)
         .filter((node) => !_.isEmpty(node.address))
         .map((node) => node.address)
@@ -139,8 +143,10 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
     const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
     const volumes = formatVolumes(job.deployment.volumes);
     const containerResources = formatContainerResources(containerType);
-    const targetNodes = formatTargetNodes(job.deployment.targetNodes);
+    const targetNodes = formatNodes(job.deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, job.specifications.targetNodesCount);
+
+    const spareNodes = formatNodes(job.deployment.spareNodes);
 
     let image = 'repo/image:tag';
     let crData = {};
@@ -166,6 +172,8 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
         plugin_signature: 'CONTAINER_APP_RUNNER',
         nonce,
         target_nodes: targetNodes,
+        spare_nodes: spareNodes,
+        allow_replication_in_the_wild: job.deployment.allowReplicationInTheWild,
         target_nodes_count: targetNodesCount,
         job_tags: job.specifications.jobTags,
         app_params: {
@@ -175,8 +183,6 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
             PORT: job.deployment.port,
             TUNNEL_ENGINE: 'cloudflare',
             CLOUDFLARE_TOKEN: job.deployment.tunnelingToken || null,
-            // Not needed for Cloudflare
-            // NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
             TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
             NGROK_USE_API: true,
             VOLUMES: volumes,
@@ -209,16 +215,16 @@ export const formatNativeJobPayload = (job: NativeDraftJob) => {
     });
 
     const nodeResourceRequirements = formatContainerResources(workerType);
-    const targetNodes = formatTargetNodes(job.deployment.targetNodes);
+    const targetNodes = formatNodes(job.deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, job.specifications.targetNodesCount);
+
+    const spareNodes = formatNodes(job.deployment.spareNodes);
 
     const nonce = generateNonce();
 
     let appParams = {
         PORT: job.deployment.port,
         CLOUDFLARE_TOKEN: job.deployment.tunnelingToken || null,
-        // Not needed for Cloudflare
-        // NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
         TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
         NGROK_USE_API: true,
         ENV: {},
@@ -237,6 +243,8 @@ export const formatNativeJobPayload = (job: NativeDraftJob) => {
         plugin_signature: job.deployment.pluginSignature,
         nonce,
         target_nodes: targetNodes,
+        spare_nodes: spareNodes,
+        allow_replication_in_the_wild: job.deployment.allowReplicationInTheWild,
         target_nodes_count: targetNodesCount,
         job_tags: job.specifications.jobTags,
         node_res_req: nodeResourceRequirements,
@@ -256,7 +264,9 @@ export const formatServiceJobPayload = (job: ServiceDraftJob) => {
     const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
     const volumes = formatVolumes(job.deployment.volumes);
     const containerResources = formatContainerResources(containerType);
-    const targetNodes = formatTargetNodes(job.deployment.targetNodes);
+    const targetNodes = formatNodes(job.deployment.targetNodes);
+
+    const spareNodes = formatNodes(job.deployment.spareNodes);
 
     const nonce = generateNonce();
 
@@ -265,6 +275,8 @@ export const formatServiceJobPayload = (job: ServiceDraftJob) => {
         plugin_signature: 'CONTAINER_APP_RUNNER',
         nonce,
         target_nodes: targetNodes,
+        spare_nodes: spareNodes,
+        allow_replication_in_the_wild: job.deployment.allowReplicationInTheWild,
         target_nodes_count: 1, // Service jobs are always single-node
         job_tags: job.specifications.jobTags,
         service_replica: job.deployment.serviceReplica,
@@ -276,6 +288,167 @@ export const formatServiceJobPayload = (job: ServiceDraftJob) => {
             NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
             NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
             TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
+            NGROK_USE_API: true,
+            VOLUMES: volumes,
+            ENV: envVars,
+            DYNAMIC_ENV: dynamicEnvVars,
+            RESTART_POLICY: 'always',
+            IMAGE_PULL_POLICY: 'always',
+        },
+        pipeline_input_type: 'void',
+        pipeline_input_uri: null,
+        chainstore_response: true,
+    };
+};
+
+// To be replaced by the corresponding formatJobPayload once all the fields are supported
+export const formatGenericJobUpdatePayload = (job: RunningJobWithResources, deployment: GenericJobDeployment) => {
+    const envVars = formatEnvVars(deployment.envVars);
+    const dynamicEnvVars = formatDynamicEnvVars(deployment.dynamicEnvVars);
+    const volumes = formatVolumes(deployment.volumes);
+    const containerResources = job.config.CONTAINER_RESOURCES;
+    const targetNodes = formatNodes(deployment.targetNodes);
+    const targetNodesCount = 0; // Target node are already set
+
+    const spareNodes = formatNodes(deployment.spareNodes);
+
+    let image = 'repo/image:tag';
+    let crData = {};
+
+    if (deployment.container.type === 'image') {
+        image = deployment.container.containerImage;
+
+        if (deployment.container.crVisibility === 'Private') {
+            crData = {
+                SERVER: deployment.container.containerRegistry,
+                USERNAME: deployment.container.crUsername,
+                PASSWORD: deployment.container.crPassword,
+            };
+        }
+    } else {
+        console.error('Worker-based container not implemented yet.');
+    }
+
+    const nonce = generateNonce();
+
+    return {
+        app_alias: deployment.jobAlias,
+        plugin_signature: 'CONTAINER_APP_RUNNER',
+        nonce,
+        target_nodes: targetNodes,
+        spare_nodes: spareNodes,
+        allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
+        target_nodes_count: targetNodesCount,
+        app_params: {
+            IMAGE: image,
+            CR_DATA: crData,
+            CONTAINER_RESOURCES: containerResources,
+            PORT: deployment.port,
+            TUNNEL_ENGINE: 'cloudflare',
+            CLOUDFLARE_TOKEN: deployment.tunnelingToken || null,
+            TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
+            NGROK_USE_API: true,
+            VOLUMES: volumes,
+            ENV: envVars,
+            DYNAMIC_ENV: dynamicEnvVars,
+            RESTART_POLICY: deployment.restartPolicy.toLowerCase(),
+            IMAGE_PULL_POLICY: deployment.imagePullPolicy.toLowerCase(),
+        },
+        pipeline_input_type: 'void',
+        pipeline_input_uri: null,
+        chainstore_response: true,
+    };
+};
+
+// To be replaced by the corresponding formatJobPayload once all the fields are supported
+export const formatNativeJobUpdatePayload = (job: RunningJobWithResources, deployment: NativeJobDeployment) => {
+    const customParams: Record<string, string> = {};
+    deployment.customParams.forEach((param) => {
+        if (param.key) {
+            customParams[param.key] = param.value;
+        }
+    });
+
+    const pipelineParams: Record<string, string> = {};
+    deployment.pipelineParams.forEach((param) => {
+        if (param.key) {
+            pipelineParams[param.key] = param.value;
+        }
+    });
+
+    const nodeResourceRequirements = job.config.CONTAINER_RESOURCES;
+    const targetNodes = formatNodes(deployment.targetNodes);
+    const targetNodesCount = 0; // Target node are already set
+
+    const spareNodes = formatNodes(deployment.spareNodes);
+
+    const nonce = generateNonce();
+
+    let appParams = {
+        PORT: deployment.port,
+        CLOUDFLARE_TOKEN: deployment.tunnelingToken || null,
+        TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
+        NGROK_USE_API: true,
+        ENV: {},
+        DYNAMIC_ENV: {},
+    };
+
+    if (_.isEmpty(customParams)) {
+        appParams = {
+            ...appParams,
+            ...customParams,
+        };
+    }
+
+    return {
+        app_alias: deployment.jobAlias,
+        plugin_signature: deployment.pluginSignature,
+        nonce,
+        target_nodes: targetNodes,
+        spare_nodes: spareNodes,
+        allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
+        target_nodes_count: targetNodesCount,
+        node_res_req: nodeResourceRequirements,
+        TUNNEL_ENGINE: 'cloudflare',
+        app_params: appParams,
+        pipeline_input_type: deployment.pipelineInputType,
+        pipeline_input_uri: deployment.pipelineInputUri || null,
+        pipeline_params: !_.isEmpty(pipelineParams) ? pipelineParams : {},
+        chainstore_response: false,
+    };
+};
+
+// To be replaced by the corresponding formatJobPayload once all the fields are supported
+export const formatServiceJobUpdatePayload = (job: RunningJobWithResources, deployment: ServiceJobDeployment) => {
+    const containerType: ContainerOrWorkerType = job.resources.containerOrWorkerType;
+
+    const envVars = formatEnvVars(deployment.envVars);
+    const dynamicEnvVars = formatDynamicEnvVars(deployment.dynamicEnvVars);
+    const volumes = formatVolumes(deployment.volumes);
+    const containerResources = job.config.CONTAINER_RESOURCES;
+    const targetNodes = formatNodes(deployment.targetNodes);
+
+    const spareNodes = formatNodes(deployment.spareNodes);
+
+    const nonce = generateNonce();
+
+    return {
+        app_alias: deployment.jobAlias,
+        plugin_signature: 'CONTAINER_APP_RUNNER',
+        nonce,
+        target_nodes: targetNodes,
+        spare_nodes: spareNodes,
+        allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
+        target_nodes_count: 1, // Service jobs are always single-node
+        service_replica: deployment.serviceReplica,
+        app_params: {
+            IMAGE: containerType.image,
+            CONTAINER_RESOURCES: containerResources,
+            PORT: containerType.port,
+            TUNNEL_ENGINE: 'ngrok',
+            NGROK_AUTH_TOKEN: deployment.tunnelingToken || null,
+            NGROK_EDGE_LABEL: deployment.tunnelingLabel || null,
+            TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
             NGROK_USE_API: true,
             VOLUMES: volumes,
             ENV: envVars,
@@ -323,3 +496,11 @@ export function buildDeeployMessage(data: Record<string, any>, prefix: string = 
 
 export const addTimeFn = environment === 'mainnet' ? addDays : addHours;
 export const diffTimeFn = environment === 'mainnet' ? differenceInDays : differenceInHours;
+
+export const boolToBooleanType = (bool: boolean) => {
+    return bool ? 'True' : 'False';
+};
+
+export const titlecase = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+};

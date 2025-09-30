@@ -1,8 +1,8 @@
-import JobFormButtons from '@components/jobs/JobFormButtons';
-import JobFormHeader from '@components/jobs/JobFormHeader';
-import Deployment from '@components/jobs/steps/Deployment';
-import PaymentAndDuration from '@components/jobs/steps/PaymentAndDuration';
-import Specifications from '@components/jobs/steps/Specifications';
+import JobFormButtons from '@components/create-job/JobFormButtons';
+import JobFormHeader from '@components/create-job/JobFormHeader';
+import Deployment from '@components/create-job/steps/Deployment';
+import PaymentAndDuration from '@components/create-job/steps/PaymentAndDuration';
+import Specifications from '@components/create-job/steps/Specifications';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerResources';
@@ -17,7 +17,7 @@ import { isValidProjectHash } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
 import { DraftJob, JobType } from '@typedefs/deeploys';
 import { useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -41,6 +41,8 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         deployment: {
             enableTunneling: BOOLEAN_TYPES[0],
             targetNodes: [{ address: '' }],
+            spareNodes: [{ address: '' }],
+            allowReplicationInTheWild: BOOLEAN_TYPES[0],
         },
     });
 
@@ -92,7 +94,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            envVars: [{ key: 'DB_PASSWORD', value: '' }],
+            envVars: [],
         },
     });
 
@@ -123,7 +125,6 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         if (jobType) {
             const defaults = getDefaultSchemaValues();
             form.reset(defaults);
-
             form.setValue('jobType', jobType);
         }
     }, [jobType, form]);
@@ -178,7 +179,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         }
     };
 
-    const onError = (errors) => {
+    const onError = (errors: FieldErrors<z.infer<typeof jobSchema>>) => {
         console.log('[JobFormWrapper] Validation errors:', errors);
     };
 

@@ -23,7 +23,7 @@ export default function JobTags() {
                     }
                 }}
             >
-                <div className="compact text-slate-500">Deploy to KYB-nodes only</div>
+                <div className="compact text-slate-600">Deploy to KYB-nodes only</div>
             </Checkbox>
         </div>
     );

@@ -95,7 +95,6 @@ export default function EnvVariablesCard({ disabledKeys }: { disabledKeys?: stri
                     name="deployment.envVars"
                     displayLabel="environment variables"
                     disabledKeys={disabledKeys}
-                    parentFields={fields as KeyValueEntry[]}
                     parentMethods={{ append, remove, fields }}
                     enableSecretValues
                 />

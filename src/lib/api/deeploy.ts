@@ -14,6 +14,18 @@ export const createPipeline = (request: {
         request,
     });
 
+export const updatePipeline = (request: {
+    EE_ETH_SIGN: EthAddress;
+    EE_ETH_SENDER: EthAddress;
+    app_id: string;
+    job_id: number;
+    project_id: EthAddress;
+    [key: string]: string | number | boolean | null | undefined;
+}) =>
+    _doPostDeeploy('/update_pipeline', {
+        request,
+    });
+
 export const getApps = (request: {
     EE_ETH_SIGN: EthAddress;
     EE_ETH_SENDER: EthAddress;

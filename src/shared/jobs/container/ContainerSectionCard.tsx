@@ -1,4 +1,3 @@
-import { Switch } from '@heroui/switch';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
 import { useState } from 'react';
@@ -39,7 +38,7 @@ function ContainerSectionCard() {
             title="Container"
             label={
                 <div className="row gap-2">
-                    <SmallTag variant={containerType === 'worker' ? 'emerald' : 'default'}>Worker</SmallTag>
+                    {/* <SmallTag variant={containerType === 'worker' ? 'emerald' : 'default'}>Worker</SmallTag>
 
                     <Switch
                         isSelected={containerType === 'image'}
@@ -50,7 +49,9 @@ function ContainerSectionCard() {
                         }}
                     >
                         <SmallTag variant={containerType === 'image' ? 'purple' : 'default'}>Image</SmallTag>
-                    </Switch>
+                    </Switch> */}
+
+                    <SmallTag variant={containerType === 'image' ? 'purple' : 'default'}>Image</SmallTag>
                 </div>
             }
         >

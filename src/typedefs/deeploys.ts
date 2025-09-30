@@ -13,6 +13,7 @@ import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { EthAddress, R1Address } from './blockchain';
+import { JobConfig } from './deeployApi';
 
 enum JobType {
     Generic = 'Generic',
@@ -61,6 +62,8 @@ type JobPaymentAndDuration = {
 // Deployment
 type BaseJobDeployment = {
     targetNodes: Array<{ address: R1Address }>;
+    spareNodes: Array<{ address: R1Address }>;
+    allowReplicationInTheWild: boolean;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
     tunnelingLabel?: string;
     tunnelingToken?: string;
@@ -199,6 +202,7 @@ type RunningJobWithDetails = RunningJob & {
     alias: string;
     projectName?: string;
     nodes: R1Address[];
+    config: JobConfig;
 };
 
 type RunningJobWithResources = RunningJobWithDetails & {
@@ -216,14 +220,18 @@ export type {
     DraftJob,
     DraftProject,
     GenericDraftJob,
+    GenericJobDeployment,
     GenericJobSpecifications,
+    JobDeployment,
     JobPaymentAndDuration,
     JobSpecifications,
     NativeDraftJob,
+    NativeJobDeployment,
     NativeJobSpecifications,
     RunningJob,
     RunningJobWithDetails,
     RunningJobWithResources,
     ServiceDraftJob,
+    ServiceJobDeployment,
     ServiceJobSpecifications,
 };

@@ -1,4 +1,4 @@
-import JobFormWrapper from '@components/jobs/JobFormWrapper';
+import JobFormWrapper from '@components/create-job/JobFormWrapper';
 import ProjectPageLoading from '@components/loading/ProjectPageLoading';
 import ProjectOverview from '@components/project/ProjectOverview';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';

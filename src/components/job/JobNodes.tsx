@@ -3,6 +3,7 @@ import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import { CopyableValue } from '@shared/CopyableValue';
 import { SmallTag } from '@shared/SmallTag';
 import { R1Address } from '@typedefs/blockchain';
+import clsx from 'clsx';
 import { RiTimeLine } from 'react-icons/ri';
 
 export default function JobNodes({
@@ -36,12 +37,21 @@ export default function JobNodes({
                 </div>
             }
         >
-            <div className="row flex-wrap gap-4 px-4 py-3">
+            <div className="col gap-3 px-4 py-3">
                 {nodes.map((node) => {
                     return (
-                        <CopyableValue key={node} value={node}>
-                            <SmallTag isLarge>{getShortAddressOrHash(node, 4)}</SmallTag>
-                        </CopyableValue>
+                        <div key={node} className="row gap-2">
+                            <div
+                                className={clsx('h-2.5 w-2.5 rounded-full', {
+                                    'bg-emerald-500': true,
+                                    'bg-red-500': false,
+                                })}
+                            ></div>
+
+                            <SmallTag isLarge>
+                                <CopyableValue value={node}>{getShortAddressOrHash(node, 8)}</CopyableValue>
+                            </SmallTag>
+                        </div>
                     );
                 })}
             </div>

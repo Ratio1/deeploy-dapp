@@ -1,64 +1,51 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { ContainerOrWorkerType } from '@data/containerResources';
-import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
+import ContainerSectionCard from '@shared/jobs/container/ContainerSectionCard';
 import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';
 import EnvVariablesCard from '@shared/jobs/EnvVariablesCard';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
+import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
-import { JobSpecifications, JobType } from '@typedefs/deeploys';
-import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-function ServiceDeployment() {
-    const { watch, setValue } = useFormContext();
-
-    const jobType: JobType = watch('jobType');
-    const specifications: JobSpecifications = watch('specifications');
+function GenericDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
+    const { watch } = useFormContext();
     const enableTunneling = watch('deployment.enableTunneling');
-
-    const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(jobType, specifications);
-
-    // Init
-    useEffect(() => {
-        if (containerOrWorkerType) {
-            setValue('deployment.jobAlias', containerOrWorkerType.notes.split(' ')[0]);
-        }
-    }, []);
 
     return (
         <div className="col gap-6">
-            <SlateCard title="Service Identity">
+            <SlateCard title="App Identity">
                 <div className="flex gap-4">
-                    <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="Service" />
+                    <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="My App" />
                 </div>
             </SlateCard>
 
-            <TargetNodesCard />
+            <TargetNodesCard isEditingJob={isEditingJob} />
+
+            <ContainerSectionCard />
 
             <SlateCard title="App Parameters">
                 <div className="col gap-4">
-                    <div className="flex">
+                    <div className="flex gap-4">
+                        <NumberInputWithLabel name="deployment.port" label="Port" />
                         <SelectWithLabel name="deployment.enableTunneling" label="Enable Tunneling" options={BOOLEAN_TYPES} />
                     </div>
 
                     {enableTunneling === BOOLEAN_TYPES[0] && (
                         <div className="flex gap-4">
-                            <InputWithLabel name="deployment.tunnelingToken" label="Tunneling Token" placeholder="None" />
                             <InputWithLabel
-                                name="deployment.tunnelingLabel"
-                                label="Tunneling Label"
-                                placeholder="None"
-                                isOptional
+                                name="deployment.tunnelingToken"
+                                label="Tunnel Token"
+                                placeholder="Starts with 'ey'"
                             />
                         </div>
                     )}
                 </div>
             </SlateCard>
 
-            <EnvVariablesCard disabledKeys={['DB_PASSWORD']} />
+            <EnvVariablesCard />
 
             <SlateCard title="Dynamic ENV Variables">
                 <DynamicEnvSection />
@@ -68,11 +55,18 @@ function ServiceDeployment() {
                 <KeyValueEntriesSection name="deployment.volumes" displayLabel="volumes" placeholders={['VOLUME', 'PATH']} />
             </SlateCard>
 
-            <SlateCard title="Other">
-                <InputWithLabel name="deployment.serviceReplica" label="Service Replica" placeholder="0x_ai" isOptional />
+            <SlateCard title="Policies">
+                <div className="flex gap-4">
+                    <SelectWithLabel name="deployment.restartPolicy" label="Restart Policy" options={['Always', 'Manual']} />
+                    <SelectWithLabel
+                        name="deployment.imagePullPolicy"
+                        label="Image Pull Policy"
+                        options={['Always', 'Manual']}
+                    />
+                </div>
             </SlateCard>
         </div>
     );
 }
 
-export default ServiceDeployment;
+export default GenericDeployment;

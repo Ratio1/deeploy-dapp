@@ -4,7 +4,7 @@ import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import { SignMessageModal } from '@shared/SignMessageModal';
 import { EthAddress, R1Address } from '@typedefs/blockchain';
-import { Apps } from '@typedefs/deeployApi';
+import { Apps, JobConfig } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { useRef, useState } from 'react';
@@ -146,10 +146,14 @@ export const DeploymentProvider = ({ children }) => {
             .uniqBy((app) => app.alias)
             .value();
 
+        console.log({ uniqueAppsWithAliases });
+
         const runningJobsWithDetails: RunningJobWithDetails[] = _(uniqueAppsWithAliases)
             .map((appWithAlias) => {
                 const alias: string = appWithAlias.alias;
                 const specs = appWithAlias.deeploy_specs;
+                const config: JobConfig = appWithAlias.plugins.CONTAINER_APP_RUNNER[0].instance_conf;
+
                 const jobId = specs.job_id;
 
                 const job = runningJobs.find((job) => Number(job.id) === jobId && job.projectHash === specs.project_id);
@@ -162,6 +166,7 @@ export const DeploymentProvider = ({ children }) => {
                     alias,
                     projectName: specs.project_name,
                     nodes: Object.keys(apps).filter((node) => apps[node][alias] !== undefined) as R1Address[],
+                    config,
                     ...job,
                 };
             })

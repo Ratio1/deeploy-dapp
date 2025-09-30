@@ -1,3 +1,4 @@
+import JobFormWrapper from '@components/create-job/JobFormWrapper';
 import DraftOverview from '@components/draft/DraftOverview';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
@@ -9,7 +10,6 @@ import { DraftJob, ProjectPage, type DraftProject } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import JobFormWrapper from '../../components/jobs/JobFormWrapper';
 
 export default function Draft() {
     const { jobType, setJobType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
