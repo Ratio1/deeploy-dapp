@@ -42,7 +42,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             enableTunneling: BOOLEAN_TYPES[0],
             targetNodes: [{ address: '' }],
             spareNodes: [{ address: '' }],
-            allowReplicationInTheWild: BOOLEAN_TYPES[0],
+            allowReplicationInTheWild: true,
         },
     });
 

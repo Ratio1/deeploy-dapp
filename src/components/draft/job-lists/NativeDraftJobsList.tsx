@@ -8,7 +8,7 @@ import { JobType, NativeDraftJob } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
 const widthClasses = [
-    'min-w-[128px]', // alias
+    'min-w-[138px]', // alias
     'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
     'min-w-[50px]', // type
@@ -37,7 +37,9 @@ export default function NativeDraftJobsList({ jobs }: { jobs: NativeDraftJob[] }
 
                 return (
                     <>
-                        <div className={widthClasses[0]}>{nativeJob.deployment.jobAlias}</div>
+                        <div className={widthClasses[0]}>
+                            <div className="max-w-[138px] truncate">{nativeJob.deployment.jobAlias}</div>
+                        </div>
 
                         <div className={widthClasses[1]}>
                             <SmallTag>
