@@ -207,6 +207,7 @@ type RunningJobWithDetails = RunningJob & {
     projectName?: string;
     allowReplicationInTheWild: boolean;
     spareNodes: R1Address[];
+    jobTags: string[];
     nodes: R1Address[];
     config: JobConfig;
 };

@@ -124,7 +124,7 @@ export default function Job() {
                 <JobResources resources={job.resources} />
 
                 {/* Configuration */}
-                <JobConfiguration config={job.config} />
+                <JobConfiguration job={job} />
 
                 {/* Nodes */}
                 <JobNodes nodes={job.nodes} lastNodesChangeTimestamp={job.lastNodesChangeTimestamp} />

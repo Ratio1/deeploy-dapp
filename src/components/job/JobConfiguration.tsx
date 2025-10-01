@@ -3,12 +3,15 @@ import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
 import ItemWithBoldValue from '@shared/jobs/ItemWithBoldValue';
 import { JobConfig } from '@typedefs/deeployApi';
+import { RunningJobWithResources } from '@typedefs/deeploys';
 import { isEmpty } from 'lodash';
 import JobDynamicEnvSection from './JobDynamicEnvSection';
 import JobKeyValueSection from './JobKeyValueSection';
-import JobWorkerCommandsSection from './JobWorkerCommandsSection';
+import JobSimpleTagsSection from './JobSimpleTagsSection';
 
-export default function JobConfiguration({ config }: { config: JobConfig }) {
+export default function JobConfiguration({ job }: { job: RunningJobWithResources }) {
+    const config: JobConfig = job.config;
+
     return (
         <BorderedCard isLight={false} disableWrapper>
             <div className="col gap-3 p-4">
@@ -67,10 +70,14 @@ export default function JobConfiguration({ config }: { config: JobConfig }) {
                                 isEmpty(config.BUILD_AND_RUN_COMMANDS) ? (
                                     '—'
                                 ) : (
-                                    <JobWorkerCommandsSection commands={config.BUILD_AND_RUN_COMMANDS} />
+                                    <JobSimpleTagsSection array={config.BUILD_AND_RUN_COMMANDS} label="COMMAND" />
                                 )
                             }
                         />
+                    )}
+
+                    {!!job.jobTags && job.jobTags.length > 0 && (
+                        <ItemWithBoldValue label="Tags" value={<JobSimpleTagsSection array={job.jobTags} />} />
                     )}
                 </div>
             </div>
