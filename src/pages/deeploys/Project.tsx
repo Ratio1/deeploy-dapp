@@ -101,7 +101,6 @@ export default function Project() {
                     jobs={draftJobs}
                     callback={() => {
                         setProjectPage(ProjectPage.Overview);
-                        fetchRunningJobs();
                     }}
                     projectIdentity={getProjectIdentity()}
                 />
@@ -110,6 +109,7 @@ export default function Project() {
                     runningJobs={runningJobsWithDetails}
                     draftJobs={draftJobs}
                     projectIdentity={getProjectIdentity()}
+                    fetchRunningJobs={fetchRunningJobs}
                 />
             )}
         </>
