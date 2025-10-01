@@ -136,8 +136,14 @@ export const formatTargetNodesCount = (targetNodes: string[], specificationsTarg
     return targetNodes.length > 0 ? 0 : specificationsTargetNodesCount;
 };
 
+export const formatJobTags = (specifications: JobSpecifications) => {
+    const countries = specifications.nodesCountries.map((country) => `CT:${country}`).join('||');
+    return [...specifications.jobTags, countries];
+};
+
 export const formatGenericJobPayload = (job: GenericDraftJob) => {
     const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+    const jobTags = formatJobTags(job.specifications);
 
     const envVars = formatEnvVars(job.deployment.envVars);
     const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
@@ -195,7 +201,7 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
         spare_nodes: spareNodes,
         allow_replication_in_the_wild: job.deployment.allowReplicationInTheWild,
         target_nodes_count: targetNodesCount,
-        job_tags: job.specifications.jobTags,
+        job_tags: jobTags,
         app_params: appParams,
         pipeline_input_type: 'void',
         pipeline_input_uri: null,
@@ -205,6 +211,7 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
 
 export const formatNativeJobPayload = (job: NativeDraftJob) => {
     const workerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+    const jobTags = formatJobTags(job.specifications);
 
     const customParams: Record<string, string> = {};
     job.deployment.customParams.forEach((param) => {
@@ -252,7 +259,7 @@ export const formatNativeJobPayload = (job: NativeDraftJob) => {
         spare_nodes: spareNodes,
         allow_replication_in_the_wild: job.deployment.allowReplicationInTheWild,
         target_nodes_count: targetNodesCount,
-        job_tags: job.specifications.jobTags,
+        job_tags: jobTags,
         node_res_req: nodeResourceRequirements,
         TUNNEL_ENGINE: 'cloudflare',
         app_params: appParams,
@@ -265,6 +272,7 @@ export const formatNativeJobPayload = (job: NativeDraftJob) => {
 
 export const formatServiceJobPayload = (job: ServiceDraftJob) => {
     const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+    const jobTags = formatJobTags(job.specifications);
 
     const envVars = formatEnvVars(job.deployment.envVars);
     const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
@@ -284,7 +292,7 @@ export const formatServiceJobPayload = (job: ServiceDraftJob) => {
         spare_nodes: spareNodes,
         allow_replication_in_the_wild: job.deployment.allowReplicationInTheWild,
         target_nodes_count: 1, // Service jobs are always single-node
-        job_tags: job.specifications.jobTags,
+        job_tags: jobTags,
         service_replica: job.deployment.serviceReplica,
         app_params: {
             IMAGE: containerType.image,

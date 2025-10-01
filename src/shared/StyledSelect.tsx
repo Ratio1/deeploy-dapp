@@ -7,6 +7,7 @@ export default function StyledSelect({ children, ...props }: SelectProps) {
                 base: 'w-full',
                 trigger:
                     'rounded-lg px-2.5 border cursor-pointer shadow-none transition-shadow! bg-light data-[hover=true]:border-slate-300 data-[focus=true]:border-slate-300 data-[open=true]:border-slate-400 data-[open=true]:shadow-custom',
+                listboxWrapper: 'max-h-[264px]!',
             }}
             listboxProps={{
                 itemClasses: {
@@ -21,6 +22,9 @@ export default function StyledSelect({ children, ...props }: SelectProps) {
                         'data-[focus-visible=true]:ring-default-500',
                         'px-3',
                     ],
+                },
+                classNames: {
+                    list: '[&>div]:pr-1',
                 },
             }}
             popoverProps={{

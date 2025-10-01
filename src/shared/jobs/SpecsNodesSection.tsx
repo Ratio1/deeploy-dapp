@@ -9,7 +9,7 @@ import { useFormContext } from 'react-hook-form';
 import { RiErrorWarningLine } from 'react-icons/ri';
 import JobTags from './target-nodes/JobTags';
 
-export default function SpecsCardWithBalancingWarning({ jobType }: { jobType: JobType }) {
+export default function SpecsNodesSection({ jobType }: { jobType: JobType }) {
     const { watch, setValue } = useFormContext();
 
     const containerOrWorkerTypeName: string = watch(

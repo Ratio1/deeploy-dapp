@@ -33,6 +33,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             applicationType: APPLICATION_TYPES[0],
             targetNodesCount: 1,
             jobTags: [],
+            nodesCountries: [],
         },
         paymentAndDuration: {
             duration: 12,

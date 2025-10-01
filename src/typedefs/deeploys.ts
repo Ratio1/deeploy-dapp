@@ -31,6 +31,7 @@ type BaseJobSpecifications = {
     applicationType: (typeof APPLICATION_TYPES)[number];
     targetNodesCount: number;
     jobTags: string[];
+    nodesCountries: string[];
 };
 
 type GenericJobSpecifications = BaseJobSpecifications & {
@@ -222,6 +223,7 @@ export interface KeyValueEntry {
 
 export { JobType, ProjectPage };
 export type {
+    BaseJobSpecifications,
     DraftJob,
     DraftProject,
     GenericDraftJob,
