@@ -9,11 +9,15 @@ type Apps = {
             last_config: string; // ISO-like timestamp string
             is_deeployed: boolean;
             deeploy_specs: {
+                allow_replication_in_the_wild: boolean;
+                date_created: number;
+                date_updated: number;
                 initial_target_nodes: string[]; // R1 node addresses but nodes have no "x_ai" prefix
                 job_id: number;
                 nr_target_nodes: number;
                 project_id: string; // projectHash
                 project_name: string | undefined;
+                spare_nodes: string[];
             };
             plugins: {
                 [pluginName: string]: {

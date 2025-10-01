@@ -45,11 +45,11 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
         >
             <TargetNodesSection autoAssign={isEditingJob ? false : autoAssign} isEditingJob={isEditingJob} />
 
-            {!autoAssign && (
+            {(!autoAssign || isEditingJob) && (
                 <div className="col gap-4">
                     <div className="text-[17px] leading-none font-medium">Backup Nodes</div>
 
-                    <SpareNodesSection />
+                    <SpareNodesSection isEditingJob={isEditingJob} />
 
                     <div className="col gap-2.5">
                         <Checkbox

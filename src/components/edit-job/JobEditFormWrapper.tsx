@@ -32,6 +32,8 @@ export default function JobEditFormWrapper({
             jobAlias: job.alias,
             enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED),
             targetNodes: job.nodes.map((address) => ({ address })),
+            spareNodes: job.spareNodes.map((address) => ({ address })),
+            allowReplicationInTheWild: job.allowReplicationInTheWild,
         },
     });
 
