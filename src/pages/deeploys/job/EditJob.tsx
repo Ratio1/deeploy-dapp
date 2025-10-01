@@ -95,7 +95,7 @@ export default function EditJob() {
 
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
-                    navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=running`);
+                    navigate(`${routePath.deeploys}/${routePath.job}/${Number(job!.id)}`);
                 }, 1000);
             } else {
                 deeployFlowModalRef.current?.displayError();
@@ -103,6 +103,7 @@ export default function EditJob() {
             }
         } catch (error) {
             console.error('[EditJob]', error);
+            deeployFlowModalRef.current?.displayError();
             toast.error('Failed to update job.');
         } finally {
             setLoading(false);

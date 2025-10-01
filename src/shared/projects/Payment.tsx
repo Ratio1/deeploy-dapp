@@ -237,21 +237,20 @@ export default function Payment({
                     successfulJobs.map((r) => (r as PromiseFulfilledResult<any>).value),
                 );
                 toast.success(`${successfulJobs.length} job${successfulJobs.length > 1 ? 's' : ''} deployed successfully.`);
-
-                // If at least one job was deployed, delete the projectdraft
-                await db.projects.delete(projectHash);
             }
 
             if (successfulJobs.length === jobs.length) {
                 deeployFlowModalRef.current?.progress('done');
                 setFetchAppsRequired(true);
 
-                // Delete all job drafts
-                await db.jobs.where('projectHash').equals(projectHash).delete();
-
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
                     callback();
+
+                    // Delete all job drafts
+                    db.jobs.where('projectHash').equals(projectHash).delete();
+                    // If at least one job was deployed, delete the projectdraft
+                    db.projects.delete(projectHash);
                 }, 1000);
             } else {
                 deeployFlowModalRef.current?.displayError();

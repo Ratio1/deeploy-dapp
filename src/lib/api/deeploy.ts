@@ -26,6 +26,17 @@ export const updatePipeline = (request: {
         request,
     });
 
+export const sendJobCommand = (request: {
+    EE_ETH_SIGN: EthAddress;
+    EE_ETH_SENDER: EthAddress;
+    app_id: string;
+    job_id: number;
+    command: 'RESTART' | 'STOP';
+}) =>
+    _doPostDeeploy('/send_app_command', {
+        request,
+    });
+
 export const getApps = (request: {
     EE_ETH_SIGN: EthAddress;
     EE_ETH_SENDER: EthAddress;

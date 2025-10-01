@@ -14,7 +14,7 @@ import SupportFooter from '@shared/SupportFooter';
 import { RunningJob, RunningJobWithDetails, RunningJobWithResources } from '@typedefs/deeploys';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiArrowLeftLine, RiEdit2Line } from 'react-icons/ri';
+import { RiArrowLeftLine, RiEdit2Line, RiStopCircleLine } from 'react-icons/ri';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { usePublicClient } from 'wagmi';
 
@@ -81,6 +81,14 @@ export default function Job() {
         navigate(routePath.edit, { state: { job } });
     };
 
+    const onStop = () => {
+        console.log('stop job');
+    };
+
+    const onRestart = () => {
+        console.log('restart job');
+    };
+
     if (isLoading || !job) {
         return <JobPageLoading />;
     }
@@ -102,6 +110,17 @@ export default function Job() {
                             <div className="row gap-1.5">
                                 <RiArrowLeftLine className="text-lg" />
                                 <div className="compact">Project</div>
+                            </div>
+                        </ActionButton>
+
+                        <ActionButton className="slate-button" color="default" onPress={() => onRestart()}>
+                            <div className="text-sm">Restart</div>
+                        </ActionButton>
+
+                        <ActionButton className="bg-red-500" color="danger" onPress={() => onStop()}>
+                            <div className="row gap-1.5">
+                                <RiStopCircleLine className="text-lg" />
+                                <div className="text-sm">Stop</div>
                             </div>
                         </ActionButton>
 

@@ -76,7 +76,7 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                         />
                     )}
 
-                    {!!job.jobTags && job.jobTags.length > 0 && (
+                    {!!job.jobTags && job.jobTags.filter((tag) => !tag.startsWith('CT:')).length > 0 && (
                         <ItemWithBoldValue label="Tags" value={<JobSimpleTagsSection array={job.jobTags} />} />
                     )}
                 </div>

@@ -28,6 +28,9 @@ export default function JobEditFormWrapper({
     const config: JobConfig = job.config;
 
     const getBaseSchemaDefaults = () => ({
+        specifications: {
+            jobTags: job.jobTags,
+        },
         deployment: {
             jobAlias: job.alias,
             enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED),
