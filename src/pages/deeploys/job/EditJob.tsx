@@ -1,4 +1,5 @@
 import { DeeployFlowModal } from '@components/draft/DeeployFlowModal';
+import JobEditFormWrapper from '@components/edit-job/JobEditFormWrapper';
 import JobBreadcrumbs from '@components/job/JobBreadcrumbs';
 import EditJobPageLoading from '@components/loading/EditJobPageLoading';
 import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
@@ -29,7 +30,6 @@ import { RiArrowLeftLine } from 'react-icons/ri';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAccount, useSignMessage } from 'wagmi';
 import z from 'zod';
-import JobEditFormWrapper from '../../../components/edit-job/JobEditFormWrapper';
 
 export default function EditJob() {
     const { setFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
@@ -47,10 +47,12 @@ export default function EditJob() {
     }>(null);
 
     const [isLoading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | undefined>(undefined);
 
     const job: RunningJobWithResources | undefined = (location.state as { job?: RunningJobWithResources })?.job;
 
     const onSubmit = async (data: z.infer<typeof deploymentSchema>) => {
+        setError(undefined);
         setLoading(true);
         deeployFlowModalRef.current?.open(1);
 
@@ -100,6 +102,12 @@ export default function EditJob() {
             } else {
                 deeployFlowModalRef.current?.displayError();
                 toast.error('Failed to update job, please try again.');
+
+                const error: string | undefined = response.error;
+                if (error) {
+                    setError(error);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
             }
         } catch (error) {
             console.error('[EditJob]', error);
@@ -155,8 +163,23 @@ export default function EditJob() {
                     </div>
                 </div>
 
-                {/* Form */}
-                <JobEditFormWrapper job={job} onSubmit={onSubmit} isLoading={isLoading} />
+                <div className="col">
+                    {/* Error */}
+                    {!!error && (
+                        <div className="mx-auto w-full max-w-[626px]">
+                            <div className="rounded-lg bg-red-100 px-6 py-3 text-sm text-red-800">
+                                <div className="col gap-2">
+                                    <div className="font-medium">Update failed with the following error:</div>
+
+                                    <div className="text-[13px]">{error}</div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Form */}
+                    <JobEditFormWrapper job={job} onSubmit={onSubmit} isLoading={isLoading} />
+                </div>
             </div>
 
             <SupportFooter />

@@ -152,16 +152,6 @@ export default function JobEditFormWrapper({
                             {getComponent()}
 
                             <div className="center-all gap-2">
-                                {/* <ActionButton
-                                    className="slate-button"
-                                    color="default"
-                                    onPress={() => {
-                                        console.log(form.getValues());
-                                    }}
-                                >
-                                    <div className="compact">Check Values</div>
-                                </ActionButton> */}
-
                                 <SubmitButton label="Update Job" icon={<RiBox3Line />} isLoading={isLoading} />
                             </div>
                         </div>
