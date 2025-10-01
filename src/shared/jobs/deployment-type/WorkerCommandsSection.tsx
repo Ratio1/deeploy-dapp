@@ -6,15 +6,15 @@ import VariableSectionIndex from '../VariableSectionIndex';
 import VariableSectionRemove from '../VariableSectionRemove';
 
 // This component assumes it's being used in the deployment step
-export default function WorkerContainerCommandsSection() {
+export default function WorkerCommandsSection() {
     const { control, formState, trigger } = useFormContext();
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'deployment.container.workerCommands',
+        name: 'deployment.deploymentType.workerCommands',
     });
 
     // Get array-level errors
-    const errors = (formState.errors.deployment as any)?.container?.workerCommands;
+    const errors = (formState.errors.deployment as any)?.deploymentType?.workerCommands;
 
     return (
         <div className="col gap-4">
@@ -33,7 +33,7 @@ export default function WorkerContainerCommandsSection() {
                                 <VariableSectionIndex index={index} />
 
                                 <Controller
-                                    name={`deployment.container.workerCommands.${index}.command`}
+                                    name={`deployment.deploymentType.workerCommands.${index}.command`}
                                     control={control}
                                     render={({ field, fieldState }) => {
                                         const specificError = entryError?.command;
@@ -49,7 +49,7 @@ export default function WorkerContainerCommandsSection() {
 
                                                     // Trigger validation for the entire array to check for duplicate addresses
                                                     if (fields.length > 1) {
-                                                        await trigger('deployment.container.workerCommands');
+                                                        await trigger('deployment.deploymentType.workerCommands');
                                                     }
                                                 }}
                                                 isInvalid={hasError}

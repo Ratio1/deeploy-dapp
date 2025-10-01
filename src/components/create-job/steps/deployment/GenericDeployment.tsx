@@ -1,7 +1,7 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
-import ContainerSectionCard from '@shared/jobs/container/ContainerSectionCard';
+import DeploymentTypeSectionCard from '@shared/jobs/deployment-type/DeploymentTypeSectionCard';
 import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';
 import EnvVariablesCard from '@shared/jobs/EnvVariablesCard';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
@@ -24,7 +24,7 @@ function GenericDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
 
             <TargetNodesCard isEditingJob={isEditingJob} />
 
-            <ContainerSectionCard />
+            <DeploymentTypeSectionCard />
 
             <SlateCard title="App Parameters">
                 <div className="col gap-4">

@@ -6,6 +6,7 @@ import { JobConfig } from '@typedefs/deeployApi';
 import { isEmpty } from 'lodash';
 import JobDynamicEnvSection from './JobDynamicEnvSection';
 import JobKeyValueSection from './JobKeyValueSection';
+import JobWorkerCommandsSection from './JobWorkerCommandsSection';
 
 export default function JobConfiguration({ config }: { config: JobConfig }) {
     return (
@@ -16,6 +17,9 @@ export default function JobConfiguration({ config }: { config: JobConfig }) {
                 <div className="col gap-4">
                     <div className="grid grid-cols-3 gap-4">
                         <ItemWithBoldValue label="Image" value={config.IMAGE} />
+
+                        {!!config.VCS_DATA && <ItemWithBoldValue label="Repository" value={config.VCS_DATA.REPO_NAME} />}
+
                         <ItemWithBoldValue label="Port" value={config.PORT} />
                         <ItemWithBoldValue label="Tunnel Engine" value={config.TUNNEL_ENGINE} capitalize />
                         <ItemWithBoldValue
@@ -55,6 +59,19 @@ export default function JobConfiguration({ config }: { config: JobConfig }) {
                         label="Dynamic ENV Variables"
                         value={isEmpty(config.DYNAMIC_ENV) ? '—' : <JobDynamicEnvSection dynamicEnv={config.DYNAMIC_ENV} />}
                     />
+
+                    {!!config.BUILD_AND_RUN_COMMANDS && (
+                        <ItemWithBoldValue
+                            label="Worker Commands"
+                            value={
+                                isEmpty(config.BUILD_AND_RUN_COMMANDS) ? (
+                                    '—'
+                                ) : (
+                                    <JobWorkerCommandsSection commands={config.BUILD_AND_RUN_COMMANDS} />
+                                )
+                            }
+                        />
+                    )}
                 </div>
             </div>
         </BorderedCard>

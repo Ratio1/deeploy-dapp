@@ -29,7 +29,7 @@ import { RiArrowLeftLine } from 'react-icons/ri';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAccount, useSignMessage } from 'wagmi';
 import z from 'zod';
-import JobEditFormWrapper from './JobEditFormWrapper';
+import JobEditFormWrapper from '../../../components/edit-job/JobEditFormWrapper';
 
 export default function EditJob() {
     const { setFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;

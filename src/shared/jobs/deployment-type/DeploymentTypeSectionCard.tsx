@@ -3,21 +3,21 @@ import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import ImageContainerSection from './ImageContainerSection';
-import WorkerContainerSection from './WorkerContainerSection';
+import ContainerImageSection from './ContainerImageSection';
+import WorkerSection from './WorkerSection';
 
-function ContainerSectionCard() {
+function DeploymentTypeSectionCard() {
     const { setValue, watch } = useFormContext();
-    const container = watch('deployment.container');
+    const deploymentType = watch('deployment.deploymentType');
 
-    const [containerType, setContainerType] = useState<'worker' | 'image'>(container.type);
+    const [type, setType] = useState<'worker' | 'image'>(deploymentType.type);
 
     const onContainerTypeChange = (isImage: boolean) => {
         const type = isImage ? 'image' : 'worker';
-        setContainerType(type);
+        setType(type);
 
         if (type === 'image') {
-            setValue('deployment.container', {
+            setValue('deployment.deploymentType', {
                 type: 'image',
                 containerImage: '',
                 containerRegistry: '',
@@ -25,9 +25,12 @@ function ContainerSectionCard() {
                 crPassword: '',
             });
         } else {
-            setValue('deployment.container', {
+            setValue('deployment.deploymentType', {
                 type: 'worker',
-                githubUrl: '',
+                image: 'node:22',
+                repository: '',
+                owner: '',
+                username: '',
                 accessToken: '',
                 workerCommands: [{ command: '' }],
             });
@@ -36,27 +39,27 @@ function ContainerSectionCard() {
 
     return (
         <SlateCard
-            title="Container"
+            title={type === 'worker' ? 'Worker App Runner' : 'Container Image'}
             label={
                 <div className="row gap-2">
-                    <SmallTag variant={containerType === 'worker' ? 'emerald' : 'default'}>Worker</SmallTag>
+                    <SmallTag variant={type === 'worker' ? 'emerald' : 'default'}>Worker</SmallTag>
 
                     <Switch
-                        isSelected={containerType === 'image'}
+                        isSelected={type === 'image'}
                         onValueChange={onContainerTypeChange}
                         size="sm"
                         classNames={{
                             wrapper: 'bg-emerald-200 group-data-[selected=true]:bg-purple-300',
                         }}
                     >
-                        <SmallTag variant={containerType === 'image' ? 'purple' : 'default'}>Image</SmallTag>
+                        <SmallTag variant={type === 'image' ? 'purple' : 'default'}>Image</SmallTag>
                     </Switch>
                 </div>
             }
         >
-            {containerType === 'image' ? <ImageContainerSection /> : <WorkerContainerSection />}
+            {type === 'image' ? <ContainerImageSection /> : <WorkerSection />}
         </SlateCard>
     );
 }
 
-export default ContainerSectionCard;
+export default DeploymentTypeSectionCard;

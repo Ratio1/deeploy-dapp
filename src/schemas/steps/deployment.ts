@@ -145,7 +145,7 @@ const baseDeploymentSchema = z.object({
         .optional(),
 });
 
-const imageContainerSchema = z.object({
+const imageSchema = z.object({
     type: z.literal('image'),
     containerImage: validations.containerImage,
     containerRegistry: validations.containerRegistry,
@@ -154,9 +154,12 @@ const imageContainerSchema = z.object({
     crPassword: z.union([getStringSchema(3, 256), z.literal('')]).optional(),
 });
 
-const workerContainerSchema = z.object({
+const workerSchema = z.object({
     type: z.literal('worker'),
-    githubUrl: validations.uri,
+    image: getStringSchema(3, 256),
+    repository: getStringSchema(3, 256),
+    owner: getStringSchema(3, 256),
+    username: getStringSchema(3, 256),
     accessToken: z
         .string()
         .max(512, 'Value cannot exceed 512 characters')
@@ -175,11 +178,11 @@ const workerContainerSchema = z.object({
     ),
 });
 
-const dualContainerSchema = z.discriminatedUnion('type', [imageContainerSchema, workerContainerSchema]);
+const deploymentTypeSchema = z.discriminatedUnion('type', [imageSchema, workerSchema]);
 
 const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,
-    container: dualContainerSchema,
+    deploymentType: deploymentTypeSchema,
     port: validations.port,
     envVars: validations.envVars,
     dynamicEnvVars: validations.dynamicEnvVars,
@@ -191,15 +194,15 @@ const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend
 export const genericAppDeploymentSchema = applyTunnelingRefinements(genericAppDeploymentSchemaWihtoutRefinements).superRefine(
     (data, ctx) => {
         // Validate that crUsername and crPassword are provided when crVisibility is 'Private'
-        if (data.container.type === 'image' && data.container.crVisibility === 'Private') {
-            if (!data.container.crUsername) {
+        if (data.deploymentType.type === 'image' && data.deploymentType.crVisibility === 'Private') {
+            if (!data.deploymentType.crUsername) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: 'Username is required',
                     path: ['container', 'crUsername'],
                 });
             }
-            if (!data.container.crPassword) {
+            if (!data.deploymentType.crPassword) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: 'Password/Authentication Token is required',

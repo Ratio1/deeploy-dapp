@@ -26,7 +26,7 @@ import _ from 'lodash';
 import { environment } from './config';
 import { deepSort } from './utils';
 
-export const getDiscountPercentage = (paymentMonthsCount: number): number => {
+export const getDiscountPercentage = (_paymentMonthsCount: number): number => {
     // Disabled for now
     return 0;
 };
@@ -148,21 +148,41 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
 
     const spareNodes = formatNodes(job.deployment.spareNodes);
 
-    let image = 'repo/image:tag';
-    let crData = {};
+    const appParams: any = {
+        CONTAINER_RESOURCES: containerResources,
+        PORT: job.deployment.port,
+        TUNNEL_ENGINE: 'cloudflare',
+        CLOUDFLARE_TOKEN: job.deployment.tunnelingToken || null,
+        TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
+        NGROK_USE_API: true,
+        VOLUMES: volumes,
+        ENV: envVars,
+        DYNAMIC_ENV: dynamicEnvVars,
+        RESTART_POLICY: job.deployment.restartPolicy.toLowerCase(),
+        IMAGE_PULL_POLICY: job.deployment.imagePullPolicy.toLowerCase(),
+    };
 
-    if (job.deployment.container.type === 'image') {
-        image = job.deployment.container.containerImage;
+    if (job.deployment.deploymentType.type === 'image') {
+        appParams.IMAGE = job.deployment.deploymentType.containerImage;
 
-        if (job.deployment.container.crVisibility === 'Private') {
-            crData = {
-                SERVER: job.deployment.container.containerRegistry,
-                USERNAME: job.deployment.container.crUsername,
-                PASSWORD: job.deployment.container.crPassword,
-            };
+        appParams.CR_DATA = {
+            SERVER: job.deployment.deploymentType.containerRegistry,
+        };
+
+        if (job.deployment.deploymentType.crVisibility === 'Private') {
+            appParams.CR_DATA.USERNAME = job.deployment.deploymentType.crUsername;
+            appParams.CR_DATA.PASSWORD = job.deployment.deploymentType.crPassword;
         }
     } else {
-        console.error('Worker-based container not implemented yet.');
+        appParams.IMAGE = job.deployment.deploymentType.image;
+        appParams.BUILD_AND_RUN_COMMANDS = job.deployment.deploymentType.workerCommands.map((entry) => entry.command);
+
+        appParams.VCS_DATA = {
+            REPO_NAME: job.deployment.deploymentType.repository,
+            REPO_OWNER: job.deployment.deploymentType.owner,
+            TOKEN: job.deployment.deploymentType.accessToken || null,
+            USERNAME: job.deployment.deploymentType.username,
+        };
     }
 
     const nonce = generateNonce();
@@ -176,21 +196,7 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
         allow_replication_in_the_wild: job.deployment.allowReplicationInTheWild,
         target_nodes_count: targetNodesCount,
         job_tags: job.specifications.jobTags,
-        app_params: {
-            IMAGE: image,
-            CR_DATA: crData,
-            CONTAINER_RESOURCES: containerResources,
-            PORT: job.deployment.port,
-            TUNNEL_ENGINE: 'cloudflare',
-            CLOUDFLARE_TOKEN: job.deployment.tunnelingToken || null,
-            TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
-            NGROK_USE_API: true,
-            VOLUMES: volumes,
-            ENV: envVars,
-            DYNAMIC_ENV: dynamicEnvVars,
-            RESTART_POLICY: job.deployment.restartPolicy.toLowerCase(),
-            IMAGE_PULL_POLICY: job.deployment.imagePullPolicy.toLowerCase(),
-        },
+        app_params: appParams,
         pipeline_input_type: 'void',
         pipeline_input_uri: null,
         chainstore_response: true,
@@ -312,21 +318,41 @@ export const formatGenericJobUpdatePayload = (job: RunningJobWithResources, depl
 
     const spareNodes = formatNodes(deployment.spareNodes);
 
-    let image = 'repo/image:tag';
-    let crData = {};
+    const appParams: any = {
+        CONTAINER_RESOURCES: containerResources,
+        PORT: deployment.port,
+        TUNNEL_ENGINE: 'cloudflare',
+        CLOUDFLARE_TOKEN: deployment.tunnelingToken || null,
+        TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
+        NGROK_USE_API: true,
+        VOLUMES: volumes,
+        ENV: envVars,
+        DYNAMIC_ENV: dynamicEnvVars,
+        RESTART_POLICY: deployment.restartPolicy.toLowerCase(),
+        IMAGE_PULL_POLICY: deployment.imagePullPolicy.toLowerCase(),
+    };
 
-    if (deployment.container.type === 'image') {
-        image = deployment.container.containerImage;
+    if (deployment.deploymentType.type === 'image') {
+        appParams.IMAGE = deployment.deploymentType.containerImage;
 
-        if (deployment.container.crVisibility === 'Private') {
-            crData = {
-                SERVER: deployment.container.containerRegistry,
-                USERNAME: deployment.container.crUsername,
-                PASSWORD: deployment.container.crPassword,
-            };
+        appParams.CR_DATA = {
+            SERVER: deployment.deploymentType.containerRegistry,
+        };
+
+        if (deployment.deploymentType.crVisibility === 'Private') {
+            appParams.CR_DATA.USERNAME = deployment.deploymentType.crUsername;
+            appParams.CR_DATA.PASSWORD = deployment.deploymentType.crPassword;
         }
     } else {
-        console.error('Worker-based container not implemented yet.');
+        appParams.IMAGE = deployment.deploymentType.image;
+        appParams.BUILD_AND_RUN_COMMANDS = deployment.deploymentType.workerCommands.map((entry) => entry.command);
+
+        appParams.VCS_DATA = {
+            REPO_NAME: deployment.deploymentType.repository,
+            REPO_OWNER: deployment.deploymentType.owner,
+            TOKEN: deployment.deploymentType.accessToken || null,
+            USERNAME: deployment.deploymentType.username,
+        };
     }
 
     const nonce = generateNonce();
@@ -339,21 +365,7 @@ export const formatGenericJobUpdatePayload = (job: RunningJobWithResources, depl
         spare_nodes: spareNodes,
         allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
         target_nodes_count: targetNodesCount,
-        app_params: {
-            IMAGE: image,
-            CR_DATA: crData,
-            CONTAINER_RESOURCES: containerResources,
-            PORT: deployment.port,
-            TUNNEL_ENGINE: 'cloudflare',
-            CLOUDFLARE_TOKEN: deployment.tunnelingToken || null,
-            TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
-            NGROK_USE_API: true,
-            VOLUMES: volumes,
-            ENV: envVars,
-            DYNAMIC_ENV: dynamicEnvVars,
-            RESTART_POLICY: deployment.restartPolicy.toLowerCase(),
-            IMAGE_PULL_POLICY: deployment.imagePullPolicy.toLowerCase(),
-        },
+        app_params: appParams,
         pipeline_input_type: 'void',
         pipeline_input_uri: null,
         chainstore_response: true,

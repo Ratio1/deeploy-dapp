@@ -71,7 +71,7 @@ type BaseJobDeployment = {
 
 type GenericJobDeployment = BaseJobDeployment & {
     jobAlias: string;
-    container:
+    deploymentType:
         | {
               type: 'image';
               containerImage: string;
@@ -82,7 +82,10 @@ type GenericJobDeployment = BaseJobDeployment & {
           }
         | {
               type: 'worker';
-              githubUrl: string;
+              image: string;
+              repository: string;
+              owner: string;
+              username: string;
               accessToken?: string;
               workerCommands: { command: string }[];
           };

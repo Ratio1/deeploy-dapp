@@ -39,14 +39,24 @@ export default function JobEditFormWrapper({
         ...getBaseSchemaDefaults(),
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            container: {
-                type: 'image',
-                containerImage: config.IMAGE,
-                containerRegistry: 'docker.io',
-                crVisibility: CR_VISIBILITY_OPTIONS[0],
-                crUsername: '',
-                crPassword: '',
-            },
+            deploymentType: !config.VCS_DATA
+                ? {
+                      type: 'image',
+                      containerImage: config.IMAGE,
+                      containerRegistry: config.CR_DATA.SERVER || 'docker.io',
+                      crVisibility: CR_VISIBILITY_OPTIONS[!config.CR_DATA.USERNAME ? 0 : 1],
+                      crUsername: config.CR_DATA.USERNAME || '',
+                      crPassword: config.CR_DATA.PASSWORD || '',
+                  }
+                : {
+                      type: 'worker',
+                      image: config.IMAGE,
+                      repository: config.VCS_DATA.REPO_NAME,
+                      owner: config.VCS_DATA.REPO_OWNER,
+                      username: config.VCS_DATA.USERNAME,
+                      accessToken: config.VCS_DATA.TOKEN || '',
+                      workerCommands: config.BUILD_AND_RUN_COMMANDS!.map((command) => ({ command })),
+                  },
             port: config.PORT,
             restartPolicy: titlecase(config.RESTART_POLICY),
             imagePullPolicy: titlecase(config.IMAGE_PULL_POLICY),

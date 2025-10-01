@@ -29,6 +29,7 @@ type Apps = {
 };
 
 type JobConfig = {
+    BUILD_AND_RUN_COMMANDS?: string[];
     CHAINSTORE_PEERS: string[];
     CHAINSTORE_RESPONSE_KEY: string;
     CLOUDFLARE_TOKEN: string | null;
@@ -48,6 +49,12 @@ type JobConfig = {
     TUNNEL_ENGINE: string;
     TUNNEL_ENGINE_ENABLED: boolean;
     VOLUMES: Record<string, any>;
+    VCS_DATA?: {
+        REPO_NAME: string;
+        REPO_OWNER: string;
+        TOKEN: string | null;
+        USERNAME: string;
+    };
 };
 
 type GetAppsResponse = {

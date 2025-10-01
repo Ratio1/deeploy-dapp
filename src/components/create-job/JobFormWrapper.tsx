@@ -54,7 +54,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            container: {
+            deploymentType: {
                 type: 'image',
                 containerImage: '',
                 containerRegistry: 'docker.io',
