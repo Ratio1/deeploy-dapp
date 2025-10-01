@@ -206,7 +206,7 @@ type RunningJobWithDetails = RunningJob & {
     alias: string;
     projectName?: string;
     allowReplicationInTheWild: boolean;
-    spareNodes: string[]; // TODO: Should be R1Address[] but the API doesn't return them as such
+    spareNodes: R1Address[];
     nodes: R1Address[];
     config: JobConfig;
 };

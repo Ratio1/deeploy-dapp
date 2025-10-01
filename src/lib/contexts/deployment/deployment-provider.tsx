@@ -167,6 +167,7 @@ export const DeploymentProvider = ({ children }) => {
                     projectName: specs.project_name,
                     allowReplicationInTheWild: specs.allow_replication_in_the_wild,
                     spareNodes: specs.spare_nodes,
+                    jobTags: specs.job_tags,
                     nodes: Object.keys(apps).filter((node) => apps[node][alias] !== undefined) as R1Address[],
                     config,
                     ...job,

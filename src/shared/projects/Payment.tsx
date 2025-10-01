@@ -56,6 +56,8 @@ export default function Payment({
     const [totalCost, setTotalCost] = useState<number>(0);
     const [isLoading, setLoading] = useState<boolean>(false);
 
+    const [errors, setErrors] = useState<string[]>([]);
+
     const { data: walletClient } = useWalletClient();
     const publicClient = usePublicClient();
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
@@ -145,6 +147,7 @@ export default function Payment({
             return;
         }
 
+        setErrors([]);
         setLoading(true);
         deeployFlowModalRef.current?.open(jobs.length);
 
@@ -224,6 +227,8 @@ export default function Payment({
             if (failedJobs.length > 0) {
                 console.error('Some jobs failed to deploy:', failedJobs);
                 toast.error(`${failedJobs.length} job${failedJobs.length > 1 ? 's' : ''} failed to deploy.`);
+
+                setErrors(failedJobs.filter((job) => job.status === 'fulfilled').map((job) => job.value?.error));
             }
 
             if (successfulJobs.length > 0) {
@@ -372,6 +377,23 @@ export default function Payment({
                             </div>
                         </div>
                     </BorderedCard>
+                )}
+
+                {/* Errors */}
+                {errors.length > 0 && (
+                    <div className="rounded-lg bg-red-100 px-6 py-3 text-sm text-red-800">
+                        <div className="col gap-2">
+                            <div className="font-medium">Deployment failed with the following errors:</div>
+
+                            <div className="col gap-1">
+                                {errors.map((error) => (
+                                    <div key={error} className="text-[13px]">
+                                        {error}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 {/* Rundowns */}

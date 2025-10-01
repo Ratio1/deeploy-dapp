@@ -12,12 +12,13 @@ type Apps = {
                 allow_replication_in_the_wild: boolean;
                 date_created: number;
                 date_updated: number;
-                initial_target_nodes: string[]; // R1 node addresses but nodes have no "x_ai" prefix
+                initial_target_nodes: R1Address[];
                 job_id: number;
+                job_tags: string[];
                 nr_target_nodes: number;
                 project_id: string; // projectHash
                 project_name: string | undefined;
-                spare_nodes: string[];
+                spare_nodes: R1Address[];
             };
             plugins: {
                 [pluginName: string]: {
