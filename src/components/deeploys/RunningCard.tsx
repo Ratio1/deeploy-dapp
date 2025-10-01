@@ -156,7 +156,9 @@ export default function RunningCard({
                                                 to={`${routePath.deeploys}/${routePath.job}/${job.id}`}
                                                 className="hover:opacity-75"
                                             >
-                                                <SmallTag variant={jobTypeOption.color}>{job.alias}</SmallTag>
+                                                <SmallTag variant={jobTypeOption.color}>
+                                                    <div className="max-w-[150px] truncate">{job.alias}</div>
+                                                </SmallTag>
                                             </Link>
                                         </div>
                                     </div>
