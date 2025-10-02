@@ -13,6 +13,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import ActionButton from '@shared/ActionButton';
+import RefreshRequiredAlert from '@shared/jobs/RefreshRequiredAlert';
 import SupportFooter from '@shared/SupportFooter';
 import { RunningJob, RunningJobWithDetails, RunningJobWithResources } from '@typedefs/deeploys';
 import { useEffect, useState } from 'react';
@@ -22,7 +23,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
 
 export default function Job() {
-    const { escrowContractAddress, formatRunningJobsWithDetails } = useDeploymentContext() as DeploymentContextType;
+    const { escrowContractAddress, formatRunningJobsWithDetails, fetchApps } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
     const publicClient = usePublicClient();
@@ -201,6 +202,14 @@ export default function Job() {
                         </ActionButton>
                     </div>
                 </div>
+
+                <RefreshRequiredAlert
+                    customCallback={async () => {
+                        await fetchApps();
+                        fetchJob();
+                    }}
+                    isCompact
+                />
 
                 {/* Stats */}
                 <JobStats job={job} />
