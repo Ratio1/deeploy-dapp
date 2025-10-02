@@ -2,12 +2,15 @@ import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import JobBreadcrumbs from '@components/job/JobBreadcrumbs';
 import JobConfiguration from '@components/job/JobConfiguration';
 import JobFullUsage from '@components/job/JobFullUsage';
-import JobNodes from '@components/job/JobNodes';
+import JobInstances from '@components/job/JobInstances';
 import JobResources from '@components/job/JobResources';
 import JobStats from '@components/job/JobStats';
 import JobPageLoading from '@components/loading/JobPageLoading';
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
+import { sendJobCommand } from '@lib/api/deeploy';
+import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import ActionButton from '@shared/ActionButton';
 import SupportFooter from '@shared/SupportFooter';
@@ -16,16 +19,20 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiArrowLeftLine, RiEdit2Line, RiStopCircleLine } from 'react-icons/ri';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { usePublicClient } from 'wagmi';
+import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
 
 export default function Job() {
     const { escrowContractAddress, formatRunningJobsWithDetails } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
     const publicClient = usePublicClient();
+    const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
+    const { signMessageAsync } = useSignMessage();
     const { jobId } = useParams();
 
     const [isLoading, setLoading] = useState(true);
+    const [isActionOngoing, setActionOngoing] = useState(false);
+
     const [job, setJob] = useState<RunningJobWithResources | undefined>();
 
     useEffect(() => {
@@ -66,7 +73,7 @@ export default function Job() {
                 resources,
             };
 
-            console.log(runningJobWithResources);
+            console.log({ runningJobWithResources });
             setJob(runningJobWithResources);
         } catch (error) {
             console.error(error);
@@ -81,12 +88,63 @@ export default function Job() {
         navigate(routePath.edit, { state: { job } });
     };
 
-    const onStop = () => {
-        console.log('stop job');
+    const onJobCommand = async (command: 'RESTART' | 'STOP') => {
+        setActionOngoing(true);
+
+        try {
+            await buildAndSendAppRequest(command);
+            fetchJob();
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setActionOngoing(false);
+        }
     };
 
-    const onRestart = () => {
-        console.log('restart job');
+    const buildAndSendAppRequest = async (command: 'RESTART' | 'STOP') => {
+        if (!address) {
+            toast.error('Please connect your wallet.');
+            return;
+        }
+
+        const nonce = generateNonce();
+
+        const payload = {
+            app_id: job!.alias,
+            job_id: Number(job!.id),
+            command,
+            nonce,
+        };
+
+        const message = buildDeeployMessage(payload, 'Please sign this message for Deeploy: ');
+
+        const signature = await signMessageAsync({
+            account: address,
+            message,
+        });
+
+        const request = {
+            ...payload,
+            EE_ETH_SIGN: signature,
+            EE_ETH_SENDER: address,
+        };
+
+        const promise = sendJobCommand(request).then((response) => {
+            console.log(response);
+
+            if (!response || response.status === 'fail') {
+                throw new Error('Action failed.');
+            }
+        });
+
+        toast.promise(promise, {
+            loading: `${command === 'RESTART' ? 'Restarting' : 'Stopping'} job...    `,
+            success: <div>Job was {command === 'RESTART' ? 'restarted' : 'stopped'} successfully.</div>,
+            error: <div>Could not {command.toLowerCase()} job.</div>,
+        });
+
+        const response = await promise;
+        return response;
     };
 
     if (isLoading || !job) {
@@ -106,6 +164,7 @@ export default function Job() {
                             color="default"
                             as={Link}
                             to={`${routePath.deeploys}/${routePath.project}/${job.projectHash}`}
+                            isDisabled={isActionOngoing}
                         >
                             <div className="row gap-1.5">
                                 <RiArrowLeftLine className="text-lg" />
@@ -113,18 +172,28 @@ export default function Job() {
                             </div>
                         </ActionButton>
 
-                        <ActionButton className="slate-button" color="default" onPress={() => onRestart()}>
+                        <ActionButton
+                            className="slate-button"
+                            color="default"
+                            onPress={() => onJobCommand('RESTART')}
+                            isDisabled={isActionOngoing}
+                        >
                             <div className="text-sm">Restart</div>
                         </ActionButton>
 
-                        <ActionButton className="bg-red-500" color="danger" onPress={() => onStop()}>
+                        <ActionButton
+                            className="bg-red-500"
+                            color="danger"
+                            onPress={() => onJobCommand('STOP')}
+                            isDisabled={isActionOngoing}
+                        >
                             <div className="row gap-1.5">
                                 <RiStopCircleLine className="text-lg" />
                                 <div className="text-sm">Stop</div>
                             </div>
                         </ActionButton>
 
-                        <ActionButton color="primary" variant="solid" onPress={onEdit}>
+                        <ActionButton color="primary" variant="solid" onPress={onEdit} isDisabled={isActionOngoing}>
                             <div className="row gap-1.5">
                                 <RiEdit2Line className="text-lg" />
                                 <div className="compact">Edit</div>
@@ -145,8 +214,14 @@ export default function Job() {
                 {/* Configuration */}
                 <JobConfiguration job={job} />
 
-                {/* Nodes */}
-                <JobNodes nodes={job.nodes} lastNodesChangeTimestamp={job.lastNodesChangeTimestamp} />
+                {/* Instances */}
+                <JobInstances
+                    instances={job.instances}
+                    lastNodesChangeTimestamp={job.lastNodesChangeTimestamp}
+                    jobAlias={job.alias}
+                    jobId={job.id}
+                    fetchJob={fetchJob}
+                />
             </div>
 
             <SupportFooter />

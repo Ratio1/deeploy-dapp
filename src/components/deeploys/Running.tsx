@@ -44,7 +44,6 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
     }, [projects]);
 
     const getProjectsWithJobs = async () => {
-        console.log('getProjectsWithJobs', apps);
         setLoading(true);
 
         const jobsWithDetails: RunningJobWithDetails[] = await fetchRunningJobsWithDetails();

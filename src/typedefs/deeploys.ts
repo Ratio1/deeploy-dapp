@@ -13,7 +13,7 @@ import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { EthAddress, R1Address } from './blockchain';
-import { JobConfig } from './deeployApi';
+import { JobConfig, Plugin } from './deeployApi';
 
 enum JobType {
     Generic = 'Generic',
@@ -209,6 +209,10 @@ type RunningJobWithDetails = RunningJob & {
     spareNodes: R1Address[];
     jobTags: string[];
     nodes: R1Address[];
+    instances: {
+        nodeAddress: R1Address;
+        plugins: (Plugin & { signature: string })[];
+    }[];
     config: JobConfig;
 };
 

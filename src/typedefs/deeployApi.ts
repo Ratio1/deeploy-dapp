@@ -8,29 +8,33 @@ type Apps = {
             owner: EthAddress;
             last_config: string; // ISO-like timestamp string
             is_deeployed: boolean;
-            deeploy_specs: {
-                allow_replication_in_the_wild: boolean;
-                date_created: number;
-                date_updated: number;
-                initial_target_nodes: R1Address[];
-                job_id: number;
-                job_tags: string[];
-                nr_target_nodes: number;
-                project_id: string; // projectHash
-                project_name: string | undefined;
-                spare_nodes: R1Address[];
-            };
+            deeploy_specs: DeeploySpecs;
             plugins: {
-                [pluginName: string]: {
-                    instance: string;
-                    start: string; // ISO-like timestamp string
-                    last_alive: string; // ISO-like timestamp string
-                    last_error: string | null;
-                    instance_conf: JobConfig;
-                }[];
+                [pluginName: string]: Plugin[];
             };
         };
     };
+};
+
+type DeeploySpecs = {
+    allow_replication_in_the_wild: boolean;
+    date_created: number;
+    date_updated: number;
+    initial_target_nodes: R1Address[];
+    job_id: number;
+    job_tags: string[];
+    nr_target_nodes: number;
+    project_id: string; // projectHash
+    project_name: string | undefined;
+    spare_nodes: R1Address[];
+};
+
+type Plugin = {
+    instance: string;
+    start: string; // ISO-like timestamp string
+    last_alive: string; // ISO-like timestamp string
+    last_error: string | null;
+    instance_conf: JobConfig;
 };
 
 type JobConfig = {
@@ -62,8 +66,7 @@ type JobConfig = {
     };
 };
 
-type GetAppsResponse = {
-    status: 'success' | 'fail' | string;
+type GetAppsResponse = DeeployDefaultResponse & {
     apps: Apps;
     auth: {
         sender: EthAddress;
@@ -72,6 +75,17 @@ type GetAppsResponse = {
         sender_nodes_count: number;
         sender_total_count: number;
     };
+};
+
+type DeeployDefaultResponse = {
+    status: 'success' | 'fail' | string;
+    request?: Record<string, any>;
+    error?: string;
+    EE_SIGN: string;
+    EE_SENDER: R1Address;
+    EE_ETH_SENDER: EthAddress;
+    EE_ETH_SIGN: string;
+    EE_HASH: string;
     server_info: {
         alias: string;
         version: string;
@@ -79,12 +93,6 @@ type GetAppsResponse = {
         current_epoch: number;
         uptime: string; // "HH:MM:SS" format
     };
-    error?: string;
-    EE_SIGN: string;
-    EE_SENDER: R1Address;
-    EE_ETH_SENDER: EthAddress;
-    EE_ETH_SIGN: string;
-    EE_HASH: string;
 };
 
-export type { Apps, GetAppsResponse, JobConfig };
+export type { Apps, DeeployDefaultResponse, DeeploySpecs, GetAppsResponse, JobConfig, Plugin };

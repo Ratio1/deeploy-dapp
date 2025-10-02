@@ -1,6 +1,6 @@
 import { config } from '@lib/config';
 import { EthAddress } from '@typedefs/blockchain';
-import { GetAppsResponse } from '@typedefs/deeployApi';
+import { DeeployDefaultResponse, GetAppsResponse } from '@typedefs/deeployApi';
 import axios from 'axios';
 
 export const createPipeline = (request: {
@@ -32,8 +32,21 @@ export const sendJobCommand = (request: {
     app_id: string;
     job_id: number;
     command: 'RESTART' | 'STOP';
-}) =>
+}): Promise<DeeployDefaultResponse> =>
     _doPostDeeploy('/send_app_command', {
+        request,
+    });
+
+export const sendInstanceCommand = (request: {
+    EE_ETH_SIGN: EthAddress;
+    EE_ETH_SENDER: EthAddress;
+    app_id: string;
+    job_id: number;
+    plugin_signature: string;
+    instance_id: string;
+    instance_command: 'RESTART' | 'STOP';
+}): Promise<DeeployDefaultResponse> =>
+    _doPostDeeploy('/send_instance_command', {
         request,
     });
 

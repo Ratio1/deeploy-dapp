@@ -11,9 +11,10 @@ interface Props {
         icon?: React.ReactNode;
         onPress: () => void;
     }[];
+    isDisabled?: boolean;
 }
 
-export default function ContextMenuWithTrigger({ items }: Props) {
+export default function ContextMenuWithTrigger({ items, isDisabled }: Props) {
     return (
         <Dropdown placement="bottom-end" shouldBlockScroll={false} radius="sm">
             <DropdownTrigger
@@ -27,6 +28,7 @@ export default function ContextMenuWithTrigger({ items }: Props) {
                     color="default"
                     variant="bordered"
                     disableRipple
+                    isDisabled={isDisabled}
                 >
                     <RiMoreFill className="text-lg text-slate-600" />
                 </Button>
@@ -57,7 +59,7 @@ export default function ContextMenuWithTrigger({ items }: Props) {
             >
                 <DropdownSection title="Actions" className="mb-0 list-none">
                     {items.map((item) => (
-                        <DropdownItem key={item.key} onPress={item.onPress}>
+                        <DropdownItem key={item.key} onPress={item.onPress} textValue={item.label}>
                             {!item.icon || !item.description ? (
                                 <div
                                     className={clsx('font-medium', {
