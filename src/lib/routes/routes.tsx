@@ -3,7 +3,8 @@ import Account from '@pages/Account';
 import CreateProject from '@pages/deeploys/CreateProject';
 import Dashboard from '@pages/deeploys/Dashboard';
 import Draft from '@pages/deeploys/Draft';
-import Job from '@pages/deeploys/Job';
+import EditJob from '@pages/deeploys/job/EditJob';
+import Job from '@pages/deeploys/job/Job';
 import LegacyRequester from '@pages/deeploys/LegacyRequester';
 import Project from '@pages/deeploys/Project';
 import Docs from '@pages/Docs';
@@ -72,7 +73,7 @@ export const routeInfo = {
     },
     [`${routePath.deeploys}/${routePath.job}`]: {
         title: 'Job',
-        description: 'View manage & update your job',
+        description: 'Inspect, manage & update your job',
     },
     [`${routePath.deeploys}/${routePath.legacyRequester}`]: {
         title: 'Legacy Requester',
@@ -157,6 +158,10 @@ export const routes: AppRoute[] = [
     {
         path: `${routePath.deeploys}/${routePath.job}/:jobId`,
         page: () => <Job />,
+    },
+    {
+        path: `${routePath.deeploys}/${routePath.job}/:jobId/${routePath.edit}`,
+        page: () => <EditJob />,
     },
     {
         path: `${routePath.tunnels}/:id`,

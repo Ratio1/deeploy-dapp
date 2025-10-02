@@ -1,163 +1,144 @@
+import { DEEPLOY_FLOW_ACTION_KEYS, DEEPLOY_FLOW_ACTIONS } from '@data/deeployFlowActions';
 import { Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from '@heroui/modal';
 import { Spinner } from '@heroui/spinner';
 import { DetailedAlert } from '@shared/DetailedAlert';
-import { forwardRef, useImperativeHandle, useState } from 'react';
-import { RiBox3Line, RiCheckDoubleLine, RiCheckLine, RiCloseLine, RiEdit2Line, RiWalletLine } from 'react-icons/ri';
+import { forwardRef, JSX, useImperativeHandle, useState } from 'react';
+import { RiCheckDoubleLine, RiCheckLine, RiCloseLine } from 'react-icons/ri';
 
-const ACTIONS = {
-    payJobs: {
-        icon: <RiWalletLine />,
-        title: 'Confirm payment',
-    },
-    signMessages: {
-        icon: <RiEdit2Line />,
-        title: 'Sign a message for each job',
-    },
-    callDeeployApi: {
-        icon: <RiBox3Line />,
-        title: 'Wait for deployment',
-    },
-};
+export const DeeployFlowModal = forwardRef(
+    (
+        { actions, descriptionFN }: { actions: DEEPLOY_FLOW_ACTION_KEYS[]; descriptionFN: (jobsCount: number) => JSX.Element },
+        ref,
+    ) => {
+        const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
 
-export const DeeployFlowModal = forwardRef((_props, ref) => {
-    const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
+        const [currentAction, setCurrentAction] = useState<DEEPLOY_FLOW_ACTION_KEYS>(actions[0]);
+        const [jobsCount, setJobsCount] = useState<number>(1);
 
-    const [currentAction, setCurrentAction] = useState<'payJobs' | 'signMessages' | 'callDeeployApi' | 'done'>('payJobs');
-    const [jobsCount, setJobsCount] = useState<number>(1);
+        const [error, setError] = useState<boolean>(false);
 
-    const [error, setError] = useState<boolean>(false);
+        const open = (jobsCount: number) => {
+            setJobsCount(jobsCount);
+            setError(false);
+            onOpen();
+        };
 
-    const open = (jobsCount: number) => {
-        setCurrentAction('payJobs');
-        setJobsCount(jobsCount);
-        setError(false);
-        onOpen();
-    };
+        const progress = (action: DEEPLOY_FLOW_ACTION_KEYS) => {
+            setCurrentAction(action);
+        };
 
-    const progress = (action: 'payJobs' | 'signMessages' | 'callDeeployApi' | 'done') => {
-        setCurrentAction(action);
-    };
-
-    const close = () => {
-        onClose();
-    };
-
-    const displayError = () => {
-        setError(true);
-        setTimeout(() => {
+        const close = () => {
             onClose();
-        }, 2000);
-    };
+        };
 
-    useImperativeHandle(ref, () => ({
-        open,
-        progress,
-        close,
-        displayError,
-    }));
+        const displayError = () => {
+            setError(true);
+            setTimeout(() => {
+                onClose();
+            }, 2000);
+        };
 
-    const getJobLoading = () => {
-        return (
-            <div className="z-10 -ml-1.5 bg-white p-1.5">
-                <div className="center-all h-[25px] w-[25px]">
-                    <Spinner size="sm" />
-                </div>
-            </div>
-        );
-    };
+        useImperativeHandle(ref, () => ({
+            open,
+            progress,
+            close,
+            displayError,
+        }));
 
-    const getJobDone = () => {
-        return (
-            <div className="z-10 -ml-1.5 bg-white p-1.5">
-                <div className="center-all rounded-full bg-green-100 p-1">
-                    <div className="text-[17px] text-green-600">
-                        <RiCheckLine />
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    const getJobPending = (icon: React.ReactNode) => {
-        return (
-            <div className="z-10 -ml-1.5 bg-white p-1.5">
-                <div className="center-all bg-primary-100 rounded-full p-1">
-                    <div className="text-primary text-[17px]">{icon}</div>
-                </div>
-            </div>
-        );
-    };
-
-    const getCurrentJobIcon = () => {
-        if (error) {
+        const getJobLoading = () => {
             return (
                 <div className="z-10 -ml-1.5 bg-white p-1.5">
-                    <div className="center-all rounded-full bg-red-100 p-1">
-                        <div className="text-[17px] text-red-600">
-                            <RiCloseLine />
+                    <div className="center-all h-[25px] w-[25px]">
+                        <Spinner size="sm" />
+                    </div>
+                </div>
+            );
+        };
+
+        const getJobDone = () => {
+            return (
+                <div className="z-10 -ml-1.5 bg-white p-1.5">
+                    <div className="center-all rounded-full bg-green-100 p-1">
+                        <div className="text-[17px] text-green-600">
+                            <RiCheckLine />
                         </div>
                     </div>
                 </div>
             );
-        }
+        };
 
-        return getJobLoading();
-    };
+        const getJobPending = (icon: React.ReactNode) => {
+            return (
+                <div className="z-10 -ml-1.5 bg-white p-1.5">
+                    <div className="center-all bg-primary-100 rounded-full p-1">
+                        <div className="text-primary text-[17px]">{icon}</div>
+                    </div>
+                </div>
+            );
+        };
 
-    return (
-        <Modal
-            isOpen={isOpen}
-            onOpenChange={onOpenChange}
-            size="sm"
-            backdrop="blur"
-            shouldBlockScroll={true}
-            classNames={{
-                closeButton: 'cursor-pointer',
-            }}
-        >
-            <ModalContent>
-                <ModalHeader></ModalHeader>
-
-                <ModalBody>
-                    <div className="col -mt-4 gap-2 pb-2">
-                        <DetailedAlert
-                            icon={<RiCheckDoubleLine />}
-                            title="Confirmation"
-                            description={
-                                <div className="text-[15px]">
-                                    You'll need to confirm a{' '}
-                                    <span className="text-primary font-medium">payment transaction</span> and sign{' '}
-                                    <span className="text-primary font-medium">
-                                        {jobsCount} message{jobsCount > 1 ? 's' : ''}
-                                    </span>{' '}
-                                    to deploy your job{jobsCount > 1 ? 's' : ''}.
-                                </div>
-                            }
-                        ></DetailedAlert>
-
-                        <div className="col relative mx-auto my-4 gap-6 text-[15px]">
-                            {Object.keys(ACTIONS).map((action, index, array) => {
-                                const currentIndex = array.indexOf(currentAction);
-
-                                return (
-                                    <div key={index} className="row gap-1.5">
-                                        {index === currentIndex
-                                            ? getCurrentJobIcon()
-                                            : index < currentIndex || currentIndex === -1
-                                              ? getJobDone()
-                                              : getJobPending(ACTIONS[action].icon)}
-
-                                        <div>{ACTIONS[action].title}</div>
-                                    </div>
-                                );
-                            })}
-
-                            {/* Vertical bar */}
-                            <div className="bg-primary-100 absolute top-3 bottom-3 left-[11px] w-[2px]" />
+        const getCurrentJobIcon = () => {
+            if (error) {
+                return (
+                    <div className="z-10 -ml-1.5 bg-white p-1.5">
+                        <div className="center-all rounded-full bg-red-100 p-1">
+                            <div className="text-[17px] text-red-600">
+                                <RiCloseLine />
+                            </div>
                         </div>
                     </div>
-                </ModalBody>
-            </ModalContent>
-        </Modal>
-    );
-});
+                );
+            }
+
+            return getJobLoading();
+        };
+
+        return (
+            <Modal
+                isOpen={isOpen}
+                onOpenChange={onOpenChange}
+                size="sm"
+                backdrop="blur"
+                shouldBlockScroll={true}
+                classNames={{
+                    closeButton: 'cursor-pointer',
+                }}
+            >
+                <ModalContent>
+                    <ModalHeader></ModalHeader>
+
+                    <ModalBody>
+                        <div className="col -mt-4 gap-2">
+                            <DetailedAlert
+                                icon={<RiCheckDoubleLine />}
+                                title="Confirmation"
+                                description={descriptionFN(jobsCount)}
+                            ></DetailedAlert>
+
+                            <div className="col relative mx-auto my-4 gap-6 text-[15px]">
+                                {actions.map((action, index, array) => {
+                                    const currentIndex = array.indexOf(currentAction);
+
+                                    return (
+                                        <div key={index} className="row gap-1.5">
+                                            {index === currentIndex
+                                                ? getCurrentJobIcon()
+                                                : index < currentIndex || currentIndex === -1
+                                                  ? getJobDone()
+                                                  : getJobPending(DEEPLOY_FLOW_ACTIONS[action].icon)}
+
+                                            <div>{DEEPLOY_FLOW_ACTIONS[action].title}</div>
+                                        </div>
+                                    );
+                                })}
+
+                                {/* Vertical bar */}
+                                <div className="bg-primary-100 absolute top-3 bottom-3 left-[11px] w-[2px]" />
+                            </div>
+                        </div>
+                    </ModalBody>
+                </ModalContent>
+            </Modal>
+        );
+    },
+);

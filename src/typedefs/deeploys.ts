@@ -13,6 +13,7 @@ import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { EthAddress, R1Address } from './blockchain';
+import { JobConfig, Plugin } from './deeployApi';
 
 enum JobType {
     Generic = 'Generic',
@@ -30,6 +31,7 @@ type BaseJobSpecifications = {
     applicationType: (typeof APPLICATION_TYPES)[number];
     targetNodesCount: number;
     jobTags: string[];
+    nodesCountries: string[];
 };
 
 type GenericJobSpecifications = BaseJobSpecifications & {
@@ -61,6 +63,8 @@ type JobPaymentAndDuration = {
 // Deployment
 type BaseJobDeployment = {
     targetNodes: Array<{ address: R1Address }>;
+    spareNodes: Array<{ address: R1Address }>;
+    allowReplicationInTheWild: boolean;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
     tunnelingLabel?: string;
     tunnelingToken?: string;
@@ -68,7 +72,7 @@ type BaseJobDeployment = {
 
 type GenericJobDeployment = BaseJobDeployment & {
     jobAlias: string;
-    container:
+    deploymentType:
         | {
               type: 'image';
               containerImage: string;
@@ -79,7 +83,10 @@ type GenericJobDeployment = BaseJobDeployment & {
           }
         | {
               type: 'worker';
-              githubUrl: string;
+              image: string;
+              repository: string;
+              owner: string;
+              username: string;
               accessToken?: string;
               workerCommands: { command: string }[];
           };
@@ -198,7 +205,15 @@ type RunningJob = {
 type RunningJobWithDetails = RunningJob & {
     alias: string;
     projectName?: string;
+    allowReplicationInTheWild: boolean;
+    spareNodes: R1Address[];
+    jobTags: string[];
     nodes: R1Address[];
+    instances: {
+        nodeAddress: R1Address;
+        plugins: (Plugin & { signature: string })[];
+    }[];
+    config: JobConfig;
 };
 
 type RunningJobWithResources = RunningJobWithDetails & {
@@ -213,17 +228,22 @@ export interface KeyValueEntry {
 
 export { JobType, ProjectPage };
 export type {
+    BaseJobSpecifications,
     DraftJob,
     DraftProject,
     GenericDraftJob,
+    GenericJobDeployment,
     GenericJobSpecifications,
+    JobDeployment,
     JobPaymentAndDuration,
     JobSpecifications,
     NativeDraftJob,
+    NativeJobDeployment,
     NativeJobSpecifications,
     RunningJob,
     RunningJobWithDetails,
     RunningJobWithResources,
     ServiceDraftJob,
+    ServiceJobDeployment,
     ServiceJobSpecifications,
 };

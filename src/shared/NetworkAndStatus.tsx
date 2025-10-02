@@ -19,7 +19,7 @@ function NetworkAndStatus() {
                     ) : (
                         <div
                             className={clsx('h-2.5 w-2.5 rounded-full', {
-                                'bg-green-500': !error,
+                                'bg-emerald-500': !error,
                                 'bg-red-500': data?.status === 'error' || !!error,
                             })}
                         ></div>

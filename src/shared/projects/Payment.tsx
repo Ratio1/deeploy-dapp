@@ -5,6 +5,7 @@ import GenericJobsCostRundown from '@components/draft/job-rundowns/GenericJobsCo
 import NativeJobsCostRundown from '@components/draft/job-rundowns/NativeJobsCostRundown';
 import ServiceJobsCostRundown from '@components/draft/job-rundowns/ServiceJobsCostRundown';
 import { ContainerOrWorkerType } from '@data/containerResources';
+import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
 import { createPipeline } from '@lib/api/deeploy';
 import { config, environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
@@ -55,6 +56,8 @@ export default function Payment({
     const [totalCost, setTotalCost] = useState<number>(0);
     const [isLoading, setLoading] = useState<boolean>(false);
 
+    const [errors, setErrors] = useState<string[]>([]);
+
     const { data: walletClient } = useWalletClient();
     const publicClient = usePublicClient();
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
@@ -62,7 +65,7 @@ export default function Payment({
 
     const deeployFlowModalRef = useRef<{
         open: (jobsCount: number) => void;
-        progress: (action: 'payJobs' | 'signMessages' | 'callDeeployApi' | 'done') => void;
+        progress: (action: DEEPLOY_FLOW_ACTION_KEYS) => void;
         close: () => void;
         displayError: () => void;
     }>(null);
@@ -144,6 +147,7 @@ export default function Payment({
             return;
         }
 
+        setErrors([]);
         setLoading(true);
         deeployFlowModalRef.current?.open(jobs.length);
 
@@ -195,7 +199,7 @@ export default function Payment({
             const jobIds = jobCreatedLogs.map((log) => log.args.jobId);
             const payloads = getJobPayloads(jobs);
 
-            deeployFlowModalRef.current?.progress('signMessages');
+            deeployFlowModalRef.current?.progress('signMultipleMessages');
 
             const requests = await Promise.all(
                 payloads.map((payload, index) => {
@@ -223,6 +227,8 @@ export default function Payment({
             if (failedJobs.length > 0) {
                 console.error('Some jobs failed to deploy:', failedJobs);
                 toast.error(`${failedJobs.length} job${failedJobs.length > 1 ? 's' : ''} failed to deploy.`);
+
+                setErrors(failedJobs.filter((job) => job.status === 'fulfilled').map((job) => job.value?.error));
             }
 
             if (successfulJobs.length > 0) {
@@ -231,21 +237,20 @@ export default function Payment({
                     successfulJobs.map((r) => (r as PromiseFulfilledResult<any>).value),
                 );
                 toast.success(`${successfulJobs.length} job${successfulJobs.length > 1 ? 's' : ''} deployed successfully.`);
-
-                // If at least one job was deployed, delete the projectdraft
-                await db.projects.delete(projectHash);
             }
 
             if (successfulJobs.length === jobs.length) {
                 deeployFlowModalRef.current?.progress('done');
                 setFetchAppsRequired(true);
 
-                // Delete all job drafts
-                await db.jobs.where('projectHash').equals(projectHash).delete();
-
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
                     callback();
+
+                    // Delete all job drafts
+                    db.jobs.where('projectHash').equals(projectHash).delete();
+                    // If at least one job was deployed, delete the projectdraft
+                    db.projects.delete(projectHash);
                 }, 1000);
             } else {
                 deeployFlowModalRef.current?.displayError();
@@ -360,7 +365,7 @@ export default function Payment({
                 {!!jobs && !!jobs.length && (
                     <BorderedCard isLight={false}>
                         <div className="row justify-between py-2">
-                            <div className="text-[15px] font-medium text-slate-500">Total Amount Due</div>
+                            <div className="text-sm font-medium text-slate-500">Total Amount Due</div>
 
                             <div className="row gap-1.5">
                                 <div className="text-[19px] font-semibold">
@@ -371,6 +376,23 @@ export default function Payment({
                             </div>
                         </div>
                     </BorderedCard>
+                )}
+
+                {/* Errors */}
+                {errors.length > 0 && (
+                    <div className="rounded-lg bg-red-100 px-6 py-3 text-sm text-red-800">
+                        <div className="col gap-2">
+                            <div className="font-medium">Deployment failed with the following errors:</div>
+
+                            <div className="col gap-1">
+                                {errors.map((error) => (
+                                    <div key={error} className="text-[13px]">
+                                        {error}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 {/* Rundowns */}
@@ -403,7 +425,19 @@ export default function Payment({
 
             <SupportFooter />
 
-            <DeeployFlowModal ref={deeployFlowModalRef} />
+            <DeeployFlowModal
+                ref={deeployFlowModalRef}
+                actions={['payJobs', 'signMultipleMessages', 'callDeeployApi']}
+                descriptionFN={(jobsCount: number) => (
+                    <div className="text-[15px]">
+                        You'll need to confirm a <span className="text-primary font-medium">payment transaction</span> and sign{' '}
+                        <span className="text-primary font-medium">
+                            {jobsCount} message{jobsCount > 1 ? 's' : ''}
+                        </span>{' '}
+                        to deploy your job{jobsCount > 1 ? 's' : ''}.
+                    </div>
+                )}
+            />
         </div>
     );
 }

@@ -18,7 +18,7 @@ export default function DetailedUsage({
             {!disableLabels && (
                 <div className="row justify-between">
                     <Item label="Elapsed" value={used} color="bg-primary" />
-                    <Item label="Payment Covered" value={paid - used} color="bg-emerald-500" />
+                    <Item label="Payment Covered" value={Math.max(paid - used, 0)} color="bg-emerald-500" />
                 </div>
             )}
 
@@ -56,7 +56,9 @@ function Item({ label, value, color }: { label: string; value: number; color: st
             <div className="leading-none">
                 <span className="text-slate-500">{label}:</span>{' '}
                 <span className="font-medium">
-                    {value < 1 ? (
+                    {value <= 0 ? (
+                        '—'
+                    ) : value <= 1 ? (
                         <>{'<1 epoch'}</>
                     ) : (
                         <>

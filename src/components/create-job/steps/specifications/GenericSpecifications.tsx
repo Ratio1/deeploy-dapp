@@ -3,7 +3,7 @@ import { SlateCard } from '@shared/cards/SlateCard';
 import ContainerResourcesInfo from '@shared/jobs/ContainerResourcesInfo';
 import SelectContainerOrWorkerType from '@shared/jobs/SelectContainerOrWorkerType';
 import SelectGPU from '@shared/jobs/SelectGPU';
-import SpecsCardWithBalancingWarning from '@shared/jobs/SpecsCardWithBalancingWarning';
+import SpecsNodesSection from '@shared/jobs/SpecsNodesSection';
 import { JobType } from '@typedefs/deeploys';
 
 export default function GenericSpecifications() {
@@ -25,7 +25,7 @@ export default function GenericSpecifications() {
                 />
             </SlateCard>
 
-            <SpecsCardWithBalancingWarning jobType={JobType.Generic} />
+            <SpecsNodesSection jobType={JobType.Generic} />
         </div>
     );
 }

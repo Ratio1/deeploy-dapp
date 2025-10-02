@@ -4,7 +4,7 @@ import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import { SignMessageModal } from '@shared/SignMessageModal';
 import { EthAddress, R1Address } from '@typedefs/blockchain';
-import { Apps } from '@typedefs/deeployApi';
+import { Apps, DeeploySpecs, JobConfig, Plugin } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { useRef, useState } from 'react';
@@ -125,32 +125,111 @@ export const DeploymentProvider = ({ children }) => {
             functionName: 'getActiveJobs',
         });
 
-        console.log('[DeploymentProvider] Smart contract jobs', runningJobs);
+        // console.log('[DeploymentProvider] Smart contract jobs', runningJobs);
 
         const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(runningJobs);
         return runningJobsWithDetails;
     };
 
     const formatRunningJobsWithDetails = (runningJobs: readonly RunningJob[]): RunningJobWithDetails[] => {
-        const uniqueAppsWithAliases = _(Object.values(apps))
-            .map((nodeApps) => {
+        const formattedApps = _(Object.entries(apps))
+            .map(([nodeAddress, nodeApps]) => {
                 return Object.entries(nodeApps).map(([alias, app]) => {
                     return {
+                        nodeAddress,
                         alias,
                         ...app,
                     };
                 });
             })
             .flatten()
-            .filter((app) => app.is_deeployed)
-            .uniqBy((app) => app.alias)
+            .filter((instance) => instance.is_deeployed)
             .value();
 
-        const runningJobsWithDetails: RunningJobWithDetails[] = _(uniqueAppsWithAliases)
-            .map((appWithAlias) => {
-                const alias: string = appWithAlias.alias;
-                const specs = appWithAlias.deeploy_specs;
+        const uniqueAppsWithInstances: {
+            initiator: R1Address;
+            owner: EthAddress;
+            last_config: string;
+            is_deeployed: boolean;
+            deeploy_specs: DeeploySpecs;
+            alias: string;
+            instances: {
+                nodeAddress: R1Address;
+                plugins: (Plugin & { signature: string })[];
+            }[];
+        }[] = [];
+
+        _(formattedApps)
+            .map((instance) => instance.alias)
+            .uniq()
+            .forEach((alias) => {
+                const filteredInstances = formattedApps.filter((instance) => instance.alias === alias);
+
+                let appDetails:
+                    | {
+                          initiator: R1Address;
+                          owner: EthAddress;
+                          last_config: string;
+                          is_deeployed: boolean;
+                          deeploy_specs: DeeploySpecs;
+                          alias: string;
+                      }
+                    | undefined;
+
+                const instances: {
+                    nodeAddress: R1Address;
+                    plugins: (Plugin & { signature: string })[];
+                }[] = [];
+
+                if (!filteredInstances.length) {
+                    return;
+                } else {
+                    filteredInstances.forEach((instance) => {
+                        const { nodeAddress, plugins, ...details } = instance;
+                        appDetails = details;
+
+                        const instanceWithDetails: {
+                            nodeAddress: R1Address;
+                            plugins: (Plugin & { signature: string })[];
+                        } = {
+                            nodeAddress: nodeAddress as R1Address,
+                            plugins: _.flatten(
+                                Object.entries(plugins).map(([signature, array]) => {
+                                    return array.map((plugin) => {
+                                        return {
+                                            signature,
+                                            ...plugin,
+                                        };
+                                    });
+                                }),
+                            ),
+                        };
+
+                        instances.push(instanceWithDetails);
+                    });
+                }
+
+                if (appDetails) {
+                    uniqueAppsWithInstances.push({
+                        ...appDetails,
+                        instances,
+                    });
+                }
+            });
+
+        const runningJobsWithDetails: RunningJobWithDetails[] = _(uniqueAppsWithInstances)
+            .map((appWithInstances) => {
+                const alias: string = appWithInstances.alias;
+                const specs = appWithInstances.deeploy_specs;
                 const jobId = specs.job_id;
+
+                if (!appWithInstances.instances.length) {
+                    return null;
+                }
+
+                // Job Config is taken from the first plugin. This is subject to change in the future.
+                const plugin: Plugin & { signature: string } = appWithInstances.instances[0].plugins[0];
+                const config: JobConfig = plugin.instance_conf;
 
                 const job = runningJobs.find((job) => Number(job.id) === jobId && job.projectHash === specs.project_id);
 
@@ -161,14 +240,19 @@ export const DeploymentProvider = ({ children }) => {
                 return {
                     alias,
                     projectName: specs.project_name,
-                    nodes: Object.keys(apps).filter((node) => apps[node][alias] !== undefined) as R1Address[],
+                    allowReplicationInTheWild: specs.allow_replication_in_the_wild,
+                    spareNodes: specs.spare_nodes,
+                    jobTags: specs.job_tags,
+                    nodes: appWithInstances.instances.map((instance) => instance.nodeAddress),
+                    instances: appWithInstances.instances,
+                    config,
                     ...job,
                 };
             })
             .filter((job) => job !== null)
             .value();
 
-        console.log('[DeploymentProvider] Running jobs with details', runningJobsWithDetails);
+        console.log('[DeploymentProvider] RunningJobWithDetails[]', runningJobsWithDetails);
 
         return runningJobsWithDetails;
     };

@@ -10,12 +10,14 @@ export const sleep = (ms: number): Promise<void> => {
     return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-export const getShortAddressOrHash = (address: string, size = 4, asString = false): string | JSX.Element => {
+export const getShortAddressOrHash = (value: string, size = 4, asString = false): string | JSX.Element => {
+    const str = value.length <= size * 2 ? value : `${value.slice(0, size)}•••${value.slice(-size)}`;
+
     if (asString) {
-        return `${address.slice(0, size)}...${address.slice(-size)}`;
+        return str;
     }
 
-    return <div className="font-roboto-mono font-medium">{`${address.slice(0, size)}•••${address.slice(-size)}`}</div>;
+    return <div className="font-roboto-mono font-medium">{str}</div>;
 };
 
 export function fN(num: number): string | number {
@@ -76,3 +78,11 @@ export const applyWidthClasses = (elements: React.ReactNode[], widthClasses: str
 };
 
 export const isZeroAddress = (address: string): boolean => address === '0x0000000000000000000000000000000000000000';
+
+export const isKeySecret = (key: string | undefined) => {
+    if (!key) {
+        return false;
+    }
+
+    return key.toLowerCase().includes('password') || key.toLowerCase().includes('secret');
+};

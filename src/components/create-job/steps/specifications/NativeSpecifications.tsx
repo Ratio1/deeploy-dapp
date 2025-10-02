@@ -3,7 +3,7 @@ import { SlateCard } from '@shared/cards/SlateCard';
 import ContainerResourcesInfo from '@shared/jobs/ContainerResourcesInfo';
 import SelectContainerOrWorkerType from '@shared/jobs/SelectContainerOrWorkerType';
 import SelectGPU from '@shared/jobs/SelectGPU';
-import SpecsCardWithBalancingWarning from '@shared/jobs/SpecsCardWithBalancingWarning';
+import SpecsNodesSection from '@shared/jobs/SpecsNodesSection';
 import { JobType } from '@typedefs/deeploys';
 
 export default function NativeSpecifications() {
@@ -17,7 +17,7 @@ export default function NativeSpecifications() {
                 <ContainerResourcesInfo jobType={JobType.Native} name="specifications.workerType" options={nativeWorkerTypes} />
             </SlateCard>
 
-            <SpecsCardWithBalancingWarning jobType={JobType.Native} />
+            <SpecsNodesSection jobType={JobType.Native} />
         </div>
     );
 }

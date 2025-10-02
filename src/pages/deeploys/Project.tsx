@@ -1,4 +1,4 @@
-import JobFormWrapper from '@components/jobs/JobFormWrapper';
+import JobFormWrapper from '@components/create-job/JobFormWrapper';
 import ProjectPageLoading from '@components/loading/ProjectPageLoading';
 import ProjectOverview from '@components/project/ProjectOverview';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
@@ -101,7 +101,6 @@ export default function Project() {
                     jobs={draftJobs}
                     callback={() => {
                         setProjectPage(ProjectPage.Overview);
-                        fetchRunningJobs();
                     }}
                     projectIdentity={getProjectIdentity()}
                 />
@@ -110,6 +109,7 @@ export default function Project() {
                     runningJobs={runningJobsWithDetails}
                     draftJobs={draftJobs}
                     projectIdentity={getProjectIdentity()}
+                    fetchRunningJobs={fetchRunningJobs}
                 />
             )}
         </>

@@ -4,7 +4,7 @@ import { RiAddLine } from 'react-icons/ri';
 import VariableSectionIndex from '../VariableSectionIndex';
 
 // This component assumes it's being used in the deployment step
-export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean }) {
+export default function TargetNodesSection({ autoAssign, isEditingJob }: { autoAssign: boolean; isEditingJob?: boolean }) {
     const { control, watch, formState, trigger } = useFormContext();
     const { fields, append } = useFieldArray({
         control,
@@ -19,14 +19,22 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
     return (
         <div className="col gap-4" key={fields.length}>
             <div className="text-sm text-slate-500">
-                {autoAssign ? (
+                {!isEditingJob ? (
                     <>
-                        Your app will be deployed to{' '}
-                        <span className="text-primary font-medium">{targetNodesCount > 1 ? targetNodesCount : 'one'}</span>{' '}
-                        random node{targetNodesCount > 1 ? 's' : ''}.
+                        {autoAssign ? (
+                            <>
+                                Your app will be deployed to{' '}
+                                <span className="text-primary font-medium">
+                                    {targetNodesCount > 1 ? targetNodesCount : 'one'}
+                                </span>{' '}
+                                random available node{targetNodesCount > 1 ? 's' : ''}.
+                            </>
+                        ) : (
+                            <>Your app will be deployed to the nodes you specify below.</>
+                        )}
                     </>
                 ) : (
-                    <>Your app will be deployed to the nodes you specify below.</>
+                    <>Modifying target nodes will be enabled in a future update.</>
                 )}
             </div>
 
@@ -67,6 +75,7 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                                         specificError?.message ||
                                                         (errors?.root?.message && index === 0 ? errors.root.message : undefined)
                                                     }
+                                                    isDisabled={isEditingJob}
                                                 />
                                             );
                                         }}

@@ -9,8 +9,8 @@ import DetailedUsage from '@shared/projects/DetailedUsage';
 import { SmallTag } from '@shared/SmallTag';
 import { RunningJobWithResources } from '@typedefs/deeploys';
 import { useState } from 'react';
-import { RiEditLine } from 'react-icons/ri';
-import { Link } from 'react-router-dom';
+import { RiEdit2Line } from 'react-icons/ri';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function RunningJobsList({
     cardHeader,
@@ -25,7 +25,13 @@ export default function RunningJobsList({
     renderAlias: (job: RunningJobWithResources) => React.ReactNode;
     renderJob: (job: RunningJobWithResources) => React.ReactNode;
 }) {
+    const navigate = useNavigate();
+
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+    const onEdit = (job: RunningJobWithResources) => {
+        navigate(`${routePath.deeploys}/${routePath.job}/${job.id.toString()}/${routePath.edit}`, { state: { job } });
+    };
 
     return (
         <CompactCustomCard
@@ -83,9 +89,9 @@ export default function RunningJobsList({
                                     {
                                         key: 'edit',
                                         label: 'Edit',
-                                        description: 'Modify the parameters of the job',
-                                        icon: <RiEditLine />,
-                                        onPress: () => {},
+                                        description: 'Modify the configuration of the job',
+                                        icon: <RiEdit2Line />,
+                                        onPress: () => onEdit(job),
                                     },
                                 ]}
                             />

@@ -24,7 +24,7 @@ export default function JobFullUsage({ job }: { job: RunningJobWithResources }) 
         },
         {
             label: 'Payment Covered',
-            value: `${paid - elapsed} epochs`,
+            value: paid - elapsed > 0 ? `${paid - elapsed} epochs` : '—',
         },
         {
             label: 'Unpaid',
@@ -35,6 +35,7 @@ export default function JobFullUsage({ job }: { job: RunningJobWithResources }) 
     return (
         <CardWithItems
             items={items}
+            header={<div className="text-lg font-semibold">Usage</div>}
             footer={<DetailedUsage size="medium" used={elapsed} paid={paid} total={lifespan} disableLabels />}
         />
     );

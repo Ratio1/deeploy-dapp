@@ -15,6 +15,7 @@ export const routePath = {
     account: '/account',
     docs: '/docs',
     support: '/support',
-    //
+    // General
     notFound: '/404',
+    edit: 'edit',
 };

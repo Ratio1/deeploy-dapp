@@ -14,16 +14,18 @@ export default function CardWithItems({
     footer?: React.ReactNode;
 }) {
     return (
-        <BorderedCard isLight={false}>
-            {header && <>{header}</>}
+        <BorderedCard isLight={false} disableWrapper>
+            <div className="col gap-3 p-4">
+                {header && <>{header}</>}
 
-            <div className="row justify-between">
-                {items.map((item, index) => (
-                    <Item key={index} label={item.label} value={item.value} isLast={index === items.length - 1} />
-                ))}
+                <div className="row justify-between">
+                    {items.map((item, index) => (
+                        <Item key={index} label={item.label} value={item.value} isLast={index === items.length - 1} />
+                    ))}
+                </div>
+
+                {footer && <>{footer}</>}
             </div>
-
-            {footer && <>{footer}</>}
         </BorderedCard>
     );
 }
@@ -31,8 +33,8 @@ export default function CardWithItems({
 function Item({ label, value, isLast = false }: { label: string; value: string | React.ReactNode; isLast?: boolean }) {
     return (
         <div className={clsx('col', isLast && 'text-right')}>
-            <div className="text-[15px] font-medium text-slate-500">{label}</div>
-            <div className="text-[17px] font-semibold">{value}</div>
+            <div className="text-sm font-medium text-slate-500">{label}</div>
+            <div className="font-semibold">{value}</div>
         </div>
     );
 }

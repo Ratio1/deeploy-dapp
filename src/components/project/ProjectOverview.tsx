@@ -2,8 +2,10 @@ import GenericDraftJobsList from '@components/draft/job-lists/GenericDraftJobsLi
 import NativeDraftJobsList from '@components/draft/job-lists/NativeDraftJobsList';
 import ServiceDraftJobsList from '@components/draft/job-lists/ServiceDraftJobsList';
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import CustomTabs from '@shared/CustomTabs';
 import EmptyData from '@shared/EmptyData';
+import RefreshRequiredAlert from '@shared/jobs/RefreshRequiredAlert';
 import AddJobCard from '@shared/projects/AddJobCard';
 import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
@@ -21,11 +23,15 @@ export default function ProjectOverview({
     runningJobs,
     draftJobs,
     projectIdentity,
+    fetchRunningJobs,
 }: {
     runningJobs: RunningJobWithDetails[] | undefined;
     draftJobs: DraftJob[] | undefined;
     projectIdentity: React.ReactNode;
+    fetchRunningJobs: () => void;
 }) {
+    const { fetchApps } = useDeploymentContext() as DeploymentContextType;
+
     const [selectedTab, setSelectedTab] = useState<'runningJobs' | 'draftJobs'>('runningJobs');
     const [runningJobsWithResources, setRunningJobsWithResources] = useState<RunningJobWithResources[]>([]);
 
@@ -57,6 +63,7 @@ export default function ProjectOverview({
 
                     <div className="row gap-2">
                         <CancelButton tab="running" />
+
                         <PaymentButton isDisabled={draftJobs?.length === 0} />
                     </div>
                 </div>
@@ -90,6 +97,14 @@ export default function ProjectOverview({
                         }}
                     />
                 </div>
+
+                <RefreshRequiredAlert
+                    customCallback={async () => {
+                        await fetchApps();
+                        fetchRunningJobs();
+                    }}
+                    isCompact
+                />
 
                 {selectedTab === 'runningJobs' && (
                     <>

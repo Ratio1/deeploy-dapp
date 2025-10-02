@@ -1,4 +1,5 @@
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
+import { isKeySecret } from '@lib/utils';
 import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
 import { KeyValueEntry } from '@typedefs/deeploys';
@@ -27,7 +28,6 @@ export default function KeyValueEntriesSection({
     disabledKeys,
     placeholders = ['KEY', 'VALUE'],
     enableSecretValues = false,
-    parentFields,
     parentMethods,
 }: {
     name: string;
@@ -38,7 +38,6 @@ export default function KeyValueEntriesSection({
     disabledKeys?: string[];
     placeholders?: [string, string];
     enableSecretValues?: boolean;
-    parentFields?: KeyValueEntry[];
     parentMethods?: {
         fields: Record<'id', string>[];
         append: UseFieldArrayAppend<FieldValues, string>;
@@ -58,14 +57,12 @@ export default function KeyValueEntriesSection({
     // Explicitly type the fields to match the expected structure
     const entries = fields as KeyValueEntry[];
 
-    const [fieldSecrets, setFieldSecrets] = useState<{ [id: string]: boolean }>({});
+    const [isFieldSecret, setFieldSecret] = useState<{ [id: string]: boolean }>({});
 
     useEffect(() => {
-        // console.log('KeyValueEntriesSection Received entries', entries);
-
         entries.forEach((entry) => {
-            if (fieldSecrets[entry.id] === undefined) {
-                setFieldSecrets((previous) => ({
+            if (isFieldSecret[entry.id] === undefined) {
+                setFieldSecret((previous) => ({
                     ...previous,
                     [entry.id]: isKeySecret(entry.key),
                 }));
@@ -77,14 +74,6 @@ export default function KeyValueEntriesSection({
     const key = name.split('.')[1];
     const deploymentErrors = formState.errors.deployment as any;
     const errors = deploymentErrors?.[key];
-
-    const isKeySecret = (key: string | undefined) => {
-        if (!key) {
-            return false;
-        }
-
-        return key.toLowerCase().includes('password') || key.toLowerCase().includes('secret');
-    };
 
     return (
         <div className="col gap-4">
@@ -130,9 +119,9 @@ export default function KeyValueEntriesSection({
 
                                     {enableSecretValues && (
                                         <SecretValueToggle
-                                            isSecret={fieldSecrets[entry.id]}
+                                            isSecret={isFieldSecret[entry.id]}
                                             onClick={() => {
-                                                setFieldSecrets((previous) => ({
+                                                setFieldSecret((previous) => ({
                                                     ...previous,
                                                     [entry.id]: !previous[entry.id],
                                                 }));
@@ -201,7 +190,7 @@ export default function KeyValueEntriesSection({
                                                         }}
                                                         isInvalid={hasError}
                                                         errorMessage={fieldState.error?.message || specificValueError?.message}
-                                                        type={fieldSecrets[entry.id] ? 'password' : 'text'}
+                                                        type={isFieldSecret[entry.id] ? 'password' : 'text'}
                                                     />
                                                 );
                                             }}
@@ -212,7 +201,7 @@ export default function KeyValueEntriesSection({
                                         <VariableSectionRemove
                                             onClick={() => {
                                                 remove(index);
-                                                setFieldSecrets((previous) => {
+                                                setFieldSecret((previous) => {
                                                     const next = { ...previous };
                                                     delete next[entry.id];
                                                     return next;

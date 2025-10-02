@@ -11,7 +11,7 @@ import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
 
-function NativeDeployment() {
+function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
     const { watch } = useFormContext();
     const enableTunneling = watch('deployment.enableTunneling');
     const pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number] = watch('deployment.pluginSignature');
@@ -29,7 +29,7 @@ function NativeDeployment() {
                 </div>
             </SlateCard>
 
-            <TargetNodesCard />
+            <TargetNodesCard isEditingJob={isEditingJob} />
 
             <SlateCard title="App Parameters">
                 <div className="col gap-4">

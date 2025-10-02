@@ -27,7 +27,7 @@ function GenericRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
                 return (
                     <div className={widthClasses[0]}>
                         <SmallTag variant="blue">
-                            <div className="truncate">{job.alias}</div>
+                            <div className="max-w-[210px] truncate">{job.alias}</div>
                         </SmallTag>
                     </div>
                 );

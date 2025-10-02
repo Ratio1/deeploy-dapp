@@ -8,7 +8,7 @@ import { GenericDraftJob, JobType } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
 
 const widthClasses = [
-    'min-w-[128px]', // alias
+    'min-w-[138px]', // alias
     'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
     'min-w-[50px]', // type
@@ -39,7 +39,9 @@ export default function GenericDraftJobsList({ jobs }: { jobs: GenericDraftJob[]
 
                 return (
                     <>
-                        <div className={widthClasses[0]}>{genericJob.deployment.jobAlias}</div>
+                        <div className={widthClasses[0]}>
+                            <div className="max-w-[138px] truncate">{genericJob.deployment.jobAlias}</div>
+                        </div>
 
                         <div className={widthClasses[1]}>
                             <SmallTag>

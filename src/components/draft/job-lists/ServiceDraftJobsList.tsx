@@ -11,7 +11,7 @@ const widthClasses = [
     'min-w-[128px]', // alias
     'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
-    'min-w-[70px]', // database
+    'min-w-[82px]', // database
     'min-w-[310px]', // resources
 ];
 
@@ -39,7 +39,9 @@ export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[]
 
                 return (
                     <>
-                        <div className={widthClasses[0]}>{serviceJob.deployment.jobAlias}</div>
+                        <div className={widthClasses[0]}>
+                            <div className="max-w-[128px] truncate">{serviceJob.deployment.jobAlias}</div>
+                        </div>
 
                         <div className={widthClasses[1]}>
                             <SmallTag>

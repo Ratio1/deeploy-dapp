@@ -1,12 +1,12 @@
-import { Button } from '@heroui/button';
 import { Skeleton } from '@heroui/skeleton';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import EmptyData from '@shared/EmptyData';
+import RefreshRequiredAlert from '@shared/jobs/RefreshRequiredAlert';
 import ListHeader from '@shared/ListHeader';
 import { RunningJobWithDetails } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { RiDraftLine, RiRefreshLine } from 'react-icons/ri';
+import { RiDraftLine } from 'react-icons/ri';
 import { usePublicClient } from 'wagmi';
 import RunningCard from './RunningCard';
 
@@ -16,8 +16,7 @@ export interface RunningRef {
 }
 
 const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => void }>(({ setProjectsCount }, ref) => {
-    const { apps, isFetchingApps, isFetchAppsRequired, fetchApps, fetchRunningJobsWithDetails } =
-        useDeploymentContext() as DeploymentContextType;
+    const { apps, fetchRunningJobsWithDetails } = useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
 
@@ -45,7 +44,6 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
     }, [projects]);
 
     const getProjectsWithJobs = async () => {
-        console.log('getProjectsWithJobs', apps);
         setLoading(true);
 
         const jobsWithDetails: RunningJobWithDetails[] = await fetchRunningJobsWithDetails();
@@ -99,28 +97,7 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
                 <div className="min-w-[124px]">Next payment due</div>
             </ListHeader>
 
-            {isFetchAppsRequired && (
-                <div className="text-warning-800 bg-warning-100 rounded-lg px-6 py-3 text-sm">
-                    <div className="row justify-between gap-4">
-                        <div className="row gap-1.5">
-                            <RiRefreshLine className="text-xl" />
-                            <div className="font-medium">Refresh required</div>
-                        </div>
-
-                        <div>
-                            <Button
-                                className="bg-warning-300 rounded-md"
-                                color="warning"
-                                size="sm"
-                                onPress={fetchApps}
-                                isLoading={isFetchingApps}
-                            >
-                                <div className="text-[13px]">Refresh</div>
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <RefreshRequiredAlert />
 
             {isLoading ? (
                 <>
