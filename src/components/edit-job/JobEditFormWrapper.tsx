@@ -29,7 +29,7 @@ export default function JobEditFormWrapper({
 
     const getBaseSchemaDefaults = () => ({
         specifications: {
-            jobTags: job.jobTags,
+            jobTags: job.jobTags ?? [],
         },
         deployment: {
             jobAlias: job.alias,

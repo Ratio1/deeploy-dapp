@@ -205,9 +205,9 @@ type RunningJob = {
 type RunningJobWithDetails = RunningJob & {
     alias: string;
     projectName?: string;
-    allowReplicationInTheWild: boolean;
-    spareNodes: R1Address[];
-    jobTags: string[];
+    allowReplicationInTheWild: boolean | undefined; // Older jobs might not have this field
+    spareNodes: R1Address[] | undefined; // Older jobs might not have this field
+    jobTags: string[] | undefined; // Older jobs might not have this field
     nodes: R1Address[];
     instances: {
         nodeAddress: R1Address;
