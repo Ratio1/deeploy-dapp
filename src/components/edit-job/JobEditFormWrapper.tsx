@@ -27,6 +27,8 @@ export default function JobEditFormWrapper({
 }) {
     const config: JobConfig = job.config;
 
+    console.log('JobEditFormWrapper', { config });
+
     const getBaseSchemaDefaults = () => ({
         specifications: {
             jobTags: job.jobTags ?? [],
