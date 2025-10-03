@@ -39,6 +39,7 @@ export default function JobEditFormWrapper({
             targetNodes: job.nodes.map((address) => ({ address })),
             spareNodes: !job.spareNodes ? [] : job.spareNodes.map((address) => ({ address })),
             allowReplicationInTheWild: job.allowReplicationInTheWild ?? false,
+            tunnelingToken: config.CLOUDFLARE_TOKEN || '',
         },
     });
 
