@@ -51,6 +51,7 @@ jobs:
             ratio1/deeploy_ui:testnet
 
       - name: Build & Push Mainnet Image
+        id: build_image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -63,3 +64,17 @@ jobs:
             VITE_APP_VERSION=${{ steps.version.outputs.version }}
           tags: |
             ratio1/deeploy_ui:mainnet
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version_tag }}
+          name: v${{ steps.version.outputs.version }}
+          body: |
+            Docker image details:
+            - tag: ratio1/deeploy_ui:main
+            - digest: ${{ steps.build_image.outputs.digest }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
