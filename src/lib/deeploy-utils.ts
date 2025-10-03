@@ -168,7 +168,11 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
         IMAGE_PULL_POLICY: job.deployment.imagePullPolicy.toLowerCase(),
     };
 
+    let pluginSignature: string;
+
     if (job.deployment.deploymentType.type === 'image') {
+        pluginSignature = 'CONTAINER_APP_RUNNER';
+
         appParams.IMAGE = job.deployment.deploymentType.containerImage;
 
         appParams.CR_DATA = {
@@ -180,6 +184,8 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
             appParams.CR_DATA.PASSWORD = job.deployment.deploymentType.crPassword;
         }
     } else {
+        pluginSignature = 'WORKER_APP_RUNNER';
+
         appParams.IMAGE = job.deployment.deploymentType.image;
         appParams.BUILD_AND_RUN_COMMANDS = job.deployment.deploymentType.workerCommands.map((entry) => entry.command);
 
@@ -195,7 +201,7 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
 
     return {
         app_alias: job.deployment.jobAlias,
-        plugin_signature: 'CONTAINER_APP_RUNNER',
+        plugin_signature: pluginSignature,
         nonce,
         target_nodes: targetNodes,
         spare_nodes: spareNodes,
@@ -340,7 +346,11 @@ export const formatGenericJobUpdatePayload = (job: RunningJobWithResources, depl
         IMAGE_PULL_POLICY: deployment.imagePullPolicy.toLowerCase(),
     };
 
+    let pluginSignature: string;
+
     if (deployment.deploymentType.type === 'image') {
+        pluginSignature = 'CONTAINER_APP_RUNNER';
+
         appParams.IMAGE = deployment.deploymentType.containerImage;
 
         appParams.CR_DATA = {
@@ -352,6 +362,8 @@ export const formatGenericJobUpdatePayload = (job: RunningJobWithResources, depl
             appParams.CR_DATA.PASSWORD = deployment.deploymentType.crPassword;
         }
     } else {
+        pluginSignature = 'WORKER_APP_RUNNER';
+
         appParams.IMAGE = deployment.deploymentType.image;
         appParams.BUILD_AND_RUN_COMMANDS = deployment.deploymentType.workerCommands.map((entry) => entry.command);
 
@@ -367,7 +379,7 @@ export const formatGenericJobUpdatePayload = (job: RunningJobWithResources, depl
 
     return {
         app_alias: deployment.jobAlias,
-        plugin_signature: 'CONTAINER_APP_RUNNER',
+        plugin_signature: pluginSignature,
         nonce,
         target_nodes: targetNodes,
         spare_nodes: spareNodes,

@@ -30,7 +30,8 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                             value={config.TUNNEL_ENGINE_ENABLED.toString()}
                             capitalize
                         />
-                        <ItemWithBoldValue label="NGROK Use API" value={config.NGROK_USE_API.toString()} capitalize />
+
+                        {/* <ItemWithBoldValue label="NGROK Use API" value={config.NGROK_USE_API.toString()} capitalize /> */}
 
                         <ItemWithBoldValue
                             label="Cloudflare Token"
