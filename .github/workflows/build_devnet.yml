@@ -2,10 +2,10 @@ name: Build and Push Devnet Image
 
 on:
   push:
-    branches: [ develop ]
+    branches: [develop]
   # also allow manual runs
   workflow_dispatch:
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,6 +25,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Set outputs for version
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
       - name: Build & Push Devnet Image
         uses: docker/build-push-action@v5
         with:
@@ -34,5 +38,7 @@ jobs:
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            VITE_APP_VERSION=${{ steps.vars.outputs.sha_short }}
           tags: |
-                ratio1/deeploy_ui:devnet
+            ratio1/deeploy_ui:devnet
