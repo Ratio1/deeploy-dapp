@@ -34,12 +34,26 @@ export const getDiscountPercentage = (_paymentMonthsCount: number): number => {
 export const getJobCost = (job: DraftJob): number => {
     const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
     const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
+    const targetNodesCount = job.specifications.targetNodesCount;
 
+    const jobCostPerEpoch = getJobCostPerEpoch(containerOrWorkerType, gpuType, targetNodesCount);
+
+    const epochs = 1 + job.paymentAndDuration.paymentMonthsCount * 30;
+
+    // +1 to account for the current ongoing epoch
+    const jobCost = epochs * jobCostPerEpoch * (1 - getDiscountPercentage(job.paymentAndDuration.paymentMonthsCount) / 100);
+    return jobCost;
+};
+
+export const getJobCostPerEpoch = (
+    containerOrWorkerType: ContainerOrWorkerType,
+    gpuType: GpuType | undefined,
+    targetNodesCount: number,
+) => {
     return (
-        job.paymentAndDuration.paymentMonthsCount *
-        job.specifications.targetNodesCount *
-        (containerOrWorkerType.monthlyBudgetPerWorker + (gpuType?.monthlyBudgetPerWorker ?? 0)) *
-        (1 - getDiscountPercentage(job.paymentAndDuration.paymentMonthsCount) / 100)
+        ((containerOrWorkerType.pricePerEpoch + (gpuType?.pricePerEpoch ?? 0)) / Math.pow(10, 6)) *
+        targetNodesCount *
+        (environment === 'mainnet' ? 1 : 24)
     );
 };
 
