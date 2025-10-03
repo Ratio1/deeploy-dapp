@@ -12,6 +12,8 @@ import JobSimpleTagsSection from './JobSimpleTagsSection';
 export default function JobConfiguration({ job }: { job: RunningJobWithResources }) {
     const config: JobConfig = job.config;
 
+    console.log('JobConfiguration', { job });
+
     return (
         <BorderedCard isLight={false} disableWrapper>
             <div className="col gap-3 p-4">
@@ -20,6 +22,7 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                 <div className="col gap-4">
                     <div className="grid grid-cols-3 gap-4">
                         <ItemWithBoldValue label="Image" value={config.IMAGE} />
+                        <ItemWithBoldValue label="Nodes" value={job.nodes.length} />
 
                         {!!config.VCS_DATA && <ItemWithBoldValue label="Repository" value={config.VCS_DATA.REPO_NAME} />}
 
