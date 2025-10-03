@@ -33,7 +33,7 @@ import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } f
 import { addDays, differenceInDays, differenceInHours } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiBox3Line, RiDraftLine } from 'react-icons/ri';
+import { RiBox3Line, RiDraftLine, RiInformation2Line } from 'react-icons/ri';
 import { decodeEventLog } from 'viem';
 import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wagmi';
 
@@ -374,15 +374,24 @@ export default function Payment({
                 {/* Total Amount Due */}
                 {!!jobs && !!jobs.length && (
                     <BorderedCard isLight={false}>
-                        <div className="row justify-between py-2">
-                            <div className="text-sm font-medium text-slate-500">Total Amount Due</div>
+                        <div className="col gap-2 py-2">
+                            <div className="row justify-between">
+                                <div className="text-sm font-medium text-slate-500">Total Amount Due</div>
 
-                            <div className="row gap-1.5">
-                                <div className="text-[19px] font-semibold">
-                                    <UsdcValue value={parseFloat(totalCost.toFixed(2)).toLocaleString()} />
+                                <div className="row gap-1.5">
+                                    <div className="text-[19px] font-semibold">
+                                        <UsdcValue value={parseFloat(totalCost.toFixed(2)).toLocaleString()} />
+                                    </div>
+
+                                    {environment !== 'mainnet' && (
+                                        <SmallTag variant="blue">Adjusted for 1-hour epochs</SmallTag>
+                                    )}
                                 </div>
+                            </div>
 
-                                {environment !== 'mainnet' && <SmallTag variant="blue">Adjusted for 1-hour epochs</SmallTag>}
+                            <div className="row gap-1">
+                                <RiInformation2Line className="text-primary text-lg" />
+                                <div className="text-sm">The current ongoing epoch is inclused in the calculation.</div>
                             </div>
                         </div>
                     </BorderedCard>
