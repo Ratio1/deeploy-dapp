@@ -14,40 +14,32 @@ interface Props {
 export default function SelectGPU({ jobType }: Props) {
     const { control, watch, setValue } = useFormContext();
 
-    const containerOrWorkerTypeName: string = watch(
+    const containerOrWorkerTypeValue: string = watch(
         `specifications.${jobType === JobType.Generic ? 'containerType' : 'workerType'}`,
     );
 
-    const [containerOrWorkerType, setContainerOrWorkerType] = useState<ContainerOrWorkerType>();
     const [supportedGpuTypes, setSupportedGpuTypes] = useState<GpuType[]>([]);
 
     useEffect(() => {
-        setContainerOrWorkerType(
-            (jobType === JobType.Generic ? genericContainerTypes : nativeWorkerTypes).find(
-                (item) => item.name === containerOrWorkerTypeName,
-            ),
-        );
-    }, [containerOrWorkerTypeName]);
+        const containerOrWorkerType: ContainerOrWorkerType | undefined = (
+            jobType === JobType.Generic ? genericContainerTypes : nativeWorkerTypes
+        ).find((item) => item.name === containerOrWorkerTypeValue);
 
-    useEffect(() => {
         if (containerOrWorkerType) {
-            setSupportedGpuTypes(
-                gpuTypes.filter((gpuType) => {
-                    const [min, max] = gpuType.support[jobType];
+            const supportedGpuTypes = gpuTypes.filter((gpuType) => {
+                const [min, max] = gpuType.support[jobType];
+                return containerOrWorkerType.id >= min && containerOrWorkerType.id <= max;
+            });
 
-                    return containerOrWorkerType.id >= min && containerOrWorkerType.id <= max;
-                }),
-            );
+            setSupportedGpuTypes(supportedGpuTypes);
+
+            if (!supportedGpuTypes.length) {
+                setValue('specifications.gpuType', '');
+            }
         }
-    }, [containerOrWorkerType]);
+    }, [containerOrWorkerTypeValue]);
 
-    useEffect(() => {
-        if (!supportedGpuTypes.length) {
-            setValue('specifications.gpuType', '');
-        }
-    }, [supportedGpuTypes]);
-
-    if (!containerOrWorkerType || !supportedGpuTypes.length) {
+    if (!supportedGpuTypes.length) {
         return null;
     }
 
