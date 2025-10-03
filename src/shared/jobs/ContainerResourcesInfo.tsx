@@ -55,7 +55,7 @@ export default function ContainerResourcesInfo({ jobType, name, options }: Props
             <div className="row gap-1.5">
                 <Label value="Monthly Budget per Worker:" />
                 <div className="compact">
-                    ${containerOrWorkerType.monthlyBudgetPerWorker + (gpuType?.monthlyBudgetPerWorker ?? 0)}
+                    ~${containerOrWorkerType.monthlyBudgetPerWorker + (gpuType?.monthlyBudgetPerWorker ?? 0)}
                     {!!gpuType && (
                         <span className="text-slate-500">{` (${containerOrWorkerType.monthlyBudgetPerWorker}$ + ${gpuType.monthlyBudgetPerWorker}$)`}</span>
                     )}

@@ -1,4 +1,5 @@
 import { RunningJobResources } from '@data/containerResources';
+import { getJobCostPerEpoch } from '@lib/deeploy-utils';
 import CardWithItems from '@shared/jobs/projects/CardWithItems';
 import { UsdcValue } from '@shared/UsdcValue';
 import { JobType } from '@typedefs/deeploys';
@@ -18,10 +19,19 @@ export default function JobResources({ resources }: { resources: RunningJobResou
             value: resources.gpuType?.name || '—',
         },
         {
-            label: 'Monthly Budget Per Worker',
-            value: <UsdcValue value={resources.containerOrWorkerType.monthlyBudgetPerWorker} />,
+            label: 'Monthly Budget',
+            value: <UsdcValue value={30 * getJobCostPerEpoch(resources.containerOrWorkerType, resources.gpuType, 1)} />,
         },
     ];
 
-    return <CardWithItems header={<div className="text-lg font-semibold">Node Resources</div>} items={items} />;
+    return (
+        <CardWithItems
+            header={
+                <div className="text-lg font-semibold">
+                    {resources.jobType === JobType.Native ? 'Worker' : 'Container'} Resources
+                </div>
+            }
+            items={items}
+        />
+    );
 }

@@ -1,12 +1,19 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { Slider } from '@heroui/slider';
-import { getContainerOrWorkerType, getContainerOrWorkerTypeDescription, getDiscountPercentage } from '@lib/deeploy-utils';
+import {
+    getContainerOrWorkerType,
+    getContainerOrWorkerTypeDescription,
+    getDiscountPercentage,
+    getGpuType,
+    getJobCostPerEpoch,
+} from '@lib/deeploy-utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { SlateCard } from '@shared/cards/SlateCard';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import { JobPaymentAndDuration, JobSpecifications, JobType } from '@typedefs/deeploys';
 import { addMonths } from 'date-fns';
+import { round } from 'lodash';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { RiInformation2Line } from 'react-icons/ri';
@@ -44,6 +51,13 @@ function PaymentAndDuration() {
         setValue('paymentAndDuration.paymentMonthsCount', duration);
     }, [duration, setValue]);
 
+    const jobCostPerEpoch = getJobCostPerEpoch(
+        containerOrWorkerType,
+        'gpuType' in specifications && specifications.gpuType ? getGpuType(specifications) : undefined,
+        targetNodesCount,
+    );
+    const costPer30Days = 30 * jobCostPerEpoch;
+
     const summaryItems = [
         {
             label: 'Compute Type',
@@ -63,7 +77,7 @@ function PaymentAndDuration() {
         },
         {
             label: 'Monthly Cost',
-            value: `$${containerOrWorkerType.monthlyBudgetPerWorker * targetNodesCount}`,
+            value: `~$${round(costPer30Days, 1)}`,
         },
         {
             label: 'End Date',
@@ -76,12 +90,11 @@ function PaymentAndDuration() {
     ];
 
     const getPaymentAmount = (applyDiscount: boolean = true) => {
-        return (
-            paymentMonthsCount *
-            containerOrWorkerType.monthlyBudgetPerWorker *
-            targetNodesCount *
-            (applyDiscount ? 1 - getDiscountPercentage(paymentMonthsCount) / 100 : 1)
-        );
+        const epochs = 1 + paymentMonthsCount * 30;
+
+        // +1 to account for the current ongoing epoch
+        const jobCost = epochs * jobCostPerEpoch * (applyDiscount ? 1 - getDiscountPercentage(paymentMonthsCount) / 100 : 1);
+        return jobCost;
     };
 
     return (
@@ -166,17 +179,26 @@ function PaymentAndDuration() {
             </BorderedCard>
 
             <SlateCard>
-                <div className="row justify-between gap-8 p-2">
-                    <div className="text-[15px] font-medium text-slate-500">Amount due</div>
+                <div className="col gap-2 px-2">
+                    <div className="row justify-between gap-8">
+                        <div className="text-[15px] font-medium text-slate-500">Amount due</div>
 
-                    <div className="row gap-1.5 text-[19px] font-semibold">
-                        <div className="text-slate-500">$USDC</div>
+                        <div className="row gap-1.5 text-[19px] font-semibold">
+                            <div className="text-slate-500">$USDC</div>
 
-                        {paymentMonthsCount > 1 && getDiscountPercentage(paymentMonthsCount) > 0 && (
-                            <div className="text-slate-400 line-through">{parseFloat(getPaymentAmount(false).toFixed(2))}</div>
-                        )}
+                            {paymentMonthsCount > 1 && getDiscountPercentage(paymentMonthsCount) > 0 && (
+                                <div className="text-slate-400 line-through">
+                                    {parseFloat(getPaymentAmount(false).toFixed(2))}
+                                </div>
+                            )}
 
-                        <div className="text-primary">{parseFloat(getPaymentAmount().toFixed(2))}</div>
+                            <div className="text-primary">{parseFloat(getPaymentAmount().toFixed(2))}</div>
+                        </div>
+                    </div>
+
+                    <div className="row gap-1">
+                        <RiInformation2Line className="text-primary text-lg" />
+                        <div className="text-sm">The current ongoing epoch is inclused in the calculation.</div>
                     </div>
                 </div>
             </SlateCard>

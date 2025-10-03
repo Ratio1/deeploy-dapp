@@ -6,6 +6,7 @@ import NativeJobsCostRundown from '@components/draft/job-rundowns/NativeJobsCost
 import ServiceJobsCostRundown from '@components/draft/job-rundowns/ServiceJobsCostRundown';
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
+import { Skeleton } from '@heroui/skeleton';
 import { createPipeline } from '@lib/api/deeploy';
 import { config, environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
@@ -52,7 +53,7 @@ export default function Payment({
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
     const { escrowContractAddress, setFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
 
-    const [allowance, setAllowance] = useState<bigint>(0n);
+    const [allowance, setAllowance] = useState<bigint | undefined>();
     const [totalCost, setTotalCost] = useState<number>(0);
     const [isLoading, setLoading] = useState<boolean>(false);
 
@@ -71,10 +72,14 @@ export default function Payment({
     }>(null);
 
     useEffect(() => {
-        console.log('[Payment] jobs', jobs);
-
         if (jobs) {
-            setTotalCost(getJobsTotalCost(jobs) * (environment === 'mainnet' ? 1 : 24));
+            const jobsTotalCost = getJobsTotalCost(jobs);
+
+            console.log('[Payment]', {
+                jobsTotalCost,
+            });
+
+            setTotalCost(jobsTotalCost);
         }
     }, [jobs]);
 
@@ -156,7 +161,6 @@ export default function Payment({
             const expiryDate = addDays(new Date(), job.paymentAndDuration.duration * 30);
 
             const diffFn = environment === 'mainnet' ? differenceInDays : differenceInHours;
-
             const durationInEpochs = diffFn(expiryDate, new Date());
 
             const lastExecutionEpoch = BigInt(getCurrentEpoch() + durationInEpochs);
@@ -302,6 +306,8 @@ export default function Payment({
             args: [address, escrowContractAddress],
         });
 
+        console.log('fetchAllowance', { result });
+
         setAllowance(result);
         return result;
     };
@@ -341,24 +347,28 @@ export default function Payment({
                 <div className="flex items-start justify-between">
                     {projectIdentity}
 
-                    <div className="row gap-2">
-                        <OverviewButton />
+                    {allowance === undefined ? (
+                        <Skeleton className="h-[38px] w-60 rounded-lg" />
+                    ) : (
+                        <div className="row gap-2">
+                            <OverviewButton />
 
-                        <ConnectWalletWrapper>
-                            <ActionButton
-                                color="primary"
-                                variant="solid"
-                                onPress={onPress}
-                                isDisabled={isPayAndDeployButtonDisabled()}
-                                isLoading={isLoading}
-                            >
-                                <div className="row gap-1.5">
-                                    {!isApprovalRequired() && <RiBox3Line className="text-lg" />}
-                                    <div className="text-sm">{isApprovalRequired() ? 'Approve $USDC' : 'Pay & Deploy'}</div>
-                                </div>
-                            </ActionButton>
-                        </ConnectWalletWrapper>
-                    </div>
+                            <ConnectWalletWrapper>
+                                <ActionButton
+                                    color="primary"
+                                    variant="solid"
+                                    onPress={onPress}
+                                    isDisabled={isPayAndDeployButtonDisabled()}
+                                    isLoading={isLoading}
+                                >
+                                    <div className="row gap-1.5">
+                                        {!isApprovalRequired() && <RiBox3Line className="text-lg" />}
+                                        <div className="text-sm">{isApprovalRequired() ? 'Approve $USDC' : 'Pay & Deploy'}</div>
+                                    </div>
+                                </ActionButton>
+                            </ConnectWalletWrapper>
+                        </div>
+                    )}
                 </div>
 
                 {/* Total Amount Due */}

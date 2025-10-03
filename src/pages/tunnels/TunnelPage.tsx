@@ -6,6 +6,7 @@ import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { routePath } from '@lib/routes/route-paths';
 import ActionButton from '@shared/ActionButton';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
+import { CopyableValue } from '@shared/CopyableValue';
 import EmptyData from '@shared/EmptyData';
 import { SmallTag } from '@shared/SmallTag';
 import StyledInput from '@shared/StyledInput';
@@ -200,48 +201,52 @@ export default function TunnelPage() {
     return (
         <div className="w-full flex-1">
             <div className="col mx-auto max-w-[620px] gap-6">
-                <div className="row gap-3 pb-2">
-                    <Link to={routePath.tunnels} className="hover:opacity-50">
-                        <div className="bg-slate-150 rounded-full p-1">
-                            <RiArrowLeftLine className="text-xl" />
-                        </div>
-                    </Link>
+                <div className="row justify-between">
+                    <div className="row gap-3 pb-2">
+                        <Link to={routePath.tunnels} className="hover:opacity-50">
+                            <div className="bg-slate-150 rounded-full p-1">
+                                <RiArrowLeftLine className="text-xl" />
+                            </div>
+                        </Link>
 
-                    <div className="row gap-3">
-                        <div className="text-2xl font-bold">{tunnel.alias}</div>
-                        <SmallTag variant={getStatusTagVariant()} isLarge>
-                            <div className="capitalize">{tunnel.status}</div>
-                        </SmallTag>
+                        <div className="row gap-3">
+                            <div className="text-2xl font-bold">{tunnel.alias}</div>
+                            <SmallTag variant={getStatusTagVariant()} isLarge>
+                                <div className="capitalize">{tunnel.status}</div>
+                            </SmallTag>
+                        </div>
                     </div>
+
+                    <ActionButton
+                        className="slate-button"
+                        color="default"
+                        onPress={() => {
+                            openTunnelRenameModal(tunnel, () => fetchTunnel(id));
+                        }}
+                    >
+                        <div className="row gap-1.5">
+                            <RiEdit2Line className="text-lg" />
+                            <div className="compact">Rename</div>
+                        </div>
+                    </ActionButton>
                 </div>
 
                 <div className="row justify-between">
-                    <Link
-                        to={`https://${tunnel.url}`}
-                        target="_blank"
-                        onClick={(e) => e.stopPropagation()}
-                        className="cursor-pointer transition-all hover:opacity-60"
-                    >
-                        <div className="row text-primary gap-1">
-                            <div className="font-roboto-mono text-[15px] font-medium">{tunnel.url}</div>
-                            <RiExternalLinkLine className="mb-px text-[17px]" />
-                        </div>
-                    </Link>
+                    <CopyableValue value={tunnel.url}>
+                        <Link
+                            to={`https://${tunnel.url}`}
+                            target="_blank"
+                            onClick={(e) => e.stopPropagation()}
+                            className="cursor-pointer transition-all hover:opacity-60"
+                        >
+                            <div className="row text-primary gap-1">
+                                <div className="font-roboto-mono text-[15px] font-medium">{tunnel.url}</div>
+                                <RiExternalLinkLine className="mb-px text-[17px]" />
+                            </div>
+                        </Link>
+                    </CopyableValue>
 
                     <div className="row gap-2">
-                        <ActionButton
-                            className="slate-button"
-                            color="default"
-                            onPress={() => {
-                                openTunnelRenameModal(tunnel, () => fetchTunnel(id));
-                            }}
-                        >
-                            <div className="row gap-1.5">
-                                <RiEdit2Line className="text-lg" />
-                                <div className="compact">Rename</div>
-                            </div>
-                        </ActionButton>
-
                         {tunnel.token && (
                             <ActionButton
                                 className="slate-button"
