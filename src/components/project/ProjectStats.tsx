@@ -37,9 +37,9 @@ export default function ProjectStats({
             value: (
                 <UsdcValue
                     value={fBI(
-                        runningJobs.reduce((acc, job) => acc + job.pricePerEpoch, 0n),
+                        runningJobs.reduce((acc, job) => acc + job.pricePerEpoch * job.numberOfNodesRequested, 0n),
                         6,
-                        2,
+                        3,
                     )}
                 />
             ),

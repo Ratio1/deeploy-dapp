@@ -23,5 +23,5 @@ export default function JobResources({ resources }: { resources: RunningJobResou
         },
     ];
 
-    return <CardWithItems header={<div className="text-lg font-semibold">Resources</div>} items={items} />;
+    return <CardWithItems header={<div className="text-lg font-semibold">Node Resources</div>} items={items} />;
 }

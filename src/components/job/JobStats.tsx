@@ -10,6 +10,8 @@ export default function JobStats({ job }: { job: RunningJobWithResources }) {
     const requestDate = new Date(Number(job.requestTimestamp) * 1000);
     const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
 
+    console.log('JobStats', { job });
+
     const items = [
         {
             label: 'Start Date',
@@ -43,7 +45,7 @@ export default function JobStats({ job }: { job: RunningJobWithResources }) {
         },
         {
             label: 'Cost Per Epoch',
-            value: <UsdcValue value={fBI(job.pricePerEpoch, 6, 2)} />,
+            value: <UsdcValue value={fBI(job.pricePerEpoch * job.numberOfNodesRequested, 6, 3)} />,
         },
     ];
 
