@@ -100,6 +100,15 @@ function Tunnels() {
             const secrets = response.result;
 
             if (secrets) {
+                if (process.env.NODE_ENV === 'development') {
+                    console.log('Secrets', {
+                        cloudflareAccountId: secrets.cloudflare_account_id,
+                        cloudflareApiKey: secrets.cloudflare_api_key,
+                        cloudflareZoneId: secrets.cloudflare_zone_id,
+                        cloudflareDomain: secrets.cloudflare_domain,
+                    });
+                }
+
                 setTunnelingSecrets({
                     cloudflareAccountId: secrets.cloudflare_account_id,
                     cloudflareApiKey: secrets.cloudflare_api_key,
@@ -155,6 +164,7 @@ function Tunnels() {
             setTunnels(tunnelsArray);
         } catch (e: any) {
             setError('An error occurred while fetching your tunnels.');
+            setTunnels([]);
             console.error(e);
         } finally {
             setFetchingTunnels(false);

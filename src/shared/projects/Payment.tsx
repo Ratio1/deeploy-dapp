@@ -77,6 +77,7 @@ export default function Payment({
 
             console.log('[Payment]', {
                 jobsTotalCost,
+                allowanceRequired: Math.ceil(jobsTotalCost * 10 ** 6),
             });
 
             setTotalCost(jobsTotalCost);
@@ -280,7 +281,7 @@ export default function Payment({
             address: config.usdcContractAddress,
             abi: ERC20Abi,
             functionName: 'approve',
-            args: [escrowContractAddress, BigInt(totalCost * 10 ** 6)],
+            args: [escrowContractAddress, BigInt(Math.ceil(totalCost * 10 ** 6))],
         });
 
         const receipt = await watchTx(txHash, publicClient);
@@ -312,7 +313,7 @@ export default function Payment({
         return result;
     };
 
-    const hasEnoughAllowance = (): boolean => allowance !== undefined && allowance >= BigInt(totalCost * 10 ** 6);
+    const hasEnoughAllowance = (): boolean => allowance !== undefined && allowance >= BigInt(Math.ceil(totalCost * 10 ** 6));
 
     /**
      * Approval is required only if the allowance is less than half of the maximum allowance,
@@ -380,7 +381,7 @@ export default function Payment({
 
                                 <div className="row gap-1.5">
                                     <div className="text-[19px] font-semibold">
-                                        <UsdcValue value={parseFloat(totalCost.toFixed(2)).toLocaleString()} />
+                                        <UsdcValue value={parseFloat(totalCost.toFixed(2)).toLocaleString()} isAproximate />
                                     </div>
 
                                     {environment !== 'mainnet' && (

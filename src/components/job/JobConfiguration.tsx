@@ -30,7 +30,7 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                         <ItemWithBoldValue label="Tunnel Engine" value={config.TUNNEL_ENGINE} capitalize />
                         <ItemWithBoldValue
                             label="Tunnel Engine Enabled"
-                            value={config.TUNNEL_ENGINE_ENABLED.toString()}
+                            value={(!!config.TUNNEL_ENGINE_ENABLED).toString()}
                             capitalize
                         />
 

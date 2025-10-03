@@ -27,9 +27,11 @@ export default function JobEditFormWrapper({
 }) {
     const config: JobConfig = job.config;
 
+    console.log('JobEditFormWrapper', { config });
+
     const getBaseSchemaDefaults = () => ({
         specifications: {
-            jobTags: job.jobTags,
+            jobTags: job.jobTags ?? [],
         },
         deployment: {
             jobAlias: job.alias,
@@ -66,9 +68,9 @@ export default function JobEditFormWrapper({
             port: config.PORT,
             restartPolicy: titlecase(config.RESTART_POLICY),
             imagePullPolicy: titlecase(config.IMAGE_PULL_POLICY),
-            envVars: Object.entries(config.ENV).map(([key, value]) => ({ key, value })),
-            dynamicEnvVars: Object.entries(config.DYNAMIC_ENV).map(([key, values]) => ({ key, values })),
-            volumes: Object.entries(config.VOLUMES).map(([key, value]) => ({ key, value })),
+            envVars: getEnvVars(),
+            dynamicEnvVars: getDynamicEnvVars(),
+            volumes: getVolumes(),
         },
     });
 
@@ -89,11 +91,23 @@ export default function JobEditFormWrapper({
         ...getBaseSchemaDefaults(),
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            envVars: Object.entries(config.ENV).map(([key, value]) => ({ key, value })),
-            dynamicEnvVars: Object.entries(config.DYNAMIC_ENV).map(([key, values]) => ({ key, values })),
-            volumes: Object.entries(config.VOLUMES).map(([key, value]) => ({ key, value })),
+            envVars: getEnvVars(),
+            dynamicEnvVars: getDynamicEnvVars(),
+            volumes: getVolumes(),
         },
     });
+
+    const getEnvVars = () => {
+        return !config.ENV ? [] : Object.entries(config.ENV).map(([key, value]) => ({ key, value }));
+    };
+
+    const getDynamicEnvVars = () => {
+        return !config.DYNAMIC_ENV ? [] : Object.entries(config.DYNAMIC_ENV).map(([key, values]) => ({ key, values }));
+    };
+
+    const getVolumes = () => {
+        return !config.VOLUMES ? [] : Object.entries(config.VOLUMES).map(([key, value]) => ({ key, value }));
+    };
 
     const getDefaultSchemaValues = () => {
         switch (job.resources.jobType) {

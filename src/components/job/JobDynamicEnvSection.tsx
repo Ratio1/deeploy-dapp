@@ -6,6 +6,10 @@ export default function JobDynamicEnvSection({
 }: {
     dynamicEnv: Record<string, { type: (typeof DYNAMIC_ENV_TYPES)[number]; value: string }[]>;
 }) {
+    if (!dynamicEnv) {
+        return null;
+    }
+
     return (
         <div className="col mt-1 gap-1">
             {Object.entries(dynamicEnv).map(([key, array]) => (
