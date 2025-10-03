@@ -46,7 +46,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            VITE_APP_VERSION=${{ steps.version.outputs.version }}
+            VERSION=${{ steps.version.outputs.version }}
           tags: |
             ratio1/deeploy_ui:testnet
 
@@ -61,7 +61,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            VITE_APP_VERSION=${{ steps.version.outputs.version }}
+            VERSION=${{ steps.version.outputs.version }}
           tags: |
             ratio1/deeploy_ui:mainnet
 
