@@ -5,7 +5,7 @@ const config: Config = {
     content: [
         './index.html',
         './src/**/*.{js,ts,jsx,tsx}',
-        './node_modules/@heroui/theme/dist/**/(alert|button|dropdown|checkbox|form|input|modal|pagination|select|skeleton|spinner|slider|switch|tabs|ripple|menu|divider|popover|listbox|scroll-shadow).js',
+        './node_modules/@heroui/theme/dist/**/(alert|button|checkbox|date-picker|dropdown|form|input|modal|pagination|select|skeleton|slider|spinner|toggle|tabs|ripple|calendar|date-input|popover|menu|divider|listbox|scroll-shadow).js',
     ],
     darkMode: 'class',
     theme: {

@@ -86,3 +86,8 @@ export const isKeySecret = (key: string | undefined) => {
 
     return key.toLowerCase().includes('password') || key.toLowerCase().includes('secret');
 };
+
+export function padNumber(value: number, size: number): string {
+    const strValue = value.toString();
+    return strValue.length < size ? strValue.padStart(size, '0') : strValue;
+}

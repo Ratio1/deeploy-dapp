@@ -45,6 +45,45 @@ export const downloadCspDraft = async (draftId: string) => {
     setTimeout(() => URL.revokeObjectURL(urlObj), 0);
 };
 
+export const downloadBurnReport = async (start: string, end: string) => {
+    const res = await axiosDapp.get(`/burn-report/download-burn-report?startTime=${start}&endTime=${end}`, {
+        responseType: 'blob',
+    });
+
+    if (res.status !== 200) {
+        throw new Error(`Download failed with status ${res.status}.`);
+    }
+
+    // Check if the response is an error (blob with error content)
+    if (res.data.type === 'application/json') {
+        const text = await res.data.text();
+        const errorData = JSON.parse(text);
+
+        if (errorData.error) {
+            throw new Error(errorData.error);
+        }
+    }
+
+    // Extract filename from content-disposition header or use default
+    let filename = 'burn_report.csv';
+    const contentDisposition = res.headers['content-disposition'];
+    if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename=([^;]+)/);
+        if (filenameMatch) {
+            filename = filenameMatch[1].replace(/['"]/g, ''); // Remove quotes if present
+        }
+    }
+
+    const urlObj = URL.createObjectURL(res.data);
+    const a = document.createElement('a');
+    a.href = urlObj;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(urlObj), 0);
+};
+
 // *****
 // POST
 // *****
