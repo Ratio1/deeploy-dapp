@@ -1,6 +1,7 @@
 import { Skeleton } from '@heroui/skeleton';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import EmptyData from '@shared/EmptyData';
+import DeeploySuccessAlert from '@shared/jobs/DeeploySuccessAlert';
 import RefreshRequiredAlert from '@shared/jobs/RefreshRequiredAlert';
 import ListHeader from '@shared/ListHeader';
 import { RunningJobWithDetails } from '@typedefs/deeploys';
@@ -15,8 +16,15 @@ export interface RunningRef {
     collapseAll: () => void;
 }
 
-const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => void }>(({ setProjectsCount }, ref) => {
-    const { apps, fetchRunningJobsWithDetails } = useDeploymentContext() as DeploymentContextType;
+const Running = forwardRef<
+    RunningRef,
+    {
+        setProjectsCount: (count: number) => void;
+        successfulJobs: { text: string; serverAlias: string }[];
+        setSuccessfulJobs: (successfulJobs: { text: string; serverAlias: string }[]) => void;
+    }
+>(({ setProjectsCount, successfulJobs, setSuccessfulJobs }, ref) => {
+    const { apps, fetchRunningJobsWithDetails, fetchApps } = useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
 
@@ -97,7 +105,14 @@ const Running = forwardRef<RunningRef, { setProjectsCount: (count: number) => vo
                 <div className="min-w-[124px]">Next payment due</div>
             </ListHeader>
 
-            <RefreshRequiredAlert />
+            <DeeploySuccessAlert items={successfulJobs} onClose={() => setSuccessfulJobs([])} />
+
+            <RefreshRequiredAlert
+                customCallback={async () => {
+                    setSuccessfulJobs([]);
+                    await fetchApps();
+                }}
+            />
 
             {isLoading ? (
                 <>

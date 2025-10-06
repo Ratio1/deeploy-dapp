@@ -7,7 +7,7 @@ import CustomTabs from '@shared/CustomTabs';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useRef, useState } from 'react';
 import { RiBox2Line, RiFileTextLine } from 'react-icons/ri';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 function Dashboard() {
     const [selectedTab, setSelectedTab] = useState<'running' | 'drafts'>('running');
@@ -17,6 +17,19 @@ function Dashboard() {
     const [projectsCount, setProjectsCount] = useState(0);
 
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const successfulJobs: { text: string; serverAlias: string }[] =
+        (location.state as { successfulJobs?: { text: string; serverAlias: string }[] })?.successfulJobs ?? [];
+
+    // Used to display a message with the successfully deployed jobs right after deployment
+    const [visibleSuccessfulJobs, setVisibleSuccessfulJobs] = useState<{ text: string; serverAlias: string }[]>([]);
+
+    useEffect(() => {
+        if (successfulJobs.length) {
+            setVisibleSuccessfulJobs(successfulJobs);
+        }
+    }, [successfulJobs]);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -72,7 +85,14 @@ function Dashboard() {
                 )}
             </div>
 
-            {selectedTab === 'running' && <Running ref={runningRef} setProjectsCount={setProjectsCount} />}
+            {selectedTab === 'running' && (
+                <Running
+                    ref={runningRef}
+                    setProjectsCount={setProjectsCount}
+                    successfulJobs={visibleSuccessfulJobs}
+                    setSuccessfulJobs={setVisibleSuccessfulJobs}
+                />
+            )}
             {selectedTab === 'drafts' && <Drafts />}
         </div>
     );

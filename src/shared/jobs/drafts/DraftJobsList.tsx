@@ -39,7 +39,7 @@ export default function DraftJobsList({
             }
 
             await db.jobs.delete(job.id);
-            toast.success('Job deleted successfully.');
+            toast.success('Job draft deleted successfully.');
         } catch (error) {
             console.error('[JobList] Error deleting job:', error);
             toast.error('Failed to delete job.');

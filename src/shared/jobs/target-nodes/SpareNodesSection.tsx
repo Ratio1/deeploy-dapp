@@ -22,7 +22,7 @@ export default function SpareNodesSection({ isEditingJob }: { isEditingJob?: boo
             </div>
 
             {!fields.length ? (
-                <div className="text-sm text-slate-500 italic">No backup nodes added yet.</div>
+                <div className="text-sm text-slate-500 italic">No spare nodes added yet.</div>
             ) : (
                 <div className="col gap-2">
                     {fields.map((field, index) => {

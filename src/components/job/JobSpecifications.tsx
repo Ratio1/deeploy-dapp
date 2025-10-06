@@ -4,14 +4,14 @@ import CardWithItems from '@shared/jobs/projects/CardWithItems';
 import { UsdcValue } from '@shared/UsdcValue';
 import { JobType } from '@typedefs/deeploys';
 
-export default function JobResources({ resources }: { resources: RunningJobResources }) {
+export default function JobSpecifications({ resources }: { resources: RunningJobResources }) {
     const items = [
         {
             label: `${resources.jobType === JobType.Native ? 'Worker' : 'Container'} Type`,
             value: resources.containerOrWorkerType.name,
         },
         {
-            label: 'Specifications',
+            label: 'Resources',
             value: resources.containerOrWorkerType.description,
         },
         {
@@ -28,7 +28,7 @@ export default function JobResources({ resources }: { resources: RunningJobResou
         <CardWithItems
             header={
                 <div className="text-lg font-semibold">
-                    {resources.jobType === JobType.Native ? 'Worker' : 'Container'} Resources
+                    {resources.jobType === JobType.Native ? 'Worker' : 'Container'} Specifications
                 </div>
             }
             items={items}

@@ -26,6 +26,17 @@ export const updatePipeline = (request: {
         request,
     });
 
+export const deletePipeline = (request: {
+    EE_ETH_SIGN: EthAddress;
+    EE_ETH_SENDER: EthAddress;
+    app_id: string;
+    job_id: number;
+    [key: string]: string | number | boolean | null | undefined;
+}) =>
+    _doPostDeeploy('/delete_pipeline', {
+        request,
+    });
+
 export const sendJobCommand = (request: {
     EE_ETH_SIGN: EthAddress;
     EE_ETH_SENDER: EthAddress;

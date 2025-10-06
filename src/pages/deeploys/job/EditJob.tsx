@@ -15,6 +15,7 @@ import {
 import { routePath } from '@lib/routes/route-paths';
 import { deploymentSchema } from '@schemas/job-edit';
 import ActionButton from '@shared/ActionButton';
+import DeeployErrors from '@shared/jobs/DeeployErrors';
 import SupportFooter from '@shared/SupportFooter';
 import {
     GenericJobDeployment,
@@ -24,7 +25,8 @@ import {
     RunningJobWithResources,
     ServiceJobDeployment,
 } from '@typedefs/deeploys';
-import { useRef, useState } from 'react';
+import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { RiArrowLeftLine } from 'react-icons/ri';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -47,9 +49,23 @@ export default function EditJob() {
     }>(null);
 
     const [isLoading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | undefined>(undefined);
+
+    const [error, setError] = useState<
+        | {
+              text: string;
+              serverAlias: string;
+          }
+        | undefined
+    >(undefined);
 
     const job: RunningJobWithResources | undefined = (location.state as { job?: RunningJobWithResources })?.job;
+    const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
+
+    useEffect(() => {
+        if (job) {
+            setJobTypeOption(jobTypeOptions.find((option) => option.jobType === job.resources.jobType));
+        }
+    }, [job]);
 
     const onSubmit = async (data: z.infer<typeof deploymentSchema>) => {
         setError(undefined);
@@ -97,15 +113,18 @@ export default function EditJob() {
 
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
-                    navigate(`${routePath.deeploys}/${routePath.job}/${Number(job!.id)}`);
+                    navigate(`${routePath.deeploys}/${routePath.job}/${Number(job!.id)}`, {
+                        state: { serverAlias: response.server_info.alias },
+                    });
                 }, 1000);
             } else {
                 deeployFlowModalRef.current?.displayError();
                 toast.error('Failed to update job, please try again.');
 
-                const error: string | undefined = response.error;
+                const error: string | undefined = response.status === 'timeout' ? 'Request timed out' : response.error;
+
                 if (error) {
-                    setError(error);
+                    setError({ text: error, serverAlias: response.server_info.alias });
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             }
@@ -151,7 +170,7 @@ export default function EditJob() {
             <div className="col gap-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <JobBreadcrumbs job={job} />
+                    <JobBreadcrumbs job={job} jobTypeOption={jobTypeOption} />
 
                     <div className="row gap-2">
                         <ActionButton className="slate-button" color="default" onPress={() => navigate(-1)}>
@@ -165,17 +184,7 @@ export default function EditJob() {
 
                 <div className="col">
                     {/* Error */}
-                    {!!error && (
-                        <div className="mx-auto w-full max-w-[626px]">
-                            <div className="rounded-lg bg-red-100 px-6 py-3 text-sm text-red-800">
-                                <div className="col gap-2">
-                                    <div className="font-medium">Update failed with the following error:</div>
-
-                                    <div className="text-[13px]">{error}</div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    <DeeployErrors type="update" errors={error ? [error] : []} />
 
                     {/* Form */}
                     <JobEditFormWrapper job={job} onSubmit={onSubmit} isLoading={isLoading} />
