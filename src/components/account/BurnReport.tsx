@@ -5,7 +5,7 @@ import { downloadBurnReport } from '@lib/api/backend';
 import { padNumber } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { formatISO, subMonths } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiCalendarEventLine, RiFileTextLine } from 'react-icons/ri';
 
@@ -19,10 +19,6 @@ export default function BurnReport() {
     });
 
     const [isLoading, setLoading] = useState<boolean>(false);
-
-    useEffect(() => {
-        console.log(value.start, value.end);
-    }, [value]);
 
     const onDownload = async () => {
         try {

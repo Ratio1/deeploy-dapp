@@ -26,7 +26,7 @@ const STEPS = ['Project', 'Specifications', 'Payment & Duration', 'Deployment'];
 
 function JobFormWrapper({ projectName, draftJobsCount }) {
     const { projectHash } = useParams();
-    const { step, jobType, setJobType } = useDeploymentContext() as DeploymentContextType;
+    const { step, jobType, setJobType, setProjectOverviewTab } = useDeploymentContext() as DeploymentContextType;
 
     const getBaseSchemaDefaults = () => ({
         specifications: {
@@ -169,14 +169,15 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
 
             const jobId = await db.jobs.add(job as DraftJob);
 
-            console.log('[JobFormWrapper] Job added successfully', jobId);
-            toast.success('Job added successfully.');
+            console.log('[JobFormWrapper] Job draft added successfully', jobId);
+            toast.success('Job draft added successfully.');
 
             // Navigate back to the project overview
+            setProjectOverviewTab('draftJobs');
             setJobType(undefined);
         } catch (error) {
-            console.error('[JobFormWrapper] Error adding job:', error);
-            toast.error('Failed to add job');
+            console.error('[JobFormWrapper] Error adding job draft:', error);
+            toast.error('Failed to create job draft.');
         }
     };
 

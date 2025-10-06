@@ -5,12 +5,17 @@ import CardWithItems from '@shared/jobs/projects/CardWithItems';
 import { SmallTag } from '@shared/SmallTag';
 import { UsdcValue } from '@shared/UsdcValue';
 import { RunningJobWithResources } from '@typedefs/deeploys';
+import { JobTypeOption } from '@typedefs/jobType';
 
-export default function JobStats({ job }: { job: RunningJobWithResources }) {
+export default function JobStats({
+    job,
+    jobTypeOption,
+}: {
+    job: RunningJobWithResources;
+    jobTypeOption: JobTypeOption | undefined;
+}) {
     const requestDate = new Date(Number(job.requestTimestamp) * 1000);
     const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
-
-    console.log('JobStats', { job });
 
     const items = [
         {
@@ -49,5 +54,16 @@ export default function JobStats({ job }: { job: RunningJobWithResources }) {
         },
     ];
 
-    return <CardWithItems items={items} />;
+    return (
+        <CardWithItems
+            header={
+                <div className="row gap-1.5">
+                    {!!jobTypeOption && <div className={`text-xl ${jobTypeOption.textColorClass}`}>{jobTypeOption.icon}</div>}
+
+                    <div className="text-lg font-semibold">{jobTypeOption?.title}</div>
+                </div>
+            }
+            items={items}
+        />
+    );
 }

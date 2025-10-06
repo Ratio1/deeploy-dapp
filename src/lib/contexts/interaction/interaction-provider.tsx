@@ -99,7 +99,7 @@ export const InteractionProvider = ({ children }) => {
             >
                 <ModalContent>
                     <ModalHeader className="flex flex-col gap-1">Confirmation</ModalHeader>
-                    <ModalBody>{content}</ModalBody>
+                    <ModalBody className="text-[15px]">{content}</ModalBody>
                     <ModalFooter className="mb-0.5">
                         <Button className="slate-button" color="default" onPress={handleCancel} isDisabled={isLoading}>
                             Cancel

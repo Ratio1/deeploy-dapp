@@ -7,6 +7,7 @@ import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import ProjectIdentity from '@shared/jobs/projects/ProjectIdentity';
 import Payment from '@shared/projects/Payment';
+import { Apps } from '@typedefs/deeployApi';
 import { DraftJob, ProjectPage, RunningJobWithDetails } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
@@ -23,6 +24,7 @@ export default function Project() {
         setProjectPage,
         getProjectName,
         fetchRunningJobsWithDetails,
+        setProjectOverviewTab,
     } = useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
@@ -34,6 +36,9 @@ export default function Project() {
     const navigate = useNavigate();
     const { projectHash } = useParams();
 
+    // Used to display a message with the successfully deployed jobs right after deployment
+    const [successfulJobs, setSuccessfulJobs] = useState<{ text: string; serverAlias: string }[]>([]);
+
     const draftJobs: DraftJob[] | undefined | null = useLiveQuery(
         isValidProjectHash(projectHash) ? () => db.jobs.where('projectHash').equals(projectHash).toArray() : () => undefined,
         [projectHash],
@@ -44,6 +49,7 @@ export default function Project() {
     useEffect(() => {
         setProjectPage(ProjectPage.Overview);
         setJobType(undefined);
+        setProjectOverviewTab('runningJobs');
     }, []);
 
     useEffect(() => {
@@ -60,7 +66,7 @@ export default function Project() {
         }
     }, [projectHash]);
 
-    const fetchRunningJobs = async () => {
+    const fetchRunningJobs = async (appsOverride?: Apps) => {
         if (!publicClient || !escrowContractAddress) {
             toast.error('Please connect your wallet.');
             return;
@@ -69,7 +75,7 @@ export default function Project() {
         setLoading(true);
 
         try {
-            const jobs: RunningJobWithDetails[] = await fetchRunningJobsWithDetails();
+            const jobs: RunningJobWithDetails[] = await fetchRunningJobsWithDetails(appsOverride);
             const projectJobs = jobs.filter((job) => job.projectHash === projectHash);
 
             console.log('[Project] Project jobs', projectJobs);
@@ -99,7 +105,8 @@ export default function Project() {
                     projectHash={projectHash}
                     projectName={projectName}
                     jobs={draftJobs}
-                    callback={() => {
+                    callback={(items) => {
+                        setSuccessfulJobs(items);
                         setProjectPage(ProjectPage.Overview);
                     }}
                     projectIdentity={getProjectIdentity()}
@@ -110,6 +117,8 @@ export default function Project() {
                     draftJobs={draftJobs}
                     projectIdentity={getProjectIdentity()}
                     fetchRunningJobs={fetchRunningJobs}
+                    successfulJobs={successfulJobs}
+                    setSuccessfulJobs={setSuccessfulJobs}
                 />
             )}
         </>

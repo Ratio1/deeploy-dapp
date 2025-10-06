@@ -31,6 +31,9 @@ layer(base);
     --color-slate-75: #f6f8fa;
     --color-slate-150: #e9edf2;
 
+    --color-red-150: #ffcaca;
+    --color-green-150: #bafaba;
+
     --outline-width-3: 3px;
     --outline-width-6: 6px;
 

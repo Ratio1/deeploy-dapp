@@ -7,7 +7,7 @@ export default function RefreshRequiredAlert({
     customCallback,
     isCompact,
 }: {
-    customCallback?: () => void;
+    customCallback?: () => Promise<void> | void;
     isCompact?: boolean;
 }) {
     const { isFetchingApps, isFetchAppsRequired, fetchApps } = useDeploymentContext() as DeploymentContextType;
@@ -40,11 +40,11 @@ export default function RefreshRequiredAlert({
                         className="bg-warning-300 rounded-md"
                         color="warning"
                         size="sm"
-                        onPress={() => {
+                        onPress={async () => {
                             if (customCallback) {
-                                customCallback();
+                                await customCallback();
                             } else {
-                                fetchApps();
+                                await fetchApps();
                             }
                         }}
                         isLoading={isFetchingApps}

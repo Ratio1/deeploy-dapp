@@ -2,14 +2,16 @@ import GenericDraftJobsList from '@components/draft/job-lists/GenericDraftJobsLi
 import NativeDraftJobsList from '@components/draft/job-lists/NativeDraftJobsList';
 import ServiceDraftJobsList from '@components/draft/job-lists/ServiceDraftJobsList';
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
-import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { DeploymentContextType, ProjectOverviewTab, useDeploymentContext } from '@lib/contexts/deployment';
 import CustomTabs from '@shared/CustomTabs';
 import EmptyData from '@shared/EmptyData';
+import DeeploySuccessAlert from '@shared/jobs/DeeploySuccessAlert';
 import RefreshRequiredAlert from '@shared/jobs/RefreshRequiredAlert';
 import AddJobCard from '@shared/projects/AddJobCard';
 import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
 import SupportFooter from '@shared/SupportFooter';
+import { Apps } from '@typedefs/deeployApi';
 import { DraftJob, JobType, RunningJobWithDetails, RunningJobWithResources } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
@@ -24,15 +26,17 @@ export default function ProjectOverview({
     draftJobs,
     projectIdentity,
     fetchRunningJobs,
+    successfulJobs,
+    setSuccessfulJobs,
 }: {
     runningJobs: RunningJobWithDetails[] | undefined;
     draftJobs: DraftJob[] | undefined;
     projectIdentity: React.ReactNode;
-    fetchRunningJobs: () => void;
+    fetchRunningJobs: (appsOverride?: Apps) => Promise<void>;
+    successfulJobs: { text: string; serverAlias: string }[];
+    setSuccessfulJobs: (successfulJobs: { text: string; serverAlias: string }[]) => void;
 }) {
-    const { fetchApps } = useDeploymentContext() as DeploymentContextType;
-
-    const [selectedTab, setSelectedTab] = useState<'runningJobs' | 'draftJobs'>('runningJobs');
+    const { fetchApps, projectOverviewTab, setProjectOverviewTab } = useDeploymentContext() as DeploymentContextType;
     const [runningJobsWithResources, setRunningJobsWithResources] = useState<RunningJobWithResources[]>([]);
 
     useEffect(() => {
@@ -68,6 +72,17 @@ export default function ProjectOverview({
                     </div>
                 </div>
 
+                <DeeploySuccessAlert items={successfulJobs} onClose={() => setSuccessfulJobs([])} isCompact />
+
+                <RefreshRequiredAlert
+                    customCallback={async () => {
+                        setSuccessfulJobs([]);
+                        const updatedApps = await fetchApps();
+                        await fetchRunningJobs(updatedApps);
+                    }}
+                    isCompact
+                />
+
                 {/* Stats */}
                 <ProjectStats runningJobs={runningJobs} draftJobsCount={draftJobs?.length ?? 0} />
 
@@ -91,22 +106,14 @@ export default function ProjectOverview({
                                 count: draftJobs?.length ?? 0,
                             },
                         ]}
-                        selectedKey={selectedTab}
+                        selectedKey={projectOverviewTab}
                         onSelectionChange={(key) => {
-                            setSelectedTab(key as 'runningJobs' | 'draftJobs');
+                            setProjectOverviewTab(key as ProjectOverviewTab);
                         }}
                     />
                 </div>
 
-                <RefreshRequiredAlert
-                    customCallback={async () => {
-                        await fetchApps();
-                        fetchRunningJobs();
-                    }}
-                    isCompact
-                />
-
-                {selectedTab === 'runningJobs' && (
+                {projectOverviewTab === 'runningJobs' && (
                     <>
                         {!!runningJobsWithResources && runningJobsWithResources.length > 0 ? (
                             <>
@@ -147,7 +154,7 @@ export default function ProjectOverview({
                     </>
                 )}
 
-                {selectedTab === 'draftJobs' && (
+                {projectOverviewTab === 'draftJobs' && (
                     <>
                         {!!draftJobs && draftJobs.length > 0 ? (
                             <>

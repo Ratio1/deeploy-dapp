@@ -10,7 +10,7 @@ import _ from 'lodash';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
-import { DeploymentContext } from './context';
+import { DeploymentContext, ProjectOverviewTab } from './context';
 
 export const DeploymentProvider = ({ children }) => {
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
@@ -27,6 +27,7 @@ export const DeploymentProvider = ({ children }) => {
     const [jobType, setJobType] = useState<JobType | undefined>();
     const [step, setStep] = useState<number>(1);
     const [projectPage, setProjectPage] = useState<ProjectPage>(ProjectPage.Overview);
+    const [projectOverviewTab, setProjectOverviewTab] = useState<ProjectOverviewTab>('runningJobs');
 
     const [escrowContractAddress, setEscrowContractAddress] = useState<EthAddress | undefined>();
 
@@ -113,7 +114,7 @@ export const DeploymentProvider = ({ children }) => {
         }
     };
 
-    const fetchRunningJobsWithDetails = async (): Promise<RunningJobWithDetails[]> => {
+    const fetchRunningJobsWithDetails = async (appsOverride?: Apps): Promise<RunningJobWithDetails[]> => {
         if (!publicClient || !escrowContractAddress) {
             toast.error('Please connect your wallet and refresh this page.');
             return [];
@@ -127,12 +128,22 @@ export const DeploymentProvider = ({ children }) => {
 
         // console.log('[DeploymentProvider] Smart contract jobs', runningJobs);
 
-        const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(runningJobs);
+        const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(
+            runningJobs,
+            appsOverride,
+        );
         return runningJobsWithDetails;
     };
 
-    const formatRunningJobsWithDetails = (runningJobs: readonly RunningJob[]): RunningJobWithDetails[] => {
-        const formattedApps = _(Object.entries(apps))
+    const formatRunningJobsWithDetails = (
+        runningJobs: readonly RunningJob[],
+        appsOverride?: Apps,
+    ): RunningJobWithDetails[] => {
+        const sourceApps = appsOverride ?? apps;
+
+        console.log('[DeploymentProvider] formatRunningJobsWithDetails', runningJobs, sourceApps);
+
+        const formattedApps = _(Object.entries(sourceApps))
             .map(([nodeAddress, nodeApps]) => {
                 return Object.entries(nodeApps).map(([alias, app]) => {
                     return {
@@ -266,6 +277,8 @@ export const DeploymentProvider = ({ children }) => {
                 setStep,
                 projectPage,
                 setProjectPage,
+                projectOverviewTab,
+                setProjectOverviewTab,
                 // Apps
                 isFetchAppsRequired,
                 setFetchAppsRequired,

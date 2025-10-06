@@ -47,7 +47,7 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
 
             {(!autoAssign || isEditingJob) && (
                 <div className="col gap-4">
-                    <div className="text-[17px] leading-none font-medium">Backup Nodes</div>
+                    <div className="text-[17px] leading-none font-medium">Spare Target Nodes</div>
 
                     <SpareNodesSection isEditingJob={isEditingJob} />
 
@@ -64,7 +64,7 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
                         <div className="flex items-start gap-0.5">
                             <RiAsterisk className="text-primary mt-0.5 text-[10px]" />
                             <div className="text-sm text-slate-500 italic">
-                                Jobs will run on any other available nodes if your target/backup nodes are not available.
+                                Jobs will run on any other available nodes if your target nodes are not available.
                             </div>
                         </div>
                     </div>

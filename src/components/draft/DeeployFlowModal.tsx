@@ -19,6 +19,7 @@ export const DeeployFlowModal = forwardRef(
 
         const open = (jobsCount: number) => {
             setJobsCount(jobsCount);
+            setCurrentAction(actions[0]);
             setError(false);
             onOpen();
         };

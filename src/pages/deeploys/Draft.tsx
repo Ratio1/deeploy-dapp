@@ -57,8 +57,12 @@ export default function Draft() {
                     projectHash={projectHash}
                     projectName={project.name}
                     jobs={draftJobs}
-                    callback={() => {
-                        navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=running`);
+                    callback={(items) => {
+                        navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=running`, {
+                            state: {
+                                successfulJobs: items,
+                            },
+                        });
                     }}
                     projectIdentity={getProjectIdentity()}
                 />

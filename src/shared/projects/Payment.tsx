@@ -25,6 +25,7 @@ import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { ConnectWalletWrapper } from '@shared/ConnectWalletWrapper';
 import EmptyData from '@shared/EmptyData';
+import DeeployErrors from '@shared/jobs/DeeployErrors';
 import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
@@ -47,17 +48,23 @@ export default function Payment({
     projectHash: string;
     projectName?: string;
     jobs: DraftJob[] | undefined;
-    callback: () => void;
+    callback: (items: { text: string; serverAlias: string }[]) => void;
     projectIdentity: React.ReactNode;
 }) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
-    const { escrowContractAddress, setFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
+    const { escrowContractAddress, setFetchAppsRequired, setProjectOverviewTab } =
+        useDeploymentContext() as DeploymentContextType;
 
     const [allowance, setAllowance] = useState<bigint | undefined>();
     const [totalCost, setTotalCost] = useState<number>(0);
     const [isLoading, setLoading] = useState<boolean>(false);
 
-    const [errors, setErrors] = useState<string[]>([]);
+    const [errors, setErrors] = useState<
+        {
+            text: string;
+            serverAlias: string;
+        }[]
+    >([]);
 
     const { data: walletClient } = useWalletClient();
     const publicClient = usePublicClient();
@@ -223,7 +230,8 @@ export default function Payment({
 
             // Check for any failed deployments
             const failedJobs = responses.filter(
-                (response) => response.status === 'rejected' || response.value.status === 'fail',
+                (response) =>
+                    response.status === 'rejected' || response.value.status === 'fail' || response.value.status === 'timeout',
             );
             const successfulJobs = responses.filter(
                 (response) => response.status === 'fulfilled' && response.value.status === 'success',
@@ -233,10 +241,19 @@ export default function Payment({
                 console.error('Some jobs failed to deploy:', failedJobs);
                 toast.error(`${failedJobs.length} job${failedJobs.length > 1 ? 's' : ''} failed to deploy.`);
 
-                setErrors(failedJobs.filter((job) => job.status === 'fulfilled').map((job) => job.value?.error));
+                setErrors(
+                    failedJobs
+                        .filter((job) => job.status === 'fulfilled')
+                        .map((job) => ({
+                            text: job.value?.error || 'Request timed out',
+                            serverAlias: job.value?.server_info.alias,
+                        })),
+                );
             }
 
             if (successfulJobs.length > 0) {
+                setFetchAppsRequired(true);
+
                 console.log(
                     'Successfully deployed jobs:',
                     successfulJobs.map((r) => (r as PromiseFulfilledResult<any>).value),
@@ -246,11 +263,20 @@ export default function Payment({
 
             if (successfulJobs.length === jobs.length) {
                 deeployFlowModalRef.current?.progress('done');
-                setFetchAppsRequired(true);
+                setProjectOverviewTab('runningJobs');
 
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
-                    callback();
+
+                    const items = successfulJobs
+                        .map((r) => (r as PromiseFulfilledResult<any>).value)
+                        .filter((response) => !!response.app_id)
+                        .map((response) => ({
+                            text: response.app_id as string,
+                            serverAlias: response.server_info.alias as string,
+                        }));
+
+                    callback(items);
 
                     // Delete all job drafts
                     db.jobs.where('projectHash').equals(projectHash).delete();
@@ -392,28 +418,14 @@ export default function Payment({
 
                             <div className="row gap-1">
                                 <RiInformation2Line className="text-primary text-lg" />
-                                <div className="text-sm">The current ongoing epoch is inclused in the calculation.</div>
+                                <div className="text-sm">The current ongoing epoch is included in the calculation.</div>
                             </div>
                         </div>
                     </BorderedCard>
                 )}
 
                 {/* Errors */}
-                {errors.length > 0 && (
-                    <div className="rounded-lg bg-red-100 px-6 py-3 text-sm text-red-800">
-                        <div className="col gap-2">
-                            <div className="font-medium">Deployment failed with the following errors:</div>
-
-                            <div className="col gap-1">
-                                {errors.map((error) => (
-                                    <div key={error} className="text-[13px]">
-                                        {error}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <DeeployErrors type="deployment" errors={errors} />
 
                 {/* Rundowns */}
                 {!!jobs && !!jobs.length && (
