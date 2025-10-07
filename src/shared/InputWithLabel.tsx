@@ -35,6 +35,10 @@ export default function InputWithLabel({ name, label, placeholder, isOptional, d
                             }}
                             onBlur={() => {
                                 field.onBlur();
+
+                                if (props.onBlur) {
+                                    props.onBlur();
+                                }
                             }}
                             onPaste={(e) => {
                                 const pastedText = e.clipboardData?.getData('text') ?? '';
