@@ -8,10 +8,14 @@ import WorkerCommandsSection from './WorkerCommandsSection';
 const REPOS_CACHE: Record<string, 'public' | 'private'> = {};
 
 export default function WorkerSection({ isEditingJob }: { isEditingJob?: boolean }) {
-    const { watch, setValue } = useFormContext();
+    const { watch, setValue, register } = useFormContext();
 
     const repositoryUrl: string | undefined = watch('deployment.deploymentType.repositoryUrl');
     const repositoryVisibility: 'public' | 'private' = watch('deployment.deploymentType.repositoryVisibility');
+
+    useEffect(() => {
+        register('deployment.deploymentType.repositoryVisibility');
+    }, [register]);
 
     useEffect(() => {
         if (isEditingJob && repositoryUrl) {
@@ -21,8 +25,6 @@ export default function WorkerSection({ isEditingJob }: { isEditingJob?: boolean
 
     const checkRepositoryVisibility = async (value?: string) => {
         const url = value ?? repositoryUrl;
-
-        console.log('checkRepositoryVisibility', { url });
 
         if (!url) {
             console.error('No repository URL provided');
