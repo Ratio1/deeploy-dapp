@@ -107,7 +107,9 @@ export const DeploymentProvider = ({ children }) => {
     const getProjectName = (projectHash: string): string | undefined => {
         const sanitizedApps = _.flatten(Object.values(apps).map((app) => Object.values(app)));
 
-        const project = sanitizedApps.find((app) => app.deeploy_specs.project_id === projectHash);
+        const project = sanitizedApps.find(
+            (app) => app.deeploy_specs.project_id === projectHash && !!app.deeploy_specs.project_name,
+        );
 
         if (project && project.deeploy_specs.project_name) {
             return project.deeploy_specs.project_name;
@@ -128,17 +130,11 @@ export const DeploymentProvider = ({ children }) => {
 
         // console.log('[DeploymentProvider] Smart contract jobs', runningJobs);
 
-        const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(
-            runningJobs,
-            appsOverride,
-        );
+        const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(runningJobs, appsOverride);
         return runningJobsWithDetails;
     };
 
-    const formatRunningJobsWithDetails = (
-        runningJobs: readonly RunningJob[],
-        appsOverride?: Apps,
-    ): RunningJobWithDetails[] => {
+    const formatRunningJobsWithDetails = (runningJobs: readonly RunningJob[], appsOverride?: Apps): RunningJobWithDetails[] => {
         const sourceApps = appsOverride ?? apps;
 
         console.log('[DeploymentProvider] formatRunningJobsWithDetails', runningJobs, sourceApps);

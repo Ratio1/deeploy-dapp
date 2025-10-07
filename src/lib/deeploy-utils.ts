@@ -26,6 +26,8 @@ import _ from 'lodash';
 import { environment } from './config';
 import { deepSort } from './utils';
 
+export const GITHUB_REPO_REGEX = new RegExp('^https?://github\\.com/([^\\s/]+)/([^\\s/]+?)(?:\\.git)?(?:/.*)?$', 'i');
+
 export const getDiscountPercentage = (_paymentMonthsCount: number): number => {
     // Disabled for now
     return 0;
@@ -204,10 +206,9 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
         appParams.BUILD_AND_RUN_COMMANDS = job.deployment.deploymentType.workerCommands.map((entry) => entry.command);
 
         appParams.VCS_DATA = {
-            REPO_NAME: job.deployment.deploymentType.repository,
-            REPO_OWNER: job.deployment.deploymentType.owner,
+            REPO_URL: job.deployment.deploymentType.repositoryUrl,
+            USERNAME: job.deployment.deploymentType.username || null,
             TOKEN: job.deployment.deploymentType.accessToken || null,
-            USERNAME: job.deployment.deploymentType.username,
         };
     }
 
@@ -382,10 +383,9 @@ export const formatGenericJobUpdatePayload = (job: RunningJobWithResources, depl
         appParams.BUILD_AND_RUN_COMMANDS = deployment.deploymentType.workerCommands.map((entry) => entry.command);
 
         appParams.VCS_DATA = {
-            REPO_NAME: deployment.deploymentType.repository,
-            REPO_OWNER: deployment.deploymentType.owner,
+            REPO_URL: deployment.deploymentType.repositoryUrl,
+            USERNAME: deployment.deploymentType.username || null,
             TOKEN: deployment.deploymentType.accessToken || null,
-            USERNAME: deployment.deploymentType.username,
         };
     }
 

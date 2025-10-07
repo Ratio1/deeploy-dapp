@@ -157,9 +157,17 @@ const imageSchema = z.object({
 const workerSchema = z.object({
     type: z.literal('worker'),
     image: getStringSchema(3, 256),
-    repository: getStringSchema(3, 256),
-    owner: getStringSchema(3, 256),
-    username: getStringSchema(3, 256),
+    repositoryUrl: z
+        .string({ required_error: 'Value is required' })
+        .min(3, 'Value must be at least 3 characters')
+        .max(512, 'Value cannot exceed 512 characters')
+        .regex(/^https?:\/\/github\.com\/[^/\s]+\/[^/\s]+(?:\.git)?(?:\/.*)?$/i, 'Must be a valid GitHub repository URL'),
+    repositoryVisibility: z.enum(['public', 'private'], { required_error: 'Value is required' }),
+    username: z
+        .string()
+        .max(256, 'Value cannot exceed 256 characters')
+        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
+        .optional(),
     accessToken: z
         .string()
         .max(512, 'Value cannot exceed 512 characters')
@@ -167,7 +175,7 @@ const workerSchema = z.object({
         .optional(),
     workerCommands: z.array(workerCommandSchema).refine(
         (workerCommand) => {
-            const commands = workerCommand.map((node) => node.command?.trim()).filter((command) => command && command !== ''); // Only non-empty commands
+            const commands = workerCommand.map((item) => item.command?.trim()).filter((command) => command && command !== ''); // Only non-empty commands
 
             const uniqueCommands = new Set(commands);
             return uniqueCommands.size === commands.length;
@@ -207,6 +215,24 @@ export const genericAppDeploymentSchema = applyTunnelingRefinements(genericAppDe
                     code: z.ZodIssueCode.custom,
                     message: 'Password/Authentication Token is required',
                     path: ['container', 'crPassword'],
+                });
+            }
+        }
+
+        // Validate that username and accessToken are provided when worker repositoryVisibility is 'private'
+        if (data.deploymentType.type === 'worker' && data.deploymentType.repositoryVisibility === 'private') {
+            if (!data.deploymentType.username) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Username is required for private repositories',
+                    path: ['deploymentType', 'username'],
+                });
+            }
+            if (!data.deploymentType.accessToken) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Access token is required for private repositories',
+                    path: ['deploymentType', 'accessToken'],
                 });
             }
         }

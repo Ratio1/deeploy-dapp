@@ -59,10 +59,9 @@ type JobConfig = {
     TUNNEL_ENGINE_ENABLED: boolean;
     VOLUMES: Record<string, any>;
     VCS_DATA?: {
-        REPO_NAME: string;
-        REPO_OWNER: string;
+        REPO_URL: string;
         TOKEN: string | null;
-        USERNAME: string;
+        USERNAME: string | null;
     };
 };
 

@@ -119,6 +119,8 @@ export default function Payment({
                     break;
             }
 
+            console.log('[Payment] getJobPayloads', payload);
+
             return payload;
         });
     };

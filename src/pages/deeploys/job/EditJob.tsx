@@ -145,6 +145,10 @@ export default function EditJob() {
             project_id: job.projectHash,
         };
 
+        if (job.projectName) {
+            payloadWithIdentifiers.project_name = job.projectName;
+        }
+
         const message = buildDeeployMessage(payloadWithIdentifiers, 'Please sign this message for Deeploy: ');
 
         const signature = await signMessageAsync({

@@ -91,3 +91,12 @@ export function padNumber(value: number, size: number): string {
     const strValue = value.toString();
     return strValue.length < size ? strValue.padStart(size, '0') : strValue;
 }
+
+export const extractRepositoryPath = (url: string): string => {
+    try {
+        const urlObj = new URL(url);
+        return urlObj.pathname.replace(/^\//, '');
+    } catch {
+        return url;
+    }
+};

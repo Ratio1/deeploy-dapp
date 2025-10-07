@@ -43,7 +43,7 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericDraftJob
                         value:
                             genericJob.deployment.deploymentType.type === 'image'
                                 ? genericJob.deployment.deploymentType.containerImage
-                                : genericJob.deployment.deploymentType.repository,
+                                : genericJob.deployment.deploymentType.repositoryUrl,
                     },
                     ...(genericJob.deployment.deploymentType.type === 'image'
                         ? [{ label: 'Registry Visibility', value: genericJob.deployment.deploymentType.crVisibility }]

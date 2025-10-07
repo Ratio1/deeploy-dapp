@@ -6,7 +6,7 @@ import { useFormContext } from 'react-hook-form';
 import ContainerImageSection from './ContainerImageSection';
 import WorkerSection from './WorkerSection';
 
-function DeploymentTypeSectionCard() {
+function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean }) {
     const { setValue, watch } = useFormContext();
     const deploymentType = watch('deployment.deploymentType');
 
@@ -28,8 +28,8 @@ function DeploymentTypeSectionCard() {
             setValue('deployment.deploymentType', {
                 type: 'worker',
                 image: 'node:22',
-                repository: '',
-                owner: '',
+                repositoryUrl: '',
+                repositoryVisibility: 'private',
                 username: '',
                 accessToken: '',
                 workerCommands: [{ command: '' }],
@@ -57,7 +57,7 @@ function DeploymentTypeSectionCard() {
                 </div>
             }
         >
-            {type === 'image' ? <ContainerImageSection /> : <WorkerSection />}
+            {type === 'image' ? <ContainerImageSection /> : <WorkerSection isEditingJob={isEditingJob} />}
         </SlateCard>
     );
 }
