@@ -24,7 +24,7 @@ function GenericDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
 
             <TargetNodesCard isEditingJob={isEditingJob} />
 
-            <DeploymentTypeSectionCard />
+            <DeploymentTypeSectionCard isEditingJob={isEditingJob} />
 
             <SlateCard title="App Parameters">
                 <div className="col gap-4">

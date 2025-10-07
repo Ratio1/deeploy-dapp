@@ -27,7 +27,7 @@ export default function JobEditFormWrapper({
 }) {
     const config: JobConfig = job.config;
 
-    console.log('JobEditFormWrapper', { config });
+    // console.log('JobEditFormWrapper', { job });
 
     const getBaseSchemaDefaults = () => ({
         specifications: {
@@ -59,9 +59,9 @@ export default function JobEditFormWrapper({
                 : {
                       type: 'worker',
                       image: config.IMAGE,
-                      repository: config.VCS_DATA.REPO_NAME,
-                      owner: config.VCS_DATA.REPO_OWNER,
-                      username: config.VCS_DATA.USERNAME,
+                      repositoryUrl: config.VCS_DATA.REPO_URL,
+                      repositoryVisibility: 'public',
+                      username: config.VCS_DATA.USERNAME || '',
                       accessToken: config.VCS_DATA.TOKEN || '',
                       workerCommands: config.BUILD_AND_RUN_COMMANDS!.map((command) => ({ command })),
                   },

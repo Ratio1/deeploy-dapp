@@ -84,9 +84,9 @@ type GenericJobDeployment = BaseJobDeployment & {
         | {
               type: 'worker';
               image: string;
-              repository: string;
-              owner: string;
-              username: string;
+              repositoryUrl: string;
+              repositoryVisibility: 'public' | 'private';
+              username?: string;
               accessToken?: string;
               workerCommands: { command: string }[];
           };

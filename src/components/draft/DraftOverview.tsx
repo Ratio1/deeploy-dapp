@@ -7,7 +7,6 @@ import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
 import SupportFooter from '@shared/SupportFooter';
 import { DraftJob, JobType, type DraftProject } from '@typedefs/deeploys';
-import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { RiDeleteBin2Line } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
@@ -27,10 +26,6 @@ export default function DraftOverview({
 }) {
     const { confirm } = useInteractionContext() as InteractionContextType;
     const navigate = useNavigate();
-
-    useEffect(() => {
-        console.log('[DraftOverview]', project);
-    }, [project]);
 
     const onDeleteProject = async () => {
         try {

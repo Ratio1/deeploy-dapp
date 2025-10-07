@@ -1,6 +1,7 @@
 import { InputProps } from '@heroui/input';
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFormContext } from 'react-hook-form';
+import { RiClipboardLine } from 'react-icons/ri';
 import Label from './Label';
 
 interface Props extends InputProps {
@@ -8,9 +9,12 @@ interface Props extends InputProps {
     label: string;
     placeholder: string;
     isOptional?: boolean;
+    displayPasteIcon?: boolean;
+    onBlur?: () => void;
+    onPasteValue?: (value: string) => void;
 }
 
-export default function InputWithLabel({ name, label, placeholder, isOptional, ...props }: Props) {
+export default function InputWithLabel({ name, label, placeholder, isOptional, displayPasteIcon, ...props }: Props) {
     const { control } = useFormContext();
 
     return (
@@ -29,9 +33,39 @@ export default function InputWithLabel({ name, label, placeholder, isOptional, .
                                 const value = e.target.value;
                                 field.onChange(value);
                             }}
-                            onBlur={field.onBlur}
+                            onBlur={() => {
+                                field.onBlur();
+                            }}
+                            onPaste={(e) => {
+                                const pastedText = e.clipboardData?.getData('text') ?? '';
+
+                                if (props.onPasteValue) {
+                                    props.onPasteValue(pastedText);
+                                }
+                            }}
                             isInvalid={!!fieldState.error}
                             errorMessage={fieldState.error?.message}
+                            endContent={
+                                displayPasteIcon ? (
+                                    <div
+                                        className="cursor-pointer hover:opacity-60"
+                                        onClick={async () => {
+                                            try {
+                                                const clipboardText = await navigator.clipboard.readText();
+                                                field.onChange(clipboardText);
+
+                                                if (props.onPasteValue) {
+                                                    props.onPasteValue(clipboardText);
+                                                }
+                                            } catch (error) {
+                                                console.error('Failed to read clipboard:', error);
+                                            }
+                                        }}
+                                    >
+                                        <RiClipboardLine className="text-lg text-slate-600" />
+                                    </div>
+                                ) : undefined
+                            }
                             {...props}
                         />
                     );
