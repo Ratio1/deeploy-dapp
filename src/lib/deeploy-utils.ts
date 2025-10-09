@@ -28,6 +28,9 @@ import { deepSort } from './utils';
 
 export const GITHUB_REPO_REGEX = new RegExp('^https?://github\\.com/([^\\s/]+)/([^\\s/]+?)(?:\\.git)?(?:/.*)?$', 'i');
 
+export const KYB_TAG = 'IS_KYB';
+export const DC_TAG = 'DC:*';
+
 export const getDiscountPercentage = (_paymentMonthsCount: number): number => {
     // Disabled for now
     return 0;
@@ -543,6 +546,7 @@ export function buildDeeployMessage(data: Record<string, any>, prefix: string = 
     return `${prefix}${json}`;
 }
 
+// These functions are used for epoch calculations while taking into account the different epoch durations of the environments
 export const addTimeFn = environment === 'mainnet' ? addDays : addHours;
 export const diffTimeFn = environment === 'mainnet' ? differenceInDays : differenceInHours;
 

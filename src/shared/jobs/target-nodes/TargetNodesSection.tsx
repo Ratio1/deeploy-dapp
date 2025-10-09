@@ -27,7 +27,7 @@ export default function TargetNodesSection({ autoAssign, isEditingJob }: { autoA
                                 <span className="text-primary font-medium">
                                     {targetNodesCount > 1 ? targetNodesCount : 'one'}
                                 </span>{' '}
-                                random available node{targetNodesCount > 1 ? 's' : ''}.
+                                arbitrary available node{targetNodesCount > 1 ? 's' : ''}.
                             </>
                         ) : (
                             <>Your app will be deployed to the nodes you specify below.</>

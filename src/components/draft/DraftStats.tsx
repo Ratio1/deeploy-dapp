@@ -22,7 +22,7 @@ export default function DraftStats({ jobs }: { jobs: DraftJob[] | undefined }) {
 
     const items = [
         {
-            label: 'Total Jobs',
+            label: 'Total Job Drafts',
             value: jobs.length,
         },
         {

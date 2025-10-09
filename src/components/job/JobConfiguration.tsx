@@ -148,8 +148,6 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                         </>
                     )}
 
-                    {tags.length > 0 && <ItemWithBoldValue label="Tags" value={<JobSimpleTagsSection array={tags} />} />}
-
                     {/* Variables */}
                     <Section title="Variables" />
 
@@ -168,6 +166,10 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                             label="Volumes"
                             value={isEmpty(config.VOLUMES) ? '—' : <JobKeyValueSection obj={config.VOLUMES} />}
                         />
+
+                        {tags.length > 0 && (
+                            <ItemWithBoldValue label="Node Tags" value={<JobSimpleTagsSection array={tags} />} />
+                        )}
                     </div>
                 </div>
             </div>

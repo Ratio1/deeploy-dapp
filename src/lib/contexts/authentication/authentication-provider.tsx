@@ -30,7 +30,6 @@ export const AuthenticationProvider = ({ children }) => {
 
     useEffect(() => {
         if (isSignedIn) {
-            console.log('User is signed in');
             fetchAccount();
         }
     }, [isSignedIn]);

@@ -184,7 +184,7 @@ export default function RunningCard({
 
                                     <div className="w-[200px]">
                                         <Usage
-                                            used={diffTimeFn(new Date(), requestDate)}
+                                            used={Math.max(diffTimeFn(new Date(), requestDate), 1)}
                                             total={diffTimeFn(expirationDate, requestDate) + 1}
                                             isColored
                                         />

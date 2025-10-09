@@ -12,14 +12,23 @@ interface Props extends InputProps {
     displayPasteIcon?: boolean;
     onBlur?: () => void;
     onPasteValue?: (value: string) => void;
+    customLabel?: React.ReactNode;
 }
 
-export default function InputWithLabel({ name, label, placeholder, isOptional, displayPasteIcon, ...props }: Props) {
+export default function InputWithLabel({
+    name,
+    label,
+    placeholder,
+    isOptional,
+    displayPasteIcon,
+    customLabel,
+    ...props
+}: Props) {
     const { control } = useFormContext();
 
     return (
         <div className="col w-full gap-2">
-            <Label value={label} isOptional={isOptional} />
+            {customLabel ? customLabel : <Label value={label} isOptional={isOptional} />}
 
             <Controller
                 name={name}

@@ -46,8 +46,7 @@ const validations = {
                 .min(1, 'Value must be at least 1')
                 .max(65535, 'Value cannot exceed 65535'),
         ])
-        .refine((val) => val !== '', { message: 'Value is required' })
-        .transform((val) => (!val ? undefined : (val as number))) as z.ZodType<number>,
+        .transform((val) => (!val ? undefined : (val as number))) as z.ZodType<number | undefined>,
 
     envVars: getKeyValueEntriesArraySchema(),
     dynamicEnvVars: z

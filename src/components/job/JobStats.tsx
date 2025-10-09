@@ -1,5 +1,5 @@
 import { config } from '@lib/config';
-import { addTimeFn } from '@lib/deeploy-utils';
+import { addTimeFn, diffTimeFn } from '@lib/deeploy-utils';
 import { fBI } from '@lib/utils';
 import CardWithItems from '@shared/jobs/projects/CardWithItems';
 import { SmallTag } from '@shared/SmallTag';
@@ -15,24 +15,16 @@ export default function JobStats({
     jobTypeOption: JobTypeOption | undefined;
 }) {
     const requestDate = new Date(Number(job.requestTimestamp) * 1000);
+    const requestEpoch = diffTimeFn(requestDate, config.genesisDate);
+
     const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
 
     const items = [
         {
             label: 'Start Date',
-            value: requestDate.toLocaleDateString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-            }),
-        },
-        {
-            label: 'End Date',
             value: (
                 <div className="row gap-2">
-                    {expirationDate.toLocaleDateString(undefined, {
+                    {requestDate.toLocaleDateString(undefined, {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',
@@ -40,9 +32,19 @@ export default function JobStats({
                         minute: '2-digit',
                     })}
 
-                    <SmallTag isLarge>Epoch {Number(job.lastExecutionEpoch)}</SmallTag>
+                    <SmallTag isLarge>Epoch {requestEpoch}</SmallTag>
                 </div>
             ),
+        },
+        {
+            label: 'End Date',
+            value: expirationDate.toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+            }),
         },
         {
             label: 'Budget',

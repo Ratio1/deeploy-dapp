@@ -32,7 +32,7 @@ export default function DraftJobsList({
 
     const onDeleteJob = async (job: Job) => {
         try {
-            const confirmed = await confirm(<div>Are you sure you want to delete this job?</div>);
+            const confirmed = await confirm(<div>Are you sure you want to delete this job draft?</div>);
 
             if (!confirmed) {
                 return;
@@ -84,14 +84,14 @@ export default function DraftJobsList({
                             {
                                 key: 'downloadJson',
                                 label: 'Download JSON',
-                                description: 'Exports the job as a JSON file',
+                                description: 'Exports the job draft as a JSON file',
                                 icon: <RiFileCodeLine />,
                                 onPress: () => onDownloadJson(job),
                             },
                             {
                                 key: 'delete',
                                 label: 'Delete',
-                                description: 'Removes the job from the project',
+                                description: 'Removes the job draft from the project',
                                 icon: <RiDeleteBinLine />,
                                 onPress: () => onDeleteJob(job),
                             },

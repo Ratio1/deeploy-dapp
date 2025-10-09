@@ -1,6 +1,8 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { Slider } from '@heroui/slider';
+import { environment } from '@lib/config';
 import {
+    addTimeFn,
     getContainerOrWorkerType,
     getContainerOrWorkerTypeDescription,
     getDiscountPercentage,
@@ -12,7 +14,6 @@ import { SlateCard } from '@shared/cards/SlateCard';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import { JobPaymentAndDuration, JobSpecifications, JobType } from '@typedefs/deeploys';
-import { addMonths } from 'date-fns';
 import { round } from 'lodash';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -81,7 +82,7 @@ function PaymentAndDuration() {
         },
         {
             label: 'End Date',
-            value: addMonths(new Date(), duration).toLocaleDateString('en-US', {
+            value: addTimeFn(new Date(), duration * 30 * (environment === 'mainnet' ? 1 : 24)).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric',
@@ -180,19 +181,29 @@ function PaymentAndDuration() {
 
             <SlateCard>
                 <div className="col gap-2 px-2">
-                    <div className="row justify-between gap-8">
-                        <div className="text-[15px] font-medium text-slate-500">Amount due</div>
+                    <div className="col">
+                        <div className="row justify-between gap-8">
+                            <div className="text-[15px] font-medium text-slate-500">Amount due</div>
 
-                        <div className="row gap-1.5 text-[19px] font-semibold">
-                            <div className="text-slate-500">$USDC</div>
+                            <div className="row gap-1.5 text-lg font-semibold">
+                                <div className="text-slate-500">$USDC</div>
 
-                            {paymentMonthsCount > 1 && getDiscountPercentage(paymentMonthsCount) > 0 && (
-                                <div className="text-slate-400 line-through">
-                                    {parseFloat(getPaymentAmount(false).toFixed(2))}
-                                </div>
-                            )}
+                                {paymentMonthsCount > 1 && getDiscountPercentage(paymentMonthsCount) > 0 && (
+                                    <div className="text-slate-400 line-through">
+                                        {parseFloat(getPaymentAmount(false).toFixed(2))}
+                                    </div>
+                                )}
 
-                            <div className="text-primary">{parseFloat(getPaymentAmount().toFixed(2))}</div>
+                                <div className="text-primary">{parseFloat(getPaymentAmount().toFixed(2))}</div>
+                            </div>
+                        </div>
+
+                        <div className="row justify-between gap-8">
+                            <div className="text-[15px] font-medium text-slate-500">Total epochs</div>
+
+                            <div className="row gap-1.5 text-lg font-semibold text-slate-500">
+                                {1 + duration * 30 * (environment === 'mainnet' ? 1 : 24)}
+                            </div>
                         </div>
                     </div>
 
