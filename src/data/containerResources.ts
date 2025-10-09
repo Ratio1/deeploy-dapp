@@ -8,7 +8,7 @@ export type ContainerOrWorkerType = {
     notes: string;
     notesColor: 'red' | 'orange' | 'green' | 'blue';
     monthlyBudgetPerWorker: number;
-    pricePerEpoch: number;
+    pricePerEpoch: bigint;
     minimalBalancing: number;
     cores: number;
     ram: number;
@@ -29,7 +29,7 @@ export type GpuType = {
      */
     support: Record<JobType.Generic | JobType.Native, [number, number]>;
     monthlyBudgetPerWorker: number;
-    pricePerEpoch: number;
+    pricePerEpoch: bigint;
     minimalBalancing: number;
 };
 
@@ -48,7 +48,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notes: 'No GPU',
         notesColor: 'red',
         monthlyBudgetPerWorker: 11.25,
-        pricePerEpoch: 375_000,
+        pricePerEpoch: 375_000n,
         minimalBalancing: 2,
         cores: 1,
         ram: 2,
@@ -61,7 +61,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notes: 'No GPU',
         notesColor: 'red',
         monthlyBudgetPerWorker: 22.5,
-        pricePerEpoch: 750_000,
+        pricePerEpoch: 750_000n,
         minimalBalancing: 2,
         cores: 2,
         ram: 4,
@@ -74,7 +74,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notes: 'No GPU',
         notesColor: 'red',
         monthlyBudgetPerWorker: 30,
-        pricePerEpoch: 1_000_000,
+        pricePerEpoch: 1_000_000n,
         minimalBalancing: 2,
         cores: 2,
         ram: 8,
@@ -87,7 +87,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 57.5,
-        pricePerEpoch: 1_916_666,
+        pricePerEpoch: 1_916_666n,
         minimalBalancing: 2,
         cores: 4,
         ram: 12,
@@ -100,7 +100,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 87.5,
-        pricePerEpoch: 2_916_666,
+        pricePerEpoch: 2_916_666n,
         minimalBalancing: 2,
         cores: 6,
         ram: 14,
@@ -113,7 +113,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 112.5,
-        pricePerEpoch: 3_750_000,
+        pricePerEpoch: 3_750_000n,
         minimalBalancing: 2,
         cores: 8,
         ram: 22,
@@ -126,7 +126,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 160,
-        pricePerEpoch: 5_333_333,
+        pricePerEpoch: 5_333_333n,
         minimalBalancing: 2,
         cores: 12,
         ram: 30,
@@ -139,7 +139,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 250,
-        pricePerEpoch: 8_333_333,
+        pricePerEpoch: 8_333_333n,
         minimalBalancing: 2,
         cores: 16,
         ram: 62,
@@ -152,7 +152,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 375,
-        pricePerEpoch: 12_500_000,
+        pricePerEpoch: 12_500_000n,
         minimalBalancing: 2,
         cores: 22,
         ram: 124,
@@ -168,7 +168,7 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 75,
-        pricePerEpoch: 2_500_000,
+        pricePerEpoch: 2_500_000n,
         minimalBalancing: 2,
         cores: 4,
         ram: 14,
@@ -181,7 +181,7 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 112.5,
-        pricePerEpoch: 3_750_000,
+        pricePerEpoch: 3_750_000n,
         minimalBalancing: 2,
         cores: 8,
         ram: 22,
@@ -194,7 +194,7 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 180,
-        pricePerEpoch: 6_000_000,
+        pricePerEpoch: 6_000_000n,
         minimalBalancing: 1,
         cores: 12,
         ram: 30,
@@ -207,7 +207,7 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 270,
-        pricePerEpoch: 9_000_000,
+        pricePerEpoch: 9_000_000n,
         minimalBalancing: 1,
         cores: 16,
         ram: 60,
@@ -220,7 +220,7 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 400,
-        pricePerEpoch: 13_333_333,
+        pricePerEpoch: 13_333_333n,
         minimalBalancing: 1,
         cores: 22,
         ram: 124,
@@ -236,7 +236,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         notes: 'PostgreSQL single instance',
         notesColor: 'blue',
         monthlyBudgetPerWorker: 30,
-        pricePerEpoch: 1_000_000,
+        pricePerEpoch: 1_000_000n,
         minimalBalancing: 1,
         cores: 1,
         ram: 2,
@@ -253,7 +253,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         notes: 'PostgreSQL single instance',
         notesColor: 'blue',
         monthlyBudgetPerWorker: 65,
-        pricePerEpoch: 2_166_666,
+        pricePerEpoch: 2_166_666n,
         minimalBalancing: 1,
         cores: 2,
         ram: 4,
@@ -270,7 +270,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         notes: 'MySQL single instance',
         notesColor: 'orange',
         monthlyBudgetPerWorker: 30,
-        pricePerEpoch: 1_000_000,
+        pricePerEpoch: 1_000_000n,
         minimalBalancing: 1,
         cores: 1,
         ram: 2,
@@ -287,7 +287,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         notes: 'MySQL single instance',
         notesColor: 'orange',
         monthlyBudgetPerWorker: 65,
-        pricePerEpoch: 2_166_666,
+        pricePerEpoch: 2_166_666n,
         minimalBalancing: 1,
         cores: 2,
         ram: 4,
@@ -304,7 +304,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         notes: 'MongoDB single instance',
         notesColor: 'green',
         monthlyBudgetPerWorker: 30,
-        pricePerEpoch: 1_000_000,
+        pricePerEpoch: 1_000_000n,
         minimalBalancing: 1,
         cores: 1,
         ram: 2,
@@ -321,7 +321,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         notes: 'MongoDB single instance',
         notesColor: 'green',
         monthlyBudgetPerWorker: 65,
-        pricePerEpoch: 2_166_666,
+        pricePerEpoch: 2_166_666n,
         minimalBalancing: 1,
         cores: 2,
         ram: 4,
@@ -343,7 +343,7 @@ export const gpuTypes: GpuType[] = [
             [JobType.Native]: [1, 2],
         },
         monthlyBudgetPerWorker: 36,
-        pricePerEpoch: 1_200_000,
+        pricePerEpoch: 1_200_000n,
         minimalBalancing: 1,
     },
     {
@@ -356,7 +356,7 @@ export const gpuTypes: GpuType[] = [
             [JobType.Native]: [2, 4],
         },
         monthlyBudgetPerWorker: 72,
-        pricePerEpoch: 2_400_000,
+        pricePerEpoch: 2_400_000n,
         minimalBalancing: 1,
     },
     {
@@ -369,7 +369,7 @@ export const gpuTypes: GpuType[] = [
             [JobType.Native]: [3, 5],
         },
         monthlyBudgetPerWorker: 144,
-        pricePerEpoch: 4_800_000,
+        pricePerEpoch: 4_800_000n,
         minimalBalancing: 1,
     },
     {
@@ -382,7 +382,7 @@ export const gpuTypes: GpuType[] = [
             [JobType.Native]: [5, 5],
         },
         monthlyBudgetPerWorker: 900,
-        pricePerEpoch: 30_000_000,
+        pricePerEpoch: 30_000_000n,
         minimalBalancing: 1,
     },
 ];
