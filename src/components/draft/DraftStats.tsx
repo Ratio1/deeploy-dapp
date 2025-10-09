@@ -1,9 +1,8 @@
 import { ContainerOrWorkerType, GpuType } from '@data/containerResources';
-import { getContainerOrWorkerType, getGpuType, getJobCostPerEpoch } from '@lib/deeploy-utils';
+import { formatUsdc, getContainerOrWorkerType, getGpuType, getJobCostPer24h } from '@lib/deeploy-utils';
 import CardWithItems from '@shared/jobs/projects/CardWithItems';
 import { UsdcValue } from '@shared/UsdcValue';
 import { DraftJob, JobType } from '@typedefs/deeploys';
-import { round } from 'lodash';
 
 export default function DraftStats({ jobs }: { jobs: DraftJob[] | undefined }) {
     if (!jobs || jobs.length === 0) {
@@ -15,10 +14,12 @@ export default function DraftStats({ jobs }: { jobs: DraftJob[] | undefined }) {
         const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
         const targetNodesCount = job.specifications.targetNodesCount;
 
-        const jobCostPerEpoch = getJobCostPerEpoch(containerOrWorkerType, gpuType, targetNodesCount);
+        const jobCostPer24h = getJobCostPer24h(containerOrWorkerType, gpuType, targetNodesCount);
 
-        return 30 * jobCostPerEpoch;
+        return jobCostPer24h * 30n;
     };
+
+    const monthlyCostEstimate = jobs.reduce((acc, job) => acc + getJobMonthlyCost(job), 0n);
 
     const items = [
         {
@@ -31,14 +32,7 @@ export default function DraftStats({ jobs }: { jobs: DraftJob[] | undefined }) {
         },
         {
             label: 'Monthly Cost Estimate',
-            value: (
-                <UsdcValue
-                    value={round(
-                        jobs.reduce((acc, job) => acc + getJobMonthlyCost(job), 0),
-                        1,
-                    )}
-                />
-            ),
+            value: <UsdcValue value={formatUsdc(monthlyCostEstimate, 1)} isAproximate />,
         },
     ];
 
