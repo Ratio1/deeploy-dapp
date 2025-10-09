@@ -3,18 +3,18 @@ import { Slider } from '@heroui/slider';
 import { environment } from '@lib/config';
 import {
     addTimeFn,
+    formatUsdc,
     getContainerOrWorkerType,
     getContainerOrWorkerTypeDescription,
     getDiscountPercentage,
     getGpuType,
-    getJobCostPerEpoch,
+    getJobCostPer24h,
 } from '@lib/deeploy-utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { SlateCard } from '@shared/cards/SlateCard';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import { JobPaymentAndDuration, JobSpecifications, JobType } from '@typedefs/deeploys';
-import { round } from 'lodash';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { RiInformation2Line } from 'react-icons/ri';
@@ -52,12 +52,13 @@ function PaymentAndDuration() {
         setValue('paymentAndDuration.paymentMonthsCount', duration);
     }, [duration, setValue]);
 
-    const jobCostPerEpoch = getJobCostPerEpoch(
+    const jobCostPer24h = getJobCostPer24h(
         containerOrWorkerType,
         'gpuType' in specifications && specifications.gpuType ? getGpuType(specifications) : undefined,
         targetNodesCount,
     );
-    const costPer30Days = 30 * jobCostPerEpoch;
+
+    const costPer30Days = jobCostPer24h * 30n;
 
     const summaryItems = [
         {
@@ -78,7 +79,7 @@ function PaymentAndDuration() {
         },
         {
             label: 'Monthly Cost',
-            value: `~$${round(costPer30Days, 1)}`,
+            value: `~$${formatUsdc(costPer30Days, 1)}`,
         },
         {
             label: 'End Date',
@@ -90,12 +91,22 @@ function PaymentAndDuration() {
         },
     ];
 
-    const getPaymentAmount = (applyDiscount: boolean = true) => {
-        const epochs = 1 + paymentMonthsCount * 30;
-
+    const getPaymentAmount = (applyDiscount: boolean = true): bigint => {
         // +1 to account for the current ongoing epoch
-        const jobCost = epochs * jobCostPerEpoch * (applyDiscount ? 1 - getDiscountPercentage(paymentMonthsCount) / 100 : 1);
-        return jobCost;
+        const epochs = BigInt(1 + paymentMonthsCount * 30);
+        let totalCost = jobCostPer24h * epochs;
+
+        if (applyDiscount) {
+            const discountPercentage = getDiscountPercentage(paymentMonthsCount);
+
+            if (discountPercentage > 0) {
+                const discountBasisPoints = Math.round(discountPercentage * 100);
+                const clampedDiscount = Math.min(Math.max(discountBasisPoints, 0), 10_000);
+                totalCost = (totalCost * BigInt(10_000 - clampedDiscount)) / 10_000n;
+            }
+        }
+
+        return totalCost;
     };
 
     return (
@@ -185,24 +196,24 @@ function PaymentAndDuration() {
                         <div className="row justify-between gap-8">
                             <div className="text-[15px] font-medium text-slate-500">Amount due</div>
 
-                            <div className="row gap-1.5 text-lg font-semibold">
-                                <div className="text-slate-500">$USDC</div>
+                            <div className="row gap-1 text-lg font-semibold">
+                                <div className="text-slate-500">~$USDC</div>
 
                                 {paymentMonthsCount > 1 && getDiscountPercentage(paymentMonthsCount) > 0 && (
-                                    <div className="text-slate-400 line-through">
-                                        {parseFloat(getPaymentAmount(false).toFixed(2))}
-                                    </div>
+                                    <div className="text-slate-400 line-through">{formatUsdc(getPaymentAmount(false))}</div>
                                 )}
 
-                                <div className="text-primary">{parseFloat(getPaymentAmount().toFixed(2))}</div>
+                                <div className="text-primary">{formatUsdc(getPaymentAmount())}</div>
                             </div>
                         </div>
 
                         <div className="row justify-between gap-8">
-                            <div className="text-[15px] font-medium text-slate-500">Total epochs</div>
+                            <div className="text-[15px] font-medium text-slate-500">Duration</div>
 
-                            <div className="row gap-1.5 text-lg font-semibold text-slate-500">
-                                {1 + duration * 30 * (environment === 'mainnet' ? 1 : 24)}
+                            <div className="row gap-1 text-lg font-semibold">
+                                <div className="text-primary"> {1 + duration * 30 * (environment === 'mainnet' ? 1 : 24)}</div>
+
+                                <div className="text-slate-500">epochs</div>
                             </div>
                         </div>
                     </div>

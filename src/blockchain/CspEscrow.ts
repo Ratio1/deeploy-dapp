@@ -128,6 +128,31 @@ export const CspEscrowAbi = [
             {
                 indexed: false,
                 internalType: 'uint256',
+                name: 'newNumberOfNodesRequested',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'additionalAmount',
+                type: 'uint256',
+            },
+        ],
+        name: 'JobNodesExtended',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
                 name: 'startTimestamp',
                 type: 'uint256',
             },
@@ -390,6 +415,24 @@ export const CspEscrowAbi = [
         type: 'function',
     },
     {
+        inputs: [
+            {
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+            {
+                internalType: 'uint256',
+                name: 'newNumberOfNodesRequested',
+                type: 'uint256',
+            },
+        ],
+        name: 'extendJobNodes',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
         inputs: [],
         name: 'getActiveJobs',
         outputs: [
@@ -459,6 +502,19 @@ export const CspEscrowAbi = [
                 internalType: 'struct JobDetails[]',
                 name: '',
                 type: 'tuple[]',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'getActiveJobsCount',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
             },
         ],
         stateMutability: 'view',

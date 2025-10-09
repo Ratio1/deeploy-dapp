@@ -8,7 +8,7 @@ export default function BillingMonthSelect({
     uniqueMonths,
     onMonthChange,
 }: {
-    uniqueMonths: string[];
+    uniqueMonths: string[]; // YYYY-MM
     onMonthChange: (month: string) => void;
 }) {
     const [selectedMonths, setSelectedMonths] = useState<Set<string> | undefined>(undefined);

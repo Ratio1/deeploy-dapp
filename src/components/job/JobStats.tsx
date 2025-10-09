@@ -47,7 +47,7 @@ export default function JobStats({
             }),
         },
         {
-            label: 'Budget',
+            label: 'Job Balance',
             value: <UsdcValue value={fBI(job.balance, 6, 2)} />,
         },
         {

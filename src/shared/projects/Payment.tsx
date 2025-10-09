@@ -16,6 +16,7 @@ import {
     formatGenericJobPayload,
     formatNativeJobPayload,
     formatServiceJobPayload,
+    formatUsdc,
     getContainerOrWorkerType,
     getJobsTotalCost,
 } from '@lib/deeploy-utils';
@@ -56,7 +57,7 @@ export default function Payment({
         useDeploymentContext() as DeploymentContextType;
 
     const [allowance, setAllowance] = useState<bigint | undefined>();
-    const [totalCost, setTotalCost] = useState<number>(0);
+    const [totalCost, setTotalCost] = useState<bigint>(0n);
     const [isLoading, setLoading] = useState<boolean>(false);
 
     const [errors, setErrors] = useState<
@@ -81,12 +82,6 @@ export default function Payment({
     useEffect(() => {
         if (jobs) {
             const jobsTotalCost = getJobsTotalCost(jobs);
-
-            console.log('[Payment]', {
-                jobsTotalCost,
-                allowanceRequired: Math.ceil(jobsTotalCost * 10 ** 6),
-            });
-
             setTotalCost(jobsTotalCost);
         }
     }, [jobs]);
@@ -309,7 +304,7 @@ export default function Payment({
             address: config.usdcContractAddress,
             abi: ERC20Abi,
             functionName: 'approve',
-            args: [escrowContractAddress, BigInt(Math.ceil(totalCost * 10 ** 6))],
+            args: [escrowContractAddress, totalCost],
         });
 
         const receipt = await watchTx(txHash, publicClient);
@@ -335,13 +330,11 @@ export default function Payment({
             args: [address, escrowContractAddress],
         });
 
-        console.log('fetchAllowance', { result });
-
         setAllowance(result);
         return result;
     };
 
-    const hasEnoughAllowance = (): boolean => allowance !== undefined && allowance >= BigInt(Math.ceil(totalCost * 10 ** 6));
+    const hasEnoughAllowance = (): boolean => allowance !== undefined && allowance >= totalCost;
 
     /**
      * Approval is required only if the allowance is less than half of the maximum allowance,
@@ -366,7 +359,7 @@ export default function Payment({
     };
 
     const isPayAndDeployButtonDisabled = (): boolean => {
-        return !publicClient || allowance === undefined || jobs?.length === 0 || totalCost === 0;
+        return !publicClient || allowance === undefined || jobs?.length === 0 || totalCost === 0n;
     };
 
     return (
@@ -408,8 +401,8 @@ export default function Payment({
                                 <div className="text-sm font-medium text-slate-500">Total Amount Due</div>
 
                                 <div className="row gap-1.5">
-                                    <div className="text-[19px] font-semibold">
-                                        <UsdcValue value={parseFloat(totalCost.toFixed(2)).toLocaleString()} isAproximate />
+                                    <div className="text-lg font-semibold">
+                                        <UsdcValue value={formatUsdc(totalCost)} isAproximate />
                                     </div>
 
                                     {environment !== 'mainnet' && (
