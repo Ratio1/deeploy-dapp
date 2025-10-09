@@ -26,7 +26,7 @@ export default function DynamicEnvSection() {
                     <div className="text-sm text-slate-500 italic">No dynamic environment variables added yet.</div>
                 ) : (
                     fields.map((field, index) => {
-                        // Get the error for this specific dynamic env entry
+                        // Get the error for this specific entry
                         const entryError = errors?.[index];
 
                         return (

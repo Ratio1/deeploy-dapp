@@ -77,10 +77,10 @@ export default function EnvVariablesCard({ disabledKeys }: { disabledKeys?: stri
         <SlateCard
             title="ENV Variables"
             label={
-                <Button className="h-[34px] bg-slate-200 hover:opacity-70!" color="default" size="sm" onPress={onPaste}>
-                    <div className="row gap-1.5">
-                        <RiClipboardLine className="text-lg" />
-                        <div className="text-sm">Paste</div>
+                <Button className="h-[36px] bg-slate-200 hover:opacity-70!" color="default" size="sm" onPress={onPaste}>
+                    <div className="row text-default-700 gap-1">
+                        <RiClipboardLine className="text-[17px]" />
+                        <div className="compact">Paste</div>
                     </div>
                 </Button>
             }

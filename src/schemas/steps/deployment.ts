@@ -6,6 +6,7 @@ import { POLICY_TYPES } from '@data/policyTypes';
 import {
     dynamicEnvEntrySchema,
     enabledBooleanTypeValue,
+    getFileVolumesArraySchema,
     getKeyValueEntriesArraySchema,
     getNameWithoutSpacesSchema,
     getStringSchema,
@@ -66,6 +67,7 @@ const validations = {
     customParams: getKeyValueEntriesArraySchema(50),
     pipelineParams: getKeyValueEntriesArraySchema(50),
     volumes: getKeyValueEntriesArraySchema(),
+    fileVolumes: getFileVolumesArraySchema(50),
 
     // Enum patterns
     restartPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
@@ -194,6 +196,7 @@ const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend
     envVars: validations.envVars,
     dynamicEnvVars: validations.dynamicEnvVars,
     volumes: validations.volumes,
+    fileVolumes: validations.fileVolumes,
     restartPolicy: validations.restartPolicy,
     imagePullPolicy: validations.imagePullPolicy,
 });

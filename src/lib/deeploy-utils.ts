@@ -162,6 +162,19 @@ export const formatVolumes = (volumes: { key: string; value: string }[]) => {
     return formatted;
 };
 
+export const formatFileVolumes = (fileVolumes: { name: string; mountingPoint: string; content: string }[]) => {
+    const formatted: Record<string, { content: string; mounting_point: string }> = {};
+    fileVolumes.forEach((fileVolume) => {
+        if (fileVolume.name) {
+            formatted[fileVolume.name] = {
+                content: fileVolume.content,
+                mounting_point: fileVolume.mountingPoint,
+            };
+        }
+    });
+    return formatted;
+};
+
 export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType) => {
     return {
         cpu: containerOrWorkerType.cores,
@@ -192,6 +205,7 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
     const envVars = formatEnvVars(job.deployment.envVars);
     const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
     const volumes = formatVolumes(job.deployment.volumes);
+    const fileVolumes = formatFileVolumes(job.deployment.fileVolumes);
     const containerResources = formatContainerResources(containerType);
     const targetNodes = formatNodes(job.deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, job.specifications.targetNodesCount);
@@ -206,6 +220,7 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
         TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
         NGROK_USE_API: true,
         VOLUMES: volumes,
+        FILE_VOLUMES: fileVolumes,
         ENV: envVars,
         DYNAMIC_ENV: dynamicEnvVars,
         RESTART_POLICY: job.deployment.restartPolicy.toLowerCase(),
@@ -369,6 +384,7 @@ export const formatGenericJobUpdatePayload = (job: RunningJobWithResources, depl
     const envVars = formatEnvVars(deployment.envVars);
     const dynamicEnvVars = formatDynamicEnvVars(deployment.dynamicEnvVars);
     const volumes = formatVolumes(deployment.volumes);
+    const fileVolumes = formatFileVolumes(deployment.fileVolumes);
     const containerResources = job.config.CONTAINER_RESOURCES;
     const targetNodes = formatNodes(deployment.targetNodes);
     const targetNodesCount = 0; // Target node are already set
@@ -383,6 +399,7 @@ export const formatGenericJobUpdatePayload = (job: RunningJobWithResources, depl
         TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
         NGROK_USE_API: true,
         VOLUMES: volumes,
+        FILE_VOLUMES: fileVolumes,
         ENV: envVars,
         DYNAMIC_ENV: dynamicEnvVars,
         RESTART_POLICY: deployment.restartPolicy.toLowerCase(),

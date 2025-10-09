@@ -1,62 +1,183 @@
-import { Button } from '@heroui/button';
-import { useCallback, useRef, useState } from 'react';
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
+import StyledInput from '@shared/StyledInput';
+import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { RiAddLine } from 'react-icons/ri';
+import TextFileUpload from './TextFileUpload';
+import VariableSectionIndex from './VariableSectionIndex';
+import VariableSectionRemove from './VariableSectionRemove';
 
 export default function FileVolumesSection() {
-    const [fileName, setFileName] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const inputRef = useRef<HTMLInputElement | null>(null);
+    const { confirm } = useInteractionContext() as InteractionContextType;
 
-    const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
+    const { control, formState, trigger, setValue } = useFormContext();
 
-        if (!file) {
-            setFileName(null);
-            setError(null);
-            return;
-        }
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: 'deployment.fileVolumes',
+    });
 
-        try {
-            const textContent = await file.text();
-            console.log('[FileVolumesSection] Uploaded file content:', textContent);
-            setFileName(file.name);
-            setError(null);
-        } catch (err) {
-            console.error('[FileVolumesSection] Failed to read file content:', err);
-            setFileName(null);
-            setError('Unable to read the selected file. Please try again.');
-        } finally {
-            // Reset the input so the same file can be uploaded twice in a row if needed.
-            event.target.value = '';
-        }
-    }, []);
-
-    const handleButtonClick = useCallback(() => {
-        inputRef.current?.click();
-    }, []);
+    // Get array-level errors
+    const errors = (formState.errors.deployment as any)?.fileVolumes;
 
     return (
-        <div className="col gap-2">
-            <label className="text-sm font-medium text-slate-600" htmlFor="volume-file-input">
-                Import volume definition file
-            </label>
+        <div className="col gap-4">
+            <div className="col w-full gap-2">
+                {fields.length === 0 ? (
+                    <div className="text-sm text-slate-500 italic">No file volumes added yet.</div>
+                ) : (
+                    fields.map((field, index) => {
+                        // Get the error for this specific entry
+                        const entryError = errors?.[index];
 
-            <input
-                ref={inputRef}
-                id="volume-file-input"
-                type="file"
-                onChange={handleFileChange}
-                className="hidden"
-            />
+                        return (
+                            <div key={field.id} className="col gap-1.5">
+                                <div className="flex gap-3">
+                                    <VariableSectionIndex index={index} />
 
-            <Button color="primary" variant="flat" onPress={handleButtonClick} className="w-fit">
-                Choose File
-            </Button>
+                                    <div className="flex w-full gap-2">
+                                        <div className="flex-1/3">
+                                            <Controller
+                                                name={`deployment.fileVolumes.${index}.name`}
+                                                control={control}
+                                                render={({ field, fieldState }) => {
+                                                    // Check for an error on this specific property
+                                                    const specificError = entryError?.name;
+                                                    const hasError =
+                                                        !!fieldState.error || !!specificError || !!errors?.root?.message;
 
-            {fileName && (
-                <div className="text-xs text-slate-500">Loaded file: {fileName}</div>
+                                                    return (
+                                                        <StyledInput
+                                                            placeholder="Name"
+                                                            value={field.value ?? ''}
+                                                            onChange={async (e) => {
+                                                                const value = e.target.value;
+                                                                field.onChange(value);
+                                                            }}
+                                                            onBlur={async () => {
+                                                                field.onBlur();
+
+                                                                // Trigger validation for the entire array to check for duplicate keys
+                                                                if (fields.length > 1) {
+                                                                    await trigger('deployment.fileVolumes');
+                                                                }
+                                                            }}
+                                                            isInvalid={hasError}
+                                                            errorMessage={
+                                                                fieldState.error?.message ||
+                                                                specificError?.message ||
+                                                                (errors?.root?.message && index === 0
+                                                                    ? errors.root.message
+                                                                    : undefined)
+                                                            }
+                                                        />
+                                                    );
+                                                }}
+                                            />
+                                        </div>
+
+                                        <div className="flex-2/3">
+                                            <Controller
+                                                name={`deployment.fileVolumes.${index}.mountingPoint`}
+                                                control={control}
+                                                render={({ field, fieldState }) => {
+                                                    // Check for an error on this specific property
+                                                    const specificError = entryError?.mountingPoint;
+                                                    const hasError =
+                                                        !!fieldState.error || !!specificError || !!errors?.root?.message;
+
+                                                    return (
+                                                        <StyledInput
+                                                            placeholder="Path e.g. /app/config.json"
+                                                            value={field.value ?? ''}
+                                                            onChange={async (e) => {
+                                                                const value = e.target.value;
+                                                                field.onChange(value);
+                                                            }}
+                                                            onBlur={async () => {
+                                                                field.onBlur();
+
+                                                                // Trigger validation for the entire array to check for duplicate keys
+                                                                if (fields.length > 1) {
+                                                                    await trigger('deployment.fileVolumes');
+                                                                }
+                                                            }}
+                                                            isInvalid={hasError}
+                                                            errorMessage={
+                                                                fieldState.error?.message ||
+                                                                specificError?.message ||
+                                                                (errors?.root?.message && index === 0
+                                                                    ? errors.root.message
+                                                                    : undefined)
+                                                            }
+                                                        />
+                                                    );
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <VariableSectionRemove
+                                        onClick={() => {
+                                            remove(index);
+                                        }}
+                                    />
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <div className="invisible">
+                                        <VariableSectionIndex index={index} />
+                                    </div>
+
+                                    <TextFileUpload
+                                        onUpload={(content) => {
+                                            setValue(`deployment.fileVolumes.${index}.content`, content);
+                                        }}
+                                        error={!errors ? undefined : errors[index]?.content?.message}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+
+            {fields.length < 50 && (
+                <div className="row justify-between">
+                    <div
+                        className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
+                        onClick={() => {
+                            append({ name: '', mountingPoint: '', content: '' });
+                        }}
+                    >
+                        <RiAddLine className="text-lg" /> Add
+                    </div>
+
+                    {fields.length > 1 && (
+                        <div
+                            className="compact cursor-pointer text-red-600 hover:opacity-50"
+                            onClick={async () => {
+                                try {
+                                    const confirmed = await confirm(<div>Are you sure you want to remove all entries?</div>);
+
+                                    if (!confirmed) {
+                                        return;
+                                    }
+
+                                    for (let i = fields.length - 1; i >= 0; i--) {
+                                        remove(i);
+                                    }
+                                } catch (error) {
+                                    console.error('Error removing all entries:', error);
+                                    toast.error('Failed to remove all entries.');
+                                }
+                            }}
+                        >
+                            Remove all
+                        </div>
+                    )}
+                </div>
             )}
-
-            {error && <div className="text-xs text-red-500">{error}</div>}
         </div>
     );
 }
