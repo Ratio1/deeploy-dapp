@@ -64,9 +64,7 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                 <div className="text-lg font-semibold">Configuration</div>
 
                 <div className="col gap-4">
-                    <div className="grid grid-cols-3 gap-4">
-                        <ItemWithBoldValue label="Image" value={config.IMAGE} />
-                        <ItemWithBoldValue label="Target Nodes" value={job.nodes.length} />
+                    <div className="grid grid-cols-2 gap-4">
                         <ItemWithBoldValue label="Port" value={config.PORT} />
 
                         <ItemWithBoldValue
@@ -95,6 +93,16 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
 
                         <ItemWithBoldValue label="Restart Policy" value={config.RESTART_POLICY} capitalize />
                         <ItemWithBoldValue label="Image Pull Policy" value={config.IMAGE_PULL_POLICY} capitalize />
+                    </div>
+
+                    {/* Nodes */}
+                    <Section title="Nodes" />
+                    <div className="grid grid-cols-2 gap-4">
+                        <ItemWithBoldValue label="Target Nodes" value={job.nodes.length} />
+                        <ItemWithBoldValue
+                            label="Node Tags"
+                            value={!tags.length ? '—' : <JobSimpleTagsSection array={tags} />}
+                        />
                     </div>
 
                     {!!config.VCS_DATA && (
@@ -140,11 +148,29 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                                             isEmpty(config.BUILD_AND_RUN_COMMANDS) ? (
                                                 '—'
                                             ) : (
-                                                <JobSimpleTagsSection array={config.BUILD_AND_RUN_COMMANDS} label="COMMAND" />
+                                                <JobSimpleTagsSection
+                                                    array={config.BUILD_AND_RUN_COMMANDS}
+                                                    type="col"
+                                                    label="COMMAND"
+                                                />
                                             )
                                         }
                                     />
                                 )}
+
+                                <ItemWithBoldValue label="Image" value={config.IMAGE} />
+                            </div>
+                        </>
+                    )}
+
+                    {!!config.CR_DATA && (
+                        <>
+                            {/* Container App Runner */}
+                            <Section title="Container App Runner" />
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <ItemWithBoldValue label="Image" value={config.IMAGE} />
+                                <ItemWithBoldValue label="Container Registry" value="docker.io" />
                             </div>
                         </>
                     )}
@@ -172,10 +198,6 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                             label="File Volumes"
                             value={isEmpty(config.FILE_VOLUMES) ? '—' : <JobFileVolumesSection obj={config.FILE_VOLUMES} />}
                         />
-
-                        {tags.length > 0 && (
-                            <ItemWithBoldValue label="Node Tags" value={<JobSimpleTagsSection array={tags} />} />
-                        )}
                     </div>
                 </div>
             </div>
