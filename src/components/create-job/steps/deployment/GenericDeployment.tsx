@@ -5,6 +5,7 @@ import InputWithLabel from '@shared/InputWithLabel';
 import DeploymentTypeSectionCard from '@shared/jobs/deployment-type/DeploymentTypeSectionCard';
 import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';
 import EnvVariablesCard from '@shared/jobs/EnvVariablesCard';
+import FileVolumesSection from '@shared/jobs/FileVolumesSection';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
@@ -59,6 +60,10 @@ function GenericDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
 
             <SlateCard title="Volumes">
                 <KeyValueEntriesSection name="deployment.volumes" displayLabel="volumes" placeholders={['VOLUME', 'PATH']} />
+            </SlateCard>
+
+            <SlateCard title="File Volumes">
+                <FileVolumesSection />
             </SlateCard>
 
             <SlateCard title="Policies">
