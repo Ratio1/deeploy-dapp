@@ -5,7 +5,7 @@ export default function JobPageLoading() {
         <div className="col w-full gap-6">
             <div className="row justify-between">
                 <Skeleton className="min-h-[38px] w-[420px] rounded-lg" />
-                <Skeleton className="min-h-[38px] w-[362px] rounded-lg" />
+                <Skeleton className="min-h-[38px] w-[210px] rounded-lg" />
             </div>
 
             <Skeleton className="min-h-[120px] w-full rounded-lg" />

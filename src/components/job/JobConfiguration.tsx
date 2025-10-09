@@ -10,6 +10,7 @@ import { RunningJobWithResources } from '@typedefs/deeploys';
 import { isEmpty } from 'lodash';
 import { useEffect, useState } from 'react';
 import JobDynamicEnvSection from './JobDynamicEnvSection';
+import JobFileVolumesSection from './JobFileVolumesSection';
 import JobKeyValueSection from './JobKeyValueSection';
 import JobSimpleTagsSection from './JobSimpleTagsSection';
 
@@ -65,7 +66,7 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                 <div className="col gap-4">
                     <div className="grid grid-cols-3 gap-4">
                         <ItemWithBoldValue label="Image" value={config.IMAGE} />
-                        <ItemWithBoldValue label="Nodes" value={job.nodes.length} />
+                        <ItemWithBoldValue label="Target Nodes" value={job.nodes.length} />
                         <ItemWithBoldValue label="Port" value={config.PORT} />
 
                         <ItemWithBoldValue
@@ -165,6 +166,11 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                         <ItemWithBoldValue
                             label="Volumes"
                             value={isEmpty(config.VOLUMES) ? '—' : <JobKeyValueSection obj={config.VOLUMES} />}
+                        />
+
+                        <ItemWithBoldValue
+                            label="File Volumes"
+                            value={isEmpty(config.FILE_VOLUMES) ? '—' : <JobFileVolumesSection obj={config.FILE_VOLUMES} />}
                         />
 
                         {tags.length > 0 && (

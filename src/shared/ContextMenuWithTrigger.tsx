@@ -1,6 +1,7 @@
 import { Button } from '@heroui/button';
 import { Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger } from '@heroui/dropdown';
 import clsx from 'clsx';
+import { PropsWithChildren } from 'react';
 import { RiMoreFill } from 'react-icons/ri';
 
 interface Props {
@@ -11,26 +12,38 @@ interface Props {
         onPress: () => void;
     }[];
     isDisabled?: boolean;
+    onOpenChange?: (isOpen: boolean) => void;
 }
 
-export default function ContextMenuWithTrigger({ items, isDisabled }: Props) {
+export default function ContextMenuWithTrigger({ items, isDisabled, onOpenChange, children }: PropsWithChildren<Props>) {
     return (
-        <Dropdown placement="bottom-end" shouldBlockScroll={false} radius="sm">
+        <Dropdown
+            placement="bottom-end"
+            shouldBlockScroll={false}
+            radius="sm"
+            onOpenChange={(isOpen: boolean) => {
+                if (onOpenChange) {
+                    onOpenChange(isOpen);
+                }
+            }}
+        >
             <DropdownTrigger
                 onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
                 }}
             >
-                <Button
-                    className="bg-light h-6 min-w-8 rounded-lg border-slate-200 p-0 data-[hover=true]:opacity-50!"
-                    color="default"
-                    variant="bordered"
-                    disableRipple
-                    isDisabled={isDisabled}
-                >
-                    <RiMoreFill className="text-lg text-slate-600" />
-                </Button>
+                {children || (
+                    <Button
+                        className="bg-light h-6 min-w-8 rounded-lg border-slate-200 p-0 data-[hover=true]:opacity-60!"
+                        color="default"
+                        variant="bordered"
+                        disableRipple
+                        isDisabled={isDisabled}
+                    >
+                        <RiMoreFill className="text-lg text-slate-600" />
+                    </Button>
+                )}
             </DropdownTrigger>
 
             <DropdownMenu
@@ -69,8 +82,14 @@ export default function ContextMenuWithTrigger({ items, isDisabled }: Props) {
                                     {item.label}
                                 </div>
                             ) : (
-                                <div className="col">
-                                    <div className="text-body font-medium">{item.label}</div>
+                                <div className="col gap-1 py-0.5 leading-none">
+                                    <div
+                                        className={clsx('text-body font-medium', {
+                                            'text-danger!': item.key === 'delete',
+                                        })}
+                                    >
+                                        {item.label}
+                                    </div>
                                     <div className="text-[13px] text-slate-500">{item.description}</div>
                                 </div>
                             )}
