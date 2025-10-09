@@ -4,7 +4,7 @@ import db from '@lib/storage/db';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import toast from 'react-hot-toast';
-import { RiAddLine, RiDeleteBinLine, RiFileCodeLine } from 'react-icons/ri';
+import { RiAddLine } from 'react-icons/ri';
 
 interface Job {
     id: number;
@@ -85,14 +85,12 @@ export default function DraftJobsList({
                                 key: 'downloadJson',
                                 label: 'Download JSON',
                                 description: 'Exports the job draft as a JSON file',
-                                icon: <RiFileCodeLine />,
                                 onPress: () => onDownloadJson(job),
                             },
                             {
                                 key: 'delete',
                                 label: 'Delete',
-                                description: 'Removes the job draft from the project',
-                                icon: <RiDeleteBinLine />,
+                                description: 'Removes the job draft from storage',
                                 onPress: () => onDeleteJob(job),
                             },
                         ]}

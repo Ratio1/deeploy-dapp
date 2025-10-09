@@ -8,7 +8,6 @@ import { SmallTag } from '@shared/SmallTag';
 import { DraftJob, DraftProject } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { toast } from 'react-hot-toast';
-import { RiDeleteBinLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
 
 export default function DraftCard({ project }: { project: DraftProject }) {
@@ -49,7 +48,7 @@ export default function DraftCard({ project }: { project: DraftProject }) {
             <BorderedCard isHoverable>
                 <div className="row justify-between gap-3 text-sm lg:gap-6">
                     <div className="min-w-[132px]">
-                        <SmallTag>{getShortAddressOrHash(project.projectHash, 6)}</SmallTag>
+                        <SmallTag>{getShortAddressOrHash(project.projectHash, 4)}</SmallTag>
                     </div>
 
                     <div className="min-w-[212px]">
@@ -78,8 +77,7 @@ export default function DraftCard({ project }: { project: DraftProject }) {
                             {
                                 key: 'delete',
                                 label: 'Delete',
-                                description: 'Removes the draft from storage',
-                                icon: <RiDeleteBinLine />,
+                                description: 'Removes the project draft from storage',
                                 onPress: () => onDeleteProject(),
                             },
                         ]}

@@ -220,7 +220,7 @@ function PaymentAndDuration() {
 
                     <div className="row gap-1">
                         <RiInformation2Line className="text-primary text-lg" />
-                        <div className="text-sm">The current ongoing epoch is included in the calculation.</div>
+                        <div className="text-sm">The current ongoing epoch is included in the calculation</div>
                     </div>
                 </div>
             </SlateCard>

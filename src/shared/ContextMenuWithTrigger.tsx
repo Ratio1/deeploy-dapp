@@ -8,7 +8,6 @@ interface Props {
         key: string;
         label: string;
         description?: string;
-        icon?: React.ReactNode;
         onPress: () => void;
     }[];
     isDisabled?: boolean;
@@ -51,16 +50,17 @@ export default function ContextMenuWithTrigger({ items, isDisabled }: Props) {
                 }}
                 classNames={{
                     list: 'gap-1',
+                    base: 'p-0.5',
                 }}
                 onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
                 }}
             >
-                <DropdownSection title="Actions" className="mb-0 list-none">
+                <DropdownSection className="mb-0 list-none">
                     {items.map((item) => (
                         <DropdownItem key={item.key} onPress={item.onPress} textValue={item.label}>
-                            {!item.icon || !item.description ? (
+                            {!item.description ? (
                                 <div
                                     className={clsx('font-medium', {
                                         'text-danger': item.key === 'delete',
@@ -69,13 +69,9 @@ export default function ContextMenuWithTrigger({ items, isDisabled }: Props) {
                                     {item.label}
                                 </div>
                             ) : (
-                                <div className="row gap-2">
-                                    <div className="pr-0.5 text-[22px] text-slate-500">{item.icon}</div>
-
-                                    <div className="col">
-                                        <div className="text-body leading-4 font-medium">{item.label}</div>
-                                        <div className="text-[13px] text-slate-500">{item.description}</div>
-                                    </div>
+                                <div className="col">
+                                    <div className="text-body font-medium">{item.label}</div>
+                                    <div className="text-[13px] text-slate-500">{item.description}</div>
                                 </div>
                             )}
                         </DropdownItem>

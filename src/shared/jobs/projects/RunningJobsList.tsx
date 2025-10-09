@@ -9,7 +9,6 @@ import DetailedUsage from '@shared/projects/DetailedUsage';
 import { SmallTag } from '@shared/SmallTag';
 import { RunningJobWithResources } from '@typedefs/deeploys';
 import { useState } from 'react';
-import { RiEdit2Line } from 'react-icons/ri';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function RunningJobsList({
@@ -92,7 +91,6 @@ export default function RunningJobsList({
                                         key: 'edit',
                                         label: 'Edit',
                                         description: 'Modify the configuration of the job',
-                                        icon: <RiEdit2Line />,
                                         onPress: () => onEdit(job),
                                     },
                                 ]}
