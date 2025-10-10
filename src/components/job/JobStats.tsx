@@ -52,7 +52,7 @@ export default function JobStats({
         },
         {
             label: 'Cost Per Epoch',
-            value: <UsdcValue value={fBI(job.pricePerEpoch * BigInt(job.nodes.length), 6, 3)} />,
+            value: <UsdcValue value={fBI(job.pricePerEpoch * job.numberOfNodesRequested, 6, 3)} />,
         },
     ];
 
