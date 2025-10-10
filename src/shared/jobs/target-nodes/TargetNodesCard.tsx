@@ -64,7 +64,7 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
                         <div className="flex items-start gap-0.5">
                             <RiAsterisk className="text-primary mt-0.5 text-[10px]" />
                             <div className="text-sm text-slate-500 italic">
-                                Jobs will run on any other available nodes if your target nodes are not available.
+                                Your job will run on any other arbitrary nodes if your target nodes are not available.
                             </div>
                         </div>
                     </div>

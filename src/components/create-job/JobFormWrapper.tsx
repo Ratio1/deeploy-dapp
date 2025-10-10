@@ -24,6 +24,7 @@ import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { z } from 'zod';
 
+// The 'Project' step is included in order to render the back button
 const STEPS = ['Project', 'Specifications', 'Payment & Duration', 'Deployment'];
 
 function JobFormWrapper({ projectName, draftJobsCount }) {
