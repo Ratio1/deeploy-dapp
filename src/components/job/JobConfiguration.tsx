@@ -169,8 +169,35 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                             <Section title="Container App Runner" />
 
                             <div className="grid grid-cols-2 gap-4">
-                                <ItemWithBoldValue label="Image" value={config.IMAGE} />
-                                <ItemWithBoldValue label="Container Registry" value="docker.io" />
+                                <ItemWithBoldValue
+                                    label="Image"
+                                    value={<CopyableValue value={config.IMAGE}>{config.IMAGE}</CopyableValue>}
+                                />
+                                <ItemWithBoldValue
+                                    label="Container Registry"
+                                    value={!config.CR_DATA.SERVER ? '—' : config.CR_DATA.SERVER}
+                                />
+
+                                {!!config.CR_DATA.USERNAME && !!config.CR_DATA.PASSWORD && (
+                                    <>
+                                        <ItemWithBoldValue
+                                            label="Username"
+                                            value={
+                                                <CopyableValue value={config.CR_DATA.USERNAME}>
+                                                    {config.CR_DATA.USERNAME}
+                                                </CopyableValue>
+                                            }
+                                        />
+                                        <ItemWithBoldValue
+                                            label="Password"
+                                            value={
+                                                <CopyableValue value={config.CR_DATA.PASSWORD}>
+                                                    <div className="font-roboto-mono font-medium">••••••</div>
+                                                </CopyableValue>
+                                            }
+                                        />
+                                    </>
+                                )}
                             </div>
                         </>
                     )}

@@ -35,7 +35,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
     const getBaseSchemaDefaults = () => ({
         specifications: {
             applicationType: APPLICATION_TYPES[0],
-            targetNodesCount: 1,
+            targetNodesCount: 2, // Generic and Native jobs always have a minimal balancing of 2 nodes, Services are locked to 1 node
             jobTags: [...(account!.applicantType === 'company' ? [KYB_TAG] : [])],
             nodesCountries: [],
         },
