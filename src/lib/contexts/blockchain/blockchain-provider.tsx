@@ -81,6 +81,9 @@ export const BlockchainProvider = ({ children }) => {
                 success: {
                     duration: 6000,
                 },
+                error: {
+                    duration: 10000,
+                },
                 position: 'bottom-right',
             },
         );

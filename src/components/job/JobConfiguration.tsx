@@ -8,7 +8,7 @@ import { SmallTag } from '@shared/SmallTag';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { isEmpty } from 'lodash';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import JobDynamicEnvSection from './JobDynamicEnvSection';
 import JobFileVolumesSection from './JobFileVolumesSection';
 import JobKeyValueSection from './JobKeyValueSection';
@@ -20,7 +20,12 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
 
     const [repositoryVisibility, setRepositoryVisibility] = useState<'public' | 'private' | '—' | undefined>();
 
-    console.log('JobConfiguration', { job, config });
+    const hasLoggedInitialState = useRef(false);
+
+    if (!hasLoggedInitialState.current) {
+        console.log('JobConfiguration', { job, config });
+        hasLoggedInitialState.current = true;
+    }
 
     useEffect(() => {
         if (config && config.VCS_DATA) {

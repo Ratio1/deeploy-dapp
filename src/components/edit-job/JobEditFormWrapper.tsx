@@ -161,7 +161,7 @@ export default function JobEditFormWrapper({
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit, onError)} key={`${job.resources.jobType}-edit`}>
-                <div className="mt-2 w-full flex-1 lg:mt-6">
+                <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
                             {getComponent()}
