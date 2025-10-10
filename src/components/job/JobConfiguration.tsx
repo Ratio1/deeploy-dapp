@@ -6,7 +6,7 @@ import { CopyableValue } from '@shared/CopyableValue';
 import ItemWithBoldValue from '@shared/jobs/ItemWithBoldValue';
 import { SmallTag } from '@shared/SmallTag';
 import { JobConfig } from '@typedefs/deeployApi';
-import { RunningJobWithResources } from '@typedefs/deeploys';
+import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { isEmpty } from 'lodash';
 import { useEffect, useState } from 'react';
 import JobDynamicEnvSection from './JobDynamicEnvSection';
@@ -64,8 +64,8 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                 <div className="text-lg font-semibold">Configuration</div>
 
                 <div className="col gap-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <ItemWithBoldValue label="Port" value={config.PORT} />
+                    <div className="grid grid-cols-2 gap-3">
+                        {!!config.PORT && <ItemWithBoldValue label="Port" value={config.PORT} />}
 
                         <ItemWithBoldValue
                             label="Tunnel Engine Enabled"
@@ -97,20 +97,35 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
 
                     {/* Nodes */}
                     <Section title="Nodes" />
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                         <ItemWithBoldValue label="Target Nodes" value={job.nodes.length} />
                         <ItemWithBoldValue
                             label="Node Tags"
                             value={!tags.length ? '—' : <JobSimpleTagsSection array={tags} />}
                         />
+
+                        <ItemWithBoldValue
+                            label="Spare Nodes"
+                            value={
+                                !job.spareNodes || isEmpty(job.spareNodes) ? (
+                                    '—'
+                                ) : (
+                                    <JobSimpleTagsSection
+                                        array={job.spareNodes.map((addr) => getShortAddressOrHash(addr, 8, true) as string)}
+                                        type="col"
+                                        copyable
+                                    />
+                                )
+                            }
+                        />
                     </div>
 
+                    {/* Worker App Runner */}
                     {!!config.VCS_DATA && (
                         <>
-                            {/* Worker App Runner */}
                             <Section title="Worker App Runner" />
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-3">
                                 <ItemWithBoldValue
                                     label="GitHub Repository"
                                     value={
@@ -163,19 +178,19 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                         </>
                     )}
 
+                    {/* Container App Runner */}
                     {!!config.CR_DATA && (
                         <>
-                            {/* Container App Runner */}
                             <Section title="Container App Runner" />
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-3">
                                 <ItemWithBoldValue
                                     label="Image"
                                     value={<CopyableValue value={config.IMAGE}>{config.IMAGE}</CopyableValue>}
                                 />
                                 <ItemWithBoldValue
                                     label="Container Registry"
-                                    value={!config.CR_DATA.SERVER ? '—' : config.CR_DATA.SERVER}
+                                    value={!config.CR_DATA.SERVER ? 'docker.io' : config.CR_DATA.SERVER}
                                 />
 
                                 {!!config.CR_DATA.USERNAME && !!config.CR_DATA.PASSWORD && (
@@ -202,10 +217,18 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                         </>
                     )}
 
+                    {/* Service */}
+                    {job.resources.jobType === JobType.Service && (
+                        <>
+                            <Section title="Service" />
+                            <ItemWithBoldValue label="Image" value={config.IMAGE} />
+                        </>
+                    )}
+
                     {/* Variables */}
                     <Section title="Variables" />
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                         <ItemWithBoldValue
                             label="ENV Variables"
                             value={isEmpty(config.ENV) ? '—' : <JobKeyValueSection obj={config.ENV} />}
