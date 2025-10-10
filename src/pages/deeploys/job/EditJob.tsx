@@ -34,7 +34,7 @@ import { useAccount, useSignMessage } from 'wagmi';
 import z from 'zod';
 
 export default function EditJob() {
-    const { setFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
+    const { setFetchAppsRequired, setStep } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -60,6 +60,11 @@ export default function EditJob() {
 
     const job: RunningJobWithResources | undefined = (location.state as { job?: RunningJobWithResources })?.job;
     const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
+
+    // Init
+    useEffect(() => {
+        setStep(2);
+    }, []);
 
     useEffect(() => {
         if (job) {

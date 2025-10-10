@@ -1,5 +1,4 @@
 import JobFormButtons from '@components/create-job/JobFormButtons';
-import JobFormHeader from '@components/create-job/JobFormHeader';
 import Deployment from '@components/create-job/steps/Deployment';
 import PaymentAndDuration from '@components/create-job/steps/PaymentAndDuration';
 import Specifications from '@components/create-job/steps/Specifications';
@@ -13,25 +12,25 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { boolToBooleanType, titlecase } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
 import { deploymentSchema } from '@schemas/job-edit';
+import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { useEffect } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import z from 'zod';
 
-// The 'Project' step is included in order to render the back button
-const STEPS = ['Project', 'Specifications', 'Payment & Duration', 'Deployment'];
+// The first step is included in order to render the back button
+const STEPS = ['Job', 'Specifications', 'Payment & Duration', 'Deployment'];
 
 export default function JobEditFormWrapper({
     job,
     onSubmit,
-    isLoading,
+    isLoading, // TODO: Use
 }: {
     job: RunningJobWithResources;
     onSubmit: (data: z.infer<typeof deploymentSchema>) => Promise<void>;
     isLoading: boolean;
 }) {
-    // TODO: Set step when starting editing flow
     const { step } = useDeploymentContext() as DeploymentContextType;
 
     const config: JobConfig = job.config;
@@ -158,11 +157,10 @@ export default function JobEditFormWrapper({
         defaultValues: getDefaultSchemaValues(),
     });
 
-    // Reset form with correct defaults when jobType changes
+    // Reset form
     useEffect(() => {
         const defaults = getDefaultSchemaValues();
         form.reset(defaults);
-        form.setValue('jobType', job.resources.jobType);
     }, [job, form]);
 
     const onError = (errors: FieldErrors<z.infer<typeof jobSchema>>) => {
@@ -191,7 +189,9 @@ export default function JobEditFormWrapper({
                 <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
-                            <JobFormHeader steps={STEPS} />
+                            <JobFormHeaderInterface steps={STEPS}>
+                                <div className="big-title">Edit Job</div>
+                            </JobFormHeaderInterface>
 
                             {step === 2 && <Specifications />}
                             {step === 3 && <PaymentAndDuration />}

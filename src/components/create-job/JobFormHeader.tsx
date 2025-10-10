@@ -2,11 +2,11 @@ import { Skeleton } from '@heroui/skeleton';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import db from '@lib/storage/db';
 import { getShortAddressOrHash, isValidProjectHash } from '@lib/utils';
+import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import { SmallTag } from '@shared/SmallTag';
 import { DraftProject, JobType } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
-import { RiArrowLeftLine } from 'react-icons/ri';
 import { useParams } from 'react-router-dom';
 
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
 }
 
 function JobFormHeader({ steps }: Props) {
-    const { jobType, setJobType, step, setStep, getProjectName } = useDeploymentContext() as DeploymentContextType;
+    const { jobType, getProjectName } = useDeploymentContext() as DeploymentContextType;
 
     const { projectHash } = useParams();
 
@@ -43,62 +43,24 @@ function JobFormHeader({ steps }: Props) {
     }
 
     return (
-        <div className="col w-full gap-8">
-            <div className="col gap-4">
-                <div className="row justify-between">
-                    {projectName ? (
-                        <div className="big-title max-w-[280px] truncate">{projectName}</div>
-                    ) : draft !== undefined ? (
-                        <div className="row gap-2">
-                            <div className="mt-px h-2.5 w-2.5 rounded-full" style={{ backgroundColor: draft.color }}></div>
-                            <div className="big-title max-w-[280px] truncate">{draft.name}</div>
-                        </div>
-                    ) : (
-                        <SmallTag isLarge>{getShortAddressOrHash(projectHash, 6)}</SmallTag>
-                    )}
-
-                    <div className="big-title">
-                        Add a {jobType} {jobType === JobType.Service ? '' : 'App'} Job
+        <JobFormHeaderInterface steps={steps}>
+            <div className="row justify-between">
+                {projectName ? (
+                    <div className="big-title max-w-[280px] truncate">{projectName}</div>
+                ) : draft !== undefined ? (
+                    <div className="row gap-2">
+                        <div className="mt-px h-2.5 w-2.5 rounded-full" style={{ backgroundColor: draft.color }}></div>
+                        <div className="big-title max-w-[280px] truncate">{draft.name}</div>
                     </div>
-                </div>
+                ) : (
+                    <SmallTag isLarge>{getShortAddressOrHash(projectHash, 6)}</SmallTag>
+                )}
 
-                <div className="col gap-2.5">
-                    <div className="relative h-1.5 w-full rounded-full bg-slate-200">
-                        <div
-                            className="bg-primary absolute top-0 bottom-0 left-0 rounded-full transition-all"
-                            style={{ width: `${((step - 1) / steps.length) * 100}%` }}
-                        ></div>
-                    </div>
-
-                    <div className="row justify-between">
-                        <RiArrowLeftLine
-                            className="-ml-0.5 cursor-pointer text-xl text-slate-500 hover:opacity-50"
-                            onClick={() => {
-                                if (step > 2) {
-                                    setStep(step - 1);
-                                } else {
-                                    setJobType(undefined);
-                                }
-                            }}
-                        />
-
-                        <div
-                            className="cursor-pointer text-[15px] font-medium text-slate-500 hover:opacity-50"
-                            onClick={() => setJobType(undefined)}
-                        >
-                            Cancel
-                        </div>
-                    </div>
+                <div className="big-title">
+                    Add a {jobType} {jobType === JobType.Service ? '' : 'App'} Job
                 </div>
             </div>
-
-            <div className="col gap-0.5">
-                <div className="text-primary text-sm font-semibold uppercase">
-                    Step {step} of {steps.length}
-                </div>
-                <div className="big-title">{steps[step - 1]}</div>
-            </div>
-        </div>
+        </JobFormHeaderInterface>
     );
 }
 
