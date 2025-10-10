@@ -1,20 +1,26 @@
-import GenericDeployment from '@components/create-job/steps/deployment/GenericDeployment';
-import NativeDeployment from '@components/create-job/steps/deployment/NativeDeployment';
-import ServiceDeployment from '@components/create-job/steps/deployment/ServiceDeployment';
+import JobFormButtons from '@components/create-job/JobFormButtons';
+import JobFormHeader from '@components/create-job/JobFormHeader';
+import Deployment from '@components/create-job/steps/Deployment';
+import PaymentAndDuration from '@components/create-job/steps/PaymentAndDuration';
+import Specifications from '@components/create-job/steps/Specifications';
+import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { boolToBooleanType, titlecase } from '@lib/deeploy-utils';
+import { jobSchema } from '@schemas/index';
 import { deploymentSchema } from '@schemas/job-edit';
-import SubmitButton from '@shared/SubmitButton';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { useEffect } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
-import { RiBox3Line } from 'react-icons/ri';
 import z from 'zod';
+
+// The 'Project' step is included in order to render the back button
+const STEPS = ['Project', 'Specifications', 'Payment & Duration', 'Deployment'];
 
 export default function JobEditFormWrapper({
     job,
@@ -25,13 +31,22 @@ export default function JobEditFormWrapper({
     onSubmit: (data: z.infer<typeof deploymentSchema>) => Promise<void>;
     isLoading: boolean;
 }) {
+    // TODO: Set step when starting editing flow
+    const { step } = useDeploymentContext() as DeploymentContextType;
+
     const config: JobConfig = job.config;
 
-    // console.log('JobEditFormWrapper', { job });
-
     const getBaseSchemaDefaults = () => ({
+        jobType: job.resources.jobType,
         specifications: {
+            applicationType: APPLICATION_TYPES[0], // TODO: Get from job
+            targetNodesCount: Number(job.numberOfNodesRequested),
             jobTags: job.jobTags ?? [],
+            nodesCountries: job.jobTags ? job.jobTags.filter((tag) => tag.startsWith('CT:')) : [],
+        },
+        paymentAndDuration: {
+            duration: 1,
+            paymentMonthsCount: 1,
         },
         deployment: {
             jobAlias: job.alias,
@@ -45,6 +60,10 @@ export default function JobEditFormWrapper({
 
     const getGenericSchemaDefaults = () => ({
         ...getBaseSchemaDefaults(),
+        specifications: {
+            ...getBaseSchemaDefaults().specifications,
+            containerType: job.resources.containerOrWorkerType.name,
+        },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             deploymentType: !config.VCS_DATA
@@ -76,6 +95,10 @@ export default function JobEditFormWrapper({
 
     const getNativeSchemaDefaults = () => ({
         ...getBaseSchemaDefaults(),
+        specifications: {
+            ...getBaseSchemaDefaults().specifications,
+            workerType: job.resources.containerOrWorkerType.name,
+        },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             port: config.PORT,
@@ -89,6 +112,10 @@ export default function JobEditFormWrapper({
 
     const getServiceSchemaDefaults = () => ({
         ...getBaseSchemaDefaults(),
+        specifications: {
+            ...getBaseSchemaDefaults().specifications,
+            containerType: job.resources.containerOrWorkerType.name,
+        },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             envVars: getEnvVars(),
@@ -125,8 +152,8 @@ export default function JobEditFormWrapper({
         }
     };
 
-    const form = useForm<z.infer<typeof deploymentSchema>>({
-        resolver: zodResolver(deploymentSchema),
+    const form = useForm<z.infer<typeof jobSchema>>({
+        resolver: zodResolver(jobSchema),
         mode: 'onTouched',
         defaultValues: getDefaultSchemaValues(),
     });
@@ -138,25 +165,25 @@ export default function JobEditFormWrapper({
         form.setValue('jobType', job.resources.jobType);
     }, [job, form]);
 
-    const onError = (errors: FieldErrors<z.infer<typeof deploymentSchema>>) => {
+    const onError = (errors: FieldErrors<z.infer<typeof jobSchema>>) => {
         console.log(errors);
     };
 
-    const getComponent = () => {
-        switch (job.resources.jobType) {
-            case JobType.Generic:
-                return <GenericDeployment isEditingJob />;
+    // const getComponent = () => {
+    //     switch (job.resources.jobType) {
+    //         case JobType.Generic:
+    //             return <GenericDeployment isEditingJob />;
 
-            case JobType.Native:
-                return <NativeDeployment isEditingJob />;
+    //         case JobType.Native:
+    //             return <NativeDeployment isEditingJob />;
 
-            case JobType.Service:
-                return <ServiceDeployment isEditingJob />;
+    //         case JobType.Service:
+    //             return <ServiceDeployment isEditingJob />;
 
-            default:
-                return <div>Error: Unknown deployment type</div>;
-        }
-    };
+    //         default:
+    //             return <div>Error: Unknown deployment type</div>;
+    //     }
+    // };
 
     return (
         <FormProvider {...form}>
@@ -164,11 +191,17 @@ export default function JobEditFormWrapper({
                 <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
-                            {getComponent()}
+                            <JobFormHeader steps={STEPS} />
 
-                            <div className="center-all gap-2">
+                            {step === 2 && <Specifications />}
+                            {step === 3 && <PaymentAndDuration />}
+                            {step === 4 && <Deployment isEditingJob />}
+
+                            <JobFormButtons steps={STEPS} />
+
+                            {/* <div className="center-all gap-2">
                                 <SubmitButton label="Update Job" icon={<RiBox3Line />} isLoading={isLoading} />
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </div>

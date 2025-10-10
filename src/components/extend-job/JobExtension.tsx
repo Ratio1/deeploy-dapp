@@ -23,7 +23,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
     const navigate = useNavigate();
 
     const { costPer24h, costPer30Days } = useMemo(() => {
-        const per24h = job.pricePerEpoch * BigInt(job.nodes.length) * (environment === 'mainnet' ? 1n : 24n);
+        const per24h = job.pricePerEpoch * job.numberOfNodesRequested * (environment === 'mainnet' ? 1n : 24n);
 
         return {
             costPer24h: per24h,
@@ -114,7 +114,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
             },
             {
                 label: 'Target Nodes',
-                value: job.nodes.length,
+                value: Number(job.numberOfNodesRequested),
             },
             {
                 label: 'Monthly Cost',

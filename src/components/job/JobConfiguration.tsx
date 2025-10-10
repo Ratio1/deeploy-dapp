@@ -103,7 +103,7 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                     {/* Nodes */}
                     <Section title="Nodes" />
                     <div className="grid grid-cols-2 gap-3">
-                        <ItemWithBoldValue label="Target Nodes" value={job.nodes.length} />
+                        <ItemWithBoldValue label="Target Nodes" value={Number(job.numberOfNodesRequested)} />
                         <ItemWithBoldValue
                             label="Node Tags"
                             value={!tags.length ? '—' : <JobSimpleTagsSection array={tags} />}

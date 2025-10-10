@@ -4,20 +4,20 @@ import GenericDeployment from './deployment/GenericDeployment';
 import NativeDeployment from './deployment/NativeDeployment';
 import ServiceDeployment from './deployment/ServiceDeployment';
 
-function Deployment() {
+function Deployment({ isEditingJob }: { isEditingJob?: boolean }) {
     const { watch } = useFormContext();
     const jobType = watch('jobType');
 
     const getComponent = () => {
         switch (jobType) {
             case JobType.Generic:
-                return <GenericDeployment />;
+                return <GenericDeployment isEditingJob={isEditingJob} />;
 
             case JobType.Native:
-                return <NativeDeployment />;
+                return <NativeDeployment isEditingJob={isEditingJob} />;
 
             case JobType.Service:
-                return <ServiceDeployment />;
+                return <ServiceDeployment isEditingJob={isEditingJob} />;
 
             default:
                 return <div>Error: Unknown deployment type</div>;

@@ -41,8 +41,8 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             nodesCountries: [],
         },
         paymentAndDuration: {
-            duration: 12,
-            paymentMonthsCount: 12,
+            duration: 1,
+            paymentMonthsCount: 1,
         },
         deployment: {
             enableTunneling: BOOLEAN_TYPES[0],
