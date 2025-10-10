@@ -58,6 +58,13 @@ type JobConfig = {
     TUNNEL_ENGINE: string;
     TUNNEL_ENGINE_ENABLED: boolean;
     VOLUMES: Record<string, any>;
+    FILE_VOLUMES: Record<
+        string,
+        {
+            content: string;
+            mounting_point: string;
+        }
+    >;
     VCS_DATA?: {
         REPO_URL: string;
         TOKEN: string | null;

@@ -1,4 +1,6 @@
 import { GITHUB_REPO_REGEX } from '@lib/deeploy-utils';
+import Label from '@shared/Label';
+import { SmallTag } from '@shared/SmallTag';
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { RiInformationLine } from 'react-icons/ri';
@@ -11,7 +13,7 @@ export default function WorkerSection({ isEditingJob }: { isEditingJob?: boolean
     const { watch, setValue, register } = useFormContext();
 
     const repositoryUrl: string | undefined = watch('deployment.deploymentType.repositoryUrl');
-    const repositoryVisibility: 'public' | 'private' = watch('deployment.deploymentType.repositoryVisibility');
+    const repositoryVisibility: 'public' | 'private' | undefined = watch('deployment.deploymentType.repositoryVisibility');
 
     useEffect(() => {
         register('deployment.deploymentType.repositoryVisibility');
@@ -28,6 +30,8 @@ export default function WorkerSection({ isEditingJob }: { isEditingJob?: boolean
 
         if (!url) {
             console.error('No repository URL provided');
+            setValue('deployment.deploymentType.repositoryVisibility', undefined);
+
             return;
         }
 
@@ -36,6 +40,7 @@ export default function WorkerSection({ isEditingJob }: { isEditingJob?: boolean
 
         if (!match) {
             console.error('Not a valid GitHub repository URL');
+            setValue('deployment.deploymentType.repositoryVisibility', undefined);
             return;
         }
 
@@ -77,6 +82,16 @@ export default function WorkerSection({ isEditingJob }: { isEditingJob?: boolean
                 placeholder="e.g. https://github.com/org/repository"
                 onBlur={() => checkRepositoryVisibility()}
                 onPasteValue={(value) => checkRepositoryVisibility(value)}
+                customLabel={
+                    repositoryVisibility ? (
+                        <div className="row gap-1.5">
+                            <Label value="GitHub Repository URL" />
+                            <SmallTag variant={repositoryVisibility === 'public' ? 'emerald' : 'orange'}>
+                                <div className="capitalize">{repositoryVisibility}</div>
+                            </SmallTag>
+                        </div>
+                    ) : null
+                }
                 displayPasteIcon
             />
 

@@ -1,14 +1,12 @@
 import { Checkbox } from '@heroui/checkbox';
 import { SelectItem } from '@heroui/select';
+import { DC_TAG, KYB_TAG } from '@lib/deeploy-utils';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import StyledSelect from '@shared/StyledSelect';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import raw from 'world-countries';
-
-const KYB_TAG = 'IS_KYB';
-const DC_TAG = 'DC:*';
 
 export default function JobTags() {
     const { watch, setValue } = useFormContext();

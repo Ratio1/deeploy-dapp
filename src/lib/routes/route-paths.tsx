@@ -18,4 +18,5 @@ export const routePath = {
     // General
     notFound: '/404',
     edit: 'edit',
+    extend: 'extend',
 };

@@ -6,6 +6,7 @@ import { POLICY_TYPES } from '@data/policyTypes';
 import {
     dynamicEnvEntrySchema,
     enabledBooleanTypeValue,
+    getFileVolumesArraySchema,
     getKeyValueEntriesArraySchema,
     getNameWithoutSpacesSchema,
     getStringSchema,
@@ -46,8 +47,7 @@ const validations = {
                 .min(1, 'Value must be at least 1')
                 .max(65535, 'Value cannot exceed 65535'),
         ])
-        .refine((val) => val !== '', { message: 'Value is required' })
-        .transform((val) => (!val ? undefined : (val as number))) as z.ZodType<number>,
+        .transform((val) => (!val ? undefined : (val as number))) as z.ZodType<number | undefined>,
 
     envVars: getKeyValueEntriesArraySchema(),
     dynamicEnvVars: z
@@ -67,6 +67,7 @@ const validations = {
     customParams: getKeyValueEntriesArraySchema(50),
     pipelineParams: getKeyValueEntriesArraySchema(50),
     volumes: getKeyValueEntriesArraySchema(),
+    fileVolumes: getFileVolumesArraySchema(50),
 
     // Enum patterns
     restartPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
@@ -195,6 +196,7 @@ const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend
     envVars: validations.envVars,
     dynamicEnvVars: validations.dynamicEnvVars,
     volumes: validations.volumes,
+    fileVolumes: validations.fileVolumes,
     restartPolicy: validations.restartPolicy,
     imagePullPolicy: validations.imagePullPolicy,
 });

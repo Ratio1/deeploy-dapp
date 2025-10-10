@@ -84,7 +84,7 @@ export default function ProjectOverview({
                 />
 
                 {/* Stats */}
-                <ProjectStats runningJobs={runningJobs} draftJobsCount={draftJobs?.length ?? 0} />
+                <ProjectStats runningJobs={runningJobsWithResources} />
 
                 {/* Add Job */}
                 <AddJobCard />

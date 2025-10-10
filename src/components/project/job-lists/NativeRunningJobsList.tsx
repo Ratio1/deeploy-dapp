@@ -6,7 +6,7 @@ import { RunningJobWithResources } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
 const widthClasses = [
-    'min-w-[200px]', // alias
+    'min-w-[194px]', // alias
     'min-w-[90px]', // targetNodes
     'min-w-[100px]', // compute type
     'min-w-[310px]', // resources

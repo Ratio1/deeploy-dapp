@@ -38,7 +38,7 @@ export function Wrappers({ children }: { children: React.ReactNode }) {
                             }}
                             toastOptions={{
                                 className: 'font-mona text-base',
-                                duration: 3500,
+                                duration: 5000,
                             }}
                         />
 

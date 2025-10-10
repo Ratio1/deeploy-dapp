@@ -56,7 +56,7 @@ function JobFormButtons({ steps }: Props) {
     };
 
     return (
-        <div className="row w-full justify-between pt-2">
+        <div className="row w-full justify-between">
             <div className="row gap-2">
                 <Button
                     className="slate-button"

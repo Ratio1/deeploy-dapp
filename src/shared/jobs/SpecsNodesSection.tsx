@@ -20,6 +20,12 @@ export default function SpecsNodesSection({ jobType }: { jobType: JobType }) {
 
     const [containerOrWorkerType, setContainerOrWorkerType] = useState<ContainerOrWorkerType>();
 
+    /**
+     * Skip the first setValue call to modify 'specifications.targetNodesCount' based on minimal balancing
+     * to avoid resetting a user inputted value when going back to this step
+     */
+    const [skipFirstMutation, setSkipFirstMutation] = useState<boolean>(true);
+
     useEffect(() => {
         setContainerOrWorkerType(
             (jobType === JobType.Native ? nativeWorkerTypes : genericContainerTypes).find(
@@ -30,7 +36,12 @@ export default function SpecsNodesSection({ jobType }: { jobType: JobType }) {
 
     useEffect(() => {
         if (containerOrWorkerType && containerOrWorkerType.minimalBalancing) {
-            setValue('specifications.targetNodesCount', containerOrWorkerType.minimalBalancing);
+            if (skipFirstMutation) {
+                setSkipFirstMutation(false);
+                return;
+            } else {
+                setValue('specifications.targetNodesCount', containerOrWorkerType.minimalBalancing);
+            }
         }
     }, [containerOrWorkerType, setValue]);
 
@@ -61,8 +72,6 @@ export default function SpecsNodesSection({ jobType }: { jobType: JobType }) {
                         />
                     </div>
 
-                    <JobTags />
-
                     {hasWarning && (
                         <div className="text-warning-800 bg-warning-100 col gap-2 rounded-md p-3 text-sm">
                             <div className="row gap-1.5">
@@ -80,6 +89,8 @@ export default function SpecsNodesSection({ jobType }: { jobType: JobType }) {
                             </div>
                         </div>
                     )}
+
+                    <JobTags />
                 </div>
             )}
         </SlateCard>

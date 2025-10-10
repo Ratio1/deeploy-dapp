@@ -11,7 +11,9 @@ import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { KYB_TAG } from '@lib/deeploy-utils';
 import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
@@ -26,18 +28,20 @@ const STEPS = ['Project', 'Specifications', 'Payment & Duration', 'Deployment'];
 
 function JobFormWrapper({ projectName, draftJobsCount }) {
     const { projectHash } = useParams();
+
     const { step, jobType, setJobType, setProjectOverviewTab } = useDeploymentContext() as DeploymentContextType;
+    const { account } = useAuthenticationContext() as AuthenticationContextType;
 
     const getBaseSchemaDefaults = () => ({
         specifications: {
             applicationType: APPLICATION_TYPES[0],
-            targetNodesCount: 1,
-            jobTags: [],
+            targetNodesCount: 2, // Generic and Native jobs always have a minimal balancing of 2 nodes, Services are locked to 1 node
+            jobTags: [...(account!.applicantType === 'company' ? [KYB_TAG] : [])],
             nodesCountries: [],
         },
         paymentAndDuration: {
             duration: 12,
-            paymentMonthsCount: 1,
+            paymentMonthsCount: 12,
         },
         deployment: {
             enableTunneling: BOOLEAN_TYPES[0],

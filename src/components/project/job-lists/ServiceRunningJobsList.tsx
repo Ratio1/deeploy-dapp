@@ -6,7 +6,7 @@ import { RunningJobWithResources } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
 
 const widthClasses = [
-    'min-w-[200px]', // alias
+    'min-w-[194px]', // alias
     'min-w-[90px]', // targetNodes
     'min-w-[100px]', // database
     'min-w-[310px]', // resources

@@ -9,7 +9,7 @@ export default function JobFullUsage({ job }: { job: RunningJobWithResources }) 
     const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
 
     const lifespan = diffTimeFn(expirationDate, requestDate) + 1;
-    const elapsed = diffTimeFn(new Date(), requestDate);
+    const elapsed = Math.max(diffTimeFn(new Date(), requestDate), 1);
     const paid = diffTimeFn(expirationDate, requestDate) + 1;
     const unpaid = lifespan - paid;
 
@@ -20,7 +20,7 @@ export default function JobFullUsage({ job }: { job: RunningJobWithResources }) 
         },
         {
             label: 'Elapsed',
-            value: `${elapsed} epochs`,
+            value: `${elapsed} ${elapsed > 1 ? 'epochs' : 'epoch'}`,
         },
         {
             label: 'Payment Covered',

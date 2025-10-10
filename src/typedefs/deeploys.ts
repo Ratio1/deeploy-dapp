@@ -106,6 +106,11 @@ type GenericJobDeployment = BaseJobDeployment & {
         key: string;
         value: string;
     }>;
+    fileVolumes: Array<{
+        name: string;
+        mountingPoint: string;
+        content: string;
+    }>;
     restartPolicy: (typeof POLICY_TYPES)[number];
     imagePullPolicy: (typeof POLICY_TYPES)[number];
 };

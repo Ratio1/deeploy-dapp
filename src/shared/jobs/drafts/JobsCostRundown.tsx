@@ -1,4 +1,4 @@
-import { getJobCost, getJobsTotalCost } from '@lib/deeploy-utils';
+import { formatUsdc, getJobCost, getJobsTotalCost } from '@lib/deeploy-utils';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import { SmallTag } from '@shared/SmallTag';
 import { DraftJob } from '@typedefs/deeploys';
@@ -26,7 +26,7 @@ export default function JobsCostRundown({
 
                     <div className="row gap-4">
                         <div className="compact min-w-20">Payment</div>
-                        <div className="compact min-w-16 text-right">Cost ($)</div>
+                        <div className="compact min-w-20 text-right">Cost ($)</div>
                     </div>
                 </div>
             }
@@ -34,7 +34,7 @@ export default function JobsCostRundown({
                 <div className="row compact justify-between">
                     <div>Total Cost ($)</div>
 
-                    <div className="text-primary">${parseFloat(getJobsTotalCost(jobs).toFixed(2))}</div>
+                    <div className="text-primary">${formatUsdc(getJobsTotalCost(jobs))}</div>
                 </div>
             }
         >
@@ -53,9 +53,7 @@ export default function JobsCostRundown({
                                     {job.paymentAndDuration.paymentMonthsCount > 1 ? 's' : ''}
                                 </SmallTag>
                             </div>
-                            <div className="text-primary compact min-w-16 text-right">
-                                ${parseFloat(getJobCost(job).toFixed(2))}
-                            </div>
+                            <div className="text-primary compact min-w-20 text-right">${formatUsdc(getJobCost(job))}</div>
                         </div>
                     </div>
                 );

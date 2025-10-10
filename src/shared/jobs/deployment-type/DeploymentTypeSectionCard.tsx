@@ -29,10 +29,9 @@ function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean })
                 type: 'worker',
                 image: 'node:22',
                 repositoryUrl: '',
-                repositoryVisibility: 'private',
                 username: '',
                 accessToken: '',
-                workerCommands: [{ command: '' }],
+                workerCommands: [{ command: 'npm install' }, { command: 'npm build' }, { command: 'npm start' }],
             });
         }
     };

@@ -1,3 +1,5 @@
+import { APPLICATION_TYPES } from '@data/applicationTypes';
+import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { z } from 'zod';
 import { JobType } from '../typedefs/deeploys';
 import { genericAppDeploymentSchema, nativeAppDeploymentSchema, serviceAppDeploymentSchema } from './steps/deployment';
@@ -40,5 +42,24 @@ export const jobSchema = z
         (data) => ({
             message: `All ${data.specifications.targetNodesCount} target nodes must be specified`,
             path: ['deployment', 'targetNodes'],
+        }),
+    )
+    .refine(
+        (data) => {
+            // Port is optional if applicationType is 'Other' or if enableTunneling is 'False'
+            const isPortOptional =
+                data.specifications.applicationType === APPLICATION_TYPES[1] ||
+                data.deployment.enableTunneling === BOOLEAN_TYPES[1];
+
+            // If port is not optional, it must be provided
+            if (!isPortOptional && !data.deployment.port) {
+                return false;
+            }
+
+            return true;
+        },
+        (data) => ({
+            message: 'Value is required',
+            path: ['deployment', 'port'],
         }),
     );

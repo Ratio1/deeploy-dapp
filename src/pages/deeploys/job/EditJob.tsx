@@ -56,7 +56,7 @@ export default function EditJob() {
               serverAlias: string;
           }
         | undefined
-    >(undefined);
+    >();
 
     const job: RunningJobWithResources | undefined = (location.state as { job?: RunningJobWithResources })?.job;
     const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
@@ -186,7 +186,7 @@ export default function EditJob() {
                     </div>
                 </div>
 
-                <div className="col">
+                <div className="col gap-2">
                     {/* Error */}
                     <DeeployErrors type="update" errors={error ? [error] : []} />
 

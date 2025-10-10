@@ -109,7 +109,7 @@ export const DeeployFlowModal = forwardRef(
                     <ModalHeader></ModalHeader>
 
                     <ModalBody>
-                        <div className="col -mt-4 gap-2">
+                        <div className="col -mt-2 gap-2">
                             <DetailedAlert
                                 icon={<RiCheckDoubleLine />}
                                 title="Confirmation"

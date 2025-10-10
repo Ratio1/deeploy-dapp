@@ -2,23 +2,16 @@ import { fBI } from '@lib/utils';
 import CardWithItems from '@shared/jobs/projects/CardWithItems';
 import { UsdcValue } from '@shared/UsdcValue';
 import { RunningJob } from '@typedefs/deeploys';
-import _ from 'lodash';
 
-export default function ProjectStats({
-    runningJobs,
-    draftJobsCount,
-}: {
-    runningJobs: RunningJob[] | undefined;
-    draftJobsCount: number;
-}) {
+export default function ProjectStats({ runningJobs }: { runningJobs: RunningJob[] | undefined }) {
     if (!runningJobs || runningJobs.length === 0) {
         return null;
     }
 
     const items = [
         {
-            label: 'Total Jobs',
-            value: runningJobs.length + draftJobsCount,
+            label: 'Running Jobs',
+            value: runningJobs.length,
         },
         {
             label: 'Total Budget',
@@ -44,10 +37,10 @@ export default function ProjectStats({
                 />
             ),
         },
-        {
-            label: 'Last Execution Epoch',
-            value: Number(_.maxBy(runningJobs, 'lastExecutionEpoch')?.lastExecutionEpoch),
-        },
+        // {
+        //     label: 'Last Execution Epoch',
+        //     value: Number(_.maxBy(runningJobs, 'lastExecutionEpoch')?.lastExecutionEpoch),
+        // },
     ];
 
     return <CardWithItems items={items} />;

@@ -5,14 +5,14 @@ export default function JobPageLoading() {
         <div className="col w-full gap-6">
             <div className="row justify-between">
                 <Skeleton className="min-h-[38px] w-[420px] rounded-lg" />
-                <Skeleton className="min-h-[38px] w-[362px] rounded-lg" />
+                <Skeleton className="min-h-[38px] w-[210px] rounded-lg" />
             </div>
 
-            <Skeleton className="min-h-[80px] w-full rounded-lg" />
+            <Skeleton className="min-h-[120px] w-full rounded-lg" />
             <Skeleton className="min-h-[138px] w-full rounded-lg" />
             <Skeleton className="min-h-[116px] w-full rounded-lg" />
-            <Skeleton className="min-h-[356px] w-full rounded-lg" />
-            <Skeleton className="min-h-[162px] w-full rounded-lg" />
+            <Skeleton className="min-h-[456px] w-full rounded-lg" />
+            <Skeleton className="min-h-[190px] w-full rounded-lg" />
         </div>
     );
 }
