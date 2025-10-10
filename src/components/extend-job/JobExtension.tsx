@@ -200,7 +200,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
                 descriptionFN={(_jobsCount: number) => (
                     <div className="text-[15px]">
                         You'll need to confirm a <span className="text-primary font-medium">payment transaction</span> in order
-                        to extent your job.
+                        to extend your job.
                     </div>
                 )}
             />
