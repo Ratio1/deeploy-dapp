@@ -9,6 +9,7 @@ interface Props {
         key: string;
         label: string;
         description?: string;
+        isDisabled?: boolean;
         onPress: () => void;
     }[];
     isDisabled?: boolean;
@@ -69,6 +70,7 @@ export default function ContextMenuWithTrigger({ items, isDisabled, onOpenChange
                     e.stopPropagation();
                     e.preventDefault();
                 }}
+                disabledKeys={items.filter((item) => item.isDisabled).map((item) => item.key)}
             >
                 <DropdownSection className="mb-0 list-none">
                     {items.map((item) => (

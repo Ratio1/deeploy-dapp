@@ -9,7 +9,7 @@ import JobPageLoading from '@components/loading/JobPageLoading';
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
 import { Button } from '@heroui/button';
 import { deletePipeline, sendJobCommand } from '@lib/api/deeploy';
-import { getDevAddress, isUsingDevAddress } from '@lib/config';
+import { getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
@@ -296,24 +296,28 @@ export default function Job() {
                                     key: 'restart',
                                     label: 'Restart',
                                     description: 'Restarts all the job instances',
+                                    isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
                                     onPress: () => onJobCommand('RESTART'),
                                 },
                                 {
                                     key: 'stop',
                                     label: 'Stop',
                                     description: 'Stops all the job instances',
+                                    isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
                                     onPress: () => onJobCommand('STOP'),
                                 },
                                 {
                                     key: 'extend',
                                     label: 'Extend',
                                     description: 'Increase the duration of the job',
+                                    isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
                                     onPress: onExtendJob,
                                 },
                                 {
                                     key: 'edit',
                                     label: 'Edit',
                                     description: 'Modify the configuration of the job',
+                                    isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
                                     onPress: onEdit,
                                 },
                                 {
