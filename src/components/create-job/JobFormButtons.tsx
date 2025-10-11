@@ -97,7 +97,7 @@ function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEd
 
             {step < steps.length - 1 ? (
                 <Button type="button" color="primary" variant="solid" onPress={handleNextStep}>
-                    <div>{`Next: ${steps[step]}`}</div>
+                    <div>{`Next: ${steps[step + 1]}`}</div>
                 </Button>
             ) : customSubmitButton ? (
                 customSubmitButton

@@ -20,9 +20,10 @@ import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { RiBox3Line } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
 import z from 'zod';
+import ConfirmAndPay from './ConfirmAndPay';
 
 // 'Specifications' must be the first step in order to perform form validation
-const STEPS = ['Specifications', 'Deployment'];
+const STEPS = ['Specifications', 'Deployment', 'Confirm & Pay'];
 
 export default function JobEditFormWrapper({
     job,
@@ -187,6 +188,7 @@ export default function JobEditFormWrapper({
 
                             {step === 0 && <Specifications isEditingJob />}
                             {step === 1 && <Deployment isEditingJob />}
+                            {step === 2 && <ConfirmAndPay />}
 
                             <JobFormButtons
                                 steps={STEPS}

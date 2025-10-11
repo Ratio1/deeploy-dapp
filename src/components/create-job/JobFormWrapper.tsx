@@ -25,7 +25,7 @@ import { useParams } from 'react-router-dom';
 import { z } from 'zod';
 
 // 'Specifications' must be the first step in order to perform form validation
-const STEPS = ['Specifications', 'Payment & Duration', 'Deployment'];
+const STEPS = ['Specifications', 'Cost & Duration', 'Deployment'];
 
 function JobFormWrapper({ projectName, draftJobsCount }) {
     const { projectHash } = useParams();
