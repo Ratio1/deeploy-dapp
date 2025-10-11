@@ -2,7 +2,6 @@ import { config } from '@lib/config';
 import { addTimeFn, diffTimeFn } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
-import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import Expander from '@shared/Expander';
 import ItemWithLabel from '@shared/ItemWithLabel';
 import DetailedUsage from '@shared/projects/DetailedUsage';
@@ -10,6 +9,7 @@ import { SmallTag } from '@shared/SmallTag';
 import { RunningJobWithResources } from '@typedefs/deeploys';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import JobActions from '../JobActions';
 
 export default function RunningJobsList({
     cardHeader,
@@ -27,10 +27,6 @@ export default function RunningJobsList({
     const navigate = useNavigate();
 
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-
-    const onEdit = (job: RunningJobWithResources) => {
-        navigate(`${routePath.deeploys}/${routePath.job}/${job.id.toString()}/${routePath.edit}`, { state: { job } });
-    };
 
     return (
         <CompactCustomCard
@@ -85,16 +81,7 @@ export default function RunningJobsList({
 
                             {renderJob(job)}
 
-                            <ContextMenuWithTrigger
-                                items={[
-                                    {
-                                        key: 'edit',
-                                        label: 'Edit',
-                                        description: 'Modify the configuration of the job',
-                                        onPress: () => onEdit(job),
-                                    },
-                                ]}
-                            />
+                            <JobActions job={job} type="compact" />
                         </div>
 
                         {/* Details */}

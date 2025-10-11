@@ -7,15 +7,10 @@ import JobSpecifications from '@components/job/JobSpecifications';
 import JobStats from '@components/job/JobStats';
 import JobPageLoading from '@components/loading/JobPageLoading';
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
-import { Button } from '@heroui/button';
-import { deletePipeline, sendJobCommand } from '@lib/api/deeploy';
-import { getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
-import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import ActionButton from '@shared/ActionButton';
-import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
+import JobActions from '@shared/jobs/JobActions';
 import RefreshRequiredAlert from '@shared/jobs/RefreshRequiredAlert';
 import SupportFooter from '@shared/SupportFooter';
 import { Apps } from '@typedefs/deeployApi';
@@ -23,26 +18,20 @@ import { RunningJob, RunningJobWithDetails, RunningJobWithResources } from '@typ
 import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiArrowDownSLine, RiArrowLeftLine, RiCloseFill } from 'react-icons/ri';
+import { RiArrowLeftLine, RiCloseFill } from 'react-icons/ri';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
+import { usePublicClient } from 'wagmi';
 
 export default function Job() {
-    const { escrowContractAddress, formatRunningJobsWithDetails, fetchApps, setFetchAppsRequired } =
-        useDeploymentContext() as DeploymentContextType;
-    const { confirm } = useInteractionContext() as InteractionContextType;
+    const { escrowContractAddress, formatRunningJobsWithDetails, fetchApps } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
     const location = useLocation();
 
     const publicClient = usePublicClient();
-    const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
-    const { signMessageAsync } = useSignMessage();
     const { jobId } = useParams();
 
     const [isLoading, setLoading] = useState(true);
-    const [isActionOngoing, setActionOngoing] = useState(false);
-    const [isContextMenuOpen, setContextMenuOpen] = useState(false);
 
     const [job, setJob] = useState<RunningJobWithResources | undefined>();
     const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
@@ -113,158 +102,6 @@ export default function Job() {
         }
     };
 
-    const onEdit = () => {
-        navigate(routePath.edit, { state: { job } });
-    };
-
-    const onExtendJob = () => {
-        navigate(routePath.extend, { state: { job } });
-    };
-
-    const onJobCommand = async (command: 'RESTART' | 'STOP') => {
-        setActionOngoing(true);
-
-        try {
-            await buildAndSendAppRequest(command);
-            fetchJob();
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setActionOngoing(false);
-        }
-    };
-
-    const buildAndSendAppRequest = async (command: 'RESTART' | 'STOP') => {
-        if (!address) {
-            toast.error('Please connect your wallet.');
-            return;
-        }
-
-        const nonce = generateNonce();
-
-        const payload = {
-            app_id: job!.alias,
-            job_id: Number(job!.id),
-            command,
-            nonce,
-        };
-
-        const message = buildDeeployMessage(payload, 'Please sign this message for Deeploy: ');
-
-        const signature = await signMessageAsync({
-            account: address,
-            message,
-        });
-
-        const request = {
-            ...payload,
-            EE_ETH_SIGN: signature,
-            EE_ETH_SENDER: address,
-        };
-
-        const promise = sendJobCommand(request).then((response) => {
-            console.log(response);
-
-            if (!response || response.status === 'fail') {
-                throw new Error('Action failed.');
-            }
-        });
-
-        toast.promise(promise, {
-            loading: `${command === 'RESTART' ? 'Restarting' : 'Stopping'} job...    `,
-            success: <div>Job was {command === 'RESTART' ? 'restarted' : 'stopped'} successfully.</div>,
-            error: <div>Could not {command.toLowerCase()} job.</div>,
-        });
-
-        const response = await promise;
-        return response;
-    };
-
-    const onDeleteJob = async () => {
-        if (!job) {
-            return;
-        }
-
-        const confirmed = await confirm(
-            <div className="col gap-3">
-                Are you sure you want to delete the following job?
-                <div className="font-medium">{job.alias}</div>
-                <div>This will stop and permanently remove the job from all running nodes.</div>
-                <div>
-                    You'll need to sign <span className="text-primary font-medium">one message</span> in order to delete your
-                    job.
-                </div>
-            </div>,
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
-        setActionOngoing(true);
-
-        try {
-            await buildAndSendDeleteRequest();
-            setFetchAppsRequired(true);
-            navigate(`${routePath.deeploys}/${routePath.project}/${job.projectHash}`);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setActionOngoing(false);
-        }
-    };
-
-    const buildAndSendDeleteRequest = async () => {
-        if (!address) {
-            toast.error('Please connect your wallet.');
-            throw new Error('Wallet not connected');
-        }
-
-        if (!job) {
-            throw new Error('Job data unavailable');
-        }
-
-        const nonce = generateNonce();
-
-        const payload = {
-            app_id: job.alias,
-            job_id: Number(job.id),
-            project_id: job.projectHash,
-            nonce,
-        };
-
-        const message = buildDeeployMessage(payload, 'Please sign this message for Deeploy: ');
-
-        const signature = await signMessageAsync({
-            account: address,
-            message,
-        });
-
-        const request = {
-            ...payload,
-            EE_ETH_SIGN: signature,
-            EE_ETH_SENDER: address,
-        };
-
-        const promise = deletePipeline(request).then((response) => {
-            console.log(response);
-
-            if (!response || response.status === 'fail') {
-                throw new Error(response?.error || 'Action failed.');
-            }
-
-            return response;
-        });
-
-        toast.promise(promise, {
-            loading: 'Deleting job…',
-            success: <div>Job deleted successfully.</div>,
-            error: <div>Could not delete job.</div>,
-        });
-
-        await promise;
-    };
-
     if (isLoading || !job) {
         return <JobPageLoading />;
     }
@@ -282,7 +119,6 @@ export default function Job() {
                             color="default"
                             as={Link}
                             to={`${routePath.deeploys}/${routePath.project}/${job.projectHash}`}
-                            isDisabled={isActionOngoing}
                         >
                             <div className="row gap-1.5">
                                 <RiArrowLeftLine className="text-lg" />
@@ -290,58 +126,13 @@ export default function Job() {
                             </div>
                         </ActionButton>
 
-                        <ContextMenuWithTrigger
-                            items={[
-                                {
-                                    key: 'restart',
-                                    label: 'Restart',
-                                    description: 'Restarts all the job instances',
-                                    isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
-                                    onPress: () => onJobCommand('RESTART'),
-                                },
-                                {
-                                    key: 'stop',
-                                    label: 'Stop',
-                                    description: 'Stops all the job instances',
-                                    isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
-                                    onPress: () => onJobCommand('STOP'),
-                                },
-                                {
-                                    key: 'extend',
-                                    label: 'Extend',
-                                    description: 'Increase the duration of the job',
-                                    isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
-                                    onPress: onExtendJob,
-                                },
-                                {
-                                    key: 'edit',
-                                    label: 'Edit',
-                                    description: 'Modify the configuration of the job',
-                                    isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
-                                    onPress: onEdit,
-                                },
-                                {
-                                    key: 'delete',
-                                    label: 'Delete',
-                                    description: 'Removes the job from all running nodes',
-                                    onPress: onDeleteJob,
-                                },
-                            ]}
-                            onOpenChange={(isOpen) => {
-                                setContextMenuOpen(isOpen);
+                        <JobActions
+                            job={job}
+                            type="button"
+                            onJobDeleted={() => {
+                                navigate(`${routePath.deeploys}/${routePath.project}/${job.projectHash}`);
                             }}
-                        >
-                            <Button color="primary" isDisabled={isActionOngoing} disableRipple>
-                                <div className="row -mr-1 gap-1">
-                                    <div className="compact">Actions</div>
-                                    <RiArrowDownSLine
-                                        className={`mt-0.5 text-xl transition-transform duration-200${
-                                            isContextMenuOpen ? 'rotate-180' : ''
-                                        }`}
-                                    />
-                                </div>
-                            </Button>
-                        </ContextMenuWithTrigger>
+                        />
                     </div>
                 </div>
 
@@ -355,7 +146,7 @@ export default function Job() {
                         </div>
 
                         <div className="col gap-0.5">
-                            <div className="font-medium">Your job was updated successfully by the following server: </div>
+                            <div className="font-medium">Your job was successfully updated by the following server: </div>
                             <div className="font-medium text-green-600">{updatingServerAlias}</div>
                         </div>
                     </div>
