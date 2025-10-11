@@ -4,20 +4,20 @@ import GenericSpecifications from './specifications/GenericSpecifications';
 import NativeSpecifications from './specifications/NativeSpecifications';
 import ServiceSpecifications from './specifications/ServiceSpecifications';
 
-function Specifications() {
+function Specifications({ isEditingJob }: { isEditingJob?: boolean }) {
     const { watch } = useFormContext();
     const jobType = watch('jobType');
 
     const getComponent = () => {
         switch (jobType) {
             case JobType.Generic:
-                return <GenericSpecifications />;
+                return <GenericSpecifications isEditingJob={isEditingJob} />;
 
             case JobType.Native:
-                return <NativeSpecifications />;
+                return <NativeSpecifications isEditingJob={isEditingJob} />;
 
             case JobType.Service:
-                return <ServiceSpecifications />;
+                return <ServiceSpecifications isEditingJob={isEditingJob} />;
 
             default:
                 return <div>Error: Unknown specifications type</div>;

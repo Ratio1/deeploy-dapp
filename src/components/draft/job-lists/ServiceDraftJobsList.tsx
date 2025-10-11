@@ -63,7 +63,7 @@ export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[]
                 );
             }}
             onAddJob={() => {
-                setStep(2);
+                setStep(0);
                 setJobType(JobType.Service);
             }}
         />

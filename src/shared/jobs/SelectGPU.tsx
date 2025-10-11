@@ -9,9 +9,10 @@ import { Controller, useFormContext } from 'react-hook-form';
 
 interface Props {
     jobType: JobType;
+    isDisabled?: boolean;
 }
 
-export default function SelectGPU({ jobType }: Props) {
+export default function SelectGPU({ jobType, isDisabled }: Props) {
     const { control, watch, setValue } = useFormContext();
 
     const containerOrWorkerTypeValue: string = watch(
@@ -71,6 +72,7 @@ export default function SelectGPU({ jobType }: Props) {
                                     </div>
                                 ));
                             }}
+                            isDisabled={isDisabled}
                             isClearable
                         >
                             {(option: any) => {

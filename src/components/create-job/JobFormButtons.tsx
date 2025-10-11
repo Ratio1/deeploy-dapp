@@ -7,9 +7,13 @@ import SubmitButton from '../../shared/SubmitButton';
 
 interface Props {
     steps: string[];
+    cancelLabel: string;
+    onCancel?: () => void;
+    customSubmitButton?: React.ReactNode;
+    isEditingJob?: boolean;
 }
 
-function JobFormButtons({ steps }: Props) {
+function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEditingJob }: Props) {
     const { step, setStep, setJobType } = useDeploymentContext() as DeploymentContextType;
 
     const { trigger, getValues, formState } = useFormContext();
@@ -29,7 +33,7 @@ function JobFormButtons({ steps }: Props) {
 
     const handleNextStep = async () => {
         // Only the Specifications step requires intermediate validation
-        if (step === 2) {
+        if (step === 0) {
             const isValid = await isSpecificationsStepValid();
 
             if (!isValid) {
@@ -63,29 +67,40 @@ function JobFormButtons({ steps }: Props) {
                     color="default"
                     variant="flat"
                     onPress={() => {
-                        if (step > 2) {
+                        if (step > 0) {
                             setStep(step - 1);
                         } else {
-                            setJobType(undefined);
+                            if (onCancel) {
+                                onCancel();
+                            } else {
+                                setJobType(undefined);
+                            }
                         }
                     }}
                 >
-                    <div>Go back: {steps[step - 2]}</div>
+                    <div>Go back: {step === 0 ? cancelLabel : steps[step - 1]}</div>
                 </Button>
 
-                {step === 4 && (
+                {step === steps.length - 1 && !isEditingJob && (
                     <>
-                        <Button className="hover:opacity-70!" color="default" variant="bordered" onPress={handleDownloadJson}>
+                        <Button
+                            className="border-slate-200 hover:opacity-70!"
+                            color="default"
+                            variant="bordered"
+                            onPress={handleDownloadJson}
+                        >
                             <div>Download JSON</div>
                         </Button>
                     </>
                 )}
             </div>
 
-            {step < steps.length ? (
+            {step < steps.length - 1 ? (
                 <Button type="button" color="primary" variant="solid" onPress={handleNextStep}>
                     <div>{`Next: ${steps[step]}`}</div>
                 </Button>
+            ) : customSubmitButton ? (
+                customSubmitButton
             ) : (
                 <SubmitButton label="Add Job" />
             )}

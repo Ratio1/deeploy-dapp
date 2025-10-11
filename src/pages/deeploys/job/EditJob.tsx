@@ -63,7 +63,7 @@ export default function EditJob() {
 
     // Init
     useEffect(() => {
-        setStep(2);
+        setStep(0);
     }, []);
 
     useEffect(() => {

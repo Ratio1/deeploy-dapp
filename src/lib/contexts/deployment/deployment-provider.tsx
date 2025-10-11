@@ -25,7 +25,7 @@ export const DeploymentProvider = ({ children }) => {
     const [apps, setApps] = useState<Apps>({});
 
     const [jobType, setJobType] = useState<JobType | undefined>();
-    const [step, setStep] = useState<number>(1);
+    const [step, setStep] = useState<number>(0);
     const [projectPage, setProjectPage] = useState<ProjectPage>(ProjectPage.Overview);
     const [projectOverviewTab, setProjectOverviewTab] = useState<ProjectOverviewTab>('runningJobs');
 

@@ -24,8 +24,8 @@ import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { z } from 'zod';
 
-// The 'Project' step is included in order to render the back button
-const STEPS = ['Project', 'Specifications', 'Payment & Duration', 'Deployment'];
+// 'Specifications' must be the first step in order to perform form validation
+const STEPS = ['Specifications', 'Payment & Duration', 'Deployment'];
 
 function JobFormWrapper({ projectName, draftJobsCount }) {
     const { projectHash } = useParams();
@@ -198,11 +198,11 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
                         <div className="col gap-6">
                             <JobFormHeader steps={STEPS} />
 
-                            {step === 2 && <Specifications />}
-                            {step === 3 && <PaymentAndDuration />}
-                            {step === 4 && <Deployment />}
+                            {step === 0 && <Specifications />}
+                            {step === 1 && <PaymentAndDuration />}
+                            {step === 2 && <Deployment />}
 
-                            <JobFormButtons steps={STEPS} />
+                            <JobFormButtons steps={STEPS} cancelLabel="Project" />
                         </div>
                     </div>
                 </div>

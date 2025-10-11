@@ -1,6 +1,5 @@
 import JobFormButtons from '@components/create-job/JobFormButtons';
 import Deployment from '@components/create-job/steps/Deployment';
-import PaymentAndDuration from '@components/create-job/steps/PaymentAndDuration';
 import Specifications from '@components/create-job/steps/Specifications';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
@@ -13,14 +12,17 @@ import { boolToBooleanType, titlecase } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
 import { deploymentSchema } from '@schemas/job-edit';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
+import SubmitButton from '@shared/SubmitButton';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { useEffect } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
+import { RiBox3Line } from 'react-icons/ri';
+import { useNavigate } from 'react-router-dom';
 import z from 'zod';
 
-// The first step is included in order to render the back button
-const STEPS = ['Job', 'Specifications', 'Payment & Duration', 'Deployment'];
+// 'Specifications' must be the first step in order to perform form validation
+const STEPS = ['Specifications', 'Deployment'];
 
 export default function JobEditFormWrapper({
     job,
@@ -32,6 +34,7 @@ export default function JobEditFormWrapper({
     isLoading: boolean;
 }) {
     const { step } = useDeploymentContext() as DeploymentContextType;
+    const navigate = useNavigate();
 
     const config: JobConfig = job.config;
 
@@ -167,41 +170,37 @@ export default function JobEditFormWrapper({
         console.log(errors);
     };
 
-    // const getComponent = () => {
-    //     switch (job.resources.jobType) {
-    //         case JobType.Generic:
-    //             return <GenericDeployment isEditingJob />;
-
-    //         case JobType.Native:
-    //             return <NativeDeployment isEditingJob />;
-
-    //         case JobType.Service:
-    //             return <ServiceDeployment isEditingJob />;
-
-    //         default:
-    //             return <div>Error: Unknown deployment type</div>;
-    //     }
-    // };
-
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit, onError)} key={`${job.resources.jobType}-edit`}>
                 <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
-                            <JobFormHeaderInterface steps={STEPS}>
+                            <JobFormHeaderInterface
+                                steps={STEPS}
+                                onCancel={() => {
+                                    navigate(-1);
+                                }}
+                            >
                                 <div className="big-title">Edit Job</div>
                             </JobFormHeaderInterface>
 
-                            {step === 2 && <Specifications />}
-                            {step === 3 && <PaymentAndDuration />}
-                            {step === 4 && <Deployment isEditingJob />}
+                            {step === 0 && <Specifications isEditingJob />}
+                            {step === 1 && <Deployment isEditingJob />}
 
-                            <JobFormButtons steps={STEPS} />
-
-                            {/* <div className="center-all gap-2">
-                                <SubmitButton label="Update Job" icon={<RiBox3Line />} isLoading={isLoading} />
-                            </div> */}
+                            <JobFormButtons
+                                steps={STEPS}
+                                cancelLabel="Job"
+                                onCancel={() => {
+                                    navigate(-1);
+                                }}
+                                customSubmitButton={
+                                    <div className="center-all gap-2">
+                                        <SubmitButton label="Update Job" icon={<RiBox3Line />} isLoading={isLoading} />
+                                    </div>
+                                }
+                                isEditingJob
+                            />
                         </div>
                     </div>
                 </div>

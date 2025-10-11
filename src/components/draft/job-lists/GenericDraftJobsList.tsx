@@ -65,7 +65,7 @@ export default function GenericDraftJobsList({ jobs }: { jobs: GenericDraftJob[]
                 );
             }}
             onAddJob={() => {
-                setStep(2);
+                setStep(0);
                 setJobType(JobType.Generic);
             }}
         />

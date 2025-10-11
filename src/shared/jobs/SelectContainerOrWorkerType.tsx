@@ -11,9 +11,10 @@ interface Props {
     name: string;
     label: string;
     options: ContainerOrWorkerType[];
+    isDisabled?: boolean;
 }
 
-export default function SelectContainerOrWorkerType({ name, label, options }: Props) {
+export default function SelectContainerOrWorkerType({ name, label, options, isDisabled }: Props) {
     const { control, watch, trigger } = useFormContext();
     const containerOrWorkerTypeName: string = watch(name);
     const targetNodesCount: number = watch('specifications.targetNodesCount');
@@ -55,6 +56,7 @@ export default function SelectContainerOrWorkerType({ name, label, options }: Pr
                                     </div>
                                 ));
                             }}
+                            isDisabled={isDisabled}
                         >
                             {(option: any) => {
                                 const containerType = option as ContainerOrWorkerType;
