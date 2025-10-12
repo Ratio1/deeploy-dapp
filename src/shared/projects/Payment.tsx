@@ -156,7 +156,7 @@ export default function Payment({
 
             const args = jobs.map((job) => {
                 const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-                const expiryDate = addDays(new Date(), job.paymentAndDuration.duration * 30);
+                const expiryDate = addDays(new Date(), job.costAndDuration.duration * 30);
                 const durationInEpochs = diffTimeFn(expiryDate, new Date());
                 const lastExecutionEpoch = BigInt(getCurrentEpoch() + durationInEpochs);
 

@@ -45,8 +45,8 @@ export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[]
 
                         <div className={widthClasses[1]}>
                             <SmallTag>
-                                {serviceJob.paymentAndDuration.duration} month
-                                {serviceJob.paymentAndDuration.duration > 1 ? 's' : ''}
+                                {serviceJob.costAndDuration.duration} month
+                                {serviceJob.costAndDuration.duration > 1 ? 's' : ''}
                             </SmallTag>
                         </div>
 

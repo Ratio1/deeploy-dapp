@@ -46,11 +46,11 @@ export const getJobCost = (job: DraftJob): bigint => {
 
     const jobCostPerEpoch = getJobCostPer24h(containerOrWorkerType, gpuType, targetNodesCount);
 
-    const epochs = 1 + job.paymentAndDuration.paymentMonthsCount * 30;
+    const epochs = 1 + job.costAndDuration.paymentMonthsCount * 30;
 
     // +1 to account for the current ongoing epoch
     const baseCost = jobCostPerEpoch * BigInt(epochs);
-    const discountPercentage = getDiscountPercentage(job.paymentAndDuration.paymentMonthsCount);
+    const discountPercentage = getDiscountPercentage(job.costAndDuration.paymentMonthsCount);
 
     if (discountPercentage <= 0) {
         return baseCost;

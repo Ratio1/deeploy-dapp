@@ -47,7 +47,7 @@ export default function JobEditFormWrapper({
             jobTags: job.jobTags ?? [],
             nodesCountries: job.jobTags ? job.jobTags.filter((tag) => tag.startsWith('CT:')) : [],
         },
-        paymentAndDuration: {
+        costAndDuration: {
             duration: 1,
             paymentMonthsCount: 1,
         },

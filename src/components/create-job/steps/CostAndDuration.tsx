@@ -8,29 +8,29 @@ import {
     getGpuType,
     getJobCostPer24h,
 } from '@lib/deeploy-utils';
-import PaymentAndDurationInterface from '@shared/jobs/PaymentAndDurationInterface';
-import { JobPaymentAndDuration, JobSpecifications, JobType } from '@typedefs/deeploys';
+import CostAndDurationInterface from '@shared/jobs/CostAndDurationInterface';
+import { JobCostAndDuration, JobSpecifications, JobType } from '@typedefs/deeploys';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-function PaymentAndDuration() {
+function CostAndDuration() {
     const { watch, setValue } = useFormContext();
 
     const jobType: JobType = watch('jobType');
     const specifications: JobSpecifications = watch('specifications');
-    const paymentAndDuration: JobPaymentAndDuration = watch('paymentAndDuration');
+    const costAndDuration: JobCostAndDuration = watch('costAndDuration');
 
     const targetNodesCount: number = specifications.targetNodesCount;
 
     const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(jobType, specifications);
 
-    const [duration, setDuration] = useState<number>(paymentAndDuration.duration); // In months
+    const [duration, setDuration] = useState<number>(costAndDuration.duration); // In months
 
     const onDurationChange = (value: number) => {
         setDuration(value);
 
-        setValue('paymentAndDuration.duration', value);
-        setValue('paymentAndDuration.paymentMonthsCount', value);
+        setValue('costAndDuration.duration', value);
+        setValue('costAndDuration.paymentMonthsCount', value);
     };
 
     const costPer24h = getJobCostPer24h(
@@ -73,7 +73,7 @@ function PaymentAndDuration() {
     ];
 
     return (
-        <PaymentAndDurationInterface
+        <CostAndDurationInterface
             costPer24h={costPer24h}
             summaryItems={summaryItems}
             initialDuration={12}
@@ -83,4 +83,4 @@ function PaymentAndDuration() {
     );
 }
 
-export default PaymentAndDuration;
+export default CostAndDuration;

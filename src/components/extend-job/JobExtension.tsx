@@ -7,7 +7,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { addTimeFn, diffTimeFn, formatUsdc } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
-import PaymentAndDurationInterface from '@shared/jobs/PaymentAndDurationInterface';
+import CostAndDurationInterface from '@shared/jobs/CostAndDurationInterface';
 import { SmallTag } from '@shared/SmallTag';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { addDays, max } from 'date-fns';
@@ -174,7 +174,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
     return (
         <>
             <div className="col gap-6">
-                <PaymentAndDurationInterface
+                <CostAndDurationInterface
                     costPer24h={costPer24h}
                     summaryItems={summaryItems}
                     initialDuration={12}

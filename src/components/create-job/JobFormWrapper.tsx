@@ -1,7 +1,7 @@
 import JobFormButtons from '@components/create-job/JobFormButtons';
 import JobFormHeader from '@components/create-job/JobFormHeader';
 import Deployment from '@components/create-job/steps/Deployment';
-import PaymentAndDuration from '@components/create-job/steps/PaymentAndDuration';
+import CostAndDuration from '@components/create-job/steps/CostAndDuration';
 import Specifications from '@components/create-job/steps/Specifications';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
@@ -40,7 +40,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             jobTags: [...(account!.applicantType === 'company' ? [KYB_TAG] : [])],
             nodesCountries: [],
         },
-        paymentAndDuration: {
+        costAndDuration: {
             duration: 1,
             paymentMonthsCount: 1,
         },
@@ -165,7 +165,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
                 projectHash,
                 jobType: data.jobType,
                 specifications: data.specifications,
-                paymentAndDuration: data.paymentAndDuration,
+                costAndDuration: data.costAndDuration,
                 deployment: {
                     ...data.deployment,
                     jobAlias: data.deployment.jobAlias.toLowerCase(),
@@ -199,7 +199,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
                             <JobFormHeader steps={STEPS} />
 
                             {step === 0 && <Specifications />}
-                            {step === 1 && <PaymentAndDuration />}
+                            {step === 1 && <CostAndDuration />}
                             {step === 2 && <Deployment />}
 
                             <JobFormButtons steps={STEPS} cancelLabel="Project" />

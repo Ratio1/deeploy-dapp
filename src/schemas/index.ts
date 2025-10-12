@@ -3,12 +3,12 @@ import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { z } from 'zod';
 import { JobType } from '../typedefs/deeploys';
 import { genericAppDeploymentSchema, nativeAppDeploymentSchema, serviceAppDeploymentSchema } from './steps/deployment';
-import { paymentAndDurationSchema } from './steps/paymentAndDuration';
+import { costAndDurationSchema } from './steps/costAndDuration';
 import { genericSpecificationsSchema, nativeSpecificationsSchema, serviceSpecificationsSchema } from './steps/specifications';
 
 const jobBaseSchema = z.object({
     jobType: z.enum([JobType.Generic, JobType.Native, JobType.Service]),
-    paymentAndDuration: paymentAndDurationSchema,
+    costAndDuration: costAndDurationSchema,
 });
 
 export const jobSchema = z

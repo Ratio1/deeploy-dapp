@@ -54,8 +54,8 @@ type ServiceJobSpecifications = BaseJobSpecifications & {
 type JobSpecifications = BaseJobSpecifications &
     (GenericJobSpecifications | NativeJobSpecifications | ServiceJobSpecifications);
 
-// Payment and Duration
-type JobPaymentAndDuration = {
+// Cost and Duration
+type JobCostAndDuration = {
     duration: number;
     paymentMonthsCount: number;
 };
@@ -160,7 +160,7 @@ type BaseDraftJob = {
     projectHash: string;
     jobType: JobType;
     specifications: JobSpecifications;
-    paymentAndDuration: JobPaymentAndDuration;
+    costAndDuration: JobCostAndDuration;
     deployment: JobDeployment;
 };
 
@@ -240,7 +240,7 @@ export type {
     GenericJobDeployment,
     GenericJobSpecifications,
     JobDeployment,
-    JobPaymentAndDuration,
+    JobCostAndDuration,
     JobSpecifications,
     NativeDraftJob,
     NativeJobDeployment,

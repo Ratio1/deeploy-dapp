@@ -45,8 +45,8 @@ export default function GenericDraftJobsList({ jobs }: { jobs: GenericDraftJob[]
 
                         <div className={widthClasses[1]}>
                             <SmallTag>
-                                {genericJob.paymentAndDuration.duration} month
-                                {genericJob.paymentAndDuration.duration > 1 ? 's' : ''}
+                                {genericJob.costAndDuration.duration} month
+                                {genericJob.costAndDuration.duration > 1 ? 's' : ''}
                             </SmallTag>
                         </div>
 

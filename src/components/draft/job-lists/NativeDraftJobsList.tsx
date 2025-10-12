@@ -43,8 +43,8 @@ export default function NativeDraftJobsList({ jobs }: { jobs: NativeDraftJob[] }
 
                         <div className={widthClasses[1]}>
                             <SmallTag>
-                                {nativeJob.paymentAndDuration.duration} month
-                                {nativeJob.paymentAndDuration.duration > 1 ? 's' : ''}
+                                {nativeJob.costAndDuration.duration} month
+                                {nativeJob.costAndDuration.duration > 1 ? 's' : ''}
                             </SmallTag>
                         </div>
 
