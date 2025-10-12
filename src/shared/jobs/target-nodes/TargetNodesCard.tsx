@@ -52,7 +52,7 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
                 <div className="col mt-2 gap-4">
                     <div className="text-[17px] leading-none font-medium">Spare Target Nodes</div>
 
-                    <SpareNodesSection isEditingJob={isEditingJob} />
+                    <SpareNodesSection />
 
                     <div className="col gap-2.5">
                         <Checkbox

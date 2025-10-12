@@ -50,7 +50,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         deployment: {
             autoAssign: true,
             targetNodes: [{ address: '' }],
-            spareNodes: [],
+            spareNodes: [{ address: '' }],
             allowReplicationInTheWild: true,
             enableTunneling: BOOLEAN_TYPES[0],
         },

@@ -5,7 +5,7 @@ import VariableSectionIndex from '../VariableSectionIndex';
 import VariableSectionRemove from '../VariableSectionRemove';
 
 // This component assumes it's being used in the deployment step
-export default function SpareNodesSection({ isEditingJob }: { isEditingJob?: boolean }) {
+export default function SpareNodesSection() {
     const { control, formState, trigger } = useFormContext();
     const { fields, append, remove } = useFieldArray({
         control,
@@ -59,20 +59,19 @@ export default function SpareNodesSection({ isEditingJob }: { isEditingJob?: boo
                                                     specificError?.message ||
                                                     (errors?.root?.message && index === 0 ? errors.root.message : undefined)
                                                 }
-                                                isDisabled={isEditingJob}
                                             />
                                         );
                                     }}
                                 />
 
-                                {!isEditingJob && <VariableSectionRemove onClick={() => remove(index)} />}
+                                <VariableSectionRemove onClick={() => remove(index)} />
                             </div>
                         );
                     })}
                 </div>
             )}
 
-            {fields.length < 25 && !isEditingJob && (
+            {fields.length < 25 && (
                 <div
                     className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
                     onClick={() => append({ address: '' })}

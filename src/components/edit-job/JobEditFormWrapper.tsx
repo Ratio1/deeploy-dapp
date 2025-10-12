@@ -63,7 +63,10 @@ export default function JobEditFormWrapper({
         deployment: {
             jobAlias: job.alias,
             autoAssign: false,
-            targetNodes: job.nodes.map((address) => ({ address })),
+            targetNodes: [
+                ...job.nodes.map((address) => ({ address })),
+                ...Array.from({ length: Number(job.numberOfNodesRequested) - job.nodes.length }, () => ({ address: '' })),
+            ],
             spareNodes: !job.spareNodes ? [] : job.spareNodes.map((address) => ({ address })),
             allowReplicationInTheWild: job.allowReplicationInTheWild ?? false,
             enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED),

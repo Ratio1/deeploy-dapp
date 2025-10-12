@@ -48,8 +48,6 @@ function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEd
         downloadDataAsJson(formData, `job-${formData.jobType}-${Date.now()}.json`);
     };
 
-    const isNextDisabled = disableNextStep && step === 0;
-
     return (
         <div className="row w-full justify-between">
             <div className="row gap-2">
@@ -87,7 +85,7 @@ function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEd
             </div>
 
             {step < steps.length - 1 ? (
-                <Button type="button" color="primary" variant="solid" onPress={handleNextStep} isDisabled={isNextDisabled}>
+                <Button type="button" color="primary" variant="solid" onPress={handleNextStep} isDisabled={disableNextStep}>
                     <div>{`Next: ${steps[step + 1].title}`}</div>
                 </Button>
             ) : customSubmitButton ? (
