@@ -11,9 +11,17 @@ interface Props {
     onCancel?: () => void;
     customSubmitButton?: React.ReactNode;
     isEditingJob?: boolean;
+    disableNextStep?: boolean;
 }
 
-function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEditingJob }: Props) {
+function JobFormButtons({
+    steps,
+    cancelLabel,
+    onCancel,
+    customSubmitButton,
+    isEditingJob,
+    disableNextStep = false,
+}: Props) {
     const { step, setStep, setJobType } = useDeploymentContext() as DeploymentContextType;
 
     const { trigger, getValues, formState } = useFormContext();
@@ -59,6 +67,8 @@ function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEd
         downloadDataAsJson(formData, `job-${formData.jobType}-${Date.now()}.json`);
     };
 
+    const isNextDisabled = disableNextStep && step === 0;
+
     return (
         <div className="row w-full justify-between">
             <div className="row gap-2">
@@ -96,7 +106,13 @@ function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEd
             </div>
 
             {step < steps.length - 1 ? (
-                <Button type="button" color="primary" variant="solid" onPress={handleNextStep}>
+                <Button
+                    type="button"
+                    color="primary"
+                    variant="solid"
+                    onPress={handleNextStep}
+                    isDisabled={isNextDisabled}
+                >
                     <div>{`Next: ${steps[step + 1]}`}</div>
                 </Button>
             ) : customSubmitButton ? (

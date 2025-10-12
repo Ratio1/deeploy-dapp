@@ -35,11 +35,11 @@ export default function JobActions({
     const [isActionOngoing, setActionOngoing] = useState(false);
 
     const onEdit = () => {
-        navigate(routePath.edit, { state: { job } });
+        navigate(`${routePath.deeploys}/${routePath.job}/${job.id}/${routePath.edit}`, { state: { job } });
     };
 
     const onExtendJob = () => {
-        navigate(routePath.extend, { state: { job } });
+        navigate(`${routePath.deeploys}/${routePath.job}/${job.id}/${routePath.extend}`, { state: { job } });
     };
 
     const onJobCommand = async (command: 'RESTART' | 'STOP') => {

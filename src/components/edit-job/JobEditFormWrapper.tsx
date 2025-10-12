@@ -28,7 +28,7 @@ const STEPS = ['Specifications', 'Deployment', 'Confirm & Pay'];
 export default function JobEditFormWrapper({
     job,
     onSubmit,
-    isLoading, // TODO: Use
+    isLoading,
 }: {
     job: RunningJobWithResources;
     onSubmit: (data: z.infer<typeof deploymentSchema>) => Promise<void>;
@@ -38,6 +38,9 @@ export default function JobEditFormWrapper({
     const navigate = useNavigate();
 
     const config: JobConfig = job.config;
+
+    // Used only when editing a job
+    const [isTargetNodesCountLower, setTargetNodesCountLower] = useState<boolean>(false);
 
     const getBaseSchemaDefaults = () => ({
         jobType: job.resources.jobType,
@@ -170,7 +173,14 @@ export default function JobEditFormWrapper({
         const defaults = getDefaultSchemaValues() as z.infer<typeof jobSchema>;
         setDefaultValues(defaults);
         form.reset(defaults);
+        setTargetNodesCountLower(false);
     }, [job, form]);
+
+    useEffect(() => {
+        if (step !== 0 && isTargetNodesCountLower) {
+            setTargetNodesCountLower(false);
+        }
+    }, [isTargetNodesCountLower, step]);
 
     const onError = (errors: FieldErrors<z.infer<typeof jobSchema>>) => {
         console.log(errors);
@@ -191,7 +201,13 @@ export default function JobEditFormWrapper({
                                 <div className="big-title">Edit Job</div>
                             </JobFormHeaderInterface>
 
-                            {step === 0 && <Specifications isEditingJob />}
+                            {step === 0 && (
+                                <Specifications
+                                    isEditingJob
+                                    initialTargetNodesCount={defaultValues.specifications.targetNodesCount}
+                                    onTargetNodesCountDecrease={setTargetNodesCountLower}
+                                />
+                            )}
                             {step === 1 && <Deployment isEditingJob />}
                             {step === 2 && <ConfirmAndPay defaultValues={defaultValues} />}
 
@@ -207,6 +223,7 @@ export default function JobEditFormWrapper({
                                     </div>
                                 }
                                 isEditingJob
+                                disableNextStep={isTargetNodesCountLower}
                             />
                         </div>
                     </div>

@@ -4,12 +4,22 @@ import { SlateCard } from '@shared/cards/SlateCard';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { JobType } from '@typedefs/deeploys';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { RiErrorWarningLine } from 'react-icons/ri';
 import JobTags from './target-nodes/JobTags';
 
-export default function SpecsNodesSection({ jobType }: { jobType: JobType }) {
+export default function SpecsNodesSection({
+    jobType,
+    isEditingJob = false,
+    initialTargetNodesCount,
+    onTargetNodesCountDecrease,
+}: {
+    jobType: JobType;
+    isEditingJob?: boolean;
+    initialTargetNodesCount?: number;
+    onTargetNodesCountDecrease?: (blocked: boolean) => void;
+}) {
     const { watch, setValue } = useFormContext();
 
     const containerOrWorkerTypeName: string = watch(
@@ -19,6 +29,8 @@ export default function SpecsNodesSection({ jobType }: { jobType: JobType }) {
     const targetNodesCount: number = watch('specifications.targetNodesCount');
 
     const [containerOrWorkerType, setContainerOrWorkerType] = useState<ContainerOrWorkerType>();
+    const initialTargetNodesCountRef = useRef<number | undefined>(initialTargetNodesCount);
+    const [showDecreaseWarning, setShowDecreaseWarning] = useState<boolean>(false);
 
     /**
      * Skip the first setValue call to modify 'specifications.targetNodesCount' based on minimal balancing
@@ -35,19 +47,46 @@ export default function SpecsNodesSection({ jobType }: { jobType: JobType }) {
     }, [containerOrWorkerTypeName]);
 
     useEffect(() => {
+        if (typeof initialTargetNodesCount === 'number') {
+            initialTargetNodesCountRef.current = initialTargetNodesCount;
+            return;
+        }
+
+        if (initialTargetNodesCountRef.current === undefined && typeof targetNodesCount === 'number') {
+            initialTargetNodesCountRef.current = targetNodesCount;
+        }
+    }, [initialTargetNodesCount, targetNodesCount]);
+
+    useEffect(() => {
         if (containerOrWorkerType && containerOrWorkerType.minimalBalancing) {
             if (skipFirstMutation) {
                 setSkipFirstMutation(false);
                 return;
-            } else {
-                setValue('specifications.targetNodesCount', containerOrWorkerType.minimalBalancing);
             }
+
+            setValue('specifications.targetNodesCount', containerOrWorkerType.minimalBalancing);
         }
     }, [containerOrWorkerType, setValue]);
 
-    const hasWarning = !containerOrWorkerType
+    useEffect(() => {
+        const initialValue = initialTargetNodesCountRef.current;
+        const isValueLower = isEditingJob && !!initialValue && targetNodesCount < initialValue;
+
+        setShowDecreaseWarning((previous) => {
+            if (previous === isValueLower) {
+                return previous;
+            }
+
+            return isValueLower;
+        });
+
+        onTargetNodesCountDecrease?.(isValueLower);
+    }, [isEditingJob, onTargetNodesCountDecrease, targetNodesCount]);
+
+    const hasMinimalBalancingWarning = !containerOrWorkerType
         ? false
         : !!targetNodesCount && targetNodesCount < containerOrWorkerType.minimalBalancing;
+    const hasWarning = hasMinimalBalancingWarning || showDecreaseWarning;
 
     return (
         <SlateCard>
@@ -72,23 +111,43 @@ export default function SpecsNodesSection({ jobType }: { jobType: JobType }) {
                         />
                     </div>
 
-                    {hasWarning && (
-                        <div className="text-warning-800 bg-warning-100 col gap-2 rounded-md p-3 text-sm">
-                            <div className="row gap-1.5">
-                                <RiErrorWarningLine className="mb-px text-[20px]" />
+                    <div className="col gap-2">
+                        {showDecreaseWarning && (
+                            <div className="text-warning-800 bg-warning-100 col gap-2 rounded-md p-3 text-sm">
+                                <div className="row gap-1.5">
+                                    <RiErrorWarningLine className="text-[20px]" />
+
+                                    <div>Decreasing the target nodes count is disabled.</div>
+                                </div>
 
                                 <div>
-                                    The minimal recommended balancing is{' '}
-                                    <span className="font-medium">{containerOrWorkerType.minimalBalancing} nodes</span>.
+                                    Please use at least{' '}
+                                    <span className="font-medium">
+                                        {initialTargetNodesCountRef.current ?? targetNodesCount ?? '-'}
+                                    </span>{' '}
+                                    target nodes for this running job.
                                 </div>
                             </div>
+                        )}
 
-                            <div>
-                                A target nodes count of <span className="font-medium">{targetNodesCount}</span> is not
-                                recommended/supported. Proceed at your own risk.
+                        {hasMinimalBalancingWarning && (
+                            <div className="text-warning-800 bg-warning-100 col gap-2 rounded-md p-3 text-sm">
+                                <div className="row gap-1.5">
+                                    <RiErrorWarningLine className="text-[20px]" />
+
+                                    <div>
+                                        The minimal recommended balancing is{' '}
+                                        <span className="font-medium">{containerOrWorkerType.minimalBalancing} nodes</span>.
+                                    </div>
+                                </div>
+
+                                <div>
+                                    A target nodes count of <span className="font-medium">{targetNodesCount}</span> is not
+                                    recommended/supported. Proceed at your own risk.
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
 
                     <JobTags />
                 </div>

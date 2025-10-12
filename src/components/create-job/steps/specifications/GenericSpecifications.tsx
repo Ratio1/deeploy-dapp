@@ -6,7 +6,15 @@ import SelectGPU from '@shared/jobs/SelectGPU';
 import SpecsNodesSection from '@shared/jobs/SpecsNodesSection';
 import { JobType } from '@typedefs/deeploys';
 
-export default function GenericSpecifications({ isEditingJob }: { isEditingJob?: boolean }) {
+export default function GenericSpecifications({
+    isEditingJob,
+    initialTargetNodesCount,
+    onTargetNodesCountDecrease,
+}: {
+    isEditingJob?: boolean;
+    initialTargetNodesCount?: number;
+    onTargetNodesCountDecrease?: (blocked: boolean) => void;
+}) {
     return (
         <div className="col gap-6">
             <SlateCard title="Container Resources">
@@ -26,7 +34,12 @@ export default function GenericSpecifications({ isEditingJob }: { isEditingJob?:
                 />
             </SlateCard>
 
-            <SpecsNodesSection jobType={JobType.Generic} />
+            <SpecsNodesSection
+                jobType={JobType.Generic}
+                isEditingJob={isEditingJob}
+                initialTargetNodesCount={initialTargetNodesCount}
+                onTargetNodesCountDecrease={onTargetNodesCountDecrease}
+            />
         </div>
     );
 }
