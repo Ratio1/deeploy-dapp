@@ -8,22 +8,24 @@ import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import {
     buildDeeployMessage,
-    formatGenericJobUpdatePayload,
-    formatNativeJobUpdatePayload,
-    formatServiceJobUpdatePayload,
+    formatGenericJobPayload,
+    formatNativeJobPayload,
+    formatServiceJobPayload,
 } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
-import { deploymentSchema } from '@schemas/job-edit';
+import { jobSchema } from '@schemas/index';
 import ActionButton from '@shared/ActionButton';
 import DeeployErrors from '@shared/jobs/DeeployErrors';
 import SupportFooter from '@shared/SupportFooter';
 import {
     GenericJobDeployment,
-    JobDeployment,
+    GenericJobSpecifications,
     JobType,
     NativeJobDeployment,
+    NativeJobSpecifications,
     RunningJobWithResources,
     ServiceJobDeployment,
+    ServiceJobSpecifications,
 } from '@typedefs/deeploys';
 import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
 import { useEffect, useRef, useState } from 'react';
@@ -72,30 +74,37 @@ export default function EditJob() {
         }
     }, [job]);
 
-    const onSubmit = async (data: z.infer<typeof deploymentSchema>) => {
+    const onSubmit = async (data: z.infer<typeof jobSchema>) => {
         setError(undefined);
         setLoading(true);
         deeployFlowModalRef.current?.open(1);
-
-        const jobDeployment = {
-            ...data.deployment,
-            jobAlias: data.deployment.jobAlias.toLowerCase(),
-        } as JobDeployment;
 
         try {
             let payload: Record<string, any> = {};
 
             switch (data.jobType) {
                 case JobType.Generic:
-                    payload = formatGenericJobUpdatePayload(job!, jobDeployment as GenericJobDeployment);
+                    payload = formatGenericJobPayload(
+                        job!.resources.containerOrWorkerType,
+                        data.specifications as GenericJobSpecifications,
+                        data.deployment as GenericJobDeployment,
+                    );
                     break;
 
                 case JobType.Native:
-                    payload = formatNativeJobUpdatePayload(job!, jobDeployment as NativeJobDeployment);
+                    payload = formatNativeJobPayload(
+                        job!.resources.containerOrWorkerType,
+                        data.specifications as NativeJobSpecifications,
+                        data.deployment as NativeJobDeployment,
+                    );
                     break;
 
                 case JobType.Service:
-                    payload = formatServiceJobUpdatePayload(job!, jobDeployment as ServiceJobDeployment);
+                    payload = formatServiceJobPayload(
+                        job!.resources.containerOrWorkerType,
+                        data.specifications as ServiceJobSpecifications,
+                        data.deployment as ServiceJobDeployment,
+                    );
                     break;
 
                 default:

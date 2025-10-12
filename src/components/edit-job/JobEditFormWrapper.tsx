@@ -10,7 +10,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { boolToBooleanType, titlecase } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
-import { deploymentSchema } from '@schemas/job-edit';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import SubmitButton from '@shared/SubmitButton';
 import { JobConfig } from '@typedefs/deeployApi';
@@ -37,7 +36,7 @@ export default function JobEditFormWrapper({
     isLoading,
 }: {
     job: RunningJobWithResources;
-    onSubmit: (data: z.infer<typeof deploymentSchema>) => Promise<void>;
+    onSubmit: (data: z.infer<typeof jobSchema>) => Promise<void>;
     isLoading: boolean;
 }) {
     const { step } = useDeploymentContext() as DeploymentContextType;
@@ -51,7 +50,7 @@ export default function JobEditFormWrapper({
     const getBaseSchemaDefaults = () => ({
         jobType: job.resources.jobType,
         specifications: {
-            applicationType: APPLICATION_TYPES[0], // TODO: Get from job
+            applicationType: APPLICATION_TYPES[0], // TODO: Get from job after the API update
             targetNodesCount: Number(job.numberOfNodesRequested),
             jobTags: job.jobTags ?? [],
             nodesCountries: job.jobTags ? job.jobTags.filter((tag) => tag.startsWith('CT:')) : [],

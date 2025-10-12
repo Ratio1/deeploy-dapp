@@ -212,7 +212,7 @@ type RunningJobWithDetails = RunningJob & {
     projectName?: string;
     allowReplicationInTheWild: boolean | undefined; // Older jobs might not have this field
     spareNodes: R1Address[] | undefined; // Older jobs might not have this field
-    jobTags: string[] | undefined; // Older jobs might not have this field
+    jobTags: string[];
     nodes: R1Address[];
     instances: {
         nodeAddress: R1Address;
@@ -239,8 +239,8 @@ export type {
     GenericDraftJob,
     GenericJobDeployment,
     GenericJobSpecifications,
-    JobDeployment,
     JobCostAndDuration,
+    JobDeployment,
     JobSpecifications,
     NativeDraftJob,
     NativeJobDeployment,

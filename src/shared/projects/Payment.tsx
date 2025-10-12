@@ -12,9 +12,9 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import {
     buildDeeployMessage,
     diffTimeFn,
-    formatGenericJobPayload,
-    formatNativeJobPayload,
-    formatServiceJobPayload,
+    formatGenericDraftJobPayload,
+    formatNativeDraftJobPayload,
+    formatServiceDraftJobPayload,
     formatUsdc,
     getContainerOrWorkerType,
     getJobsTotalCost,
@@ -90,15 +90,15 @@ export default function Payment({
 
             switch (job.jobType) {
                 case JobType.Generic:
-                    payload = formatGenericJobPayload(job as GenericDraftJob);
+                    payload = formatGenericDraftJobPayload(job as GenericDraftJob);
                     break;
 
                 case JobType.Native:
-                    payload = formatNativeJobPayload(job as NativeDraftJob);
+                    payload = formatNativeDraftJobPayload(job as NativeDraftJob);
                     break;
 
                 case JobType.Service:
-                    payload = formatServiceJobPayload(job as ServiceDraftJob);
+                    payload = formatServiceDraftJobPayload(job as ServiceDraftJob);
                     break;
 
                 default:
