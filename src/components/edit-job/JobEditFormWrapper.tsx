@@ -56,10 +56,11 @@ export default function JobEditFormWrapper({
         },
         deployment: {
             jobAlias: job.alias,
-            enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED),
+            autoAssign: false,
             targetNodes: job.nodes.map((address) => ({ address })),
             spareNodes: !job.spareNodes ? [] : job.spareNodes.map((address) => ({ address })),
             allowReplicationInTheWild: job.allowReplicationInTheWild ?? false,
+            enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED),
             tunnelingToken: !config.CLOUDFLARE_TOKEN ? undefined : config.CLOUDFLARE_TOKEN,
         },
     });
@@ -96,6 +97,7 @@ export default function JobEditFormWrapper({
             envVars: getEnvVars(),
             dynamicEnvVars: getDynamicEnvVars(),
             volumes: getVolumes(),
+            fileVolumes: getFileVolumes(),
         },
     });
 
@@ -140,6 +142,16 @@ export default function JobEditFormWrapper({
 
     const getVolumes = () => {
         return !config.VOLUMES ? [] : Object.entries(config.VOLUMES).map(([key, value]) => ({ key, value }));
+    };
+
+    const getFileVolumes = () => {
+        return !config.FILE_VOLUMES
+            ? []
+            : Object.entries(config.FILE_VOLUMES).map(([key, value]) => ({
+                  name: key,
+                  mountingPoint: value.mounting_point,
+                  content: value.content,
+              }));
     };
 
     const getDefaultSchemaValues = () => {

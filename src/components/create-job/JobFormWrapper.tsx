@@ -1,7 +1,7 @@
 import JobFormButtons from '@components/create-job/JobFormButtons';
 import JobFormHeader from '@components/create-job/JobFormHeader';
-import Deployment from '@components/create-job/steps/Deployment';
 import CostAndDuration from '@components/create-job/steps/CostAndDuration';
+import Deployment from '@components/create-job/steps/Deployment';
 import Specifications from '@components/create-job/steps/Specifications';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
@@ -45,10 +45,11 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             paymentMonthsCount: 1,
         },
         deployment: {
-            enableTunneling: BOOLEAN_TYPES[0],
+            autoAssign: true,
             targetNodes: [{ address: '' }],
             spareNodes: [{ address: '' }],
             allowReplicationInTheWild: true,
+            enableTunneling: BOOLEAN_TYPES[0],
         },
     });
 

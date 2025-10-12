@@ -3,7 +3,7 @@ import { Switch } from '@heroui/switch';
 import { SlateCard } from '@shared/cards/SlateCard';
 import TargetNodesSection from '@shared/jobs/target-nodes/TargetNodesSection';
 import { SmallTag } from '@shared/SmallTag';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { RiAsterisk } from 'react-icons/ri';
 import SpareNodesSection from './SpareNodesSection';
@@ -11,9 +11,9 @@ import SpareNodesSection from './SpareNodesSection';
 function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
     const { watch } = useFormContext();
 
-    const [autoAssign, setAutoAssign] = useState(true);
     const { setValue } = useFormContext();
 
+    const autoAssign: boolean = watch('deployment.autoAssign');
     const targetNodesCount: number = watch('specifications.targetNodesCount');
 
     const allowReplicationInTheWild: boolean = watch('deployment.allowReplicationInTheWild');
@@ -37,15 +37,21 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
             title="Target Nodes"
             label={
                 !isEditingJob ? (
-                    <Switch isSelected={autoAssign} onValueChange={setAutoAssign} size="sm">
+                    <Switch
+                        isSelected={autoAssign}
+                        onValueChange={(value) => {
+                            setValue('deployment.autoAssign', value);
+                        }}
+                        size="sm"
+                    >
                         <SmallTag variant={autoAssign ? 'blue' : 'default'}>Auto-Assignment</SmallTag>
                     </Switch>
                 ) : null
             }
         >
-            <TargetNodesSection autoAssign={isEditingJob ? false : autoAssign} />
+            <TargetNodesSection autoAssign={autoAssign} />
 
-            {(!autoAssign || isEditingJob) && (
+            {!autoAssign && (
                 <div className="col mt-2 gap-4">
                     <div className="text-[17px] leading-none font-medium">Spare Target Nodes</div>
 

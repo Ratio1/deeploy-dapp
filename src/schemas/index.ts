@@ -2,8 +2,8 @@ import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { z } from 'zod';
 import { JobType } from '../typedefs/deeploys';
-import { genericAppDeploymentSchema, nativeAppDeploymentSchema, serviceAppDeploymentSchema } from './steps/deployment';
 import { costAndDurationSchema } from './steps/costAndDuration';
+import { genericAppDeploymentSchema, nativeAppDeploymentSchema, serviceAppDeploymentSchema } from './steps/deployment';
 import { genericSpecificationsSchema, nativeSpecificationsSchema, serviceSpecificationsSchema } from './steps/specifications';
 
 const jobBaseSchema = z.object({
@@ -32,15 +32,16 @@ export const jobSchema = z
     .refine(
         (data) => {
             // If auto-assignment is disabled, all nodes must be specified
-            const targetNodesCount = data.specifications.targetNodesCount;
-            const targetNodesLength = data.deployment.targetNodes.filter(
+            const autoAssign: boolean = data.deployment.autoAssign;
+            const targetNodesCount: number = data.specifications.targetNodesCount;
+            const targetNodesLength: number = data.deployment.targetNodes.filter(
                 (node: { address: string }) => node.address !== '',
             ).length;
 
-            return targetNodesLength === 0 || targetNodesLength === targetNodesCount;
+            return (autoAssign && targetNodesLength === 0) || (!autoAssign && targetNodesLength === targetNodesCount);
         },
         (data) => ({
-            message: `All ${data.specifications.targetNodesCount} target nodes must be specified`,
+            message: 'All target nodes must be specified',
             path: ['deployment', 'targetNodes'],
         }),
     )

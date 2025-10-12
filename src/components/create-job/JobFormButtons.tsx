@@ -14,14 +14,7 @@ interface Props {
     disableNextStep?: boolean;
 }
 
-function JobFormButtons({
-    steps,
-    cancelLabel,
-    onCancel,
-    customSubmitButton,
-    isEditingJob,
-    disableNextStep = false,
-}: Props) {
+function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEditingJob, disableNextStep = false }: Props) {
     const { step, setStep, setJobType } = useDeploymentContext() as DeploymentContextType;
 
     const { trigger, getValues, formState } = useFormContext();
@@ -45,6 +38,16 @@ function JobFormButtons({
             const isValid = await isSpecificationsStepValid();
 
             if (!isValid) {
+                return;
+            }
+        }
+
+        if (step === 1) {
+            const isStepValid = await trigger();
+            console.log('isStepValid', isStepValid);
+
+            if (!isStepValid) {
+                console.log(formState.errors);
                 return;
             }
         }
@@ -106,13 +109,7 @@ function JobFormButtons({
             </div>
 
             {step < steps.length - 1 ? (
-                <Button
-                    type="button"
-                    color="primary"
-                    variant="solid"
-                    onPress={handleNextStep}
-                    isDisabled={isNextDisabled}
-                >
+                <Button type="button" color="primary" variant="solid" onPress={handleNextStep} isDisabled={isNextDisabled}>
                     <div>{`Next: ${steps[step + 1]}`}</div>
                 </Button>
             ) : customSubmitButton ? (
