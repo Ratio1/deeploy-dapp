@@ -14,18 +14,26 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
     const { setValue } = useFormContext();
 
     const autoAssign: boolean = watch('deployment.autoAssign');
+    const targetNodes = watch('deployment.targetNodes');
     const targetNodesCount: number = watch('specifications.targetNodesCount');
 
     const allowReplicationInTheWild: boolean = watch('deployment.allowReplicationInTheWild');
 
     useEffect(() => {
-        if (autoAssign && !isEditingJob) {
-            setValue(
-                'deployment.targetNodes',
-                Array.from({ length: targetNodesCount }, () => ({ address: '' })),
-            );
+        if (isEditingJob) {
+            setValue('deployment.targetNodes', [
+                ...targetNodes,
+                ...Array.from({ length: targetNodesCount - targetNodes.length }, () => ({ address: '' })),
+            ]);
+        } else {
+            if (autoAssign) {
+                setValue(
+                    'deployment.targetNodes',
+                    Array.from({ length: targetNodesCount }, () => ({ address: '' })),
+                );
 
-            setValue('deployment.spareNodes', []);
+                setValue('deployment.spareNodes', []);
+            }
         }
     }, [autoAssign, targetNodesCount]);
 

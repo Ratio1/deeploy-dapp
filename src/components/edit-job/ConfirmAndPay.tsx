@@ -39,6 +39,11 @@ export default function ConfirmAndPay({ defaultValues }: { defaultValues: JobFor
     const costAndDuration = useWatch({ control, name: 'costAndDuration' });
     const deployment = useWatch({ control, name: 'deployment' });
 
+    const targetNodesCountChanged =
+        (specifications?.targetNodesCount ?? defaultValues.specifications.targetNodesCount) !==
+        defaultValues.specifications.targetNodesCount;
+    const currentTargetNodesCount = specifications?.targetNodesCount ?? defaultValues.specifications.targetNodesCount;
+
     const stepsStatus = useMemo(
         () =>
             [
@@ -47,10 +52,19 @@ export default function ConfirmAndPay({ defaultValues }: { defaultValues: JobFor
                     label: 'Specifications',
                     currentValue: specifications ?? defaultValues.specifications,
                     dirtyValue: (dirtyFields as Record<string, unknown> | undefined)?.specifications,
+                    children: targetNodesCountChanged
+                        ? [
+                              {
+                                  label: 'Target Nodes Count',
+                                  previousValue: defaultValues.specifications.targetNodesCount,
+                                  currentValue: currentTargetNodesCount,
+                              },
+                          ]
+                        : undefined,
                 },
                 {
                     key: 'costAndDuration' as StepKey,
-                    label: 'Cost & Duration',
+                    label: 'Duration',
                     currentValue: costAndDuration ?? defaultValues.costAndDuration,
                     dirtyValue: (dirtyFields as Record<string, unknown> | undefined)?.costAndDuration,
                 },
@@ -60,7 +74,7 @@ export default function ConfirmAndPay({ defaultValues }: { defaultValues: JobFor
                     currentValue: deployment ?? defaultValues.deployment,
                     dirtyValue: (dirtyFields as Record<string, unknown> | undefined)?.deployment,
                 },
-            ].map(({ key, label, currentValue, dirtyValue }) => {
+            ].map(({ key, label, currentValue, dirtyValue, children }) => {
                 const isDirty = hasDirtyFields(dirtyValue);
                 const hasChanged = !isEqual(currentValue, defaultValues[key]);
 
@@ -68,16 +82,13 @@ export default function ConfirmAndPay({ defaultValues }: { defaultValues: JobFor
                     key,
                     label,
                     modified: isDirty && hasChanged,
+                    children: children && isDirty && hasChanged ? children : undefined,
                 };
             }),
         [costAndDuration, defaultValues, deployment, dirtyFields, specifications],
     );
 
     const hasModifiedSteps = stepsStatus.some((step) => step.modified);
-    const targetNodesCountChanged =
-        (specifications?.targetNodesCount ?? defaultValues.specifications.targetNodesCount) !==
-        defaultValues.specifications.targetNodesCount;
-    const currentTargetNodesCount = specifications?.targetNodesCount ?? defaultValues.specifications.targetNodesCount;
 
     return (
         <div className="col gap-6">
@@ -91,24 +102,43 @@ export default function ConfirmAndPay({ defaultValues }: { defaultValues: JobFor
 
                     <div className="col gap-2">
                         {stepsStatus.map((step) => (
-                            <div className="row items-center gap-2" key={step.key}>
-                                <SmallTag variant={step.modified ? 'orange' : 'default'}>
-                                    {step.modified ? 'Modified' : 'Unchanged'}
-                                </SmallTag>
+                            <div className="col gap-1" key={step.key}>
+                                <div className="row gap-2">
+                                    <SmallTag variant={step.modified ? 'blue' : 'default'}>
+                                        {step.modified ? 'Modified' : 'Unchanged'}
+                                    </SmallTag>
 
-                                <div className="compact">{step.label}</div>
+                                    <div className="compact">{step.label}</div>
+                                </div>
+
+                                {step.children && (
+                                    <div className="col gap-1 pl-4.5">
+                                        {step.children.map((child) => {
+                                            const trend = child.currentValue > child.previousValue ? 'increased' : 'decreased';
+
+                                            return (
+                                                <div className="row gap-2" key={child.label}>
+                                                    {/* Tree Line */}
+                                                    <div className="row relative mr-2 ml-2.5">
+                                                        <div className="h-8 w-0.5 bg-slate-300"></div>
+                                                        <div className="h-0.5 w-5 bg-slate-300"></div>
+                                                        <div className="bg-slate-75 absolute bottom-0 left-0 h-[15px] w-0.5"></div>
+                                                    </div>
+
+                                                    <SmallTag variant="blue">Modified</SmallTag>
+
+                                                    <div className="compact">
+                                                        {child.label} ({trend} from {child.previousValue} to{' '}
+                                                        {child.currentValue})
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
-
-                    {targetNodesCountChanged && (
-                        <div className="row items-center gap-2 rounded-md bg-orange-50 px-3 py-2 text-sm text-orange-700">
-                            <SmallTag variant="orange">Target Nodes</SmallTag>
-                            <div>
-                                Count changed from {defaultValues.specifications.targetNodesCount} to {currentTargetNodesCount}
-                            </div>
-                        </div>
-                    )}
                 </div>
             </SlateCard>
         </div>
