@@ -25,10 +25,7 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
                 Array.from({ length: targetNodesCount }, () => ({ address: '' })),
             );
 
-            setValue(
-                'deployment.spareNodes',
-                Array.from({ length: 1 }, () => ({ address: '' })),
-            );
+            setValue('deployment.spareNodes', []);
         }
     }, [autoAssign, targetNodesCount]);
 

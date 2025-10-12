@@ -24,8 +24,11 @@ import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { z } from 'zod';
 
-// 'Specifications' must be the first step in order to perform form validation
-const STEPS = ['Specifications', 'Cost & Duration', 'Deployment'];
+const STEPS = [
+    { title: 'Specifications', validationName: 'specifications' },
+    { title: 'Cost & Duration', validationName: 'costAndDuration' },
+    { title: 'Deployment', validationName: 'deployment' },
+];
 
 function JobFormWrapper({ projectName, draftJobsCount }) {
     const { projectHash } = useParams();
@@ -36,7 +39,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
     const getBaseSchemaDefaults = () => ({
         specifications: {
             applicationType: APPLICATION_TYPES[0],
-            targetNodesCount: 2, // Generic and Native jobs always have a minimal balancing of 2 nodes, Services are locked to 1 node
+            targetNodesCount: jobType === JobType.Generic || jobType === JobType.Native ? 2 : 1, // Generic and Native jobs always have a minimal balancing of 2 nodes, Services are locked to 1 node
             jobTags: [...(account!.applicantType === 'company' ? [KYB_TAG] : [])],
             nodesCountries: [],
         },
@@ -47,7 +50,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         deployment: {
             autoAssign: true,
             targetNodes: [{ address: '' }],
-            spareNodes: [{ address: '' }],
+            spareNodes: [],
             allowReplicationInTheWild: true,
             enableTunneling: BOOLEAN_TYPES[0],
         },
@@ -197,7 +200,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
                 <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
-                            <JobFormHeader steps={STEPS} />
+                            <JobFormHeader steps={STEPS.map((step) => step.title)} />
 
                             {step === 0 && <Specifications />}
                             {step === 1 && <CostAndDuration />}

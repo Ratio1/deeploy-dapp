@@ -40,7 +40,7 @@ export const jobSchema = z
 
             return (autoAssign && targetNodesLength === 0) || (!autoAssign && targetNodesLength === targetNodesCount);
         },
-        (data) => ({
+        (_data) => ({
             message: 'All target nodes must be specified',
             path: ['deployment', 'targetNodes'],
         }),
@@ -59,7 +59,7 @@ export const jobSchema = z
 
             return true;
         },
-        (data) => ({
+        (_data) => ({
             message: 'Value is required',
             path: ['deployment', 'port'],
         }),

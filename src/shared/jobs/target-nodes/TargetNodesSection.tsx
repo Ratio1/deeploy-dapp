@@ -46,17 +46,22 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                         control={control}
                                         render={({ field, fieldState }) => {
                                             const specificError = entryError?.address;
-                                            const hasError = !!fieldState.error || !!specificError || !!errors?.root?.message;
+                                            const hasError =
+                                                !!fieldState.error ||
+                                                !!specificError ||
+                                                !!errors?.root?.message ||
+                                                !!errors?.message;
 
                                             return (
                                                 <StyledInput
                                                     placeholder="0x_ai"
                                                     value={field.value ?? ''}
-                                                    onChange={(e) => field.onChange(e.target.value)}
+                                                    onChange={(e) => {
+                                                        field.onChange(e.target.value);
+                                                    }}
                                                     onBlur={async () => {
                                                         field.onBlur();
 
-                                                        // Trigger validation for the entire array to check for duplicate addresses
                                                         if (fields.length > 1) {
                                                             await trigger('deployment.targetNodes');
                                                         }
@@ -65,7 +70,10 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                                     errorMessage={
                                                         fieldState.error?.message ||
                                                         specificError?.message ||
-                                                        (errors?.root?.message && index === 0 ? errors.root.message : undefined)
+                                                        (errors?.root?.message && index === 0
+                                                            ? errors.root.message
+                                                            : undefined) ||
+                                                        errors?.message
                                                     }
                                                 />
                                             );

@@ -9,11 +9,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-interface Props {
-    steps: string[];
-}
-
-function JobFormHeader({ steps }: Props) {
+function JobFormHeader({ steps }: { steps: string[] }) {
     const { jobType, getProjectName } = useDeploymentContext() as DeploymentContextType;
 
     const { projectHash } = useParams();

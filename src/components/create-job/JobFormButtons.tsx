@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import SubmitButton from '../../shared/SubmitButton';
 
 interface Props {
-    steps: string[];
+    steps: { title: string; validationName?: string }[];
     cancelLabel: string;
     onCancel?: () => void;
     customSubmitButton?: React.ReactNode;
@@ -19,35 +19,13 @@ function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEd
 
     const { trigger, getValues, formState } = useFormContext();
 
-    const isSpecificationsStepValid = async (): Promise<boolean> => {
-        const isValid = await trigger('specifications.targetNodesCount');
-        const formData = getValues();
-
-        console.log(`Specifications step valid: ${isValid}`, formData);
-
-        if (formState.errors.specifications) {
-            console.log('Specifications errors:', formState.errors.specifications);
-        }
-
-        return isValid;
-    };
-
     const handleNextStep = async () => {
-        // Only the Specifications step requires intermediate validation
-        if (step === 0) {
-            const isValid = await isSpecificationsStepValid();
-
-            if (!isValid) {
-                return;
-            }
-        }
-
-        if (step === 1) {
-            const isStepValid = await trigger();
-            console.log('isStepValid', isStepValid);
+        // Validate every step except the last one which will be triggered by form submission
+        if (steps[step].validationName && step < steps.length - 1) {
+            const isStepValid = await trigger(steps[step].validationName);
+            console.log(`${steps[step].title} - step valid: ${isStepValid}`, formState.errors);
 
             if (!isStepValid) {
-                console.log(formState.errors);
                 return;
             }
         }
@@ -91,7 +69,7 @@ function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEd
                         }
                     }}
                 >
-                    <div>Go back: {step === 0 ? cancelLabel : steps[step - 1]}</div>
+                    <div>Go back: {step === 0 ? cancelLabel : steps[step - 1].title}</div>
                 </Button>
 
                 {step === steps.length - 1 && !isEditingJob && (
@@ -110,7 +88,7 @@ function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEd
 
             {step < steps.length - 1 ? (
                 <Button type="button" color="primary" variant="solid" onPress={handleNextStep} isDisabled={isNextDisabled}>
-                    <div>{`Next: ${steps[step + 1]}`}</div>
+                    <div>{`Next: ${steps[step + 1].title}`}</div>
                 </Button>
             ) : customSubmitButton ? (
                 customSubmitButton

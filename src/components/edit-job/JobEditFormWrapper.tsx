@@ -22,8 +22,14 @@ import { useNavigate } from 'react-router-dom';
 import z from 'zod';
 import ConfirmAndPay from './ConfirmAndPay';
 
-// 'Specifications' must be the first step in order to perform form validation
-const STEPS = ['Specifications', 'Deployment', 'Confirm & Pay'];
+const STEPS: {
+    title: string;
+    validationName?: string;
+}[] = [
+    { title: 'Specifications', validationName: 'specifications' },
+    { title: 'Deployment', validationName: 'deployment' },
+    { title: 'Confirm & Pay' },
+];
 
 export default function JobEditFormWrapper({
     job,
@@ -205,7 +211,7 @@ export default function JobEditFormWrapper({
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
                             <JobFormHeaderInterface
-                                steps={STEPS}
+                                steps={STEPS.map((step) => step.title)}
                                 onCancel={() => {
                                     navigate(-1);
                                 }}
