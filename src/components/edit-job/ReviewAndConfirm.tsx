@@ -1,9 +1,11 @@
-import { formatUsdc } from '@lib/deeploy-utils';
+import { ContainerOrWorkerType } from '@data/containerResources';
+import { formatUsdc, getContainerOrWorkerType, getGpuType, getJobCostPer24h } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
 import { UsdcValue } from '@shared/UsdcValue';
+import { GenericJobSpecifications, JobSpecifications, JobType, NativeJobSpecifications } from '@typedefs/deeploys';
 import isEqual from 'lodash/isEqual';
 import { useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
@@ -46,6 +48,40 @@ export default function ReviewAndConfirm({ defaultValues }: { defaultValues: Job
         (specifications?.targetNodesCount ?? defaultValues.specifications.targetNodesCount) !==
         defaultValues.specifications.targetNodesCount;
     const currentTargetNodesCount = specifications?.targetNodesCount ?? defaultValues.specifications.targetNodesCount;
+
+    const additionalCost = useMemo(() => {
+        if (!targetNodesCountChanged || currentTargetNodesCount <= defaultValues.specifications.targetNodesCount) {
+            return 0n;
+        }
+
+        const jobType = defaultValues.jobType;
+        const currentSpecs = specifications ?? defaultValues.specifications;
+        const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
+            jobType,
+            currentSpecs as JobSpecifications,
+        );
+        const gpuType =
+            jobType === JobType.Generic || jobType === JobType.Native
+                ? getGpuType(currentSpecs as GenericJobSpecifications | NativeJobSpecifications)
+                : undefined;
+
+        const newCostPer24h = getJobCostPer24h(containerOrWorkerType, gpuType, currentTargetNodesCount);
+        const currentCostPer24h = getJobCostPer24h(
+            containerOrWorkerType,
+            gpuType,
+            defaultValues.specifications.targetNodesCount,
+        );
+
+        const deltaPer24h = newCostPer24h - currentCostPer24h;
+        if (deltaPer24h <= 0n) {
+            return 0n;
+        }
+
+        const paymentMonthsCount = costAndDuration?.paymentMonthsCount ?? defaultValues.costAndDuration.paymentMonthsCount;
+        const epochs = BigInt(paymentMonthsCount * 30);
+
+        return deltaPer24h * epochs;
+    }, [costAndDuration?.paymentMonthsCount, currentTargetNodesCount, defaultValues, specifications, targetNodesCountChanged]);
 
     const stepsStatus = useMemo(
         () =>
@@ -102,7 +138,7 @@ export default function ReviewAndConfirm({ defaultValues }: { defaultValues: Job
 
                         <div className="row gap-1.5">
                             <div className="text-lg font-semibold">
-                                <UsdcValue value={formatUsdc(0n).toLocaleString()} isAproximate />
+                                <UsdcValue value={formatUsdc(additionalCost).toLocaleString()} isAproximate />
                             </div>
                         </div>
                     </div>
