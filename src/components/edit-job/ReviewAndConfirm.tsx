@@ -1,6 +1,9 @@
+import { formatUsdc } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
+import { BorderedCard } from '@shared/cards/BorderedCard';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
+import { UsdcValue } from '@shared/UsdcValue';
 import isEqual from 'lodash/isEqual';
 import { useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
@@ -29,7 +32,7 @@ const hasDirtyFields = (dirtyValue: unknown): boolean => {
     return false;
 };
 
-export default function ConfirmAndPay({ defaultValues }: { defaultValues: JobFormValues }) {
+export default function ReviewAndConfirm({ defaultValues }: { defaultValues: JobFormValues }) {
     const {
         control,
         formState: { dirtyFields },
@@ -92,6 +95,20 @@ export default function ConfirmAndPay({ defaultValues }: { defaultValues: JobFor
 
     return (
         <div className="col gap-6">
+            <BorderedCard isLight={false}>
+                <div className="py-2">
+                    <div className="row justify-between">
+                        <div className="text-sm font-medium text-slate-500">Total Amount Due</div>
+
+                        <div className="row gap-1.5">
+                            <div className="text-lg font-semibold">
+                                <UsdcValue value={formatUsdc(0n).toLocaleString()} isAproximate />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </BorderedCard>
+
             <SlateCard title="Summary of Changes">
                 <div className="col gap-3">
                     <div className="text-sm text-slate-600">

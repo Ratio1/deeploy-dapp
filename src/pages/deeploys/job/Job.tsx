@@ -83,6 +83,7 @@ export default function Job() {
             const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails([runningJob], appsOverride);
 
             if (!resources || runningJobsWithDetails.length !== 1) {
+                console.error({ resources, runningJobsWithDetails });
                 throw new Error('Invalid job, unable to fetch resources.');
             }
 

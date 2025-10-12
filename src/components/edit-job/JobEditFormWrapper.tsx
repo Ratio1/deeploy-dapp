@@ -19,7 +19,7 @@ import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { RiBox3Line } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
 import z from 'zod';
-import ConfirmAndPay from './ConfirmAndPay';
+import ReviewAndConfirm from './ReviewAndConfirm';
 
 const STEPS: {
     title: string;
@@ -27,7 +27,7 @@ const STEPS: {
 }[] = [
     { title: 'Specifications', validationName: 'specifications' },
     { title: 'Deployment', validationName: 'deployment' },
-    { title: 'Confirm & Pay' },
+    { title: 'Review & Confirm' },
 ];
 
 export default function JobEditFormWrapper({
@@ -229,7 +229,7 @@ export default function JobEditFormWrapper({
                                 />
                             )}
                             {step === 1 && <Deployment isEditingJob />}
-                            {step === 2 && <ConfirmAndPay defaultValues={defaultValues} />}
+                            {step === 2 && <ReviewAndConfirm defaultValues={defaultValues} />}
 
                             <JobFormButtons
                                 steps={STEPS}
