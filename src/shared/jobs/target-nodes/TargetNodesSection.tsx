@@ -1,3 +1,4 @@
+import { TARGET_NODES_REQUIRED_ERROR } from '@schemas/index';
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine } from 'react-icons/ri';
@@ -45,12 +46,15 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                         name={`deployment.targetNodes.${index}.address`}
                                         control={control}
                                         render={({ field, fieldState }) => {
-                                            const specificError = entryError?.address;
-                                            const hasError =
-                                                !!fieldState.error ||
-                                                !!specificError ||
-                                                !!errors?.root?.message ||
-                                                !!errors?.message;
+                                            const specificError = entryError?.address?.message;
+                                            const fieldError = fieldState.error?.message;
+                                            const rootError = errors?.root?.message || errors?.message;
+
+                                            const isEmpty = !field.value || String(field.value).trim() === '';
+                                            const hasRootError =
+                                                rootError == TARGET_NODES_REQUIRED_ERROR ? isEmpty : !!rootError;
+
+                                            const hasError = !!specificError || !!fieldError || hasRootError;
 
                                             return (
                                                 <StyledInput
@@ -61,20 +65,10 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                                     }}
                                                     onBlur={async () => {
                                                         field.onBlur();
-
-                                                        if (fields.length > 1) {
-                                                            await trigger('deployment.targetNodes');
-                                                        }
+                                                        await trigger('deployment.targetNodes');
                                                     }}
                                                     isInvalid={hasError}
-                                                    errorMessage={
-                                                        fieldState.error?.message ||
-                                                        specificError?.message ||
-                                                        (errors?.root?.message && index === 0
-                                                            ? errors.root.message
-                                                            : undefined) ||
-                                                        errors?.message
-                                                    }
+                                                    errorMessage={specificError || fieldError || rootError}
                                                 />
                                             );
                                         }}

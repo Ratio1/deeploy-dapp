@@ -192,6 +192,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
 
     const onError = (errors: FieldErrors<z.infer<typeof jobSchema>>) => {
         console.log('[JobFormWrapper] Validation errors:', errors);
+        console.log('[JobFormWrapper] Form values:', form.getValues());
     };
 
     return (

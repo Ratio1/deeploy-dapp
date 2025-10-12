@@ -6,6 +6,8 @@ import { costAndDurationSchema } from './steps/costAndDuration';
 import { genericAppDeploymentSchema, nativeAppDeploymentSchema, serviceAppDeploymentSchema } from './steps/deployment';
 import { genericSpecificationsSchema, nativeSpecificationsSchema, serviceSpecificationsSchema } from './steps/specifications';
 
+export const TARGET_NODES_REQUIRED_ERROR = 'All target nodes must be specified';
+
 const jobBaseSchema = z.object({
     jobType: z.enum([JobType.Generic, JobType.Native, JobType.Service]),
     costAndDuration: costAndDurationSchema,
@@ -41,7 +43,7 @@ export const jobSchema = z
             return (autoAssign && targetNodesLength === 0) || (!autoAssign && targetNodesLength === targetNodesCount);
         },
         (_data) => ({
-            message: 'All target nodes must be specified',
+            message: TARGET_NODES_REQUIRED_ERROR,
             path: ['deployment', 'targetNodes'],
         }),
     )
