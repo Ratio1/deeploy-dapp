@@ -19,7 +19,7 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
     const allowReplicationInTheWild: boolean = watch('deployment.allowReplicationInTheWild');
 
     useEffect(() => {
-        if (autoAssign) {
+        if (autoAssign && !isEditingJob) {
             setValue(
                 'deployment.targetNodes',
                 Array.from({ length: targetNodesCount }, () => ({ address: '' })),
@@ -43,7 +43,7 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
                 ) : null
             }
         >
-            <TargetNodesSection autoAssign={isEditingJob ? false : autoAssign} isEditingJob={isEditingJob} />
+            <TargetNodesSection autoAssign={isEditingJob ? false : autoAssign} />
 
             {(!autoAssign || isEditingJob) && (
                 <div className="col mt-2 gap-4">

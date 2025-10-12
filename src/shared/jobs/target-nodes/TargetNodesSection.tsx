@@ -4,7 +4,7 @@ import { RiAddLine } from 'react-icons/ri';
 import VariableSectionIndex from '../VariableSectionIndex';
 
 // This component assumes it's being used in the deployment step
-export default function TargetNodesSection({ autoAssign, isEditingJob }: { autoAssign: boolean; isEditingJob?: boolean }) {
+export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean }) {
     const { control, watch, formState, trigger } = useFormContext();
     const { fields, append } = useFieldArray({
         control,
@@ -19,22 +19,14 @@ export default function TargetNodesSection({ autoAssign, isEditingJob }: { autoA
     return (
         <div className="col gap-4" key={fields.length}>
             <div className="text-sm text-slate-500">
-                {!isEditingJob ? (
+                {autoAssign ? (
                     <>
-                        {autoAssign ? (
-                            <>
-                                Your app will be deployed to{' '}
-                                <span className="text-primary font-medium">
-                                    {targetNodesCount > 1 ? targetNodesCount : 'one'}
-                                </span>{' '}
-                                arbitrary available node{targetNodesCount > 1 ? 's' : ''}.
-                            </>
-                        ) : (
-                            <>Your app will be deployed to the nodes you specify below.</>
-                        )}
+                        Your app will be deployed to{' '}
+                        <span className="text-primary font-medium">{targetNodesCount > 1 ? targetNodesCount : 'one'}</span>{' '}
+                        arbitrary available node{targetNodesCount > 1 ? 's' : ''}.
                     </>
                 ) : (
-                    <>Modifying target nodes will be enabled in a future update.</>
+                    <>Your app will be deployed to the nodes you specify below.</>
                 )}
             </div>
 
@@ -75,7 +67,6 @@ export default function TargetNodesSection({ autoAssign, isEditingJob }: { autoA
                                                         specificError?.message ||
                                                         (errors?.root?.message && index === 0 ? errors.root.message : undefined)
                                                     }
-                                                    isDisabled={isEditingJob}
                                                 />
                                             );
                                         }}
