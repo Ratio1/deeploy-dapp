@@ -15,7 +15,7 @@ import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import SubmitButton from '@shared/SubmitButton';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { RiBox3Line } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
@@ -155,15 +155,20 @@ export default function JobEditFormWrapper({
         }
     };
 
+    const [defaultValues, setDefaultValues] = useState<z.infer<typeof jobSchema>>(
+        () => getDefaultSchemaValues() as z.infer<typeof jobSchema>,
+    );
+
     const form = useForm<z.infer<typeof jobSchema>>({
         resolver: zodResolver(jobSchema),
         mode: 'onTouched',
-        defaultValues: getDefaultSchemaValues(),
+        defaultValues,
     });
 
     // Reset form
     useEffect(() => {
-        const defaults = getDefaultSchemaValues();
+        const defaults = getDefaultSchemaValues() as z.infer<typeof jobSchema>;
+        setDefaultValues(defaults);
         form.reset(defaults);
     }, [job, form]);
 
@@ -188,7 +193,7 @@ export default function JobEditFormWrapper({
 
                             {step === 0 && <Specifications isEditingJob />}
                             {step === 1 && <Deployment isEditingJob />}
-                            {step === 2 && <ConfirmAndPay />}
+                            {step === 2 && <ConfirmAndPay defaultValues={defaultValues} />}
 
                             <JobFormButtons
                                 steps={STEPS}
