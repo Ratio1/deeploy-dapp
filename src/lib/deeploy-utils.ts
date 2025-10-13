@@ -29,6 +29,7 @@ import { deepSort } from './utils';
 export const GITHUB_REPO_REGEX = new RegExp('^https?://github\\.com/([^\\s/]+)/([^\\s/]+?)(?:\\.git)?(?:/.*)?$', 'i');
 
 export const KYB_TAG = 'IS_KYB';
+export const KYC_TAG = '!IS_KYB';
 export const DC_TAG = 'DC:*';
 
 export const getDiscountPercentage = (_paymentMonthsCount: number): number => {
