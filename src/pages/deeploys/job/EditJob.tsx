@@ -61,13 +61,7 @@ export default function EditJob() {
 
     const [isLoading, setLoading] = useState<boolean>(false);
 
-    const [error, setError] = useState<
-        | {
-              text: string;
-              serverAlias: string;
-          }
-        | undefined
-    >();
+    const [errors, setErrors] = useState<{ text: string; serverAlias: string }[]>([]);
 
     const job: RunningJobWithResources | undefined = (location.state as { job?: RunningJobWithResources })?.job;
     const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
@@ -100,7 +94,7 @@ export default function EditJob() {
             setDeeployModalActions(['payJobs', 'signMultipleMessages', 'callDeeployApi']);
         }
 
-        setError(undefined);
+        setErrors([]);
         setLoading(true);
         deeployFlowModalRef.current?.open(1);
 
@@ -187,18 +181,40 @@ export default function EditJob() {
                 deeployFlowModalRef.current?.displayError();
                 toast.error('Failed to update job, please try again.');
 
-                const error: string | undefined =
-                    updatePipelineResponse?.status === 'timeout' ? 'Request timed out' : updatePipelineResponse?.error;
+                const aggregatedErrors = [updatePipelineResponse, scaleUpWorkersResponse]
+                    .map((response) => {
+                        if (!response) {
+                            return undefined;
+                        }
 
-                if (error) {
-                    setError({ text: error, serverAlias: updatePipelineResponse?.server_info.alias });
+                        const serverAlias = response.server_info?.alias ?? 'Unknown server';
+                        let text: string | undefined;
+
+                        if (response.status === 'timeout') {
+                            text = 'Request timed out';
+                        } else if (response.error) {
+                            text = response.error;
+                        } else if (response.status && response.status !== 'success') {
+                            text = `Request failed with status ${response.status}`;
+                        }
+
+                        if (!text) {
+                            return undefined;
+                        }
+
+                        return { text, serverAlias };
+                    })
+                    .filter((responseError): responseError is { text: string; serverAlias: string } => Boolean(responseError));
+
+                if (aggregatedErrors.length) {
+                    setErrors(aggregatedErrors);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             }
         } catch (error) {
             console.error('[EditJob]', error);
             deeployFlowModalRef.current?.displayError();
-            toast.error('Failed to update job.');
+            toast.error('Failed to update job, please try again.');
         } finally {
             setLoading(false);
         }
@@ -282,7 +298,7 @@ export default function EditJob() {
 
                 <div className="col gap-2">
                     {/* Error */}
-                    <DeeployErrors type="update" errors={error ? [error] : []} />
+                    <DeeployErrors type="update" errors={errors} />
 
                     {/* Form */}
                     <JobEditFormWrapper job={job} onSubmit={onSubmit} isLoading={isLoading} setLoading={setLoading} />
