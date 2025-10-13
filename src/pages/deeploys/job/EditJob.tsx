@@ -15,7 +15,7 @@ import {
     formatGenericJobPayload,
     formatNativeJobPayload,
     formatServiceJobPayload,
-    generateNonce,
+    generateDeeployNonce,
 } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import { jobSchema } from '@schemas/index';
@@ -253,7 +253,7 @@ export default function EditJob() {
         targetNodes: string[],
         containerType: ContainerOrWorkerType,
     ) => {
-        const nonce = generateNonce();
+        const nonce = generateDeeployNonce();
 
         const payloadWithIdentifiers = {
             job_id: Number(job.id),

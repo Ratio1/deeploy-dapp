@@ -1,6 +1,6 @@
 import { sendInstanceCommand } from '@lib/api/deeploy';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
-import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
+import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import { getShortAddressOrHash } from '@lib/utils';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
@@ -54,7 +54,7 @@ export default function JobInstances({
             return;
         }
 
-        const nonce = generateNonce();
+        const nonce = generateDeeployNonce();
 
         const payload = {
             app_id: jobAlias,

@@ -47,6 +47,8 @@ export default function CostAndDurationInterface({
         const epochs = BigInt(1 + paymentMonthsCount * 30);
         let totalCost = costPer24h * epochs;
 
+        console.log('[CostAndDurationInterface]', { totalCost, costPer24h, epochs });
+
         if (applyDiscount) {
             const discountPercentage = getDiscountPercentage(paymentMonthsCount);
 

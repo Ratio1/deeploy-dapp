@@ -1,7 +1,7 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { getApps } from '@lib/api/deeploy';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
-import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
+import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import { SigningModal } from '@shared/SigningModal';
 import { EthAddress, R1Address } from '@typedefs/blockchain';
 import { Apps, DeeploySpecs, JobConfig, Plugin } from '@typedefs/deeployApi';
@@ -77,7 +77,7 @@ export const DeploymentProvider = ({ children }) => {
     };
 
     const signAndBuildGetAppsRequest = async (address: EthAddress) => {
-        const nonce = generateNonce();
+        const nonce = generateDeeployNonce();
 
         const message = buildDeeployMessage(
             {

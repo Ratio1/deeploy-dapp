@@ -3,7 +3,7 @@ import { deletePipeline, sendJobCommand } from '@lib/api/deeploy';
 import { getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
-import { buildDeeployMessage } from '@lib/deeploy-utils';
+import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { RunningJobWithResources } from '@typedefs/deeploys';
@@ -11,7 +11,6 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiArrowDownSLine } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
-import { generateNonce } from 'siwe';
 import { useAccount, useSignMessage } from 'wagmi';
 
 export default function JobActions({
@@ -61,7 +60,7 @@ export default function JobActions({
             return;
         }
 
-        const nonce = generateNonce();
+        const nonce = generateDeeployNonce();
 
         const payload = {
             app_id: job!.alias,
@@ -145,7 +144,7 @@ export default function JobActions({
             throw new Error('Job data unavailable');
         }
 
-        const nonce = generateNonce();
+        const nonce = generateDeeployNonce();
 
         const payload = {
             app_id: job.alias,

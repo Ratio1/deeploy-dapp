@@ -128,7 +128,7 @@ export const downloadDataAsJson = (data: any, filename: string) => {
     URL.revokeObjectURL(url);
 };
 
-export const generateNonce = (): string => {
+export const generateDeeployNonce = (): string => {
     const now = new Date();
     const unixTimestamp = now.getTime();
     console.log({ now, unixTimestamp });
@@ -274,7 +274,7 @@ export const formatGenericJobPayload = (
         };
     }
 
-    const nonce = generateNonce();
+    const nonce = generateDeeployNonce();
 
     return {
         app_alias: deployment.jobAlias,
@@ -319,7 +319,7 @@ export const formatNativeJobPayload = (
 
     const spareNodes = formatNodes(deployment.spareNodes);
 
-    const nonce = generateNonce();
+    const nonce = generateDeeployNonce();
 
     let appParams = {
         PORT: deployment.port,
@@ -369,7 +369,7 @@ export const formatServiceJobPayload = (
     const targetNodes = formatNodes(deployment.targetNodes);
     const spareNodes = formatNodes(deployment.spareNodes);
 
-    const nonce = generateNonce();
+    const nonce = generateDeeployNonce();
 
     return {
         nonce,
