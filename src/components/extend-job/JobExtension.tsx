@@ -40,7 +40,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
 
     const deeployFlowModalRef = useRef<{
-        open: (jobsCount: number) => void;
+        open: (jobsCount: number, messagesToSign: number) => void;
         progress: (action: DEEPLOY_FLOW_ACTION_KEYS) => void;
         close: () => void;
         displayError: () => void;
@@ -55,7 +55,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
         setLoading(true);
 
         try {
-            deeployFlowModalRef.current?.open(1);
+            deeployFlowModalRef.current?.open(1, 0);
 
             const status = await extendJob();
 
@@ -195,16 +195,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
                 </div>
             </div>
 
-            <DeeployFlowModal
-                ref={deeployFlowModalRef}
-                actions={['payJobs']}
-                descriptionFN={(_jobsCount: number) => (
-                    <div className="text-[15px]">
-                        You'll need to confirm a <span className="text-primary font-medium">payment transaction</span> in order
-                        to extend your job.
-                    </div>
-                )}
-            />
+            <DeeployFlowModal ref={deeployFlowModalRef} actions={['payment']} type="extend" />
         </>
     );
 }

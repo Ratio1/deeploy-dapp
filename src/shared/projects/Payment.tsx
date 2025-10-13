@@ -69,7 +69,7 @@ export default function Payment({
     const { signMessageAsync } = useSignMessage();
 
     const deeployFlowModalRef = useRef<{
-        open: (jobsCount: number) => void;
+        open: (jobsCount: number, messagesToSign: number) => void;
         progress: (action: DEEPLOY_FLOW_ACTION_KEYS) => void;
         close: () => void;
         displayError: () => void;
@@ -152,7 +152,9 @@ export default function Payment({
         try {
             setErrors([]);
             setLoading(true);
-            deeployFlowModalRef.current?.open(jobs.length);
+
+            const messagesToSign = jobs.length;
+            deeployFlowModalRef.current?.open(jobs.length, messagesToSign);
 
             const args = jobs.map((job) => {
                 const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
@@ -198,7 +200,7 @@ export default function Payment({
                 const jobIds = jobCreatedLogs.map((log) => log.args.jobId);
                 const payloads = getJobPayloads(jobs);
 
-                deeployFlowModalRef.current?.progress('signMultipleMessages');
+                deeployFlowModalRef.current?.progress('signXMessages');
 
                 const requests = await Promise.all(
                     payloads.map((payload, index) => {
@@ -372,16 +374,8 @@ export default function Payment({
 
             <DeeployFlowModal
                 ref={deeployFlowModalRef}
-                actions={['payJobs', 'signMultipleMessages', 'callDeeployApi']}
-                descriptionFN={(jobsCount: number) => (
-                    <div className="text-[15px]">
-                        You'll need to confirm a <span className="text-primary font-medium">payment transaction</span> and sign{' '}
-                        <span className="text-primary font-medium">
-                            {jobsCount} message{jobsCount > 1 ? 's' : ''}
-                        </span>{' '}
-                        to deploy your job{jobsCount > 1 ? 's' : ''}.
-                    </div>
-                )}
+                actions={['payment', 'signXMessages', 'callDeeployApi']}
+                type="deploy"
             />
         </div>
     );

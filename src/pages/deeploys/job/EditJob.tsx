@@ -53,7 +53,7 @@ export default function EditJob() {
     const { signMessageAsync } = useSignMessage();
 
     const deeployFlowModalRef = useRef<{
-        open: (jobsCount: number) => void;
+        open: (jobsCount: number, messagesToSign: number) => void;
         progress: (action: DEEPLOY_FLOW_ACTION_KEYS) => void;
         close: () => void;
         displayError: () => void;
@@ -66,7 +66,7 @@ export default function EditJob() {
     const job: RunningJobWithResources | undefined = (location.state as { job?: RunningJobWithResources })?.job;
     const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
     const [deeployModalActions, setDeeployModalActions] = useState<DEEPLOY_FLOW_ACTION_KEYS[]>([
-        'signSingleMessage',
+        'signXMessages',
         'callDeeployApi',
     ]);
 
@@ -91,12 +91,13 @@ export default function EditJob() {
         const increaseTargetNodes: boolean = additionalNodesRequested > 0;
 
         if (increaseTargetNodes) {
-            setDeeployModalActions(['payJobs', 'signMultipleMessages', 'callDeeployApi']);
+            setDeeployModalActions(['payment', 'signXMessages', 'callDeeployApi']);
         }
 
         setErrors([]);
         setLoading(true);
-        deeployFlowModalRef.current?.open(1);
+
+        setTimeout(() => deeployFlowModalRef.current?.open(1, increaseTargetNodes ? 2 : 1));
 
         try {
             // Pay for job extension in the smart contract
@@ -105,7 +106,7 @@ export default function EditJob() {
                     address: escrowContractAddress,
                     abi: CspEscrowAbi,
                     functionName: 'extendJobNodes',
-                    args: [job.id, BigInt(data.specifications.targetNodesCount)],
+                    args: [job.id, BigInt(additionalNodesRequested)],
                 });
 
                 const receipt = await watchTx(txHash, publicClient);
@@ -147,20 +148,24 @@ export default function EditJob() {
                     throw new Error('Unknown job type.');
             }
 
-            deeployFlowModalRef.current?.progress(increaseTargetNodes ? 'signMultipleMessages' : 'signSingleMessage');
+            deeployFlowModalRef.current?.progress('signXMessages');
 
             const updatePipelineRequest = await signAndBuildUpdatePipelineRequest(job!, payload);
+            console.log('[EditJob] Signed update pipeline request', updatePipelineRequest);
             const scaleUpWorkersRequest = await signAndBuildScaleUpWorkersRequest(
                 job!,
                 data.deployment.targetNodes.map((node) => node.address),
                 job!.resources.containerOrWorkerType,
             );
+            console.log('[EditJob] Signed scale up workers request', scaleUpWorkersRequest);
 
             deeployFlowModalRef.current?.progress('callDeeployApi');
 
+            console.log('[EditJob] Calling update pipeline');
             const updatePipelineResponse = await updatePipeline(updatePipelineRequest);
             console.log('[EditJob] updatePipeline', updatePipelineResponse);
 
+            console.log('[EditJob] Calling scale up workers');
             const scaleUpWorkersResponse = await scaleUpJobWorkers(scaleUpWorkersRequest);
             console.log('[EditJob] scaleUpWorkers', scaleUpWorkersResponse);
 
@@ -307,27 +312,7 @@ export default function EditJob() {
 
             <SupportFooter />
 
-            <DeeployFlowModal
-                ref={deeployFlowModalRef}
-                actions={deeployModalActions}
-                descriptionFN={(_jobsCount: number) => (
-                    <div className="text-[15px]">
-                        You'll need to{' '}
-                        {deeployModalActions.includes('payJobs') ? (
-                            <>
-                                confirm a <span className="text-primary font-medium">payment transaction</span> and{' '}
-                            </>
-                        ) : (
-                            ''
-                        )}
-                        sign{' '}
-                        <span className="text-primary font-medium">
-                            {deeployModalActions.includes('signMultipleMessages') ? 'multiple messages' : 'one message'}
-                        </span>{' '}
-                        to update your job.
-                    </div>
-                )}
-            />
+            <DeeployFlowModal ref={deeployFlowModalRef} actions={deeployModalActions} type="update" />
         </div>
     );
 }
