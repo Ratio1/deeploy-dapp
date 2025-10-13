@@ -1,5 +1,6 @@
 import { RunningJobResources } from '@data/containerResources';
-import { formatUsdc, getJobCostPer24h } from '@lib/deeploy-utils';
+import { environment } from '@lib/config';
+import { formatUsdc, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
 import CardWithItems from '@shared/jobs/projects/CardWithItems';
 import { UsdcValue } from '@shared/UsdcValue';
 import { JobType } from '@typedefs/deeploys';
@@ -22,7 +23,12 @@ export default function JobSpecifications({ resources }: { resources: RunningJob
             label: 'Monthly Cost Per Node',
             value: (
                 <UsdcValue
-                    value={formatUsdc(getJobCostPer24h(resources.containerOrWorkerType, resources.gpuType, 1) * 30n, 2)}
+                    value={formatUsdc(
+                        getResourcesCostPerEpoch(resources.containerOrWorkerType, resources.gpuType) *
+                            30n *
+                            (environment === 'mainnet' ? 1n : 24n),
+                        2,
+                    )}
                     isAproximate
                 />
             ),

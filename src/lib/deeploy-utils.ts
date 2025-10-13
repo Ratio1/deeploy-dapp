@@ -38,29 +38,6 @@ export const getDiscountPercentage = (_paymentMonthsCount: number): number => {
 
 const USDC_DECIMALS = 6;
 
-export const getJobCost = (job: DraftJob): bigint => {
-    const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-    const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
-    const targetNodesCount = job.specifications.targetNodesCount;
-
-    const jobCostPerEpoch = getJobCostPer24h(containerOrWorkerType, gpuType, targetNodesCount);
-
-    const epochs = 1 + job.costAndDuration.paymentMonthsCount * 30;
-
-    // +1 to account for the current ongoing epoch
-    const baseCost = jobCostPerEpoch * BigInt(epochs);
-    const discountPercentage = getDiscountPercentage(job.costAndDuration.paymentMonthsCount);
-
-    if (discountPercentage <= 0) {
-        return baseCost;
-    }
-
-    const discountBasisPoints = Math.round(discountPercentage * 100);
-    const clampedDiscount = Math.min(Math.max(discountBasisPoints, 0), 10_000);
-
-    return (baseCost * BigInt(10_000 - clampedDiscount)) / 10_000n;
-};
-
 export const getResourcesCostPerEpoch = (
     containerOrWorkerType: ContainerOrWorkerType,
     gpuType: GpuType | undefined,
@@ -68,20 +45,26 @@ export const getResourcesCostPerEpoch = (
     return containerOrWorkerType.pricePerEpoch + (gpuType?.pricePerEpoch ?? 0n);
 };
 
-export const getJobCostPer24h = (
-    containerOrWorkerType: ContainerOrWorkerType,
-    gpuType: GpuType | undefined,
-    targetNodesCount: number,
-): bigint => {
-    if (targetNodesCount === 0) {
-        return 0n;
+export const getJobCost = (job: DraftJob): bigint => {
+    const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+    const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
+
+    const targetNodesCount: bigint = BigInt(job.specifications.targetNodesCount);
+    const costPerEpoch: bigint = targetNodesCount * getResourcesCostPerEpoch(containerOrWorkerType, gpuType);
+
+    // +1 to account for the current ongoing epoch
+    const epochs = 1n + BigInt(job.costAndDuration.paymentMonthsCount) * 30n * (environment === 'mainnet' ? 1n : 24n);
+    let totalCost = costPerEpoch * epochs;
+
+    const discountPercentage = getDiscountPercentage(job.costAndDuration.paymentMonthsCount);
+
+    if (discountPercentage > 0) {
+        const discountBasisPoints = Math.round(discountPercentage * 100);
+        const clampedDiscount = Math.min(Math.max(discountBasisPoints, 0), 10_000);
+        totalCost = (totalCost * BigInt(10_000 - clampedDiscount)) / 10_000n;
     }
 
-    const costPerEpoch = getResourcesCostPerEpoch(containerOrWorkerType, gpuType);
-    const nodesCount = BigInt(targetNodesCount);
-    const environmentMultiplier = environment === 'mainnet' ? 1n : 24n;
-
-    return costPerEpoch * nodesCount * environmentMultiplier;
+    return totalCost;
 };
 
 export const getJobsTotalCost = (jobs: DraftJob[]): bigint => {

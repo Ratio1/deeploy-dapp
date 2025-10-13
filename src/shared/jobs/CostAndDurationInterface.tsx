@@ -46,12 +46,12 @@ export default function CostAndDurationInterface({
 
     const getPaymentAmount = (applyDiscount: boolean = true): bigint => {
         // +1 to account for the current ongoing epoch
-        const epochs = BigInt(1 + paymentMonthsCount * 30);
-        let totalCost = costPerEpoch * epochs * (environment === 'mainnet' ? 1n : 24n);
+        const epochs = 1n + BigInt(paymentMonthsCount) * 30n * (environment === 'mainnet' ? 1n : 24n);
+        let totalCost = costPerEpoch * epochs;
 
         console.log('[CostAndDurationInterface]', {
-            totalCost: fBI(totalCost, 6, 2),
-            costPerEpoch: fBI(costPerEpoch, 6, 2),
+            totalCost: fBI(totalCost, 6, 3),
+            costPerEpoch: fBI(costPerEpoch, 6, 3),
             epochs,
         });
 

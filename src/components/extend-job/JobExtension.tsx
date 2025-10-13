@@ -10,7 +10,7 @@ import CostAndDurationInterface from '@shared/jobs/CostAndDurationInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import { SmallTag } from '@shared/SmallTag';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
-import { addDays, max } from 'date-fns';
+import { addDays, differenceInHours, max } from 'date-fns';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -83,6 +83,15 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
         const lastExecutionEpoch: bigint = BigInt(
             Math.max(getCurrentEpoch(), Number(job.lastExecutionEpoch)) + durationInEpochs,
         );
+
+        console.log('[JobExtension]', {
+            lastExecutionEpoch,
+            durationInEpochs,
+            expiryDate,
+            diffInHours: differenceInHours(expiryDate, new Date(), {
+                roundingMethod: 'ceil',
+            }),
+        });
 
         const txHash = await walletClient!.writeContract({
             address: escrowContractAddress!,
