@@ -1,11 +1,13 @@
-import { DC_TAG, KYB_TAG } from '@lib/deeploy-utils';
+import { DC_TAG, KYB_TAG, KYC_TAG } from '@lib/deeploy-utils';
 import { CopyableValue } from '@shared/CopyableValue';
 import { SmallTag } from '@shared/SmallTag';
 import clsx from 'clsx';
+import { remove } from 'lodash';
 import countries from 'world-countries';
 
 const TAG_LABELS = {
-    [KYB_TAG]: 'KYB',
+    [KYB_TAG]: 'KYB-only',
+    [KYC_TAG]: 'KYC-only',
     [DC_TAG]: 'Certified Data Centers',
 };
 
@@ -41,6 +43,8 @@ export default function JobSimpleTagsSection({
         return element;
     };
 
+    const mainTags = remove(array, (item) => item === KYB_TAG || item === KYC_TAG || item === DC_TAG);
+
     return (
         <div
             className={clsx('mt-1 flex flex-wrap gap-1.5', {
@@ -48,30 +52,17 @@ export default function JobSimpleTagsSection({
                 'flex-row items-center': type === 'row',
             })}
         >
-            {array
-                .filter((item) => item !== '')
-                .sort((a, b) => {
-                    // Priority tags first (KYB_TAG, DC_TAG)
-                    const aIsPriority = a === KYB_TAG || a === DC_TAG;
-                    const bIsPriority = b === KYB_TAG || b === DC_TAG;
-
-                    if (aIsPriority && !bIsPriority) return -1;
-                    if (!aIsPriority && bIsPriority) return 1;
-
-                    // Within same priority, sort alphabetically
-                    return a.localeCompare(b);
-                })
-                .map((item, index) => (
-                    <SmallTag key={index} isLarge>
-                        {getWrapper(
-                            <div className="row font-roboto-mono gap-1.5">
-                                {!!label && <div className="text-slate-400">{label}</div>}
-                                <div>{formatTagDisplay(item)}</div>
-                            </div>,
-                            formatTagDisplay(item),
-                        )}
-                    </SmallTag>
-                ))}
+            {[...mainTags, ...array].map((item, index) => (
+                <SmallTag key={index} isLarge>
+                    {getWrapper(
+                        <div className="row font-roboto-mono gap-1.5">
+                            {!!label && <div className="text-slate-400">{label}</div>}
+                            <div>{formatTagDisplay(item)}</div>
+                        </div>,
+                        formatTagDisplay(item),
+                    )}
+                </SmallTag>
+            ))}
         </div>
     );
 }
