@@ -21,8 +21,8 @@ const baseSpecificationsSchema = z.object({
     gpuType: z.union([z.literal(''), z.enum(gpuTypes.map((type) => type.name) as [string, ...string[]])]).optional(),
     applicationType: z.enum(APPLICATION_TYPES, { required_error: 'Application type is required' }),
     targetNodesCount: createNumberField(100),
-    jobTags: z.array(z.string()).optional(),
-    nodesCountries: z.array(z.string()).optional(),
+    jobTags: z.array(z.string()),
+    nodesCountries: z.array(z.string()),
 });
 
 export const genericSpecificationsSchema = baseSpecificationsSchema.extend({

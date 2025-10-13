@@ -3,7 +3,7 @@ import { Switch } from '@heroui/switch';
 import { SlateCard } from '@shared/cards/SlateCard';
 import TargetNodesSection from '@shared/jobs/target-nodes/TargetNodesSection';
 import { SmallTag } from '@shared/SmallTag';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { RiAsterisk } from 'react-icons/ri';
 import SpareNodesSection from './SpareNodesSection';
@@ -11,24 +11,29 @@ import SpareNodesSection from './SpareNodesSection';
 function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
     const { watch } = useFormContext();
 
-    const [autoAssign, setAutoAssign] = useState(true);
     const { setValue } = useFormContext();
 
+    const autoAssign: boolean = watch('deployment.autoAssign');
+    const targetNodes = watch('deployment.targetNodes');
     const targetNodesCount: number = watch('specifications.targetNodesCount');
 
     const allowReplicationInTheWild: boolean = watch('deployment.allowReplicationInTheWild');
 
     useEffect(() => {
-        if (autoAssign) {
-            setValue(
-                'deployment.targetNodes',
-                Array.from({ length: targetNodesCount }, () => ({ address: '' })),
-            );
+        if (isEditingJob) {
+            setValue('deployment.targetNodes', [
+                ...targetNodes,
+                ...Array.from({ length: targetNodesCount - targetNodes.length }, () => ({ address: '' })),
+            ]);
+        } else {
+            if (autoAssign) {
+                setValue(
+                    'deployment.targetNodes',
+                    Array.from({ length: targetNodesCount }, () => ({ address: '' })),
+                );
 
-            setValue(
-                'deployment.spareNodes',
-                Array.from({ length: 1 }, () => ({ address: '' })),
-            );
+                setValue('deployment.spareNodes', []);
+            }
         }
     }, [autoAssign, targetNodesCount]);
 
@@ -37,19 +42,25 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
             title="Target Nodes"
             label={
                 !isEditingJob ? (
-                    <Switch isSelected={autoAssign} onValueChange={setAutoAssign} size="sm">
+                    <Switch
+                        isSelected={autoAssign}
+                        onValueChange={(value) => {
+                            setValue('deployment.autoAssign', value);
+                        }}
+                        size="sm"
+                    >
                         <SmallTag variant={autoAssign ? 'blue' : 'default'}>Auto-Assignment</SmallTag>
                     </Switch>
                 ) : null
             }
         >
-            <TargetNodesSection autoAssign={isEditingJob ? false : autoAssign} isEditingJob={isEditingJob} />
+            <TargetNodesSection autoAssign={autoAssign} />
 
-            {(!autoAssign || isEditingJob) && (
+            {!autoAssign && (
                 <div className="col mt-2 gap-4">
                     <div className="text-[17px] leading-none font-medium">Spare Target Nodes</div>
 
-                    <SpareNodesSection isEditingJob={isEditingJob} />
+                    <SpareNodesSection />
 
                     <div className="col gap-2.5">
                         <Checkbox
@@ -64,7 +75,7 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
                         <div className="flex items-start gap-0.5">
                             <RiAsterisk className="text-primary mt-0.5 text-[10px]" />
                             <div className="text-sm text-slate-500 italic">
-                                Jobs will run on any other available nodes if your target nodes are not available.
+                                Your job will run on any other arbitrary nodes if your target nodes are not available.
                             </div>
                         </div>
                     </div>

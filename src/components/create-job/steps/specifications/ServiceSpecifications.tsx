@@ -8,7 +8,7 @@ import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { JobType } from '@typedefs/deeploys';
 
-export default function ServiceSpecifications() {
+export default function ServiceSpecifications({ isEditingJob }: { isEditingJob?: boolean }) {
     return (
         <div className="col gap-6">
             <SlateCard title="Service Resources">
@@ -16,6 +16,7 @@ export default function ServiceSpecifications() {
                     name="specifications.containerType"
                     label="Container Type"
                     options={serviceContainerTypes}
+                    isDisabled={isEditingJob}
                 />
 
                 <ContainerResourcesInfo

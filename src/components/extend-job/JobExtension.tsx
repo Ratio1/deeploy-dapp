@@ -6,8 +6,8 @@ import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/block
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { addTimeFn, diffTimeFn, formatUsdc } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
+import CostAndDurationInterface from '@shared/jobs/CostAndDurationInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
-import PaymentAndDurationInterface from '@shared/jobs/PaymentAndDurationInterface';
 import { SmallTag } from '@shared/SmallTag';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { addDays, max } from 'date-fns';
@@ -40,7 +40,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
 
     const deeployFlowModalRef = useRef<{
-        open: (jobsCount: number) => void;
+        open: (jobsCount: number, messagesToSign: number) => void;
         progress: (action: DEEPLOY_FLOW_ACTION_KEYS) => void;
         close: () => void;
         displayError: () => void;
@@ -55,7 +55,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
         setLoading(true);
 
         try {
-            deeployFlowModalRef.current?.open(1);
+            deeployFlowModalRef.current?.open(1, 0);
 
             const status = await extendJob();
 
@@ -174,7 +174,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
     return (
         <>
             <div className="col gap-6">
-                <PaymentAndDurationInterface
+                <CostAndDurationInterface
                     costPer24h={costPer24h}
                     summaryItems={summaryItems}
                     initialDuration={12}
@@ -190,20 +190,12 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
                         isLoading={isLoading}
                         setLoading={setLoading}
                         callback={onSubmit}
+                        isButtonDisabled={totalCost === 0n}
                     />
                 </div>
             </div>
 
-            <DeeployFlowModal
-                ref={deeployFlowModalRef}
-                actions={['payJobs']}
-                descriptionFN={(_jobsCount: number) => (
-                    <div className="text-[15px]">
-                        You'll need to confirm a <span className="text-primary font-medium">payment transaction</span> in order
-                        to extend your job.
-                    </div>
-                )}
-            />
+            <DeeployFlowModal ref={deeployFlowModalRef} actions={['payment']} type="extend" />
         </>
     );
 }

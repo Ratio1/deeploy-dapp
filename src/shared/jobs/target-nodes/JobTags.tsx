@@ -39,7 +39,9 @@ export default function JobTags() {
                     items={options}
                     selectedKeys={new Set<string>(nodesCountries)}
                     onSelectionChange={(keys) => {
-                        setValue('specifications.nodesCountries', Array.from(keys) as string[]);
+                        setValue('specifications.nodesCountries', Array.from(keys) as string[], {
+                            shouldDirty: true,
+                        });
                     }}
                     isMultiline={true}
                     selectionMode="multiple"
@@ -71,12 +73,11 @@ export default function JobTags() {
                     isSelected={jobTags?.includes(KYB_TAG)}
                     onValueChange={(value) => {
                         if (value) {
-                            setValue('specifications.jobTags', [...jobTags, KYB_TAG]);
+                            setValue('specifications.jobTags', [...(jobTags ?? []), KYB_TAG], { shouldDirty: true });
                         } else {
-                            setValue(
-                                'specifications.jobTags',
-                                jobTags?.filter((tag) => tag !== KYB_TAG),
-                            );
+                            setValue('specifications.jobTags', jobTags?.filter((tag) => tag !== KYB_TAG) ?? [], {
+                                shouldDirty: true,
+                            });
                         }
                     }}
                 >
@@ -87,12 +88,11 @@ export default function JobTags() {
                     isSelected={jobTags?.includes(DC_TAG)}
                     onValueChange={(value) => {
                         if (value) {
-                            setValue('specifications.jobTags', [...jobTags, DC_TAG]);
+                            setValue('specifications.jobTags', [...(jobTags ?? []), DC_TAG], { shouldDirty: true });
                         } else {
-                            setValue(
-                                'specifications.jobTags',
-                                jobTags?.filter((tag) => tag !== DC_TAG),
-                            );
+                            setValue('specifications.jobTags', jobTags?.filter((tag) => tag !== DC_TAG) ?? [], {
+                                shouldDirty: true,
+                            });
                         }
                     }}
                 >

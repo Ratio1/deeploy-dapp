@@ -16,7 +16,6 @@ import {
     NativeDraftJob,
     NativeJobDeployment,
     NativeJobSpecifications,
-    RunningJobWithResources,
     ServiceDraftJob,
     ServiceJobDeployment,
     ServiceJobSpecifications,
@@ -46,11 +45,11 @@ export const getJobCost = (job: DraftJob): bigint => {
 
     const jobCostPerEpoch = getJobCostPer24h(containerOrWorkerType, gpuType, targetNodesCount);
 
-    const epochs = 1 + job.paymentAndDuration.paymentMonthsCount * 30;
+    const epochs = 1 + job.costAndDuration.paymentMonthsCount * 30;
 
     // +1 to account for the current ongoing epoch
     const baseCost = jobCostPerEpoch * BigInt(epochs);
-    const discountPercentage = getDiscountPercentage(job.paymentAndDuration.paymentMonthsCount);
+    const discountPercentage = getDiscountPercentage(job.costAndDuration.paymentMonthsCount);
 
     if (discountPercentage <= 0) {
         return baseCost;
@@ -62,20 +61,24 @@ export const getJobCost = (job: DraftJob): bigint => {
     return (baseCost * BigInt(10_000 - clampedDiscount)) / 10_000n;
 };
 
+export const getJobCostPerEpoch = (containerOrWorkerType: ContainerOrWorkerType, gpuType: GpuType | undefined): bigint => {
+    return containerOrWorkerType.pricePerEpoch + (gpuType?.pricePerEpoch ?? 0n);
+};
+
 export const getJobCostPer24h = (
     containerOrWorkerType: ContainerOrWorkerType,
     gpuType: GpuType | undefined,
     targetNodesCount: number,
 ): bigint => {
-    const basePrice = containerOrWorkerType.pricePerEpoch + (gpuType?.pricePerEpoch ?? 0n);
     if (targetNodesCount === 0) {
         return 0n;
     }
 
+    const costPerEpoch = getJobCostPerEpoch(containerOrWorkerType, gpuType);
     const nodesCount = BigInt(targetNodesCount);
     const environmentMultiplier = environment === 'mainnet' ? 1n : 24n;
 
-    return basePrice * nodesCount * environmentMultiplier;
+    return costPerEpoch * nodesCount * environmentMultiplier;
 };
 
 export const getJobsTotalCost = (jobs: DraftJob[]): bigint => {
@@ -195,200 +198,37 @@ export const formatTargetNodesCount = (targetNodes: string[], specificationsTarg
 
 export const formatJobTags = (specifications: JobSpecifications) => {
     const countries = specifications.nodesCountries.map((country) => `CT:${country}`).join('||');
-    return [...specifications.jobTags, countries];
+    return [...specifications.jobTags, countries].filter((tag) => tag !== '');
 };
 
-export const formatGenericJobPayload = (job: GenericDraftJob) => {
+export const formatGenericDraftJobPayload = (job: GenericDraftJob) => {
     const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-    const jobTags = formatJobTags(job.specifications);
-
-    const envVars = formatEnvVars(job.deployment.envVars);
-    const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
-    const volumes = formatVolumes(job.deployment.volumes);
-    const fileVolumes = formatFileVolumes(job.deployment.fileVolumes);
-    const containerResources = formatContainerResources(containerType);
-    const targetNodes = formatNodes(job.deployment.targetNodes);
-    const targetNodesCount = formatTargetNodesCount(targetNodes, job.specifications.targetNodesCount);
-
-    const spareNodes = formatNodes(job.deployment.spareNodes);
-
-    const appParams: any = {
-        CONTAINER_RESOURCES: containerResources,
-        PORT: job.deployment.port,
-        TUNNEL_ENGINE: 'cloudflare',
-        CLOUDFLARE_TOKEN: job.deployment.tunnelingToken || null,
-        TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
-        NGROK_USE_API: true,
-        VOLUMES: volumes,
-        FILE_VOLUMES: fileVolumes,
-        ENV: envVars,
-        DYNAMIC_ENV: dynamicEnvVars,
-        RESTART_POLICY: job.deployment.restartPolicy.toLowerCase(),
-        IMAGE_PULL_POLICY: job.deployment.imagePullPolicy.toLowerCase(),
-    };
-
-    let pluginSignature: string;
-
-    if (job.deployment.deploymentType.type === 'image') {
-        pluginSignature = 'CONTAINER_APP_RUNNER';
-
-        appParams.IMAGE = job.deployment.deploymentType.containerImage;
-
-        appParams.CR_DATA = {
-            SERVER: job.deployment.deploymentType.containerRegistry,
-        };
-
-        if (job.deployment.deploymentType.crVisibility === 'Private') {
-            appParams.CR_DATA.USERNAME = job.deployment.deploymentType.crUsername;
-            appParams.CR_DATA.PASSWORD = job.deployment.deploymentType.crPassword;
-        }
-    } else {
-        pluginSignature = 'WORKER_APP_RUNNER';
-
-        appParams.IMAGE = job.deployment.deploymentType.image;
-        appParams.BUILD_AND_RUN_COMMANDS = job.deployment.deploymentType.workerCommands.map((entry) => entry.command);
-
-        appParams.VCS_DATA = {
-            REPO_URL: job.deployment.deploymentType.repositoryUrl,
-            USERNAME: job.deployment.deploymentType.username || null,
-            TOKEN: job.deployment.deploymentType.accessToken || null,
-        };
-    }
-
-    const nonce = generateNonce();
-
-    return {
-        app_alias: job.deployment.jobAlias,
-        plugin_signature: pluginSignature,
-        nonce,
-        target_nodes: targetNodes,
-        spare_nodes: spareNodes,
-        allow_replication_in_the_wild: job.deployment.allowReplicationInTheWild,
-        target_nodes_count: targetNodesCount,
-        job_tags: jobTags,
-        app_params: appParams,
-        pipeline_input_type: 'void',
-        pipeline_input_uri: null,
-        chainstore_response: true,
-    };
+    return formatGenericJobPayload(containerType, job.specifications, job.deployment);
 };
 
-export const formatNativeJobPayload = (job: NativeDraftJob) => {
+export const formatNativeDraftJobPayload = (job: NativeDraftJob) => {
     const workerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-    const jobTags = formatJobTags(job.specifications);
-
-    const customParams: Record<string, string> = {};
-    job.deployment.customParams.forEach((param) => {
-        if (param.key) {
-            customParams[param.key] = param.value;
-        }
-    });
-
-    const pipelineParams: Record<string, string> = {};
-    job.deployment.pipelineParams.forEach((param) => {
-        if (param.key) {
-            pipelineParams[param.key] = param.value;
-        }
-    });
-
-    const nodeResourceRequirements = formatContainerResources(workerType);
-    const targetNodes = formatNodes(job.deployment.targetNodes);
-    const targetNodesCount = formatTargetNodesCount(targetNodes, job.specifications.targetNodesCount);
-
-    const spareNodes = formatNodes(job.deployment.spareNodes);
-
-    const nonce = generateNonce();
-
-    let appParams = {
-        PORT: job.deployment.port,
-        CLOUDFLARE_TOKEN: job.deployment.tunnelingToken || null,
-        TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
-        NGROK_USE_API: true,
-        ENV: {},
-        DYNAMIC_ENV: {},
-    };
-
-    if (_.isEmpty(customParams)) {
-        appParams = {
-            ...appParams,
-            ...customParams,
-        };
-    }
-
-    return {
-        app_alias: job.deployment.jobAlias,
-        plugin_signature: job.deployment.pluginSignature,
-        nonce,
-        target_nodes: targetNodes,
-        spare_nodes: spareNodes,
-        allow_replication_in_the_wild: job.deployment.allowReplicationInTheWild,
-        target_nodes_count: targetNodesCount,
-        job_tags: jobTags,
-        node_res_req: nodeResourceRequirements,
-        TUNNEL_ENGINE: 'cloudflare',
-        app_params: appParams,
-        pipeline_input_type: job.deployment.pipelineInputType,
-        pipeline_input_uri: job.deployment.pipelineInputUri || null,
-        pipeline_params: !_.isEmpty(pipelineParams) ? pipelineParams : {},
-        chainstore_response: false,
-    };
+    return formatNativeJobPayload(workerType, job.specifications, job.deployment);
 };
 
-export const formatServiceJobPayload = (job: ServiceDraftJob) => {
+export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
     const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-    const jobTags = formatJobTags(job.specifications);
-
-    const envVars = formatEnvVars(job.deployment.envVars);
-    const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
-    const volumes = formatVolumes(job.deployment.volumes);
-    const containerResources = formatContainerResources(containerType);
-    const targetNodes = formatNodes(job.deployment.targetNodes);
-
-    const spareNodes = formatNodes(job.deployment.spareNodes);
-
-    const nonce = generateNonce();
-
-    return {
-        app_alias: job.deployment.jobAlias,
-        plugin_signature: 'CONTAINER_APP_RUNNER',
-        nonce,
-        target_nodes: targetNodes,
-        spare_nodes: spareNodes,
-        allow_replication_in_the_wild: job.deployment.allowReplicationInTheWild,
-        target_nodes_count: 1, // Service jobs are always single-node
-        job_tags: jobTags,
-        service_replica: job.deployment.serviceReplica,
-        app_params: {
-            IMAGE: containerType.image,
-            CONTAINER_RESOURCES: containerResources,
-            PORT: containerType.port,
-            TUNNEL_ENGINE: 'ngrok',
-            NGROK_AUTH_TOKEN: job.deployment.tunnelingToken || null,
-            NGROK_EDGE_LABEL: job.deployment.tunnelingLabel || null,
-            TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
-            NGROK_USE_API: true,
-            VOLUMES: volumes,
-            ENV: envVars,
-            DYNAMIC_ENV: dynamicEnvVars,
-            RESTART_POLICY: 'always',
-            IMAGE_PULL_POLICY: 'always',
-        },
-        pipeline_input_type: 'void',
-        pipeline_input_uri: null,
-        chainstore_response: true,
-    };
+    return formatServiceJobPayload(containerType, job.specifications, job.deployment);
 };
 
-// To be replaced by the corresponding formatJobPayload once all the fields are supported
-export const formatGenericJobUpdatePayload = (job: RunningJobWithResources, deployment: GenericJobDeployment) => {
+export const formatGenericJobPayload = (
+    containerType: ContainerOrWorkerType,
+    specifications: GenericJobSpecifications,
+    deployment: GenericJobDeployment,
+) => {
+    const jobTags = formatJobTags(specifications);
     const envVars = formatEnvVars(deployment.envVars);
     const dynamicEnvVars = formatDynamicEnvVars(deployment.dynamicEnvVars);
     const volumes = formatVolumes(deployment.volumes);
     const fileVolumes = formatFileVolumes(deployment.fileVolumes);
-    const containerResources = job.config.CONTAINER_RESOURCES;
+    const containerResources = formatContainerResources(containerType);
     const targetNodes = formatNodes(deployment.targetNodes);
-    const targetNodesCount = 0; // Target node are already set
-
+    const targetNodesCount = formatTargetNodesCount(targetNodes, specifications.targetNodesCount);
     const spareNodes = formatNodes(deployment.spareNodes);
 
     const appParams: any = {
@@ -444,16 +284,21 @@ export const formatGenericJobUpdatePayload = (job: RunningJobWithResources, depl
         spare_nodes: spareNodes,
         allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
         target_nodes_count: targetNodesCount,
+        job_tags: jobTags,
         app_params: appParams,
-        job_tags: job.jobTags,
         pipeline_input_type: 'void',
         pipeline_input_uri: null,
         chainstore_response: true,
     };
 };
 
-// To be replaced by the corresponding formatJobPayload once all the fields are supported
-export const formatNativeJobUpdatePayload = (job: RunningJobWithResources, deployment: NativeJobDeployment) => {
+export const formatNativeJobPayload = (
+    workerType: ContainerOrWorkerType,
+    specifications: NativeJobSpecifications,
+    deployment: NativeJobDeployment,
+) => {
+    const jobTags = formatJobTags(specifications);
+
     const customParams: Record<string, string> = {};
     deployment.customParams.forEach((param) => {
         if (param.key) {
@@ -468,9 +313,9 @@ export const formatNativeJobUpdatePayload = (job: RunningJobWithResources, deplo
         }
     });
 
-    const nodeResourceRequirements = job.config.CONTAINER_RESOURCES;
+    const nodeResourceRequirements = formatContainerResources(workerType);
     const targetNodes = formatNodes(deployment.targetNodes);
-    const targetNodesCount = 0; // Target node are already set
+    const targetNodesCount = formatTargetNodesCount(targetNodes, specifications.targetNodesCount);
 
     const spareNodes = formatNodes(deployment.spareNodes);
 
@@ -500,7 +345,7 @@ export const formatNativeJobUpdatePayload = (job: RunningJobWithResources, deplo
         spare_nodes: spareNodes,
         allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
         target_nodes_count: targetNodesCount,
-        job_tags: job.jobTags,
+        job_tags: jobTags,
         node_res_req: nodeResourceRequirements,
         TUNNEL_ENGINE: 'cloudflare',
         app_params: appParams,
@@ -511,28 +356,30 @@ export const formatNativeJobUpdatePayload = (job: RunningJobWithResources, deplo
     };
 };
 
-// To be replaced by the corresponding formatJobPayload once all the fields are supported
-export const formatServiceJobUpdatePayload = (job: RunningJobWithResources, deployment: ServiceJobDeployment) => {
-    const containerType: ContainerOrWorkerType = job.resources.containerOrWorkerType;
-
+export const formatServiceJobPayload = (
+    containerType: ContainerOrWorkerType,
+    specifications: ServiceJobSpecifications,
+    deployment: ServiceJobDeployment,
+) => {
+    const jobTags = formatJobTags(specifications);
     const envVars = formatEnvVars(deployment.envVars);
     const dynamicEnvVars = formatDynamicEnvVars(deployment.dynamicEnvVars);
     const volumes = formatVolumes(deployment.volumes);
-    const containerResources = job.config.CONTAINER_RESOURCES;
+    const containerResources = formatContainerResources(containerType);
     const targetNodes = formatNodes(deployment.targetNodes);
-
     const spareNodes = formatNodes(deployment.spareNodes);
 
     const nonce = generateNonce();
 
     return {
+        nonce,
         app_alias: deployment.jobAlias,
         plugin_signature: 'CONTAINER_APP_RUNNER',
-        nonce,
         target_nodes: targetNodes,
         spare_nodes: spareNodes,
         allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
         target_nodes_count: 1, // Service jobs are always single-node
+        job_tags: jobTags,
         service_replica: deployment.serviceReplica,
         app_params: {
             IMAGE: containerType.image,
@@ -549,7 +396,6 @@ export const formatServiceJobUpdatePayload = (job: RunningJobWithResources, depl
             RESTART_POLICY: 'always',
             IMAGE_PULL_POLICY: 'always',
         },
-        job_tags: job.jobTags,
         pipeline_input_type: 'void',
         pipeline_input_uri: null,
         chainstore_response: true,

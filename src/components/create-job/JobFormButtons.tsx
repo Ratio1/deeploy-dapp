@@ -6,33 +6,27 @@ import toast from 'react-hot-toast';
 import SubmitButton from '../../shared/SubmitButton';
 
 interface Props {
-    steps: string[];
+    steps: { title: string; validationName?: string }[];
+    cancelLabel: string;
+    onCancel?: () => void;
+    customSubmitButton?: React.ReactNode;
+    isEditingJob?: boolean;
+    disableNextStep?: boolean;
 }
 
-function JobFormButtons({ steps }: Props) {
+function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEditingJob, disableNextStep = false }: Props) {
     const { step, setStep, setJobType } = useDeploymentContext() as DeploymentContextType;
 
     const { trigger, getValues, formState } = useFormContext();
 
-    const isSpecificationsStepValid = async (): Promise<boolean> => {
-        const isValid = await trigger('specifications.targetNodesCount');
-        const formData = getValues();
-
-        console.log(`Specifications step valid: ${isValid}`, formData);
-
-        if (formState.errors.specifications) {
-            console.log('Specifications errors:', formState.errors.specifications);
-        }
-
-        return isValid;
-    };
-
     const handleNextStep = async () => {
-        // Only the Specifications step requires intermediate validation
-        if (step === 2) {
-            const isValid = await isSpecificationsStepValid();
+        // Validate every step except the last one which will be triggered by form submission
+        if (steps[step].validationName && step < steps.length - 1) {
+            const isStepValid = await trigger(steps[step].validationName);
+            console.log(`${steps[step].title} step valid: ${isStepValid}`);
 
-            if (!isValid) {
+            if (!isStepValid) {
+                console.log('Form errors', formState.errors);
                 return;
             }
         }
@@ -63,29 +57,40 @@ function JobFormButtons({ steps }: Props) {
                     color="default"
                     variant="flat"
                     onPress={() => {
-                        if (step > 2) {
+                        if (step > 0) {
                             setStep(step - 1);
                         } else {
-                            setJobType(undefined);
+                            if (onCancel) {
+                                onCancel();
+                            } else {
+                                setJobType(undefined);
+                            }
                         }
                     }}
                 >
-                    <div>Go back: {steps[step - 2]}</div>
+                    <div>Go back: {step === 0 ? cancelLabel : steps[step - 1].title}</div>
                 </Button>
 
-                {step === 4 && (
+                {step === steps.length - 1 && !isEditingJob && (
                     <>
-                        <Button className="hover:opacity-70!" color="default" variant="bordered" onPress={handleDownloadJson}>
+                        <Button
+                            className="border-slate-200 hover:opacity-70!"
+                            color="default"
+                            variant="bordered"
+                            onPress={handleDownloadJson}
+                        >
                             <div>Download JSON</div>
                         </Button>
                     </>
                 )}
             </div>
 
-            {step < steps.length ? (
-                <Button type="button" color="primary" variant="solid" onPress={handleNextStep}>
-                    <div>{`Next: ${steps[step]}`}</div>
+            {step < steps.length - 1 ? (
+                <Button type="button" color="primary" variant="solid" onPress={handleNextStep} isDisabled={disableNextStep}>
+                    <div>{`Next: ${steps[step + 1].title}`}</div>
                 </Button>
+            ) : customSubmitButton ? (
+                customSubmitButton
             ) : (
                 <SubmitButton label="Add Job" />
             )}

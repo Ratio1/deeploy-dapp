@@ -16,7 +16,7 @@ import JobSimpleTagsSection from './JobSimpleTagsSection';
 
 export default function JobConfiguration({ job }: { job: RunningJobWithResources }) {
     const config: JobConfig = job.config;
-    const tags = !job.jobTags ? [] : job.jobTags.filter((tag) => !tag.startsWith('CT:') && tag !== '');
+    const tags = !job.jobTags ? [] : job.jobTags.filter((tag) => tag !== '');
 
     const [repositoryVisibility, setRepositoryVisibility] = useState<'public' | 'private' | '—' | undefined>();
 
@@ -233,26 +233,32 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                     {/* Variables */}
                     <Section title="Variables" />
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <ItemWithBoldValue
-                            label="ENV Variables"
-                            value={isEmpty(config.ENV) ? '—' : <JobKeyValueSection obj={config.ENV} />}
-                        />
+                    <div className="col gap-3">
+                        <div className="col gap-3">
+                            <ItemWithBoldValue
+                                label="ENV Variables"
+                                value={isEmpty(config.ENV) ? '—' : <JobKeyValueSection obj={config.ENV} />}
+                            />
 
-                        <ItemWithBoldValue
-                            label="Dynamic ENV Variables"
-                            value={isEmpty(config.DYNAMIC_ENV) ? '—' : <JobDynamicEnvSection dynamicEnv={config.DYNAMIC_ENV} />}
-                        />
+                            <ItemWithBoldValue
+                                label="Dynamic ENV Variables"
+                                value={
+                                    isEmpty(config.DYNAMIC_ENV) ? '—' : <JobDynamicEnvSection dynamicEnv={config.DYNAMIC_ENV} />
+                                }
+                            />
+                        </div>
 
-                        <ItemWithBoldValue
-                            label="Volumes"
-                            value={isEmpty(config.VOLUMES) ? '—' : <JobKeyValueSection obj={config.VOLUMES} />}
-                        />
+                        <div className="grid grid-cols-2 gap-3">
+                            <ItemWithBoldValue
+                                label="Volumes"
+                                value={isEmpty(config.VOLUMES) ? '—' : <JobKeyValueSection obj={config.VOLUMES} />}
+                            />
 
-                        <ItemWithBoldValue
-                            label="File Volumes"
-                            value={isEmpty(config.FILE_VOLUMES) ? '—' : <JobFileVolumesSection obj={config.FILE_VOLUMES} />}
-                        />
+                            <ItemWithBoldValue
+                                label="File Volumes"
+                                value={isEmpty(config.FILE_VOLUMES) ? '—' : <JobFileVolumesSection obj={config.FILE_VOLUMES} />}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

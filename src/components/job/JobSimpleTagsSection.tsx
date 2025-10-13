@@ -2,10 +2,24 @@ import { DC_TAG, KYB_TAG } from '@lib/deeploy-utils';
 import { CopyableValue } from '@shared/CopyableValue';
 import { SmallTag } from '@shared/SmallTag';
 import clsx from 'clsx';
+import countries from 'world-countries';
 
 const TAG_LABELS = {
     [KYB_TAG]: 'KYB',
     [DC_TAG]: 'Certified Data Centers',
+};
+
+const getCountryName = (countryCode: string): string => {
+    const country = countries.find((c) => c.cca2 === countryCode);
+    return country ? country.name.common : countryCode;
+};
+
+const formatTagDisplay = (item: string): string => {
+    if (item.startsWith('CT:')) {
+        const countryCode = item.substring(3); // Remove 'CT:' prefix
+        return getCountryName(countryCode);
+    }
+    return TAG_LABELS[item] || item;
 };
 
 export default function JobSimpleTagsSection({
@@ -36,14 +50,25 @@ export default function JobSimpleTagsSection({
         >
             {array
                 .filter((item) => item !== '')
+                .sort((a, b) => {
+                    // Priority tags first (KYB_TAG, DC_TAG)
+                    const aIsPriority = a === KYB_TAG || a === DC_TAG;
+                    const bIsPriority = b === KYB_TAG || b === DC_TAG;
+
+                    if (aIsPriority && !bIsPriority) return -1;
+                    if (!aIsPriority && bIsPriority) return 1;
+
+                    // Within same priority, sort alphabetically
+                    return a.localeCompare(b);
+                })
                 .map((item, index) => (
                     <SmallTag key={index} isLarge>
                         {getWrapper(
                             <div className="row font-roboto-mono gap-1.5">
                                 {!!label && <div className="text-slate-400">{label}</div>}
-                                <div>{TAG_LABELS[item] || item}</div>
+                                <div>{formatTagDisplay(item)}</div>
                             </div>,
-                            TAG_LABELS[item] || item,
+                            formatTagDisplay(item),
                         )}
                     </SmallTag>
                 ))}

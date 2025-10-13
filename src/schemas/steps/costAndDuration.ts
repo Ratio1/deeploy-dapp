@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const paymentAndDurationSchema = z.object({
+export const costAndDurationSchema = z.object({
     duration: z
         .number()
         .int('Duration must be a whole number')

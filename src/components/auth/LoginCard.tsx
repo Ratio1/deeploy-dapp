@@ -16,7 +16,7 @@ import { usePublicClient, useWalletClient } from 'wagmi';
 
 export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
-    const { escrowContractAddress, isFetchingApps, fetchApps, setFetchAppsRequired, setEscrowContractAddress } =
+    const { escrowContractAddress, isFetchingApps, fetchApps, setEscrowContractAddress } =
         useDeploymentContext() as DeploymentContextType;
 
     const { data: walletClient } = useWalletClient();
@@ -111,13 +111,15 @@ export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
                         </div>
                     )}
 
-                    <div className="col text-center text-sm">
-                        <div>
-                            Please <span className="text-primary font-medium">sign a message</span> in order to securely
-                        </div>
+                    {hasContract && (
+                        <div className="col text-center text-sm">
+                            <div>
+                                Please <span className="text-primary font-medium">sign a message</span> in order to securely
+                            </div>
 
-                        <div> fetch your Deeploy data.</div>
-                    </div>
+                            <div> fetch your Deeploy data.</div>
+                        </div>
+                    )}
 
                     <div className="center-all gap-2">
                         {!hasContract && (

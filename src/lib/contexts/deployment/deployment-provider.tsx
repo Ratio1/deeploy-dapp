@@ -2,7 +2,7 @@ import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { getApps } from '@lib/api/deeploy';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
-import { SignMessageModal } from '@shared/SignMessageModal';
+import { SigningModal } from '@shared/SigningModal';
 import { EthAddress, R1Address } from '@typedefs/blockchain';
 import { Apps, DeeploySpecs, JobConfig, Plugin } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
@@ -25,7 +25,7 @@ export const DeploymentProvider = ({ children }) => {
     const [apps, setApps] = useState<Apps>({});
 
     const [jobType, setJobType] = useState<JobType | undefined>();
-    const [step, setStep] = useState<number>(1);
+    const [step, setStep] = useState<number>(0);
     const [projectPage, setProjectPage] = useState<ProjectPage>(ProjectPage.Overview);
     const [projectOverviewTab, setProjectOverviewTab] = useState<ProjectOverviewTab>('runningJobs');
 
@@ -291,7 +291,7 @@ export const DeploymentProvider = ({ children }) => {
         >
             {children}
 
-            <SignMessageModal ref={signMessageModalRef} />
+            <SigningModal ref={signMessageModalRef} type="signMessage" />
         </DeploymentContext.Provider>
     );
 };

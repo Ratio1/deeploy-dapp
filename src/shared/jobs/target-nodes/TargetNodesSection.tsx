@@ -1,10 +1,11 @@
+import { TARGET_NODES_REQUIRED_ERROR } from '@schemas/index';
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine } from 'react-icons/ri';
 import VariableSectionIndex from '../VariableSectionIndex';
 
 // This component assumes it's being used in the deployment step
-export default function TargetNodesSection({ autoAssign, isEditingJob }: { autoAssign: boolean; isEditingJob?: boolean }) {
+export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean }) {
     const { control, watch, formState, trigger } = useFormContext();
     const { fields, append } = useFieldArray({
         control,
@@ -19,22 +20,14 @@ export default function TargetNodesSection({ autoAssign, isEditingJob }: { autoA
     return (
         <div className="col gap-4" key={fields.length}>
             <div className="text-sm text-slate-500">
-                {!isEditingJob ? (
+                {autoAssign ? (
                     <>
-                        {autoAssign ? (
-                            <>
-                                Your app will be deployed to{' '}
-                                <span className="text-primary font-medium">
-                                    {targetNodesCount > 1 ? targetNodesCount : 'one'}
-                                </span>{' '}
-                                arbitrary available node{targetNodesCount > 1 ? 's' : ''}.
-                            </>
-                        ) : (
-                            <>Your app will be deployed to the nodes you specify below.</>
-                        )}
+                        Your app will be deployed to{' '}
+                        <span className="text-primary font-medium">{targetNodesCount > 1 ? targetNodesCount : 'one'}</span>{' '}
+                        arbitrary available node{targetNodesCount > 1 ? 's' : ''}.
                     </>
                 ) : (
-                    <>Modifying target nodes will be enabled in a future update.</>
+                    <>Your app will be deployed to the nodes you specify below.</>
                 )}
             </div>
 
@@ -53,29 +46,29 @@ export default function TargetNodesSection({ autoAssign, isEditingJob }: { autoA
                                         name={`deployment.targetNodes.${index}.address`}
                                         control={control}
                                         render={({ field, fieldState }) => {
-                                            const specificError = entryError?.address;
-                                            const hasError = !!fieldState.error || !!specificError || !!errors?.root?.message;
+                                            const specificError = entryError?.address?.message;
+                                            const fieldError = fieldState.error?.message;
+                                            const rootError = errors?.root?.message || errors?.message;
+
+                                            const isEmpty = !field.value || String(field.value).trim() === '';
+                                            const hasRootError =
+                                                rootError == TARGET_NODES_REQUIRED_ERROR ? isEmpty : !!rootError;
+
+                                            const hasError = !!specificError || !!fieldError || hasRootError;
 
                                             return (
                                                 <StyledInput
                                                     placeholder="0x_ai"
                                                     value={field.value ?? ''}
-                                                    onChange={(e) => field.onChange(e.target.value)}
+                                                    onChange={(e) => {
+                                                        field.onChange(e.target.value);
+                                                    }}
                                                     onBlur={async () => {
                                                         field.onBlur();
-
-                                                        // Trigger validation for the entire array to check for duplicate addresses
-                                                        if (fields.length > 1) {
-                                                            await trigger('deployment.targetNodes');
-                                                        }
+                                                        await trigger('deployment.targetNodes');
                                                     }}
                                                     isInvalid={hasError}
-                                                    errorMessage={
-                                                        fieldState.error?.message ||
-                                                        specificError?.message ||
-                                                        (errors?.root?.message && index === 0 ? errors.root.message : undefined)
-                                                    }
-                                                    isDisabled={isEditingJob}
+                                                    errorMessage={specificError || fieldError || rootError}
                                                 />
                                             );
                                         }}

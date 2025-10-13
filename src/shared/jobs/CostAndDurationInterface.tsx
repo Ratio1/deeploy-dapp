@@ -7,7 +7,7 @@ import { SmallTag } from '@shared/SmallTag';
 import { useEffect, useMemo, useState } from 'react';
 import { RiInformation2Line } from 'react-icons/ri';
 
-export default function PaymentAndDurationInterface({
+export default function CostAndDurationInterface({
     onDurationChange,
     onPaymentMonthsCountChange,
     onTotalCostChange,
