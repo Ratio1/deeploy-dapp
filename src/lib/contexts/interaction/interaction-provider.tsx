@@ -1,7 +1,7 @@
 import { Button } from '@heroui/button';
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/modal';
 import { useDisclosure } from '@heroui/use-disclosure';
-import { SignMessageModal } from '@shared/SignMessageModal';
+import { SigningModal } from '@shared/SigningModal';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ConfirmOptions } from '.';
@@ -118,7 +118,7 @@ export const InteractionProvider = ({ children }) => {
             </Modal>
 
             {/* Sign Message Modal */}
-            <SignMessageModal ref={signMessageModalRef} />
+            <SigningModal ref={signMessageModalRef} type="signMessage" />
         </InteractionContext.Provider>
     );
 };

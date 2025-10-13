@@ -16,7 +16,7 @@ import { usePublicClient, useWalletClient } from 'wagmi';
 
 export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
-    const { escrowContractAddress, isFetchingApps, fetchApps, setFetchAppsRequired, setEscrowContractAddress } =
+    const { escrowContractAddress, isFetchingApps, fetchApps, setEscrowContractAddress } =
         useDeploymentContext() as DeploymentContextType;
 
     const { data: walletClient } = useWalletClient();
