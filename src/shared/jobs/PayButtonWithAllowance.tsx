@@ -122,7 +122,7 @@ const PayButtonWithAllowance = forwardRef<PayButtonWithAllowanceRef, PayButtonWi
         };
 
         if (allowance === undefined) {
-            return <Skeleton className="h-[38px] w-[138px] rounded-[10px]" />;
+            return <Skeleton className="h-[38px] w-[144px] rounded-[10px]" />;
         }
 
         return (

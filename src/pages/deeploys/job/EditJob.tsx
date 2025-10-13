@@ -1,16 +1,21 @@
+import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { DeeployFlowModal } from '@components/draft/DeeployFlowModal';
 import JobEditFormWrapper from '@components/edit-job/JobEditFormWrapper';
 import JobBreadcrumbs from '@components/job/JobBreadcrumbs';
 import EditJobPageLoading from '@components/loading/EditJobPageLoading';
+import { ContainerOrWorkerType } from '@data/containerResources';
 import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
-import { updatePipeline } from '@lib/api/deeploy';
+import { scaleUpJobWorkers, updatePipeline } from '@lib/api/deeploy';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
+import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import {
     buildDeeployMessage,
+    formatContainerResources,
     formatGenericJobPayload,
     formatNativeJobPayload,
     formatServiceJobPayload,
+    generateNonce,
 } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import { jobSchema } from '@schemas/index';
@@ -32,14 +37,18 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { RiArrowLeftLine } from 'react-icons/ri';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAccount, useSignMessage } from 'wagmi';
+import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wagmi';
 import z from 'zod';
 
 export default function EditJob() {
-    const { setFetchAppsRequired, setStep } = useDeploymentContext() as DeploymentContextType;
+    const { watchTx } = useBlockchainContext() as BlockchainContextType;
+    const { setFetchAppsRequired, setStep, escrowContractAddress } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
     const location = useLocation();
+
+    const { data: walletClient } = useWalletClient();
+    const publicClient = usePublicClient();
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const { signMessageAsync } = useSignMessage();
 
@@ -62,6 +71,10 @@ export default function EditJob() {
 
     const job: RunningJobWithResources | undefined = (location.state as { job?: RunningJobWithResources })?.job;
     const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
+    const [deeployModalActions, setDeeployModalActions] = useState<DEEPLOY_FLOW_ACTION_KEYS[]>([
+        'signSingleMessage',
+        'callDeeployApi',
+    ]);
 
     // Init
     useEffect(() => {
@@ -75,11 +88,40 @@ export default function EditJob() {
     }, [job]);
 
     const onSubmit = async (data: z.infer<typeof jobSchema>) => {
+        if (!job || !walletClient || !publicClient || !address || !escrowContractAddress) {
+            toast.error('Unexpected error, please refresh this page.');
+            return;
+        }
+
+        const additionalNodesRequested: number = data.specifications.targetNodesCount - Number(job.numberOfNodesRequested);
+        const increaseTargetNodes: boolean = additionalNodesRequested > 0;
+
+        if (increaseTargetNodes) {
+            setDeeployModalActions(['payJobs', 'signMultipleMessages', 'callDeeployApi']);
+        }
+
         setError(undefined);
         setLoading(true);
         deeployFlowModalRef.current?.open(1);
 
         try {
+            // Pay for job extension in the smart contract
+            if (increaseTargetNodes) {
+                const txHash = await walletClient.writeContract({
+                    address: escrowContractAddress,
+                    abi: CspEscrowAbi,
+                    functionName: 'extendJobNodes',
+                    args: [job.id, BigInt(additionalNodesRequested)],
+                });
+
+                const receipt = await watchTx(txHash, publicClient);
+
+                if (receipt.status !== 'success') {
+                    throw new Error('Failed to pay for job extension in the smart contract.');
+                }
+            }
+
+            // Update pipeline payload
             let payload: Record<string, any> = {};
 
             switch (data.jobType) {
@@ -111,16 +153,24 @@ export default function EditJob() {
                     throw new Error('Unknown job type.');
             }
 
-            deeployFlowModalRef.current?.progress('signSingleMessage');
+            deeployFlowModalRef.current?.progress(increaseTargetNodes ? 'signMultipleMessages' : 'signSingleMessage');
 
-            const request = await signAndBuildRequest(job!, payload);
+            const updatePipelineRequest = await signAndBuildUpdatePipelineRequest(job!, payload);
+            const scaleUpWorkersRequest = await signAndBuildScaleUpWorkersRequest(
+                job!,
+                data.deployment.targetNodes.map((node) => node.address),
+                job!.resources.containerOrWorkerType,
+            );
 
             deeployFlowModalRef.current?.progress('callDeeployApi');
 
-            const response = await updatePipeline(request);
-            console.log('[EditJob] updatePipeline', response);
+            const updatePipelineResponse = await updatePipeline(updatePipelineRequest);
+            console.log('[EditJob] updatePipeline', updatePipelineResponse);
 
-            if (response.status === 'success') {
+            const scaleUpWorkersResponse = await scaleUpJobWorkers(scaleUpWorkersRequest);
+            console.log('[EditJob] scaleUpWorkers', scaleUpWorkersResponse);
+
+            if (updatePipelineResponse.status === 'success' && scaleUpWorkersResponse.status === 'success') {
                 deeployFlowModalRef.current?.progress('done');
                 setFetchAppsRequired(true);
                 toast.success('Job updated successfully.');
@@ -128,17 +178,20 @@ export default function EditJob() {
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
                     navigate(`${routePath.deeploys}/${routePath.job}/${Number(job!.id)}`, {
-                        state: { serverAlias: response.server_info.alias },
+                        state: {
+                            serverAliases: [updatePipelineResponse.server_info.alias, scaleUpWorkersResponse.server_info.alias],
+                        },
                     });
                 }, 1000);
             } else {
                 deeployFlowModalRef.current?.displayError();
                 toast.error('Failed to update job, please try again.');
 
-                const error: string | undefined = response.status === 'timeout' ? 'Request timed out' : response.error;
+                const error: string | undefined =
+                    updatePipelineResponse?.status === 'timeout' ? 'Request timed out' : updatePipelineResponse?.error;
 
                 if (error) {
-                    setError({ text: error, serverAlias: response.server_info.alias });
+                    setError({ text: error, serverAlias: updatePipelineResponse?.server_info.alias });
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             }
@@ -151,7 +204,7 @@ export default function EditJob() {
         }
     };
 
-    const signAndBuildRequest = async (job: RunningJobWithResources, payload: any) => {
+    const signAndBuildUpdatePipelineRequest = async (job: RunningJobWithResources, payload: any) => {
         const payloadWithIdentifiers = {
             ...payload,
             app_id: job.alias,
@@ -163,7 +216,34 @@ export default function EditJob() {
             payloadWithIdentifiers.project_name = job.projectName;
         }
 
-        const message = buildDeeployMessage(payloadWithIdentifiers, 'Please sign this message for Deeploy: ');
+        const request = await signDeeployRequest(payloadWithIdentifiers);
+        return request;
+    };
+
+    const signAndBuildScaleUpWorkersRequest = async (
+        job: RunningJobWithResources,
+        targetNodes: string[],
+        containerType: ContainerOrWorkerType,
+    ) => {
+        const nonce = generateNonce();
+
+        const payloadWithIdentifiers = {
+            job_id: Number(job.id),
+            app_id: job.alias,
+            target_nodes: targetNodes,
+            target_nodes_count: 0,
+            node_res_req: formatContainerResources(containerType),
+            project_id: job.projectHash,
+            chainstore_response: true,
+            nonce,
+        };
+
+        const request = await signDeeployRequest(payloadWithIdentifiers);
+        return request;
+    };
+
+    const signDeeployRequest = async (payload: any) => {
+        const message = buildDeeployMessage(payload, 'Please sign this message for Deeploy: ');
 
         const signature = await signMessageAsync({
             account: address,
@@ -171,7 +251,7 @@ export default function EditJob() {
         });
 
         const request = {
-            ...payloadWithIdentifiers,
+            ...payload,
             EE_ETH_SIGN: signature,
             EE_ETH_SENDER: address,
         };
@@ -213,11 +293,22 @@ export default function EditJob() {
 
             <DeeployFlowModal
                 ref={deeployFlowModalRef}
-                actions={['signSingleMessage', 'callDeeployApi']}
+                actions={deeployModalActions}
                 descriptionFN={(_jobsCount: number) => (
                     <div className="text-[15px]">
-                        You'll need to sign <span className="text-primary font-medium">one message</span> in order to update
-                        your job.
+                        You'll need to{' '}
+                        {deeployModalActions.includes('payJobs') ? (
+                            <>
+                                confirm a <span className="text-primary font-medium">payment transaction</span> and{' '}
+                            </>
+                        ) : (
+                            ''
+                        )}
+                        sign{' '}
+                        <span className="text-primary font-medium">
+                            {deeployModalActions.includes('signMultipleMessages') ? 'multiple messages' : 'one message'}
+                        </span>{' '}
+                        to update your job.
                     </div>
                 )}
             />

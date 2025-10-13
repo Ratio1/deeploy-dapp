@@ -36,16 +36,16 @@ export default function Job() {
     const [job, setJob] = useState<RunningJobWithResources | undefined>();
     const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
 
-    // The alias of the server which responsed with a successful job update
-    const serverAlias: string | undefined = (location.state as { serverAlias?: string })?.serverAlias;
+    // The aliases of the servers which responded to the successful job update
+    const serverAliases: string[] | undefined = (location.state as { serverAliases?: string[] })?.serverAliases;
 
-    const [updatingServerAlias, setUpdatingServerAlias] = useState<string | undefined>();
+    const [updatingServerAliases, setUpdatingServerAliases] = useState<string[]>([]);
 
     useEffect(() => {
-        if (serverAlias) {
-            setUpdatingServerAlias(serverAlias);
+        if (serverAliases) {
+            setUpdatingServerAliases(serverAliases);
         }
-    }, [serverAlias]);
+    }, [serverAliases]);
 
     useEffect(() => {
         if (publicClient && jobId && escrowContractAddress) {
@@ -137,25 +137,25 @@ export default function Job() {
                     </div>
                 </div>
 
-                {!!updatingServerAlias && (
+                {!updatingServerAliases.length && (
                     <div className="relative rounded-lg border-2 border-green-100 bg-green-100 px-4 py-3 text-sm text-green-800">
                         <div
                             className="absolute top-1.5 right-1 cursor-pointer rounded-full p-1 hover:bg-black/5"
-                            onClick={() => setUpdatingServerAlias(undefined)}
+                            onClick={() => setUpdatingServerAliases([])}
                         >
                             <RiCloseFill className="text-lg" />
                         </div>
 
                         <div className="col gap-0.5">
-                            <div className="font-medium">Your job was successfully updated by the following server: </div>
-                            <div className="font-medium text-green-600">{updatingServerAlias}</div>
+                            <div className="font-medium">Your job was successfully updated by the following servers: </div>
+                            <div className="font-medium text-green-600">{updatingServerAliases.join(', ')}</div>
                         </div>
                     </div>
                 )}
 
                 <RefreshRequiredAlert
                     customCallback={async () => {
-                        setUpdatingServerAlias(undefined);
+                        setUpdatingServerAliases([]);
                         const updatedApps = await fetchApps();
                         await fetchJob(updatedApps);
                     }}
