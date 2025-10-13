@@ -181,3 +181,27 @@ export const getNameWithoutSpacesSchema = (minLength: number, maxLength: number)
 export const workerCommandSchema = z.object({
     command: getStringWithSpacesSchema(2, 512),
 });
+
+const fileVolumeEntrySchema = z.object({
+    name: getStringSchema(2, 256),
+    mountingPoint: getStringSchema(2, 512),
+    content: z.string().min(1, 'Uploaded file missing or empty'),
+});
+
+export const getFileVolumesArraySchema = (maxEntries?: number) => {
+    let schema = z.array(fileVolumeEntrySchema);
+
+    if (maxEntries) {
+        schema = schema.max(maxEntries, `Maximum ${maxEntries} entries allowed`);
+    }
+
+    return schema.refine(
+        (entries) => {
+            const uniqueKeys = new Set(entries.map((entry) => entry.name.trim()));
+            return uniqueKeys.size === entries.length;
+        },
+        {
+            message: 'Duplicate names are not allowed',
+        },
+    );
+};

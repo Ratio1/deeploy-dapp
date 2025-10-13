@@ -7,13 +7,15 @@ import JobSpecifications from '@components/job/JobSpecifications';
 import JobStats from '@components/job/JobStats';
 import JobPageLoading from '@components/loading/JobPageLoading';
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
+import { Button } from '@heroui/button';
 import { deletePipeline, sendJobCommand } from '@lib/api/deeploy';
-import { getDevAddress, isUsingDevAddress } from '@lib/config';
+import { getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import ActionButton from '@shared/ActionButton';
+import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import RefreshRequiredAlert from '@shared/jobs/RefreshRequiredAlert';
 import SupportFooter from '@shared/SupportFooter';
 import { Apps } from '@typedefs/deeployApi';
@@ -21,7 +23,7 @@ import { RunningJob, RunningJobWithDetails, RunningJobWithResources } from '@typ
 import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiArrowLeftLine, RiCloseFill, RiDeleteBinLine, RiEdit2Line, RiStopCircleLine } from 'react-icons/ri';
+import { RiArrowDownSLine, RiArrowLeftLine, RiCloseFill } from 'react-icons/ri';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
 
@@ -40,6 +42,7 @@ export default function Job() {
 
     const [isLoading, setLoading] = useState(true);
     const [isActionOngoing, setActionOngoing] = useState(false);
+    const [isContextMenuOpen, setContextMenuOpen] = useState(false);
 
     const [job, setJob] = useState<RunningJobWithResources | undefined>();
     const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
@@ -112,6 +115,10 @@ export default function Job() {
 
     const onEdit = () => {
         navigate(routePath.edit, { state: { job } });
+    };
+
+    const onExtendJob = () => {
+        navigate(routePath.extend, { state: { job } });
     };
 
     const onJobCommand = async (command: 'RESTART' | 'STOP') => {
@@ -283,46 +290,58 @@ export default function Job() {
                             </div>
                         </ActionButton>
 
-                        <ActionButton
-                            className="slate-button"
-                            color="default"
-                            onPress={() => onJobCommand('RESTART')}
-                            isDisabled={isActionOngoing}
+                        <ContextMenuWithTrigger
+                            items={[
+                                {
+                                    key: 'restart',
+                                    label: 'Restart',
+                                    description: 'Restarts all the job instances',
+                                    isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
+                                    onPress: () => onJobCommand('RESTART'),
+                                },
+                                {
+                                    key: 'stop',
+                                    label: 'Stop',
+                                    description: 'Stops all the job instances',
+                                    isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
+                                    onPress: () => onJobCommand('STOP'),
+                                },
+                                {
+                                    key: 'extend',
+                                    label: 'Extend',
+                                    description: 'Increase the duration of the job',
+                                    isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
+                                    onPress: onExtendJob,
+                                },
+                                {
+                                    key: 'edit',
+                                    label: 'Edit',
+                                    description: 'Modify the configuration of the job',
+                                    isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
+                                    onPress: onEdit,
+                                },
+                                {
+                                    key: 'delete',
+                                    label: 'Delete',
+                                    description: 'Removes the job from all running nodes',
+                                    onPress: onDeleteJob,
+                                },
+                            ]}
+                            onOpenChange={(isOpen) => {
+                                setContextMenuOpen(isOpen);
+                            }}
                         >
-                            <div className="text-sm">Restart</div>
-                        </ActionButton>
-
-                        <ActionButton
-                            className="slate-button"
-                            color="default"
-                            onPress={() => onJobCommand('STOP')}
-                            isDisabled={isActionOngoing}
-                        >
-                            <div className="row gap-1.5">
-                                <RiStopCircleLine className="text-lg" />
-                                <div className="text-sm">Stop</div>
-                            </div>
-                        </ActionButton>
-
-                        <ActionButton
-                            className="bg-red-600"
-                            color="danger"
-                            variant="solid"
-                            onPress={onDeleteJob}
-                            isDisabled={isActionOngoing}
-                        >
-                            <div className="row gap-1.5">
-                                <RiDeleteBinLine className="text-lg" />
-                                <div className="text-sm">Delete</div>
-                            </div>
-                        </ActionButton>
-
-                        <ActionButton color="primary" variant="solid" onPress={onEdit} isDisabled={isActionOngoing}>
-                            <div className="row gap-1.5">
-                                <RiEdit2Line className="text-lg" />
-                                <div className="compact">Edit</div>
-                            </div>
-                        </ActionButton>
+                            <Button color="primary" isDisabled={isActionOngoing} disableRipple>
+                                <div className="row -mr-1 gap-1">
+                                    <div className="compact">Actions</div>
+                                    <RiArrowDownSLine
+                                        className={`mt-0.5 text-xl transition-transform duration-200${
+                                            isContextMenuOpen ? 'rotate-180' : ''
+                                        }`}
+                                    />
+                                </div>
+                            </Button>
+                        </ContextMenuWithTrigger>
                     </div>
                 </div>
 

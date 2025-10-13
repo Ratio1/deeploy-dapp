@@ -33,14 +33,14 @@ function Invoicing() {
 
         try {
             const drafts = await getInvoiceDrafts();
-            console.log('Drafts', drafts);
+            // console.log('Drafts', drafts);
 
             if (drafts === undefined) {
                 throw new Error('No invoice drafts available.');
             }
 
             const months: string[] = _(drafts)
-                .orderBy('date', 'desc')
+                .orderBy('creationTimestamp', 'desc')
                 .map((draft) => draft.creationTimestamp.slice(0, 7))
                 .uniq()
                 .value();

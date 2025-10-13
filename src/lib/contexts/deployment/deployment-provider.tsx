@@ -137,8 +137,6 @@ export const DeploymentProvider = ({ children }) => {
     const formatRunningJobsWithDetails = (runningJobs: readonly RunningJob[], appsOverride?: Apps): RunningJobWithDetails[] => {
         const sourceApps = appsOverride ?? apps;
 
-        console.log('[DeploymentProvider] formatRunningJobsWithDetails', runningJobs, sourceApps);
-
         const formattedApps = _(Object.entries(sourceApps))
             .map(([nodeAddress, nodeApps]) => {
                 return Object.entries(nodeApps).map(([alias, app]) => {
@@ -259,7 +257,7 @@ export const DeploymentProvider = ({ children }) => {
             .filter((job) => job !== null)
             .value();
 
-        console.log('[DeploymentProvider] RunningJobWithDetails[]', runningJobsWithDetails);
+        // console.log('[DeploymentProvider] RunningJobWithDetails[]', runningJobsWithDetails);
 
         return runningJobsWithDetails;
     };

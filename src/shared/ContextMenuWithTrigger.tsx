@@ -1,6 +1,7 @@
 import { Button } from '@heroui/button';
 import { Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger } from '@heroui/dropdown';
 import clsx from 'clsx';
+import { PropsWithChildren } from 'react';
 import { RiMoreFill } from 'react-icons/ri';
 
 interface Props {
@@ -8,30 +9,42 @@ interface Props {
         key: string;
         label: string;
         description?: string;
-        icon?: React.ReactNode;
+        isDisabled?: boolean;
         onPress: () => void;
     }[];
     isDisabled?: boolean;
+    onOpenChange?: (isOpen: boolean) => void;
 }
 
-export default function ContextMenuWithTrigger({ items, isDisabled }: Props) {
+export default function ContextMenuWithTrigger({ items, isDisabled, onOpenChange, children }: PropsWithChildren<Props>) {
     return (
-        <Dropdown placement="bottom-end" shouldBlockScroll={false} radius="sm">
+        <Dropdown
+            placement="bottom-end"
+            shouldBlockScroll={false}
+            radius="sm"
+            onOpenChange={(isOpen: boolean) => {
+                if (onOpenChange) {
+                    onOpenChange(isOpen);
+                }
+            }}
+        >
             <DropdownTrigger
                 onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
                 }}
             >
-                <Button
-                    className="bg-light h-6 min-w-8 rounded-lg border-slate-200 p-0 data-[hover=true]:opacity-50!"
-                    color="default"
-                    variant="bordered"
-                    disableRipple
-                    isDisabled={isDisabled}
-                >
-                    <RiMoreFill className="text-lg text-slate-600" />
-                </Button>
+                {children || (
+                    <Button
+                        className="bg-light h-6 min-w-8 rounded-lg border-slate-200 p-0 data-[hover=true]:opacity-60!"
+                        color="default"
+                        variant="bordered"
+                        disableRipple
+                        isDisabled={isDisabled}
+                    >
+                        <RiMoreFill className="text-lg text-slate-600" />
+                    </Button>
+                )}
             </DropdownTrigger>
 
             <DropdownMenu
@@ -51,16 +64,18 @@ export default function ContextMenuWithTrigger({ items, isDisabled }: Props) {
                 }}
                 classNames={{
                     list: 'gap-1',
+                    base: 'p-0.5',
                 }}
                 onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
                 }}
+                disabledKeys={items.filter((item) => item.isDisabled).map((item) => item.key)}
             >
-                <DropdownSection title="Actions" className="mb-0 list-none">
+                <DropdownSection className="mb-0 list-none">
                     {items.map((item) => (
                         <DropdownItem key={item.key} onPress={item.onPress} textValue={item.label}>
-                            {!item.icon || !item.description ? (
+                            {!item.description ? (
                                 <div
                                     className={clsx('font-medium', {
                                         'text-danger': item.key === 'delete',
@@ -69,13 +84,15 @@ export default function ContextMenuWithTrigger({ items, isDisabled }: Props) {
                                     {item.label}
                                 </div>
                             ) : (
-                                <div className="row gap-2">
-                                    <div className="pr-0.5 text-[22px] text-slate-500">{item.icon}</div>
-
-                                    <div className="col">
-                                        <div className="text-body leading-4 font-medium">{item.label}</div>
-                                        <div className="text-[13px] text-slate-500">{item.description}</div>
+                                <div className="col gap-1 py-0.5 leading-none">
+                                    <div
+                                        className={clsx('text-body font-medium', {
+                                            'text-danger!': item.key === 'delete',
+                                        })}
+                                    >
+                                        {item.label}
                                     </div>
+                                    <div className="text-[13px] text-slate-500">{item.description}</div>
                                 </div>
                             )}
                         </DropdownItem>

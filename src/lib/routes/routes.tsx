@@ -4,6 +4,7 @@ import CreateProject from '@pages/deeploys/CreateProject';
 import Dashboard from '@pages/deeploys/Dashboard';
 import Draft from '@pages/deeploys/Draft';
 import EditJob from '@pages/deeploys/job/EditJob';
+import ExtendJob from '@pages/deeploys/job/ExtendJob';
 import Job from '@pages/deeploys/job/Job';
 import LegacyRequester from '@pages/deeploys/LegacyRequester';
 import Project from '@pages/deeploys/Project';
@@ -162,6 +163,10 @@ export const routes: AppRoute[] = [
     {
         path: `${routePath.deeploys}/${routePath.job}/:jobId/${routePath.edit}`,
         page: () => <EditJob />,
+    },
+    {
+        path: `${routePath.deeploys}/${routePath.job}/:jobId/${routePath.extend}`,
+        page: () => <ExtendJob />,
     },
     {
         path: `${routePath.tunnels}/:id`,

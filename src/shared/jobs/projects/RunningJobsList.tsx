@@ -9,7 +9,6 @@ import DetailedUsage from '@shared/projects/DetailedUsage';
 import { SmallTag } from '@shared/SmallTag';
 import { RunningJobWithResources } from '@typedefs/deeploys';
 import { useState } from 'react';
-import { RiEdit2Line } from 'react-icons/ri';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function RunningJobsList({
@@ -57,6 +56,8 @@ export default function RunningJobsList({
 
             {jobs.map((job) => {
                 const requestDate = new Date(Number(job.requestTimestamp) * 1000);
+                const requestEpoch = diffTimeFn(requestDate, config.genesisDate);
+
                 const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
 
                 return (
@@ -90,7 +91,6 @@ export default function RunningJobsList({
                                         key: 'edit',
                                         label: 'Edit',
                                         description: 'Modify the configuration of the job',
-                                        icon: <RiEdit2Line />,
                                         onPress: () => onEdit(job),
                                     },
                                 ]}
@@ -106,8 +106,27 @@ export default function RunningJobsList({
                                     <ItemWithLabel
                                         label="Start Date"
                                         value={
+                                            <div className="row gap-1.5">
+                                                <div className="leading-none">
+                                                    {requestDate.toLocaleDateString(undefined, {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                    })}
+                                                </div>
+
+                                                <SmallTag>Epoch {requestEpoch}</SmallTag>
+                                            </div>
+                                        }
+                                    />
+
+                                    <ItemWithLabel
+                                        label="End Date"
+                                        value={
                                             <div className="leading-none">
-                                                {requestDate.toLocaleDateString(undefined, {
+                                                {expirationDate.toLocaleDateString(undefined, {
                                                     month: 'short',
                                                     day: 'numeric',
                                                     year: 'numeric',
@@ -119,34 +138,14 @@ export default function RunningJobsList({
                                     />
 
                                     <ItemWithLabel
-                                        label="End Date"
-                                        value={
-                                            <div className="row gap-1.5">
-                                                <div className="leading-none">
-                                                    {expirationDate.toLocaleDateString(undefined, {
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                        year: 'numeric',
-                                                        hour: '2-digit',
-                                                        minute: '2-digit',
-                                                    })}
-                                                </div>
-
-                                                <SmallTag>Epoch {Number(job.lastExecutionEpoch)}</SmallTag>
-                                            </div>
-                                        }
-                                    />
-
-                                    <ItemWithLabel
                                         label="Next payment due"
                                         value={<div className="font-medium text-green-600">Paid in full</div>}
-                                        // value={<SmallTag variant="green">Paid in full</SmallTag>}
                                     />
 
                                     <div className="min-w-[350px]">
                                         {/* Update when custom payment duration is implemented */}
                                         <DetailedUsage
-                                            used={diffTimeFn(new Date(), requestDate)}
+                                            used={Math.max(diffTimeFn(new Date(), requestDate), 1)}
                                             paid={diffTimeFn(expirationDate, requestDate) + 1}
                                             total={diffTimeFn(expirationDate, requestDate) + 1}
                                         />

@@ -23,46 +23,74 @@ import {
 } from '@typedefs/deeploys';
 import { addDays, addHours, differenceInDays, differenceInHours } from 'date-fns';
 import _ from 'lodash';
+import { formatUnits } from 'viem';
 import { environment } from './config';
 import { deepSort } from './utils';
 
 export const GITHUB_REPO_REGEX = new RegExp('^https?://github\\.com/([^\\s/]+)/([^\\s/]+?)(?:\\.git)?(?:/.*)?$', 'i');
+
+export const KYB_TAG = 'IS_KYB';
+export const DC_TAG = 'DC:*';
 
 export const getDiscountPercentage = (_paymentMonthsCount: number): number => {
     // Disabled for now
     return 0;
 };
 
-export const getJobCost = (job: DraftJob): number => {
+const USDC_DECIMALS = 6;
+
+export const getJobCost = (job: DraftJob): bigint => {
     const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
     const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
     const targetNodesCount = job.specifications.targetNodesCount;
 
-    const jobCostPerEpoch = getJobCostPerEpoch(containerOrWorkerType, gpuType, targetNodesCount);
+    const jobCostPerEpoch = getJobCostPer24h(containerOrWorkerType, gpuType, targetNodesCount);
 
     const epochs = 1 + job.paymentAndDuration.paymentMonthsCount * 30;
 
     // +1 to account for the current ongoing epoch
-    const jobCost = epochs * jobCostPerEpoch * (1 - getDiscountPercentage(job.paymentAndDuration.paymentMonthsCount) / 100);
-    return jobCost;
+    const baseCost = jobCostPerEpoch * BigInt(epochs);
+    const discountPercentage = getDiscountPercentage(job.paymentAndDuration.paymentMonthsCount);
+
+    if (discountPercentage <= 0) {
+        return baseCost;
+    }
+
+    const discountBasisPoints = Math.round(discountPercentage * 100);
+    const clampedDiscount = Math.min(Math.max(discountBasisPoints, 0), 10_000);
+
+    return (baseCost * BigInt(10_000 - clampedDiscount)) / 10_000n;
 };
 
-export const getJobCostPerEpoch = (
+export const getJobCostPer24h = (
     containerOrWorkerType: ContainerOrWorkerType,
     gpuType: GpuType | undefined,
     targetNodesCount: number,
-) => {
-    return (
-        ((containerOrWorkerType.pricePerEpoch + (gpuType?.pricePerEpoch ?? 0)) / Math.pow(10, 6)) *
-        targetNodesCount *
-        (environment === 'mainnet' ? 1 : 24)
-    );
+): bigint => {
+    const basePrice = containerOrWorkerType.pricePerEpoch + (gpuType?.pricePerEpoch ?? 0n);
+    if (targetNodesCount === 0) {
+        return 0n;
+    }
+
+    const nodesCount = BigInt(targetNodesCount);
+    const environmentMultiplier = environment === 'mainnet' ? 1n : 24n;
+
+    return basePrice * nodesCount * environmentMultiplier;
 };
 
-export const getJobsTotalCost = (jobs: DraftJob[]): number => {
+export const getJobsTotalCost = (jobs: DraftJob[]): bigint => {
     return jobs.reduce((acc, job) => {
         return acc + getJobCost(job);
-    }, 0);
+    }, 0n);
+};
+
+export const formatUsdc = (amount: bigint, precision: number = 2): number => {
+    if (amount === 0n) {
+        return 0;
+    }
+
+    const decimalValue = Number(formatUnits(amount, USDC_DECIMALS));
+    return parseFloat(decimalValue.toFixed(precision));
 };
 
 export const getContainerOrWorkerType = (jobType: JobType, specifications: JobSpecifications): ContainerOrWorkerType => {
@@ -134,6 +162,19 @@ export const formatVolumes = (volumes: { key: string; value: string }[]) => {
     return formatted;
 };
 
+export const formatFileVolumes = (fileVolumes: { name: string; mountingPoint: string; content: string }[]) => {
+    const formatted: Record<string, { content: string; mounting_point: string }> = {};
+    fileVolumes.forEach((fileVolume) => {
+        if (fileVolume.name) {
+            formatted[fileVolume.name] = {
+                content: fileVolume.content,
+                mounting_point: fileVolume.mountingPoint,
+            };
+        }
+    });
+    return formatted;
+};
+
 export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType) => {
     return {
         cpu: containerOrWorkerType.cores,
@@ -164,6 +205,7 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
     const envVars = formatEnvVars(job.deployment.envVars);
     const dynamicEnvVars = formatDynamicEnvVars(job.deployment.dynamicEnvVars);
     const volumes = formatVolumes(job.deployment.volumes);
+    const fileVolumes = formatFileVolumes(job.deployment.fileVolumes);
     const containerResources = formatContainerResources(containerType);
     const targetNodes = formatNodes(job.deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, job.specifications.targetNodesCount);
@@ -178,6 +220,7 @@ export const formatGenericJobPayload = (job: GenericDraftJob) => {
         TUNNEL_ENGINE_ENABLED: job.deployment.enableTunneling === 'True',
         NGROK_USE_API: true,
         VOLUMES: volumes,
+        FILE_VOLUMES: fileVolumes,
         ENV: envVars,
         DYNAMIC_ENV: dynamicEnvVars,
         RESTART_POLICY: job.deployment.restartPolicy.toLowerCase(),
@@ -341,6 +384,7 @@ export const formatGenericJobUpdatePayload = (job: RunningJobWithResources, depl
     const envVars = formatEnvVars(deployment.envVars);
     const dynamicEnvVars = formatDynamicEnvVars(deployment.dynamicEnvVars);
     const volumes = formatVolumes(deployment.volumes);
+    const fileVolumes = formatFileVolumes(deployment.fileVolumes);
     const containerResources = job.config.CONTAINER_RESOURCES;
     const targetNodes = formatNodes(deployment.targetNodes);
     const targetNodesCount = 0; // Target node are already set
@@ -355,6 +399,7 @@ export const formatGenericJobUpdatePayload = (job: RunningJobWithResources, depl
         TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
         NGROK_USE_API: true,
         VOLUMES: volumes,
+        FILE_VOLUMES: fileVolumes,
         ENV: envVars,
         DYNAMIC_ENV: dynamicEnvVars,
         RESTART_POLICY: deployment.restartPolicy.toLowerCase(),
@@ -543,6 +588,7 @@ export function buildDeeployMessage(data: Record<string, any>, prefix: string = 
     return `${prefix}${json}`;
 }
 
+// These functions are used for epoch calculations while taking into account the different epoch durations of the environments
 export const addTimeFn = environment === 'mainnet' ? addDays : addHours;
 export const diffTimeFn = environment === 'mainnet' ? differenceInDays : differenceInHours;
 

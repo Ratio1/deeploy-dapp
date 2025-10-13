@@ -55,17 +55,7 @@ function Item({ label, value, color }: { label: string; value: number; color: st
 
             <div className="leading-none">
                 <span className="text-slate-500">{label}:</span>{' '}
-                <span className="font-medium">
-                    {value <= 0 ? (
-                        '—'
-                    ) : value <= 1 ? (
-                        <>{'<1 epoch'}</>
-                    ) : (
-                        <>
-                            {value} epoch{value > 1 ? 's' : ''}
-                        </>
-                    )}
-                </span>
+                <span className="font-medium">{value <= 0 ? '—' : value <= 1 ? <>{'1 epoch'}</> : <>{value} epochs</>}</span>
             </div>
         </div>
     );
