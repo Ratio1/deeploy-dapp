@@ -100,13 +100,15 @@ export default function EditJob() {
         setTimeout(() => deeployFlowModalRef.current?.open(1, increaseTargetNodes ? 2 : 1));
 
         try {
+            let scaleUpWorkersResponse;
+
             // Pay for job extension in the smart contract
             if (increaseTargetNodes) {
                 const txHash = await walletClient.writeContract({
                     address: escrowContractAddress,
                     abi: CspEscrowAbi,
                     functionName: 'extendJobNodes',
-                    args: [job.id, BigInt(additionalNodesRequested)],
+                    args: [job.id, BigInt(data.specifications.targetNodesCount)],
                 });
 
                 const receipt = await watchTx(txHash, publicClient);
@@ -165,11 +167,16 @@ export default function EditJob() {
             const updatePipelineResponse = await updatePipeline(updatePipelineRequest);
             console.log('[EditJob] updatePipeline', updatePipelineResponse);
 
-            console.log('[EditJob] Calling scale up workers');
-            const scaleUpWorkersResponse = await scaleUpJobWorkers(scaleUpWorkersRequest);
-            console.log('[EditJob] scaleUpWorkers', scaleUpWorkersResponse);
+            if (increaseTargetNodes) {
+                console.log('[EditJob] Calling scale up workers');
+                scaleUpWorkersResponse = await scaleUpJobWorkers(scaleUpWorkersRequest);
+                console.log('[EditJob] scaleUpWorkers', scaleUpWorkersResponse);
+            }
 
-            if (updatePipelineResponse.status === 'success' && scaleUpWorkersResponse.status === 'success') {
+            if (
+                updatePipelineResponse.status === 'success' &&
+                (increaseTargetNodes ? scaleUpWorkersResponse.status === 'success' : true)
+            ) {
                 deeployFlowModalRef.current?.progress('done');
                 setFetchAppsRequired(true);
                 toast.success('Job updated successfully.');

@@ -16,7 +16,7 @@ import JobSimpleTagsSection from './JobSimpleTagsSection';
 
 export default function JobConfiguration({ job }: { job: RunningJobWithResources }) {
     const config: JobConfig = job.config;
-    const tags = !job.jobTags ? [] : job.jobTags.filter((tag) => !tag.startsWith('CT:') && tag !== '');
+    const tags = !job.jobTags ? [] : job.jobTags.filter((tag) => tag !== '');
 
     const [repositoryVisibility, setRepositoryVisibility] = useState<'public' | 'private' | '—' | undefined>();
 

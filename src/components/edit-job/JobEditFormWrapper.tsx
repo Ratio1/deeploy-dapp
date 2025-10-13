@@ -58,8 +58,10 @@ export default function JobEditFormWrapper({
         specifications: {
             applicationType: APPLICATION_TYPES[0], // TODO: Get from job after the API update
             targetNodesCount: Number(job.numberOfNodesRequested),
-            jobTags: job.jobTags ?? [],
-            nodesCountries: job.jobTags ? job.jobTags.filter((tag) => tag.startsWith('CT:')) : [],
+            jobTags: !job.jobTags ? [] : job.jobTags.filter((tag) => !tag.startsWith('CT:')),
+            nodesCountries: !job.jobTags
+                ? []
+                : job.jobTags.filter((tag) => tag.startsWith('CT:')).map((tag) => tag.substring(3)),
         },
         costAndDuration: {
             duration: 1,

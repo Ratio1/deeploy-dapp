@@ -198,7 +198,7 @@ export const formatTargetNodesCount = (targetNodes: string[], specificationsTarg
 
 export const formatJobTags = (specifications: JobSpecifications) => {
     const countries = specifications.nodesCountries.map((country) => `CT:${country}`).join('||');
-    return [...specifications.jobTags, countries];
+    return [...specifications.jobTags, countries].filter((tag) => tag !== '');
 };
 
 export const formatGenericDraftJobPayload = (job: GenericDraftJob) => {
