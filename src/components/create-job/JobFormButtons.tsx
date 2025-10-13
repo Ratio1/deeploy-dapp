@@ -23,9 +23,10 @@ function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEd
         // Validate every step except the last one which will be triggered by form submission
         if (steps[step].validationName && step < steps.length - 1) {
             const isStepValid = await trigger(steps[step].validationName);
-            console.log(`${steps[step].title} - step valid: ${isStepValid}`, formState.errors);
+            console.log(`${steps[step].title} step valid: ${isStepValid}`);
 
             if (!isStepValid) {
+                console.log('Form errors', formState.errors);
                 return;
             }
         }

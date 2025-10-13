@@ -245,6 +245,7 @@ export default function JobEditFormWrapper({
                             {step === 2 && (
                                 <ReviewAndConfirm
                                     defaultValues={defaultValues}
+                                    job={job}
                                     onHasModifiedStepsChange={(hasModifiedSteps) => {
                                         hasModifiedStepsRef.current = hasModifiedSteps;
                                     }}

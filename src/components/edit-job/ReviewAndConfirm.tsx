@@ -1,11 +1,12 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
-import { formatUsdc, getContainerOrWorkerType, getGpuType, getJobCostPer24h } from '@lib/deeploy-utils';
+import { getCurrentEpoch } from '@lib/config';
+import { formatUsdc, getJobCostPerEpoch } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
 import { UsdcValue } from '@shared/UsdcValue';
-import { GenericJobSpecifications, JobSpecifications, JobType, NativeJobSpecifications } from '@typedefs/deeploys';
+import { RunningJobWithResources } from '@typedefs/deeploys';
 import isEqual from 'lodash/isEqual';
 import { useEffect, useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
@@ -36,9 +37,11 @@ const hasDirtyFields = (dirtyValue: unknown): boolean => {
 
 export default function ReviewAndConfirm({
     defaultValues,
+    job,
     onHasModifiedStepsChange,
 }: {
     defaultValues: JobFormValues;
+    job: RunningJobWithResources;
     onHasModifiedStepsChange?: (hasModifiedSteps: boolean) => void;
 }) {
     const {
@@ -49,45 +52,30 @@ export default function ReviewAndConfirm({
     const specifications = useWatch({ control, name: 'specifications' });
     const costAndDuration = useWatch({ control, name: 'costAndDuration' });
     const deployment = useWatch({ control, name: 'deployment' });
+    const { lastExecutionEpoch } = job;
 
-    const targetNodesCountChanged =
-        (specifications?.targetNodesCount ?? defaultValues.specifications.targetNodesCount) !==
-        defaultValues.specifications.targetNodesCount;
     const currentTargetNodesCount = specifications?.targetNodesCount ?? defaultValues.specifications.targetNodesCount;
 
     const additionalCost = useMemo(() => {
-        if (!targetNodesCountChanged || currentTargetNodesCount <= defaultValues.specifications.targetNodesCount) {
+        if (currentTargetNodesCount <= defaultValues.specifications.targetNodesCount) {
             return 0n;
         }
 
-        const jobType = defaultValues.jobType;
-        const currentSpecs = specifications ?? defaultValues.specifications;
-        const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
-            jobType,
-            currentSpecs as JobSpecifications,
-        );
-        const gpuType =
-            jobType === JobType.Generic || jobType === JobType.Native
-                ? getGpuType(currentSpecs as GenericJobSpecifications | NativeJobSpecifications)
-                : undefined;
-
-        const newCostPer24h = getJobCostPer24h(containerOrWorkerType, gpuType, currentTargetNodesCount);
-        const currentCostPer24h = getJobCostPer24h(
-            containerOrWorkerType,
-            gpuType,
-            defaultValues.specifications.targetNodesCount,
-        );
-
-        const deltaPer24h = newCostPer24h - currentCostPer24h;
-        if (deltaPer24h <= 0n) {
+        const increasedNodesCount = currentTargetNodesCount - defaultValues.specifications.targetNodesCount;
+        if (increasedNodesCount <= 0) {
             return 0n;
         }
 
-        const paymentMonthsCount = costAndDuration?.paymentMonthsCount ?? defaultValues.costAndDuration.paymentMonthsCount;
-        const epochs = BigInt(paymentMonthsCount * 30);
+        const remainingEpochs = lastExecutionEpoch - BigInt(getCurrentEpoch());
+        if (remainingEpochs <= 0n) {
+            return 0n;
+        }
 
-        return deltaPer24h * epochs;
-    }, [costAndDuration?.paymentMonthsCount, currentTargetNodesCount, defaultValues, specifications, targetNodesCountChanged]);
+        const containerOrWorkerType: ContainerOrWorkerType = job.resources.containerOrWorkerType;
+        const costPerEpoch = getJobCostPerEpoch(containerOrWorkerType, job.resources.gpuType);
+
+        return BigInt(increasedNodesCount) * costPerEpoch * remainingEpochs;
+    }, [currentTargetNodesCount, defaultValues, lastExecutionEpoch, specifications]);
 
     const stepsStatus = useMemo(
         () =>
@@ -97,15 +85,16 @@ export default function ReviewAndConfirm({
                     label: 'Specifications',
                     currentValue: specifications ?? defaultValues.specifications,
                     dirtyValue: (dirtyFields as Record<string, unknown> | undefined)?.specifications,
-                    children: targetNodesCountChanged
-                        ? [
-                              {
-                                  label: 'Target Nodes Count',
-                                  previousValue: defaultValues.specifications.targetNodesCount,
-                                  currentValue: currentTargetNodesCount,
-                              },
-                          ]
-                        : undefined,
+                    children:
+                        currentTargetNodesCount > defaultValues.specifications.targetNodesCount
+                            ? [
+                                  {
+                                      label: 'Target Nodes Count',
+                                      previousValue: defaultValues.specifications.targetNodesCount,
+                                      currentValue: currentTargetNodesCount,
+                                  },
+                              ]
+                            : undefined,
                 },
                 {
                     key: 'costAndDuration' as StepKey,
@@ -157,12 +146,6 @@ export default function ReviewAndConfirm({
 
             <SlateCard title="Summary of Changes">
                 <div className="col gap-3">
-                    {/* <div className="text-sm text-slate-600">
-                        {hasModifiedSteps
-                            ? 'The following sections have pending changes:'
-                            : 'No changes detected in the previous steps.'}
-                    </div> */}
-
                     <div className="col gap-2">
                         {stepsStatus.map((step) => (
                             <div className="col gap-1" key={step.key}>

@@ -61,20 +61,24 @@ export const getJobCost = (job: DraftJob): bigint => {
     return (baseCost * BigInt(10_000 - clampedDiscount)) / 10_000n;
 };
 
+export const getJobCostPerEpoch = (containerOrWorkerType: ContainerOrWorkerType, gpuType: GpuType | undefined): bigint => {
+    return containerOrWorkerType.pricePerEpoch + (gpuType?.pricePerEpoch ?? 0n);
+};
+
 export const getJobCostPer24h = (
     containerOrWorkerType: ContainerOrWorkerType,
     gpuType: GpuType | undefined,
     targetNodesCount: number,
 ): bigint => {
-    const basePrice = containerOrWorkerType.pricePerEpoch + (gpuType?.pricePerEpoch ?? 0n);
     if (targetNodesCount === 0) {
         return 0n;
     }
 
+    const costPerEpoch = getJobCostPerEpoch(containerOrWorkerType, gpuType);
     const nodesCount = BigInt(targetNodesCount);
     const environmentMultiplier = environment === 'mainnet' ? 1n : 24n;
 
-    return basePrice * nodesCount * environmentMultiplier;
+    return costPerEpoch * nodesCount * environmentMultiplier;
 };
 
 export const getJobsTotalCost = (jobs: DraftJob[]): bigint => {
