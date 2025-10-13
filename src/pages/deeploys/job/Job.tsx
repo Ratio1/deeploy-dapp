@@ -137,7 +137,7 @@ export default function Job() {
                     </div>
                 </div>
 
-                {!updatingServerAliases.length && (
+                {!!updatingServerAliases.length && (
                     <div className="relative rounded-lg border-2 border-green-100 bg-green-100 px-4 py-3 text-sm text-green-800">
                         <div
                             className="absolute top-1.5 right-1 cursor-pointer rounded-full p-1 hover:bg-black/5"

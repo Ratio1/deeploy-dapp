@@ -105,7 +105,7 @@ export default function EditJob() {
                     address: escrowContractAddress,
                     abi: CspEscrowAbi,
                     functionName: 'extendJobNodes',
-                    args: [job.id, BigInt(additionalNodesRequested)],
+                    args: [job.id, BigInt(data.specifications.targetNodesCount)],
                 });
 
                 const receipt = await watchTx(txHash, publicClient);
@@ -296,7 +296,7 @@ export default function EditJob() {
                     </div>
                 </div>
 
-                <div className="col gap-2">
+                <div className="col gap-6">
                     {/* Error */}
                     <DeeployErrors type="update" errors={errors} />
 

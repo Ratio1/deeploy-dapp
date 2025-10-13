@@ -1,3 +1,4 @@
+import { getShortAddressOrHash } from '@lib/utils';
 import { SmallTag } from '@shared/SmallTag';
 
 export default function JobFileVolumesSection({ obj }: { obj: Record<string, { content: string; mounting_point: string }> }) {
@@ -15,7 +16,7 @@ export default function JobFileVolumesSection({ obj }: { obj: Record<string, { c
                     <SmallTag isLarge>
                         <div className="row gap-1.5">
                             <div className="text-slate-400">PATH</div>
-                            <div>{value.mounting_point}</div>
+                            <div>{getShortAddressOrHash(value.mounting_point, 16, true)}</div>
                         </div>
                     </SmallTag>
                 </div>

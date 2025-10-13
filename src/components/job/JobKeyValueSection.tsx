@@ -34,7 +34,7 @@ export default function JobKeyValueSection({ obj }: { obj: Record<string, any> }
                             <div className="text-slate-400">VALUE</div>
 
                             <CopyableValue value={value}>
-                                {isFieldSecret[key] ? '•••••••••' : getShortAddressOrHash(value, 24, true)}
+                                {isFieldSecret[key] ? '•••••••••' : getShortAddressOrHash(value, 16, true)}
 
                                 {isKeySecret(key) && (
                                     <SecretValueToggle
