@@ -306,7 +306,7 @@ export default function Payment({
                             isLoading={isLoading}
                             setLoading={setLoading}
                             callback={onPayAndDeploy}
-                            isButtonDisabled={jobs?.length === 0}
+                            isButtonDisabled={jobs?.length === 0 || totalCost === 0n}
                         />
                     </div>
                 </div>

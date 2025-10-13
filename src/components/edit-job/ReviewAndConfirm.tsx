@@ -39,10 +39,12 @@ export default function ReviewAndConfirm({
     defaultValues,
     job,
     onHasModifiedStepsChange,
+    onAdditionalCostChange,
 }: {
     defaultValues: JobFormValues;
     job: RunningJobWithResources;
     onHasModifiedStepsChange?: (hasModifiedSteps: boolean) => void;
+    onAdditionalCostChange?: (additionalCost: bigint) => void;
 }) {
     const {
         control,
@@ -75,7 +77,14 @@ export default function ReviewAndConfirm({
         const costPerEpoch = getJobCostPerEpoch(containerOrWorkerType, job.resources.gpuType);
 
         return BigInt(increasedNodesCount) * costPerEpoch * remainingEpochs;
-    }, [currentTargetNodesCount, defaultValues, lastExecutionEpoch, specifications]);
+    }, [
+        currentTargetNodesCount,
+        defaultValues,
+        job.resources.containerOrWorkerType,
+        job.resources.gpuType,
+        lastExecutionEpoch,
+        specifications,
+    ]);
 
     const stepsStatus = useMemo(
         () =>
@@ -127,6 +136,10 @@ export default function ReviewAndConfirm({
     useEffect(() => {
         onHasModifiedStepsChange?.(hasModifiedSteps);
     }, [hasModifiedSteps, onHasModifiedStepsChange]);
+
+    useEffect(() => {
+        onAdditionalCostChange?.(additionalCost);
+    }, [additionalCost, onAdditionalCostChange]);
 
     return (
         <div className="col gap-6">

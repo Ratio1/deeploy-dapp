@@ -6,8 +6,8 @@ import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/block
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { addTimeFn, diffTimeFn, formatUsdc } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
-import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import CostAndDurationInterface from '@shared/jobs/CostAndDurationInterface';
+import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import { SmallTag } from '@shared/SmallTag';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { addDays, max } from 'date-fns';
@@ -190,6 +190,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
                         isLoading={isLoading}
                         setLoading={setLoading}
                         callback={onSubmit}
+                        isButtonDisabled={totalCost === 0n}
                     />
                 </div>
             </div>

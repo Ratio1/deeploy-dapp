@@ -11,13 +11,12 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { boolToBooleanType, titlecase } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
-import SubmitButton from '@shared/SubmitButton';
+import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { useEffect, useRef, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
-import { RiBox3Line } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
 import z from 'zod';
 import ReviewAndConfirm from './ReviewAndConfirm';
@@ -35,19 +34,24 @@ export default function JobEditFormWrapper({
     job,
     onSubmit,
     isLoading,
+    setLoading,
 }: {
     job: RunningJobWithResources;
     onSubmit: (data: z.infer<typeof jobSchema>) => Promise<void>;
     isLoading: boolean;
+    setLoading: (isLoading: boolean) => void;
 }) {
     const { step } = useDeploymentContext() as DeploymentContextType;
     const navigate = useNavigate();
+
     const hasModifiedStepsRef = useRef(false);
+    const payButtonRef = useRef<{ fetchAllowance: () => Promise<bigint | undefined> }>(null);
 
     const config: JobConfig = job.config;
 
     // Used only when editing a job
     const [isTargetNodesCountLower, setTargetNodesCountLower] = useState<boolean>(false);
+    const [additionalCost, setAdditionalCost] = useState<bigint>(0n);
 
     const getBaseSchemaDefaults = () => ({
         jobType: job.resources.jobType,
@@ -196,6 +200,7 @@ export default function JobEditFormWrapper({
         setDefaultValues(defaults);
         form.reset(defaults);
         setTargetNodesCountLower(false);
+        setAdditionalCost(0n);
     }, [job, form]);
 
     useEffect(() => {
@@ -249,6 +254,7 @@ export default function JobEditFormWrapper({
                                     onHasModifiedStepsChange={(hasModifiedSteps) => {
                                         hasModifiedStepsRef.current = hasModifiedSteps;
                                     }}
+                                    onAdditionalCostChange={setAdditionalCost}
                                 />
                             )}
 
@@ -260,7 +266,14 @@ export default function JobEditFormWrapper({
                                 }}
                                 customSubmitButton={
                                     <div className="center-all gap-2">
-                                        <SubmitButton label="Update Job" icon={<RiBox3Line />} isLoading={isLoading} />
+                                        <PayButtonWithAllowance
+                                            ref={payButtonRef}
+                                            totalCost={additionalCost}
+                                            isLoading={isLoading}
+                                            setLoading={setLoading}
+                                            buttonType="submit"
+                                            label={!additionalCost ? 'Update Job' : 'Pay & Update Job'}
+                                        />
                                     </div>
                                 }
                                 isEditingJob

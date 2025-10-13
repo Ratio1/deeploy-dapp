@@ -205,7 +205,7 @@ export default function EditJob() {
                     <DeeployErrors type="update" errors={error ? [error] : []} />
 
                     {/* Form */}
-                    <JobEditFormWrapper job={job} onSubmit={onSubmit} isLoading={isLoading} />
+                    <JobEditFormWrapper job={job} onSubmit={onSubmit} isLoading={isLoading} setLoading={setLoading} />
                 </div>
             </div>
 

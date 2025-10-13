@@ -3,7 +3,7 @@ import { Skeleton } from '@heroui/skeleton';
 import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { sleep } from '@lib/utils';
+import { fBI, sleep } from '@lib/utils';
 import ActionButton from '@shared/ActionButton';
 import { ConnectWalletWrapper } from '@shared/ConnectWalletWrapper';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
@@ -19,14 +19,15 @@ type PayButtonWithAllowanceProps = {
     totalCost: bigint;
     isLoading: boolean;
     setLoading: (isLoading: boolean) => void;
-    callback: () => Promise<void>;
+    buttonType?: 'button' | 'submit';
+    callback?: () => Promise<void>;
     isButtonDisabled?: boolean;
     label?: string;
 };
 
 const PayButtonWithAllowance = forwardRef<PayButtonWithAllowanceRef, PayButtonWithAllowanceProps>(
     function PayButtonWithAllowance(
-        { totalCost, isLoading, setLoading, callback, isButtonDisabled = false, label = 'Pay & Deploy' },
+        { totalCost, isLoading, setLoading, buttonType = 'button', callback, isButtonDisabled = false, label = 'Pay & Deploy' },
         ref,
     ) {
         const { watchTx } = useBlockchainContext() as BlockchainContextType;
@@ -83,6 +84,8 @@ const PayButtonWithAllowance = forwardRef<PayButtonWithAllowanceRef, PayButtonWi
                 args: [address, escrowContractAddress],
             });
 
+            console.log(`Allowance: ${fBI(result, 6, 2)} $USDC`);
+
             setAllowance(result);
             setLoading(false);
             return result;
@@ -110,12 +113,12 @@ const PayButtonWithAllowance = forwardRef<PayButtonWithAllowanceRef, PayButtonWi
             if (isApprovalRequired()) {
                 await approve();
             } else {
-                await callback();
+                await callback?.();
             }
         };
 
         const isPayAndDeployButtonDisabled = (): boolean => {
-            return !publicClient || allowance === undefined || totalCost === 0n || isButtonDisabled;
+            return !publicClient || allowance === undefined || isButtonDisabled;
         };
 
         if (allowance === undefined) {
@@ -125,6 +128,7 @@ const PayButtonWithAllowance = forwardRef<PayButtonWithAllowanceRef, PayButtonWi
         return (
             <ConnectWalletWrapper>
                 <ActionButton
+                    type={buttonType}
                     color="primary"
                     variant="solid"
                     onPress={onPress}
