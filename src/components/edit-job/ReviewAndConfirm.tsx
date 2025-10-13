@@ -7,7 +7,7 @@ import { SmallTag } from '@shared/SmallTag';
 import { UsdcValue } from '@shared/UsdcValue';
 import { GenericJobSpecifications, JobSpecifications, JobType, NativeJobSpecifications } from '@typedefs/deeploys';
 import isEqual from 'lodash/isEqual';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import z from 'zod';
 
@@ -34,7 +34,13 @@ const hasDirtyFields = (dirtyValue: unknown): boolean => {
     return false;
 };
 
-export default function ReviewAndConfirm({ defaultValues }: { defaultValues: JobFormValues }) {
+export default function ReviewAndConfirm({
+    defaultValues,
+    onHasModifiedStepsChange,
+}: {
+    defaultValues: JobFormValues;
+    onHasModifiedStepsChange?: (hasModifiedSteps: boolean) => void;
+}) {
     const {
         control,
         formState: { dirtyFields },
@@ -129,6 +135,10 @@ export default function ReviewAndConfirm({ defaultValues }: { defaultValues: Job
 
     const hasModifiedSteps = stepsStatus.some((step) => step.modified);
 
+    useEffect(() => {
+        onHasModifiedStepsChange?.(hasModifiedSteps);
+    }, [hasModifiedSteps, onHasModifiedStepsChange]);
+
     return (
         <div className="col gap-6">
             <BorderedCard isLight={false}>
@@ -147,11 +157,11 @@ export default function ReviewAndConfirm({ defaultValues }: { defaultValues: Job
 
             <SlateCard title="Summary of Changes">
                 <div className="col gap-3">
-                    <div className="text-sm text-slate-600">
+                    {/* <div className="text-sm text-slate-600">
                         {hasModifiedSteps
                             ? 'The following sections have pending changes:'
                             : 'No changes detected in the previous steps.'}
-                    </div>
+                    </div> */}
 
                     <div className="col gap-2">
                         {stepsStatus.map((step) => (

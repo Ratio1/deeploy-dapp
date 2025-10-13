@@ -14,8 +14,9 @@ import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import SubmitButton from '@shared/SubmitButton';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import { RiBox3Line } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
 import z from 'zod';
@@ -41,6 +42,7 @@ export default function JobEditFormWrapper({
 }) {
     const { step } = useDeploymentContext() as DeploymentContextType;
     const navigate = useNavigate();
+    const hasModifiedStepsRef = useRef(false);
 
     const config: JobConfig = job.config;
 
@@ -99,7 +101,7 @@ export default function JobEditFormWrapper({
                       accessToken: config.VCS_DATA.TOKEN || '',
                       workerCommands: config.BUILD_AND_RUN_COMMANDS!.map((command) => ({ command })),
                   },
-            port: config.PORT,
+            port: !config.PORT ? '' : config.PORT,
             restartPolicy: titlecase(config.RESTART_POLICY),
             imagePullPolicy: titlecase(config.IMAGE_PULL_POLICY),
             envVars: getEnvVars(),
@@ -117,7 +119,7 @@ export default function JobEditFormWrapper({
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            port: config.PORT,
+            port: !config.PORT ? '' : config.PORT,
             pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
             customParams: [{ key: '', value: '' }],
             pipelineParams: [{ key: '', value: '' }],
@@ -206,9 +208,20 @@ export default function JobEditFormWrapper({
         console.log(errors);
     };
 
+    const handleSubmit = async (data: z.infer<typeof jobSchema>) => {
+        const hasModifiedSteps = hasModifiedStepsRef.current;
+
+        if (!hasModifiedSteps) {
+            toast.error('No changes detected.');
+            return;
+        }
+
+        await onSubmit(data);
+    };
+
     return (
         <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, onError)} key={`${job.resources.jobType}-edit`}>
+            <form onSubmit={form.handleSubmit(handleSubmit, onError)} key={`${job.resources.jobType}-edit`}>
                 <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
@@ -229,7 +242,14 @@ export default function JobEditFormWrapper({
                                 />
                             )}
                             {step === 1 && <Deployment isEditingJob />}
-                            {step === 2 && <ReviewAndConfirm defaultValues={defaultValues} />}
+                            {step === 2 && (
+                                <ReviewAndConfirm
+                                    defaultValues={defaultValues}
+                                    onHasModifiedStepsChange={(hasModifiedSteps) => {
+                                        hasModifiedStepsRef.current = hasModifiedSteps;
+                                    }}
+                                />
+                            )}
 
                             <JobFormButtons
                                 steps={STEPS}
