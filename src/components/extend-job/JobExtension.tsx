@@ -4,7 +4,7 @@ import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
 import { config, environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { addTimeFn, diffTimeFn, formatUsdc } from '@lib/deeploy-utils';
+import { addTimeFn, diffTimeFn, formatUsdc, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import CostAndDurationInterface from '@shared/jobs/CostAndDurationInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
@@ -22,13 +22,10 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
 
     const navigate = useNavigate();
 
-    const { costPer24h, costPer30Days } = useMemo(() => {
-        const per24h = job.pricePerEpoch * job.numberOfNodesRequested * (environment === 'mainnet' ? 1n : 24n);
-
-        return {
-            costPer24h: per24h,
-            costPer30Days: per24h * 30n,
-        };
+    const costPerEpoch: bigint = useMemo(() => {
+        return (
+            job.numberOfNodesRequested * getResourcesCostPerEpoch(job.resources.containerOrWorkerType, job.resources.gpuType)
+        );
     }, [job]);
 
     const [duration, setDuration] = useState<number>(12); // In months
@@ -118,7 +115,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
             },
             {
                 label: 'Monthly Cost',
-                value: `~$${formatUsdc(costPer30Days, 1)}`,
+                value: `~$${formatUsdc(costPerEpoch * 30n * (environment === 'mainnet' ? 1n : 24n), 1)}`,
             },
             {
                 label: 'End Date',
@@ -142,7 +139,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
                 tag: <SmallTag variant="blue">New</SmallTag>,
             },
         ],
-        [costPer30Days, duration, job],
+        [costPerEpoch, duration, job],
     );
 
     const handleDurationChange = useCallback(
@@ -175,7 +172,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
         <>
             <div className="col gap-6">
                 <CostAndDurationInterface
-                    costPer24h={costPer24h}
+                    costPerEpoch={costPerEpoch}
                     summaryItems={summaryItems}
                     initialDuration={12}
                     initialPaymentMonthsCount={12}

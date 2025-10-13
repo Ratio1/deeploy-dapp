@@ -1,6 +1,6 @@
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { getCurrentEpoch } from '@lib/config';
-import { formatUsdc, getJobCostPerEpoch } from '@lib/deeploy-utils';
+import { formatUsdc, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
 import { fBI } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
 import { BorderedCard } from '@shared/cards/BorderedCard';
@@ -75,7 +75,7 @@ export default function ReviewAndConfirm({
         }
 
         const containerOrWorkerType: ContainerOrWorkerType = job.resources.containerOrWorkerType;
-        const costPerEpoch = getJobCostPerEpoch(containerOrWorkerType, job.resources.gpuType);
+        const costPerEpoch = getResourcesCostPerEpoch(containerOrWorkerType, job.resources.gpuType);
 
         console.log(
             `[ReviewAndConfirm] Additional cost: ${fBI(BigInt(increasedNodesCount) * costPerEpoch * remainingEpochs, 6, 2)} $USDC`,

@@ -6,11 +6,11 @@ import {
     getContainerOrWorkerType,
     getContainerOrWorkerTypeDescription,
     getGpuType,
-    getJobCostPer24h,
+    getResourcesCostPerEpoch,
 } from '@lib/deeploy-utils';
 import CostAndDurationInterface from '@shared/jobs/CostAndDurationInterface';
 import { JobCostAndDuration, JobSpecifications, JobType } from '@typedefs/deeploys';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 function CostAndDuration() {
@@ -33,48 +33,50 @@ function CostAndDuration() {
         setValue('costAndDuration.paymentMonthsCount', value);
     };
 
-    const costPer24h = getJobCostPer24h(
-        containerOrWorkerType,
-        'gpuType' in specifications && specifications.gpuType ? getGpuType(specifications) : undefined,
-        targetNodesCount,
+    const costPerEpoch: bigint =
+        BigInt(specifications.targetNodesCount) *
+        getResourcesCostPerEpoch(
+            containerOrWorkerType,
+            'gpuType' in specifications && specifications.gpuType ? getGpuType(specifications) : undefined,
+        );
+
+    const summaryItems: { label: string; value: string | number }[] = useMemo(
+        () => [
+            {
+                label: 'Compute Type',
+                value: `CPU ${'gpuType' in specifications && specifications.gpuType ? ' & GPU' : ''}`,
+            },
+            {
+                label: `${jobType === JobType.Native ? 'Worker' : 'Container'} Type`,
+                value: containerOrWorkerType.name,
+            },
+            {
+                label: 'Resources',
+                value: getContainerOrWorkerTypeDescription(containerOrWorkerType),
+            },
+            {
+                label: 'Target Nodes',
+                value: targetNodesCount,
+            },
+            {
+                label: 'Monthly Cost',
+                value: `~$${formatUsdc(costPerEpoch * 30n * (environment === 'mainnet' ? 1n : 24n), 1)}`,
+            },
+            {
+                label: 'End Date',
+                value: addTimeFn(new Date(), duration * 30 * (environment === 'mainnet' ? 1 : 24)).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                }),
+            },
+        ],
+        [costPerEpoch, duration],
     );
-
-    const costPer30Days = costPer24h * 30n;
-
-    const summaryItems = [
-        {
-            label: 'Compute Type',
-            value: `CPU ${'gpuType' in specifications && specifications.gpuType ? ' & GPU' : ''}`,
-        },
-        {
-            label: `${jobType === JobType.Native ? 'Worker' : 'Container'} Type`,
-            value: containerOrWorkerType.name,
-        },
-        {
-            label: 'Resources',
-            value: getContainerOrWorkerTypeDescription(containerOrWorkerType),
-        },
-        {
-            label: 'Target Nodes',
-            value: targetNodesCount,
-        },
-        {
-            label: 'Monthly Cost',
-            value: `~$${formatUsdc(costPer30Days, 1)}`,
-        },
-        {
-            label: 'End Date',
-            value: addTimeFn(new Date(), duration * 30 * (environment === 'mainnet' ? 1 : 24)).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-            }),
-        },
-    ];
 
     return (
         <CostAndDurationInterface
-            costPer24h={costPer24h}
+            costPerEpoch={costPerEpoch}
             summaryItems={summaryItems}
             initialDuration={12}
             initialPaymentMonthsCount={12}

@@ -19,7 +19,7 @@ export default function JobSpecifications({ resources }: { resources: RunningJob
             value: resources.gpuType?.name || '—',
         },
         {
-            label: 'Monthly Cost',
+            label: 'Monthly Cost Per Node',
             value: (
                 <UsdcValue
                     value={formatUsdc(getJobCostPer24h(resources.containerOrWorkerType, resources.gpuType, 1) * 30n, 2)}

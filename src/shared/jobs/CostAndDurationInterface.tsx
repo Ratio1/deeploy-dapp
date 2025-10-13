@@ -1,5 +1,7 @@
 import { Slider } from '@heroui/slider';
+import { environment } from '@lib/config';
 import { formatUsdc, getDiscountPercentage } from '@lib/deeploy-utils';
+import { fBI } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { SlateCard } from '@shared/cards/SlateCard';
 import Label from '@shared/Label';
@@ -11,7 +13,7 @@ export default function CostAndDurationInterface({
     onDurationChange,
     onPaymentMonthsCountChange,
     onTotalCostChange,
-    costPer24h,
+    costPerEpoch,
     summaryItems,
     initialDuration = 12,
     initialPaymentMonthsCount = 12,
@@ -20,7 +22,7 @@ export default function CostAndDurationInterface({
     onDurationChange?: (value: number) => void;
     onPaymentMonthsCountChange?: (value: number) => void;
     onTotalCostChange?: (value: bigint) => void;
-    costPer24h: bigint;
+    costPerEpoch: bigint;
     summaryItems: { label: string; value: string | number; tag?: React.ReactNode }[];
     initialDuration?: number;
     initialPaymentMonthsCount?: number;
@@ -45,9 +47,13 @@ export default function CostAndDurationInterface({
     const getPaymentAmount = (applyDiscount: boolean = true): bigint => {
         // +1 to account for the current ongoing epoch
         const epochs = BigInt(1 + paymentMonthsCount * 30);
-        let totalCost = costPer24h * epochs;
+        let totalCost = costPerEpoch * epochs * (environment === 'mainnet' ? 1n : 24n);
 
-        console.log('[CostAndDurationInterface]', { totalCost, costPer24h, epochs });
+        console.log('[CostAndDurationInterface]', {
+            totalCost: fBI(totalCost, 6, 2),
+            costPerEpoch: fBI(costPerEpoch, 6, 2),
+            epochs,
+        });
 
         if (applyDiscount) {
             const discountPercentage = getDiscountPercentage(paymentMonthsCount);
@@ -62,8 +68,8 @@ export default function CostAndDurationInterface({
         return totalCost;
     };
 
-    const totalCost = useMemo(() => getPaymentAmount(), [costPer24h, paymentMonthsCount]);
-    const totalCostWithoutDiscount = useMemo(() => getPaymentAmount(false), [costPer24h, paymentMonthsCount]);
+    const totalCost = useMemo(() => getPaymentAmount(), [costPerEpoch, paymentMonthsCount]);
+    const totalCostWithoutDiscount = useMemo(() => getPaymentAmount(false), [costPerEpoch, paymentMonthsCount]);
 
     useEffect(() => {
         if (!onTotalCostChange) {
@@ -194,16 +200,6 @@ export default function CostAndDurationInterface({
                                 <div className="text-primary">{formatUsdc(totalCost).toLocaleString()}</div>
                             </div>
                         </div>
-
-                        {/* <div className="row justify-between gap-8">
-                            <div className="text-[15px] font-medium text-slate-500">Duration</div>
-
-                            <div className="row gap-1 text-lg font-semibold">
-                                <div className="text-primary"> {1 + duration * 30 * (environment === 'mainnet' ? 1 : 24)}</div>
-
-                                <div className="text-slate-500">epochs</div>
-                            </div>
-                        </div> */}
                     </div>
 
                     <div className="row gap-1">
