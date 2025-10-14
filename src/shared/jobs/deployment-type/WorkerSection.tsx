@@ -45,7 +45,7 @@ export default function WorkerSection({ isEditingJob }: { isEditingJob?: boolean
         }
 
         if (REPOS_CACHE[trimmedUrl]) {
-            console.log('Repository visibility cached', REPOS_CACHE[trimmedUrl]);
+            // console.log('Repository visibility cached', REPOS_CACHE[trimmedUrl]);
             setValue('deployment.deploymentType.repositoryVisibility', REPOS_CACHE[trimmedUrl]);
             return;
         }
@@ -60,7 +60,7 @@ export default function WorkerSection({ isEditingJob }: { isEditingJob?: boolean
                 throw new Error(`GitHub repository lookup failed with status ${response.status}`);
             }
 
-            console.log('Repository visibility is: public');
+            // console.log('Repository visibility is: public');
             setValue('deployment.deploymentType.repositoryVisibility', 'public');
             REPOS_CACHE[trimmedUrl] = 'public';
         } catch (error: any) {
@@ -68,7 +68,7 @@ export default function WorkerSection({ isEditingJob }: { isEditingJob?: boolean
                 return;
             }
 
-            console.log('Repository visibility is: private');
+            // console.log('Repository visibility is: private');
             setValue('deployment.deploymentType.repositoryVisibility', 'private');
             REPOS_CACHE[trimmedUrl] = 'private';
         }

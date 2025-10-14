@@ -16,6 +16,7 @@ import SupportFooter from '@shared/SupportFooter';
 import { Apps } from '@typedefs/deeployApi';
 import { RunningJob, RunningJobWithDetails, RunningJobWithResources } from '@typedefs/deeploys';
 import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
+import { uniq } from 'lodash';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiArrowLeftLine, RiCloseFill } from 'react-icons/ri';
@@ -148,7 +149,7 @@ export default function Job() {
 
                         <div className="col gap-0.5">
                             <div className="font-medium">Your job was successfully updated by the following servers: </div>
-                            <div className="font-medium text-green-600">{updatingServerAliases.join(', ')}</div>
+                            <div className="font-medium text-green-600">{uniq(updatingServerAliases).join(', ')}</div>
                         </div>
                     </div>
                 )}

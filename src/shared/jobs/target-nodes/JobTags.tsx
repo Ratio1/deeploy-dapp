@@ -26,10 +26,6 @@ export default function JobTags() {
         setOptions(raw.map((c) => ({ key: c.cca2, label: c.name.common })).sort((a, b) => a.label.localeCompare(b.label)));
     }, []);
 
-    useEffect(() => {
-        console.log('jobTags', jobTags);
-    }, [jobTags]);
-
     if (!options.length) {
         return null;
     }

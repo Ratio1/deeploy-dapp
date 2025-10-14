@@ -32,7 +32,7 @@ export default function DraftStats({ jobs }: { jobs: DraftJob[] | undefined }) {
             value: jobs.reduce((acc, job) => acc + job.specifications.targetNodesCount, 0),
         },
         {
-            label: 'Monthly Cost Estimate',
+            label: 'Monthly Cost',
             value: <UsdcValue value={formatUsdc(monthlyCostEstimate)} isAproximate />,
         },
     ];

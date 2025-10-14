@@ -1,4 +1,4 @@
-import { config } from '@lib/config';
+import { config, environment } from '@lib/config';
 import { addTimeFn, diffTimeFn } from '@lib/deeploy-utils';
 import { fBI } from '@lib/utils';
 import CardWithItems from '@shared/jobs/projects/CardWithItems';
@@ -18,6 +18,8 @@ export default function JobStats({
     const requestEpoch = diffTimeFn(requestDate, config.genesisDate);
 
     const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
+
+    const costPerEpoch = job.pricePerEpoch * job.numberOfNodesRequested;
 
     const items = [
         {
@@ -52,7 +54,11 @@ export default function JobStats({
         },
         {
             label: 'Cost Per Epoch',
-            value: <UsdcValue value={fBI(job.pricePerEpoch * job.numberOfNodesRequested, 6, 3)} />,
+            value: <UsdcValue value={fBI(costPerEpoch, 6, 3)} />,
+        },
+        {
+            label: 'Monthly Cost',
+            value: <UsdcValue value={fBI(costPerEpoch * 30n * (environment === 'mainnet' ? 1n : 24n), 6, 3)} isAproximate />,
         },
     ];
 
