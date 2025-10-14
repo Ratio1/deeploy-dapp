@@ -67,13 +67,14 @@ export const scaleUpJobWorkers = (request: {
     job_id: number;
     app_id: string;
     target_nodes: string[];
-    target_nodes_count: number;
-    node_res_req: string;
+    target_nodes_count: 0; // Use 0 to disable auto-assignment of target nodes
+    app_params: {
+        CONTAINER_RESOURCES: string;
+    };
     project_id: EthAddress;
-    chainstore_response: boolean;
+    chainstore_response: true;
     nonce: string;
-    [key: string]: string | string[] | number | boolean | null | undefined;
-}) =>
+}): Promise<DeeployDefaultResponse> =>
     _doPostDeeploy('/scale_up_job_workers', {
         request,
     });
