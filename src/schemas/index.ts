@@ -2,13 +2,15 @@ import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { z } from 'zod';
 import { JobType } from '../typedefs/deeploys';
+import { costAndDurationSchema } from './steps/costAndDuration';
 import { genericAppDeploymentSchema, nativeAppDeploymentSchema, serviceAppDeploymentSchema } from './steps/deployment';
-import { paymentAndDurationSchema } from './steps/paymentAndDuration';
 import { genericSpecificationsSchema, nativeSpecificationsSchema, serviceSpecificationsSchema } from './steps/specifications';
+
+export const TARGET_NODES_REQUIRED_ERROR = 'All target nodes must be specified';
 
 const jobBaseSchema = z.object({
     jobType: z.enum([JobType.Generic, JobType.Native, JobType.Service]),
-    paymentAndDuration: paymentAndDurationSchema,
+    costAndDuration: costAndDurationSchema,
 });
 
 export const jobSchema = z
@@ -32,15 +34,16 @@ export const jobSchema = z
     .refine(
         (data) => {
             // If auto-assignment is disabled, all nodes must be specified
-            const targetNodesCount = data.specifications.targetNodesCount;
-            const targetNodesLength = data.deployment.targetNodes.filter(
+            const autoAssign: boolean = data.deployment.autoAssign;
+            const targetNodesCount: number = data.specifications.targetNodesCount;
+            const targetNodesLength: number = data.deployment.targetNodes.filter(
                 (node: { address: string }) => node.address !== '',
             ).length;
 
-            return targetNodesLength === 0 || targetNodesLength === targetNodesCount;
+            return (autoAssign && targetNodesLength === 0) || (!autoAssign && targetNodesLength === targetNodesCount);
         },
-        (data) => ({
-            message: `All ${data.specifications.targetNodesCount} target nodes must be specified`,
+        (_data) => ({
+            message: TARGET_NODES_REQUIRED_ERROR,
             path: ['deployment', 'targetNodes'],
         }),
     )
@@ -58,7 +61,7 @@ export const jobSchema = z
 
             return true;
         },
-        (data) => ({
+        (_data) => ({
             message: 'Value is required',
             path: ['deployment', 'port'],
         }),

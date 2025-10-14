@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { addSecrets } from '@lib/api/tunnels';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
-import { buildDeeployMessage } from '@lib/deeploy-utils';
+import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import { addSecretsSchema } from '@schemas/secrets';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
@@ -12,7 +12,6 @@ import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { RiPencilLine } from 'react-icons/ri';
-import { generateNonce } from 'siwe';
 import { useAccount, useSignMessage } from 'wagmi';
 import { z } from 'zod';
 
@@ -44,7 +43,7 @@ export default function TunnelingSecretsForm({
         try {
             setLoading(true);
 
-            const nonce = generateNonce();
+            const nonce = generateDeeployNonce();
 
             const message = buildDeeployMessage({
                 nonce,

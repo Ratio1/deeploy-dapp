@@ -1,10 +1,12 @@
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { downloadDataAsJson } from '@lib/deeploy-utils';
+import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import toast from 'react-hot-toast';
 import { RiAddLine } from 'react-icons/ri';
+import { useNavigate } from 'react-router-dom';
 
 interface Job {
     id: number;
@@ -24,10 +26,16 @@ export default function DraftJobsList({
     renderJob: (job: Job) => React.ReactNode;
     onAddJob: () => void;
 }) {
+    const navigate = useNavigate();
+
     const { confirm } = useInteractionContext() as InteractionContextType;
 
     const onDownloadJson = (job: Job) => {
         downloadDataAsJson(job, `Deeploy-${job.jobType}-job-${job.id}.json`);
+    };
+
+    const onEditJob = (job: Job) => {
+        navigate(`${routePath.deeploys}/${routePath.jobDraft}/${job.id}`);
     };
 
     const onDeleteJob = async (job: Job) => {
@@ -84,13 +92,19 @@ export default function DraftJobsList({
                             {
                                 key: 'downloadJson',
                                 label: 'Download JSON',
-                                description: 'Exports the job draft as a JSON file',
+                                description: 'Export the job draft as a JSON file',
                                 onPress: () => onDownloadJson(job),
+                            },
+                            {
+                                key: 'edit',
+                                label: 'Edit',
+                                description: 'Edit the job draft',
+                                onPress: () => onEditJob(job),
                             },
                             {
                                 key: 'delete',
                                 label: 'Delete',
-                                description: 'Removes the job draft from storage',
+                                description: 'Remove the job draft from storage',
                                 onPress: () => onDeleteJob(job),
                             },
                         ]}

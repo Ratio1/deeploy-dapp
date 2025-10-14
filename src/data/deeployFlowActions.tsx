@@ -1,17 +1,13 @@
 import { RiBox3Line, RiEdit2Line, RiWalletLine } from 'react-icons/ri';
 
 export const DEEPLOY_FLOW_ACTIONS = {
-    payJobs: {
+    payment: {
         icon: <RiWalletLine />,
         title: 'Confirm payment',
     },
-    signSingleMessage: {
+    signXMessages: {
         icon: <RiEdit2Line />,
-        title: 'Sign a message',
-    },
-    signMultipleMessages: {
-        icon: <RiEdit2Line />,
-        title: 'Sign a message for each job',
+        title: 'Sign required messages',
     },
     callDeeployApi: {
         icon: <RiBox3Line />,

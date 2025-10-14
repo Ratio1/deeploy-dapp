@@ -2,7 +2,8 @@ import NotFound from '@pages/404';
 import Account from '@pages/Account';
 import CreateProject from '@pages/deeploys/CreateProject';
 import Dashboard from '@pages/deeploys/Dashboard';
-import Draft from '@pages/deeploys/Draft';
+import EditJobDraft from '@pages/deeploys/drafts/EditJobDraft';
+import ProjectDraft from '@pages/deeploys/drafts/ProjectDraft';
 import EditJob from '@pages/deeploys/job/EditJob';
 import ExtendJob from '@pages/deeploys/job/ExtendJob';
 import Job from '@pages/deeploys/job/Job';
@@ -64,7 +65,7 @@ export const routeInfo = {
         description: 'Create and configure a new project for deployment',
         routeTitle: 'Create Project',
     },
-    [`${routePath.deeploys}/${routePath.draft}`]: {
+    [`${routePath.deeploys}/${routePath.projectDraft}`]: {
         title: 'Project Draft',
         description: 'Edit, pay and deploy your project draft',
     },
@@ -149,8 +150,12 @@ export const routes: AppRoute[] = [
     },
     // Routes which are not displayed in the main navigation
     {
-        path: `${routePath.deeploys}/${routePath.draft}/:projectHash`,
-        page: () => <Draft />,
+        path: `${routePath.deeploys}/${routePath.projectDraft}/:projectHash`,
+        page: () => <ProjectDraft />,
+    },
+    {
+        path: `${routePath.deeploys}/${routePath.jobDraft}/:draftId`,
+        page: () => <EditJobDraft />,
     },
     {
         path: `${routePath.deeploys}/${routePath.project}/:projectHash`,

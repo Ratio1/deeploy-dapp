@@ -1,4 +1,5 @@
 import { Tab, Tabs } from '@heroui/tabs';
+import clsx from 'clsx';
 import { ReactNode } from 'react';
 import { SmallTag } from './SmallTag';
 
@@ -6,15 +7,17 @@ export default function CustomTabs({
     tabs,
     selectedKey,
     onSelectionChange,
+    isCompact = false,
 }: {
     tabs: {
         key: string;
         title: string;
-        icon: ReactNode;
+        icon?: ReactNode;
         count?: number;
     }[];
     selectedKey?: string;
     onSelectionChange: (key) => void;
+    isCompact?: boolean;
 }) {
     return (
         <Tabs
@@ -26,8 +29,11 @@ export default function CustomTabs({
             selectedKey={selectedKey}
             classNames={{
                 cursor: 'group-data-[selected=true]:bg-[#EFF2F6]',
-                tab: 'h-10',
-                tabList: 'p-1 border-[#EFF2F6] shadow-none!',
+                tab: isCompact ? 'h-[30px]' : 'h-10',
+                tabList: clsx('p-1 shadow-none! bg-light', {
+                    'border-[#EFF2F6]': !isCompact,
+                    'border-default-200 border-1 rounded-lg': isCompact,
+                }),
                 tabContent: 'text-sm group-data-[selected=true]:text-body',
             }}
             onSelectionChange={(key) => {
@@ -39,7 +45,7 @@ export default function CustomTabs({
                     key={tab.key}
                     title={
                         <div className="row gap-1.5">
-                            <div className="text-lg">{tab.icon}</div>
+                            {tab.icon && <div className="text-lg">{tab.icon}</div>}
                             {tab.title}
                             {!!tab.count && (
                                 <div className="mx-0.5">

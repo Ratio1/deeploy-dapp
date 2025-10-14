@@ -11,7 +11,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-export default function Draft() {
+export default function ProjectDraft() {
     const { jobType, setJobType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();

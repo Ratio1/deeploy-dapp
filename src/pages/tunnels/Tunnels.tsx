@@ -8,7 +8,7 @@ import { checkSecrets, getSecrets, getTunnels } from '@lib/api/tunnels';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
-import { buildDeeployMessage, generateNonce } from '@lib/deeploy-utils';
+import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import ActionButton from '@shared/ActionButton';
 import { DetailedAlert } from '@shared/DetailedAlert';
 import EmptyData from '@shared/EmptyData';
@@ -73,7 +73,7 @@ function Tunnels() {
         try {
             setFetchingSecrets(true);
 
-            const nonce = generateNonce();
+            const nonce = generateDeeployNonce();
             const message = buildDeeployMessage(
                 {
                     nonce,

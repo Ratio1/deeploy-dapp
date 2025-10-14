@@ -49,8 +49,8 @@ export default function JobsCostRundown({
                         <div className="row gap-4">
                             <div className="compact min-w-20">
                                 <SmallTag>
-                                    {job.paymentAndDuration.paymentMonthsCount} month
-                                    {job.paymentAndDuration.paymentMonthsCount > 1 ? 's' : ''}
+                                    {job.costAndDuration.paymentMonthsCount} month
+                                    {job.costAndDuration.paymentMonthsCount > 1 ? 's' : ''}
                                 </SmallTag>
                             </div>
                             <div className="text-primary compact min-w-20 text-right">${formatUsdc(getJobCost(job))}</div>

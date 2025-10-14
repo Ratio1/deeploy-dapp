@@ -44,7 +44,7 @@ export default function DraftCard({ project }: { project: DraftProject }) {
     };
 
     return (
-        <Link to={`${routePath.deeploys}/${routePath.draft}/${project.projectHash}`}>
+        <Link to={`${routePath.deeploys}/${routePath.projectDraft}/${project.projectHash}`}>
             <BorderedCard isHoverable>
                 <div className="row justify-between gap-3 text-sm lg:gap-6">
                     <div className="min-w-[132px]">
@@ -77,7 +77,7 @@ export default function DraftCard({ project }: { project: DraftProject }) {
                             {
                                 key: 'delete',
                                 label: 'Delete',
-                                description: 'Removes the project draft from storage',
+                                description: 'Remove the project draft from storage',
                                 onPress: () => onDeleteProject(),
                             },
                         ]}

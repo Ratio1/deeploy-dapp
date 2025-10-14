@@ -12,9 +12,9 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import {
     buildDeeployMessage,
     diffTimeFn,
-    formatGenericJobPayload,
-    formatNativeJobPayload,
-    formatServiceJobPayload,
+    formatGenericDraftJobPayload,
+    formatNativeDraftJobPayload,
+    formatServiceDraftJobPayload,
     formatUsdc,
     getContainerOrWorkerType,
     getJobsTotalCost,
@@ -69,7 +69,7 @@ export default function Payment({
     const { signMessageAsync } = useSignMessage();
 
     const deeployFlowModalRef = useRef<{
-        open: (jobsCount: number) => void;
+        open: (jobsCount: number, messagesToSign: number) => void;
         progress: (action: DEEPLOY_FLOW_ACTION_KEYS) => void;
         close: () => void;
         displayError: () => void;
@@ -90,15 +90,15 @@ export default function Payment({
 
             switch (job.jobType) {
                 case JobType.Generic:
-                    payload = formatGenericJobPayload(job as GenericDraftJob);
+                    payload = formatGenericDraftJobPayload(job as GenericDraftJob);
                     break;
 
                 case JobType.Native:
-                    payload = formatNativeJobPayload(job as NativeDraftJob);
+                    payload = formatNativeDraftJobPayload(job as NativeDraftJob);
                     break;
 
                 case JobType.Service:
-                    payload = formatServiceJobPayload(job as ServiceDraftJob);
+                    payload = formatServiceDraftJobPayload(job as ServiceDraftJob);
                     break;
 
                 default:
@@ -152,11 +152,13 @@ export default function Payment({
         try {
             setErrors([]);
             setLoading(true);
-            deeployFlowModalRef.current?.open(jobs.length);
+
+            const messagesToSign = jobs.length;
+            deeployFlowModalRef.current?.open(jobs.length, messagesToSign);
 
             const args = jobs.map((job) => {
                 const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-                const expiryDate = addDays(new Date(), job.paymentAndDuration.duration * 30);
+                const expiryDate = addDays(new Date(), job.costAndDuration.duration * 30);
                 const durationInEpochs = diffTimeFn(expiryDate, new Date());
                 const lastExecutionEpoch = BigInt(getCurrentEpoch() + durationInEpochs);
 
@@ -198,7 +200,7 @@ export default function Payment({
                 const jobIds = jobCreatedLogs.map((log) => log.args.jobId);
                 const payloads = getJobPayloads(jobs);
 
-                deeployFlowModalRef.current?.progress('signMultipleMessages');
+                deeployFlowModalRef.current?.progress('signXMessages');
 
                 const requests = await Promise.all(
                     payloads.map((payload, index) => {
@@ -306,7 +308,7 @@ export default function Payment({
                             isLoading={isLoading}
                             setLoading={setLoading}
                             callback={onPayAndDeploy}
-                            isButtonDisabled={jobs?.length === 0}
+                            isButtonDisabled={jobs?.length === 0 || totalCost === 0n}
                         />
                     </div>
                 </div>
@@ -372,16 +374,8 @@ export default function Payment({
 
             <DeeployFlowModal
                 ref={deeployFlowModalRef}
-                actions={['payJobs', 'signMultipleMessages', 'callDeeployApi']}
-                descriptionFN={(jobsCount: number) => (
-                    <div className="text-[15px]">
-                        You'll need to confirm a <span className="text-primary font-medium">payment transaction</span> and sign{' '}
-                        <span className="text-primary font-medium">
-                            {jobsCount} message{jobsCount > 1 ? 's' : ''}
-                        </span>{' '}
-                        to deploy your job{jobsCount > 1 ? 's' : ''}.
-                    </div>
-                )}
+                actions={['payment', 'signXMessages', 'callDeeployApi']}
+                type="deploy"
             />
         </div>
     );

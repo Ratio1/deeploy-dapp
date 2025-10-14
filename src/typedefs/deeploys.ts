@@ -54,14 +54,15 @@ type ServiceJobSpecifications = BaseJobSpecifications & {
 type JobSpecifications = BaseJobSpecifications &
     (GenericJobSpecifications | NativeJobSpecifications | ServiceJobSpecifications);
 
-// Payment and Duration
-type JobPaymentAndDuration = {
+// Cost and Duration
+type JobCostAndDuration = {
     duration: number;
     paymentMonthsCount: number;
 };
 
 // Deployment
 type BaseJobDeployment = {
+    autoAssign: boolean;
     targetNodes: Array<{ address: R1Address }>;
     spareNodes: Array<{ address: R1Address }>;
     allowReplicationInTheWild: boolean;
@@ -160,7 +161,7 @@ type BaseDraftJob = {
     projectHash: string;
     jobType: JobType;
     specifications: JobSpecifications;
-    paymentAndDuration: JobPaymentAndDuration;
+    costAndDuration: JobCostAndDuration;
     deployment: JobDeployment;
 };
 
@@ -212,7 +213,7 @@ type RunningJobWithDetails = RunningJob & {
     projectName?: string;
     allowReplicationInTheWild: boolean | undefined; // Older jobs might not have this field
     spareNodes: R1Address[] | undefined; // Older jobs might not have this field
-    jobTags: string[] | undefined; // Older jobs might not have this field
+    jobTags: string[];
     nodes: R1Address[];
     instances: {
         nodeAddress: R1Address;
@@ -239,8 +240,8 @@ export type {
     GenericDraftJob,
     GenericJobDeployment,
     GenericJobSpecifications,
+    JobCostAndDuration,
     JobDeployment,
-    JobPaymentAndDuration,
     JobSpecifications,
     NativeDraftJob,
     NativeJobDeployment,

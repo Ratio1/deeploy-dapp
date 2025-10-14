@@ -3,10 +3,11 @@ import { Skeleton } from '@heroui/skeleton';
 import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { sleep } from '@lib/utils';
+import { fBI, sleep } from '@lib/utils';
 import ActionButton from '@shared/ActionButton';
 import { ConnectWalletWrapper } from '@shared/ConnectWalletWrapper';
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
+import { SigningModal } from '@shared/SigningModal';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiBox3Line } from 'react-icons/ri';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
@@ -19,14 +20,15 @@ type PayButtonWithAllowanceProps = {
     totalCost: bigint;
     isLoading: boolean;
     setLoading: (isLoading: boolean) => void;
-    callback: () => Promise<void>;
+    buttonType?: 'button' | 'submit';
+    callback?: () => Promise<void>;
     isButtonDisabled?: boolean;
     label?: string;
 };
 
 const PayButtonWithAllowance = forwardRef<PayButtonWithAllowanceRef, PayButtonWithAllowanceProps>(
     function PayButtonWithAllowance(
-        { totalCost, isLoading, setLoading, callback, isButtonDisabled = false, label = 'Pay & Deploy' },
+        { totalCost, isLoading, setLoading, buttonType = 'button', callback, isButtonDisabled = false, label = 'Pay & Deploy' },
         ref,
     ) {
         const { watchTx } = useBlockchainContext() as BlockchainContextType;
@@ -38,6 +40,11 @@ const PayButtonWithAllowance = forwardRef<PayButtonWithAllowanceRef, PayButtonWi
         const publicClient = usePublicClient();
         const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
 
+        const signTokenApprovalModalRef = useRef<{
+            open: () => void;
+            close: () => void;
+        }>(null);
+
         const approve = async () => {
             if (!walletClient || !publicClient || !address || !escrowContractAddress) {
                 toast.error('Please refresh this page and try again.');
@@ -45,6 +52,7 @@ const PayButtonWithAllowance = forwardRef<PayButtonWithAllowanceRef, PayButtonWi
             }
 
             setLoading(true);
+            signTokenApprovalModalRef.current?.open();
 
             try {
                 const txHash = await walletClient.writeContract({
@@ -67,6 +75,7 @@ const PayButtonWithAllowance = forwardRef<PayButtonWithAllowanceRef, PayButtonWi
                 toast.error('Approval failed, please try again.');
             } finally {
                 setLoading(false);
+                signTokenApprovalModalRef.current?.close();
             }
         };
 
@@ -82,6 +91,8 @@ const PayButtonWithAllowance = forwardRef<PayButtonWithAllowanceRef, PayButtonWi
                 functionName: 'allowance',
                 args: [address, escrowContractAddress],
             });
+
+            console.log(`Allowance: ${fBI(result, 6, 2)} $USDC`);
 
             setAllowance(result);
             setLoading(false);
@@ -110,33 +121,39 @@ const PayButtonWithAllowance = forwardRef<PayButtonWithAllowanceRef, PayButtonWi
             if (isApprovalRequired()) {
                 await approve();
             } else {
-                await callback();
+                await callback?.();
             }
         };
 
         const isPayAndDeployButtonDisabled = (): boolean => {
-            return !publicClient || allowance === undefined || totalCost === 0n || isButtonDisabled;
+            return !publicClient || allowance === undefined || isButtonDisabled;
         };
 
         if (allowance === undefined) {
-            return <Skeleton className="h-[38px] w-[138px] rounded-[10px]" />;
+            return <Skeleton className="h-[38px] w-[144px] rounded-[10px]" />;
         }
 
         return (
-            <ConnectWalletWrapper>
-                <ActionButton
-                    color="primary"
-                    variant="solid"
-                    onPress={onPress}
-                    isDisabled={isPayAndDeployButtonDisabled()}
-                    isLoading={isLoading}
-                >
-                    <div className="row gap-1.5">
-                        {!isApprovalRequired() && <RiBox3Line className="text-lg" />}
-                        <div className="text-sm">{isApprovalRequired() ? 'Approve $USDC' : label}</div>
-                    </div>
-                </ActionButton>
-            </ConnectWalletWrapper>
+            <>
+                <ConnectWalletWrapper>
+                    <ActionButton
+                        type={buttonType}
+                        color="primary"
+                        variant="solid"
+                        onPress={onPress}
+                        isDisabled={isPayAndDeployButtonDisabled()}
+                        isLoading={isLoading}
+                    >
+                        <div className="row gap-1.5">
+                            {!isApprovalRequired() && <RiBox3Line className="text-lg" />}
+                            <div className="text-sm">{isApprovalRequired() ? 'Approve $USDC' : label}</div>
+                        </div>
+                    </ActionButton>
+                </ConnectWalletWrapper>
+
+                {/* Approve Tokens Modal */}
+                <SigningModal ref={signTokenApprovalModalRef} type="tokenApproval" />
+            </>
         );
     },
 );

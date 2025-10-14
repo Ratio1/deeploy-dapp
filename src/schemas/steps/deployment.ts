@@ -102,6 +102,7 @@ const applyTunnelingRefinements = (schema: z.ZodObject<any>) => {
 };
 
 const baseDeploymentSchema = z.object({
+    autoAssign: z.boolean(),
     targetNodes: z.array(nodeSchema).refine(
         (nodes) => {
             const addresses = nodes.map((node) => node.address?.trim()).filter((address) => address && address !== ''); // Only non-empty addresses

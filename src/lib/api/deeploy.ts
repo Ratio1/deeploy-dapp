@@ -61,6 +61,24 @@ export const sendInstanceCommand = (request: {
         request,
     });
 
+export const scaleUpJobWorkers = (request: {
+    EE_ETH_SIGN: EthAddress;
+    EE_ETH_SENDER: EthAddress;
+    job_id: number;
+    app_id: string;
+    target_nodes: string[];
+    target_nodes_count: 0; // Use 0 to disable auto-assignment of target nodes
+    app_params: {
+        CONTAINER_RESOURCES: string;
+    };
+    project_id: EthAddress;
+    chainstore_response: true;
+    nonce: string;
+}): Promise<DeeployDefaultResponse> =>
+    _doPostDeeploy('/scale_up_job_workers', {
+        request,
+    });
+
 export const getApps = (request: {
     EE_ETH_SIGN: EthAddress;
     EE_ETH_SENDER: EthAddress;

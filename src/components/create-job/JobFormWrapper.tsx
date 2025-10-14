@@ -1,7 +1,7 @@
 import JobFormButtons from '@components/create-job/JobFormButtons';
 import JobFormHeader from '@components/create-job/JobFormHeader';
+import CostAndDuration from '@components/create-job/steps/CostAndDuration';
 import Deployment from '@components/create-job/steps/Deployment';
-import PaymentAndDuration from '@components/create-job/steps/PaymentAndDuration';
 import Specifications from '@components/create-job/steps/Specifications';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
@@ -24,7 +24,14 @@ import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { z } from 'zod';
 
-const STEPS = ['Project', 'Specifications', 'Payment & Duration', 'Deployment'];
+const STEPS: {
+    title: string;
+    validationName?: string;
+}[] = [
+    { title: 'Specifications', validationName: 'specifications' },
+    { title: 'Cost & Duration', validationName: 'costAndDuration' },
+    { title: 'Deployment', validationName: 'deployment' },
+];
 
 function JobFormWrapper({ projectName, draftJobsCount }) {
     const { projectHash } = useParams();
@@ -35,19 +42,20 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
     const getBaseSchemaDefaults = () => ({
         specifications: {
             applicationType: APPLICATION_TYPES[0],
-            targetNodesCount: 2, // Generic and Native jobs always have a minimal balancing of 2 nodes, Services are locked to 1 node
+            targetNodesCount: jobType === JobType.Generic || jobType === JobType.Native ? 2 : 1, // Generic and Native jobs always have a minimal balancing of 2 nodes, Services are locked to 1 node
             jobTags: [...(account!.applicantType === 'company' ? [KYB_TAG] : [])],
             nodesCountries: [],
         },
-        paymentAndDuration: {
-            duration: 12,
-            paymentMonthsCount: 12,
+        costAndDuration: {
+            duration: 1,
+            paymentMonthsCount: 1,
         },
         deployment: {
-            enableTunneling: BOOLEAN_TYPES[0],
+            autoAssign: true,
             targetNodes: [{ address: '' }],
             spareNodes: [{ address: '' }],
             allowReplicationInTheWild: true,
+            enableTunneling: BOOLEAN_TYPES[0],
         },
     });
 
@@ -164,7 +172,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
                 projectHash,
                 jobType: data.jobType,
                 specifications: data.specifications,
-                paymentAndDuration: data.paymentAndDuration,
+                costAndDuration: data.costAndDuration,
                 deployment: {
                     ...data.deployment,
                     jobAlias: data.deployment.jobAlias.toLowerCase(),
@@ -187,6 +195,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
 
     const onError = (errors: FieldErrors<z.infer<typeof jobSchema>>) => {
         console.log('[JobFormWrapper] Validation errors:', errors);
+        console.log('[JobFormWrapper] Form values:', form.getValues());
     };
 
     return (
@@ -195,13 +204,13 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
                 <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
-                            <JobFormHeader steps={STEPS} />
+                            <JobFormHeader steps={STEPS.map((step) => step.title)} />
 
-                            {step === 2 && <Specifications />}
-                            {step === 3 && <PaymentAndDuration />}
-                            {step === 4 && <Deployment />}
+                            {step === 0 && <Specifications />}
+                            {step === 1 && <CostAndDuration />}
+                            {step === 2 && <Deployment />}
 
-                            <JobFormButtons steps={STEPS} />
+                            <JobFormButtons steps={STEPS} cancelLabel="Project" />
                         </div>
                     </div>
                 </div>

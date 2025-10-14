@@ -2,23 +2,22 @@ import { DEEPLOY_FLOW_ACTION_KEYS, DEEPLOY_FLOW_ACTIONS } from '@data/deeployFlo
 import { Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from '@heroui/modal';
 import { Spinner } from '@heroui/spinner';
 import { DetailedAlert } from '@shared/DetailedAlert';
-import { forwardRef, JSX, useImperativeHandle, useState } from 'react';
+import { forwardRef, useImperativeHandle, useState } from 'react';
 import { RiCheckDoubleLine, RiCheckLine, RiCloseLine } from 'react-icons/ri';
 
 export const DeeployFlowModal = forwardRef(
-    (
-        { actions, descriptionFN }: { actions: DEEPLOY_FLOW_ACTION_KEYS[]; descriptionFN: (jobsCount: number) => JSX.Element },
-        ref,
-    ) => {
+    ({ actions, type }: { actions: DEEPLOY_FLOW_ACTION_KEYS[]; type: 'update' | 'deploy' | 'extend' }, ref) => {
         const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
 
         const [currentAction, setCurrentAction] = useState<DEEPLOY_FLOW_ACTION_KEYS>(actions[0]);
         const [jobsCount, setJobsCount] = useState<number>(1);
+        const [messagesCount, setMessagesCount] = useState<number>(0);
 
         const [error, setError] = useState<boolean>(false);
 
-        const open = (jobsCount: number) => {
+        const open = (jobsCount: number, messagesToSign: number) => {
             setJobsCount(jobsCount);
+            setMessagesCount(messagesToSign);
             setCurrentAction(actions[0]);
             setError(false);
             onOpen();
@@ -45,6 +44,18 @@ export const DeeployFlowModal = forwardRef(
             close,
             displayError,
         }));
+
+        const getActionTitle = (action: DEEPLOY_FLOW_ACTION_KEYS) => {
+            if (action === 'signXMessages') {
+                if (messagesCount <= 0) {
+                    return DEEPLOY_FLOW_ACTIONS[action].title;
+                }
+
+                return `Sign ${messagesCount === 1 ? 'one' : messagesCount} message${messagesCount === 1 ? '' : 's'}`;
+            }
+
+            return DEEPLOY_FLOW_ACTIONS[action].title;
+        };
 
         const getJobLoading = () => {
             return (
@@ -113,7 +124,28 @@ export const DeeployFlowModal = forwardRef(
                             <DetailedAlert
                                 icon={<RiCheckDoubleLine />}
                                 title="Confirmation"
-                                description={descriptionFN(jobsCount)}
+                                description={
+                                    <div className="text-[15px]">
+                                        You'll need to{' '}
+                                        {actions.includes('payment') && (
+                                            <>
+                                                confirm a{' '}
+                                                <span className="text-primary font-medium">payment transaction</span>{' '}
+                                            </>
+                                        )}
+                                        {actions.includes('payment') && actions.includes('signXMessages') && ' and '}
+                                        {actions.includes('signXMessages') && (
+                                            <>
+                                                sign{' '}
+                                                <span className="text-primary font-medium">
+                                                    {messagesCount === 1 ? 'one' : messagesCount} message
+                                                    {messagesCount === 1 ? '' : 's'}
+                                                </span>{' '}
+                                            </>
+                                        )}
+                                        to {type} your job{jobsCount > 1 ? 's' : ''}.
+                                    </div>
+                                }
                             ></DetailedAlert>
 
                             <div className="col relative mx-auto my-4 gap-6 text-[15px]">
@@ -128,7 +160,7 @@ export const DeeployFlowModal = forwardRef(
                                                   ? getJobDone()
                                                   : getJobPending(DEEPLOY_FLOW_ACTIONS[action].icon)}
 
-                                            <div>{DEEPLOY_FLOW_ACTIONS[action].title}</div>
+                                            <div>{getActionTitle(action)}</div>
                                         </div>
                                     );
                                 })}

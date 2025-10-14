@@ -4,13 +4,13 @@ import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
 import { config, environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { addTimeFn, diffTimeFn, formatUsdc } from '@lib/deeploy-utils';
+import { addTimeFn, diffTimeFn, formatUsdc, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
+import CostAndDurationInterface from '@shared/jobs/CostAndDurationInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
-import PaymentAndDurationInterface from '@shared/jobs/PaymentAndDurationInterface';
 import { SmallTag } from '@shared/SmallTag';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
-import { addDays, max } from 'date-fns';
+import { addDays, differenceInHours, max } from 'date-fns';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -22,13 +22,10 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
 
     const navigate = useNavigate();
 
-    const { costPer24h, costPer30Days } = useMemo(() => {
-        const per24h = job.pricePerEpoch * job.numberOfNodesRequested * (environment === 'mainnet' ? 1n : 24n);
-
-        return {
-            costPer24h: per24h,
-            costPer30Days: per24h * 30n,
-        };
+    const costPerEpoch: bigint = useMemo(() => {
+        return (
+            job.numberOfNodesRequested * getResourcesCostPerEpoch(job.resources.containerOrWorkerType, job.resources.gpuType)
+        );
     }, [job]);
 
     const [duration, setDuration] = useState<number>(12); // In months
@@ -40,7 +37,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
 
     const deeployFlowModalRef = useRef<{
-        open: (jobsCount: number) => void;
+        open: (jobsCount: number, messagesToSign: number) => void;
         progress: (action: DEEPLOY_FLOW_ACTION_KEYS) => void;
         close: () => void;
         displayError: () => void;
@@ -55,7 +52,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
         setLoading(true);
 
         try {
-            deeployFlowModalRef.current?.open(1);
+            deeployFlowModalRef.current?.open(1, 0);
 
             const status = await extendJob();
 
@@ -86,6 +83,15 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
         const lastExecutionEpoch: bigint = BigInt(
             Math.max(getCurrentEpoch(), Number(job.lastExecutionEpoch)) + durationInEpochs,
         );
+
+        console.log('[JobExtension]', {
+            lastExecutionEpoch,
+            durationInEpochs,
+            expiryDate,
+            diffInHours: differenceInHours(expiryDate, new Date(), {
+                roundingMethod: 'ceil',
+            }),
+        });
 
         const txHash = await walletClient!.writeContract({
             address: escrowContractAddress!,
@@ -118,7 +124,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
             },
             {
                 label: 'Monthly Cost',
-                value: `~$${formatUsdc(costPer30Days, 1)}`,
+                value: `~$${formatUsdc(costPerEpoch * 30n * (environment === 'mainnet' ? 1n : 24n), 1)}`,
             },
             {
                 label: 'End Date',
@@ -142,7 +148,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
                 tag: <SmallTag variant="blue">New</SmallTag>,
             },
         ],
-        [costPer30Days, duration, job],
+        [costPerEpoch, duration, job],
     );
 
     const handleDurationChange = useCallback(
@@ -174,8 +180,8 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
     return (
         <>
             <div className="col gap-6">
-                <PaymentAndDurationInterface
-                    costPer24h={costPer24h}
+                <CostAndDurationInterface
+                    costPerEpoch={costPerEpoch}
                     summaryItems={summaryItems}
                     initialDuration={12}
                     initialPaymentMonthsCount={12}
@@ -190,20 +196,12 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
                         isLoading={isLoading}
                         setLoading={setLoading}
                         callback={onSubmit}
+                        isButtonDisabled={totalCost === 0n}
                     />
                 </div>
             </div>
 
-            <DeeployFlowModal
-                ref={deeployFlowModalRef}
-                actions={['payJobs']}
-                descriptionFN={(_jobsCount: number) => (
-                    <div className="text-[15px]">
-                        You'll need to confirm a <span className="text-primary font-medium">payment transaction</span> in order
-                        to extend your job.
-                    </div>
-                )}
-            />
+            <DeeployFlowModal ref={deeployFlowModalRef} actions={['payment']} type="extend" />
         </>
     );
 }

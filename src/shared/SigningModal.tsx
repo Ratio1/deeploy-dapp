@@ -4,20 +4,16 @@ import { forwardRef, useImperativeHandle } from 'react';
 import { useAccount } from 'wagmi';
 import { DetailedAlert } from './DetailedAlert';
 
-export const SignMessageModal = forwardRef((_props, ref) => {
-    const {
-        isOpen: isSignMessageModalOpen,
-        onOpen: onSignMessageModalOpen,
-        onClose: onSignMessageModalClose,
-    } = useDisclosure();
+export const SigningModal = forwardRef(({ type }: { type: 'signMessage' | 'tokenApproval' }, ref) => {
+    const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
     const { connector } = useAccount();
 
     const open = () => {
-        onSignMessageModalOpen();
+        onModalOpen();
     };
 
     const close = () => {
-        onSignMessageModalClose();
+        onModalClose();
     };
 
     useImperativeHandle(ref, () => ({
@@ -27,10 +23,10 @@ export const SignMessageModal = forwardRef((_props, ref) => {
 
     return (
         <Modal
-            isOpen={isSignMessageModalOpen}
+            isOpen={isModalOpen}
             size="xs"
             backdrop="blur"
-            onClose={onSignMessageModalClose}
+            onClose={onModalClose}
             classNames={{
                 closeButton: 'cursor-pointer',
             }}
@@ -44,12 +40,13 @@ export const SignMessageModal = forwardRef((_props, ref) => {
                                     <Spinner size="sm" />
                                 </div>
                             }
-                            title="Sign Message"
+                            title={type === 'signMessage' ? 'Sign Message' : 'Token Approval'}
                             description={
                                 <div className="col items-center gap-4">
                                     <div className="text-[15px]">
-                                        Please <span className="text-primary font-medium">sign</span> the required message when
-                                        prompted by your wallet extension.
+                                        Please <span className="text-primary font-medium">sign</span> the required{' '}
+                                        {type === 'signMessage' ? 'message' : 'token approval'} when prompted by your wallet
+                                        extension.
                                     </div>
 
                                     {!!connector?.icon && (

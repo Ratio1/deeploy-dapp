@@ -23,7 +23,7 @@ export default function AddJobCard() {
                             color="default"
                             onPress={() => {
                                 // Job type selection is considered to be the 1st step
-                                setStep(2);
+                                setStep(0);
                                 setJobType(option.jobType);
                             }}
                         >

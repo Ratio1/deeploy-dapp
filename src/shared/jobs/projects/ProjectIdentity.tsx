@@ -7,7 +7,7 @@ import { DraftProject } from '@typedefs/deeploys';
 import { useEffect, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 
-// To be used only inside a project/draft route
+// To be used only inside a project/projectDraft route
 export default function ProjectIdentity({ projectName }: { projectName?: string }) {
     const { pathname } = useLocation();
     const { projectHash } = useParams();
@@ -15,7 +15,7 @@ export default function ProjectIdentity({ projectName }: { projectName?: string 
     const [draft, setDraft] = useState<DraftProject | undefined>();
 
     useEffect(() => {
-        if (projectHash && pathname.includes(routePath.draft)) {
+        if (projectHash && pathname.includes(routePath.projectDraft)) {
             fetchDraft(projectHash);
         }
     }, [pathname, projectHash]);

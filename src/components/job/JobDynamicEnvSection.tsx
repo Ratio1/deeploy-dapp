@@ -1,4 +1,5 @@
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
+import { getShortAddressOrHash } from '@lib/utils';
 import { SmallTag } from '@shared/SmallTag';
 
 export default function JobDynamicEnvSection({
@@ -45,7 +46,7 @@ export default function JobDynamicEnvSection({
                                     <SmallTag isLarge>
                                         <div className="row gap-1.5">
                                             <div className="text-slate-400">VALUE</div>
-                                            <div>{item.value}</div>
+                                            <div>{getShortAddressOrHash(item.value, 16, true)}</div>
                                         </div>
                                     </SmallTag>
                                 </div>
