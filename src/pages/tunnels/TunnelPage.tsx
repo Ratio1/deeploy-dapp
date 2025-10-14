@@ -227,8 +227,8 @@ export default function TunnelPage() {
                 },
             );
         } catch (error) {
-            console.error('Error deleting domain:', error);
-            toast.error('Failed to delete domain.');
+            console.error('Error deleting alias:', error);
+            toast.error('Failed to delete alias.');
         }
     };
 
