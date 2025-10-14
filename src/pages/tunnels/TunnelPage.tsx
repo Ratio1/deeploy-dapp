@@ -1,6 +1,13 @@
 import { Form } from '@heroui/form';
 import { Skeleton } from '@heroui/skeleton';
-import { addTunnelHostname, deleteTunnel, getTunnel, removeTunnelHostname } from '@lib/api/tunnels';
+import {
+    addTunnelAlias,
+    addTunnelHostname,
+    deleteTunnel,
+    getTunnel,
+    removeTunnelAlias,
+    removeTunnelHostname,
+} from '@lib/api/tunnels';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { routePath } from '@lib/routes/route-paths';
@@ -21,6 +28,7 @@ import {
     RiExternalLinkLine,
     RiEyeLine,
     RiLinkM,
+    RiPriceTag3Line,
 } from 'react-icons/ri';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -36,7 +44,10 @@ export default function TunnelPage() {
 
     // Used for adding new domains
     const [domain, setDomain] = useState<string>('');
-    const [isLoading, setLoading] = useState<boolean>(false);
+    const [isLoadingDomain, setLoadingDomain] = useState<boolean>(false);
+    // Used for adding new aliases
+    const [alias, setAlias] = useState<string>('');
+    const [isLoadingAlias, setLoadingAlias] = useState<boolean>(false);
 
     useEffect(() => {
         if (tunnelingSecrets && id) {
@@ -66,6 +77,7 @@ export default function TunnelPage() {
                 url: tunnel.metadata.dns_name,
                 token: tunnel.metadata.tunnel_token,
                 custom_hostnames: tunnel.metadata.custom_hostnames,
+                aliases: tunnel.metadata.aliases || [],
             });
         } catch (error) {
             console.error(error);
@@ -115,7 +127,7 @@ export default function TunnelPage() {
         }
 
         e.preventDefault();
-        setLoading(true);
+        setLoadingDomain(true);
 
         try {
             if (!tunnelingSecrets) {
@@ -132,7 +144,7 @@ export default function TunnelPage() {
             console.error('Error adding domain:', error);
             toast.error('Error adding domain.');
         } finally {
-            setLoading(false);
+            setLoadingDomain(false);
         }
     };
 
@@ -155,6 +167,61 @@ export default function TunnelPage() {
                     onConfirm: async () => {
                         await removeTunnelHostname(tunnel.id, hostnameId, tunnelingSecrets);
                         toast.success('Domain deleted successfully.');
+                        fetchTunnel(id);
+                    },
+                },
+            );
+        } catch (error) {
+            console.error('Error deleting domain:', error);
+            toast.error('Failed to delete domain.');
+        }
+    };
+
+    const onAddAlias = async (e: React.FormEvent<HTMLFormElement>) => {
+        if (!tunnel) {
+            return;
+        }
+
+        e.preventDefault();
+        setLoadingAlias(true);
+
+        try {
+            if (!tunnelingSecrets) {
+                throw new Error('Tunneling secrets not found.');
+            }
+
+            const sanitizedAlias = alias.trim().toLowerCase();
+            await addTunnelAlias(tunnel.id, sanitizedAlias, tunnelingSecrets);
+            toast.success('Alias added successfully.');
+            setAlias('');
+            fetchTunnel(id);
+        } catch (error) {
+            console.error('Error adding alias:', error);
+            toast.error('Error adding alias.');
+        } finally {
+            setLoadingAlias(false);
+        }
+    };
+
+    const onDeleteAlias = async (aliasId: string, alias: string) => {
+        if (!tunnel) {
+            return;
+        }
+
+        try {
+            if (!tunnelingSecrets) {
+                throw new Error('Tunneling secrets not found.');
+            }
+
+            await confirm(
+                <div className="col gap-3">
+                    <div>Are you sure you want to delete the following alias?</div>
+                    <div className="font-medium">{alias}</div>
+                </div>,
+                {
+                    onConfirm: async () => {
+                        await removeTunnelAlias(tunnel.id, aliasId, tunnelingSecrets);
+                        toast.success('Alias deleted successfully.');
                         fetchTunnel(id);
                     },
                 },
@@ -193,6 +260,7 @@ export default function TunnelPage() {
                     <Skeleton className="min-h-[38px] w-[320px] rounded-lg" />
                 </div>
 
+                <Skeleton className="min-h-[200px] w-full rounded-lg" />
                 <Skeleton className="min-h-[200px] w-full rounded-lg" />
             </div>
         );
@@ -270,9 +338,24 @@ export default function TunnelPage() {
 
                 <CompactCustomCard
                     header={
-                        <div className="row gap-1.5">
-                            <RiLinkM className="text-primary-500 text-lg" />
-                            <div className="compact">Linked Domains</div>
+                        <div className="col gap-1">
+                            <div className="row gap-1.5">
+                                <RiLinkM className="text-primary-500 text-lg" />
+                                <div className="compact">External Domains</div>
+                            </div>
+                            <div className="text-xs leading-5 text-slate-600">
+                                Only add domains managed outside of this Cloudflare account. Custom hostnames require a
+                                Cloudflare for SaaS subscription.{' '}
+                                <a
+                                    href="https://ratio1.ai/blog/deeploy-secrets-setup-guide#:~:text=Bonus%3A%20Setting%20tunnels%20to%20external%20domains"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-primary hover:opacity-80"
+                                >
+                                    Learn more in our guide
+                                </a>
+                                .
+                            </div>
                         </div>
                     }
                     footer={
@@ -294,14 +377,18 @@ export default function TunnelPage() {
                                             return 'Please enter a valid domain name';
                                         }
 
+                                        if (trimmedValue.endsWith(tunnelingSecrets?.cloudflareDomain || '')) {
+                                            return `You can't add domains on ${tunnelingSecrets?.cloudflareDomain}. Please add an alias instead.`;
+                                        }
+
                                         return null;
                                     }}
                                     placeholder="mydomain.com"
-                                    isDisabled={isLoading}
+                                    isDisabled={isLoadingDomain}
                                 />
 
                                 <div className="flex">
-                                    <ActionButton type="submit" color="primary" variant="solid" isLoading={isLoading}>
+                                    <ActionButton type="submit" color="primary" variant="solid" isLoading={isLoadingDomain}>
                                         <div className="text-sm">Add Domain</div>
                                     </ActionButton>
                                 </div>
@@ -338,6 +425,85 @@ export default function TunnelPage() {
                             <EmptyData
                                 title="No linked domains"
                                 description="Domains linked to the tunnel will appear here"
+                                icon={<RiDraftLine />}
+                            />
+                        </div>
+                    )}
+                </CompactCustomCard>
+
+                <CompactCustomCard
+                    header={
+                        <div className="col gap-1">
+                            <div className="row gap-1.5">
+                                <RiPriceTag3Line className="text-primary-500 text-lg" />
+                                <div className="compact">Aliases</div>
+                            </div>
+                            <div className="text-xs leading-5 text-slate-600">
+                                You can set up an alias to give your tunnel a user-friendly name on the{' '}
+                                {tunnelingSecrets?.cloudflareDomain} domain.
+                            </div>
+                        </div>
+                    }
+                    footer={
+                        <Form className="w-full" validationBehavior="native" onSubmit={onAddAlias}>
+                            <div className="flex w-full items-start justify-between gap-2">
+                                <StyledInput
+                                    value={alias}
+                                    onValueChange={(value) => setAlias(value)}
+                                    validate={(value) => {
+                                        const trimmedValue = value?.trim();
+
+                                        if (!trimmedValue) {
+                                            return 'Value is required';
+                                        }
+
+                                        const domainRegex =
+                                            /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
+                                        if (!domainRegex.test(trimmedValue)) {
+                                            return 'Please enter a valid domain name';
+                                        }
+
+                                        if (!trimmedValue.endsWith(tunnelingSecrets?.cloudflareDomain || '')) {
+                                            return `You can only add aliases on ${tunnelingSecrets?.cloudflareDomain}. Please use External Domains instead.`;
+                                        }
+
+                                        return null;
+                                    }}
+                                    placeholder={`example.${tunnelingSecrets?.cloudflareDomain}`}
+                                    isDisabled={isLoadingAlias}
+                                />
+
+                                <div className="flex">
+                                    <ActionButton type="submit" color="primary" variant="solid" isLoading={isLoadingAlias}>
+                                        <div className="text-sm">Add Alias</div>
+                                    </ActionButton>
+                                </div>
+                            </div>
+                        </Form>
+                    }
+                >
+                    {tunnel.aliases.length > 0 ? (
+                        <>
+                            {tunnel.aliases.map((a) => (
+                                <div key={a.id} className="row justify-between border-t-2 border-slate-200/65 px-4 py-3">
+                                    <div className="compact">{a.name}</div>
+
+                                    <div className="row gap-1">
+                                        <div className="group cursor-pointer rounded-full p-1.5 hover:bg-slate-100">
+                                            <RiDeleteBin2Line
+                                                className="text-xl text-slate-700 group-hover:text-red-500"
+                                                onClick={() => onDeleteAlias(a.id, a.name)}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </>
+                    ) : (
+                        <div className="center-all py-8">
+                            <EmptyData
+                                title="No aliases set"
+                                description="Aliases linked to the tunnel will appear here"
                                 icon={<RiDraftLine />}
                             />
                         </div>
