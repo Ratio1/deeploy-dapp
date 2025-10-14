@@ -338,22 +338,22 @@ export default function TunnelPage() {
 
                 <CompactCustomCard
                     header={
-                        <div className="col gap-1">
+                        <div className="col gap-2">
                             <div className="row gap-1.5">
                                 <RiLinkM className="text-primary-500 text-lg" />
                                 <div className="compact">External Domains</div>
                             </div>
-                            <div className="text-xs leading-5 text-slate-600">
+
+                            <div className="text-[13px]">
                                 Only add domains managed outside of this Cloudflare account. Custom hostnames require a
-                                Cloudflare for SaaS subscription.{' '}
-                                <a
-                                    href="https://ratio1.ai/blog/deeploy-secrets-setup-guide#:~:text=Bonus%3A%20Setting%20tunnels%20to%20external%20domains"
+                                Cloudflare for SaaS subscription. Learn more in{' '}
+                                <Link
+                                    to="https://ratio1.ai/blog/deeploy-secrets-setup-guide#:~:text=Bonus%3A%20Setting%20tunnels%20to%20external%20domains"
                                     target="_blank"
-                                    rel="noreferrer"
-                                    className="text-primary hover:opacity-80"
+                                    className="text-primary font-medium hover:opacity-70"
                                 >
-                                    Learn more in our guide
-                                </a>
+                                    our guide
+                                </Link>
                                 .
                             </div>
                         </div>
@@ -433,14 +433,15 @@ export default function TunnelPage() {
 
                 <CompactCustomCard
                     header={
-                        <div className="col gap-1">
+                        <div className="col gap-2">
                             <div className="row gap-1.5">
                                 <RiPriceTag3Line className="text-primary-500 text-lg" />
                                 <div className="compact">Aliases</div>
                             </div>
-                            <div className="text-xs leading-5 text-slate-600">
+
+                            <div className="text-[13px]">
                                 You can set up an alias to give your tunnel a user-friendly name on the{' '}
-                                {tunnelingSecrets?.cloudflareDomain} domain.
+                                <span className="font-medium">{tunnelingSecrets?.cloudflareDomain}</span> domain.
                             </div>
                         </div>
                     }
