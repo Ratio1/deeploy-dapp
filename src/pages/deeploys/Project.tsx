@@ -24,7 +24,6 @@ export default function Project() {
         setProjectPage,
         getProjectName,
         fetchRunningJobsWithDetails,
-        setProjectOverviewTab,
     } = useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
@@ -49,7 +48,6 @@ export default function Project() {
     useEffect(() => {
         setProjectPage(ProjectPage.Overview);
         setJobType(undefined);
-        setProjectOverviewTab('runningJobs');
     }, []);
 
     useEffect(() => {

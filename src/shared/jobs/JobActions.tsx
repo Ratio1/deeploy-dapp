@@ -191,21 +191,21 @@ export default function JobActions({
                 {
                     key: 'restart',
                     label: 'Restart',
-                    description: 'Restarts all the job instances',
+                    description: 'Restart all the job instances',
                     isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
                     onPress: () => onJobCommand('RESTART'),
                 },
                 {
                     key: 'stop',
                     label: 'Stop',
-                    description: 'Stops all the job instances',
+                    description: 'Stop all the job instances',
                     isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
                     onPress: () => onJobCommand('STOP'),
                 },
                 {
                     key: 'extend',
                     label: 'Extend',
-                    description: 'Increase the duration of the job',
+                    description: 'Increas the duration of the job',
                     isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
                     onPress: onExtendJob,
                 },
@@ -219,7 +219,7 @@ export default function JobActions({
                 {
                     key: 'delete',
                     label: 'Delete',
-                    description: 'Removes the job from all running nodes',
+                    description: 'Remove the job from all running nodes',
                     onPress: onDeleteJob,
                 },
             ]}

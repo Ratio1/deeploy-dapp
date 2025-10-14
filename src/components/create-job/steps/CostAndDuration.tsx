@@ -78,8 +78,8 @@ function CostAndDuration() {
         <CostAndDurationInterface
             costPerEpoch={costPerEpoch}
             summaryItems={summaryItems}
-            initialDuration={12}
-            initialPaymentMonthsCount={12}
+            initialDuration={costAndDuration.duration}
+            initialPaymentMonthsCount={costAndDuration.paymentMonthsCount}
             onDurationChange={onDurationChange}
         />
     );

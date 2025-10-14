@@ -1,7 +1,6 @@
 import { Slider } from '@heroui/slider';
 import { environment } from '@lib/config';
 import { formatUsdc, getDiscountPercentage } from '@lib/deeploy-utils';
-import { fBI } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { SlateCard } from '@shared/cards/SlateCard';
 import Label from '@shared/Label';
@@ -49,11 +48,11 @@ export default function CostAndDurationInterface({
         const epochs = 1n + BigInt(paymentMonthsCount) * 30n * (environment === 'mainnet' ? 1n : 24n);
         let totalCost = costPerEpoch * epochs;
 
-        console.log('[CostAndDurationInterface]', {
-            totalCost: fBI(totalCost, 6, 3),
-            costPerEpoch: fBI(costPerEpoch, 6, 3),
-            epochs,
-        });
+        // console.log('[CostAndDurationInterface]', {
+        //     totalCost: fBI(totalCost, 6, 3),
+        //     costPerEpoch: fBI(costPerEpoch, 6, 3),
+        //     epochs,
+        // });
 
         if (applyDiscount) {
             const discountPercentage = getDiscountPercentage(paymentMonthsCount);

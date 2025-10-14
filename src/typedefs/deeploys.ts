@@ -62,6 +62,7 @@ type JobCostAndDuration = {
 
 // Deployment
 type BaseJobDeployment = {
+    autoAssign: boolean;
     targetNodes: Array<{ address: R1Address }>;
     spareNodes: Array<{ address: R1Address }>;
     allowReplicationInTheWild: boolean;

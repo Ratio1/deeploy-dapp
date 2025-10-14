@@ -260,7 +260,7 @@ export default function EditJob() {
             app_id: job.alias,
             target_nodes: targetNodes,
             target_nodes_count: 0,
-            node_res_req: formatContainerResources(containerType),
+            CONTAINER_RESOURCES: formatContainerResources(containerType),
             project_id: job.projectHash,
             chainstore_response: true,
             nonce,

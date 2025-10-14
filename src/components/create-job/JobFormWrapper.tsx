@@ -24,7 +24,10 @@ import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { z } from 'zod';
 
-const STEPS = [
+const STEPS: {
+    title: string;
+    validationName?: string;
+}[] = [
     { title: 'Specifications', validationName: 'specifications' },
     { title: 'Cost & Duration', validationName: 'costAndDuration' },
     { title: 'Deployment', validationName: 'deployment' },
