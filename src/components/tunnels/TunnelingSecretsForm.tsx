@@ -120,6 +120,18 @@ export default function TunnelingSecretsForm({
                                         <InputWithLabel name="zoneId" label="Zone ID" placeholder="" />
                                         <InputWithLabel name="apiKey" label="API Key" placeholder="" />
                                         <InputWithLabel name="domain" label="Domain" placeholder="domain.com" />
+                                        <div className="mt-2 text-xs text-slate-600">
+                                            Need a walkthrough?{' '}
+                                            <a
+                                                href="https://ratio1.ai/blog/deeploy-secrets-setup-guide"
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-primary hover:opacity-80"
+                                            >
+                                                Read the Deeploy secrets setup guide
+                                            </a>
+                                            .
+                                        </div>
                                     </>,
                                 )}
                             </div>
