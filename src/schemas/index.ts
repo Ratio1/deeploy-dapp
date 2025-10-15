@@ -49,10 +49,10 @@ export const jobSchema = z
     )
     .refine(
         (data) => {
-            // Port is optional if applicationType is 'Other' or if enableTunneling is 'False'
+            // Port is optional if applicationType is 'Other' or if enableTunneling is 'True'
             const isPortOptional =
                 data.specifications.applicationType === APPLICATION_TYPES[1] ||
-                data.deployment.enableTunneling === BOOLEAN_TYPES[1];
+                data.deployment.enableTunneling === BOOLEAN_TYPES[0];
 
             // If port is not optional, it must be provided
             if (!isPortOptional && !data.deployment.port) {
