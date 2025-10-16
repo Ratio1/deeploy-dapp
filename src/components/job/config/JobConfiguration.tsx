@@ -1,67 +1,42 @@
-import { Skeleton } from '@heroui/skeleton';
-import { GITHUB_REPO_REGEX } from '@lib/deeploy-utils';
-import { extractRepositoryPath, getShortAddressOrHash } from '@lib/utils';
+import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
 import ItemWithBoldValue from '@shared/jobs/ItemWithBoldValue';
-import { SmallTag } from '@shared/SmallTag';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
-import { isEmpty } from 'lodash';
-import { useEffect, useRef, useState } from 'react';
-import JobDynamicEnvSection from './JobDynamicEnvSection';
-import JobFileVolumesSection from './JobFileVolumesSection';
-import JobKeyValueSection from './JobKeyValueSection';
-import JobSimpleTagsSection from './JobSimpleTagsSection';
+import _, { isEmpty } from 'lodash';
+import { useEffect, useState } from 'react';
+import JobDynamicEnvSection from '../JobDynamicEnvSection';
+import JobFileVolumesSection from '../JobFileVolumesSection';
+import JobKeyValueSection from '../JobKeyValueSection';
+import JobSimpleTagsSection from '../JobSimpleTagsSection';
+import ConfigSectionTitle from './ConfigSectionTitle';
+import ConfigWAR from './ConfigWAR';
+
+type PluginConfig = {
+    signature: string;
+    value: JobConfig;
+};
 
 export default function JobConfiguration({ job }: { job: RunningJobWithResources }) {
-    const config: JobConfig = job.config;
     const tags = !job.jobTags ? [] : job.jobTags.filter((tag) => tag !== '');
 
-    const [repositoryVisibility, setRepositoryVisibility] = useState<'public' | 'private' | '—' | undefined>();
-
-    const hasLoggedInitialState = useRef(false);
-
-    if (!hasLoggedInitialState.current) {
-        console.log('JobConfiguration', { job, config });
-        hasLoggedInitialState.current = true;
-    }
+    const [pluginConfig, setPluginConfig] = useState<PluginConfig>({
+        signature: job.instances[0].plugins[0].signature,
+        value: job.instances[0].plugins[0].instance_conf,
+    });
 
     useEffect(() => {
-        if (config && config.VCS_DATA) {
-            fetchRepositoryVisibility(config.VCS_DATA.REPO_URL);
-        }
-    }, [config]);
+        const signatures = _(job.instances)
+            .map((instance) => instance.plugins)
+            .flatten()
+            .map((plugin) => plugin.signature)
+            .value();
 
-    const fetchRepositoryVisibility = async (url: string) => {
-        const match = url.match(GITHUB_REPO_REGEX);
+        console.log('Signatures', signatures);
+    }, [job]);
 
-        if (!match) {
-            console.error('Not a valid GitHub repository URL');
-            setRepositoryVisibility('—');
-            return;
-        }
-
-        const [, owner, rawRepo] = match;
-        const repo = rawRepo.replace(/\.git$/i, '');
-
-        try {
-            const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
-
-            if (!response.ok) {
-                throw new Error(`GitHub repository lookup failed with status ${response.status}`);
-            }
-
-            setRepositoryVisibility('public');
-        } catch (error: any) {
-            if (error?.name === 'AbortError') {
-                return;
-            }
-
-            console.error('Repository visibility is: private');
-            setRepositoryVisibility('private');
-        }
-    };
+    const config = pluginConfig.value;
 
     return (
         <BorderedCard isLight={false} disableWrapper>
@@ -70,7 +45,7 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
 
                 <div className="col gap-4">
                     <div className="grid grid-cols-2 gap-3">
-                        {!!config.PORT && <ItemWithBoldValue label="Port" value={config.PORT} />}
+                        <ItemWithBoldValue label="Port" value={config.PORT} />
 
                         <ItemWithBoldValue
                             label="Tunnel Engine Enabled"
@@ -80,7 +55,7 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
 
                         {!!config.TUNNEL_ENGINE_ENABLED && (
                             <>
-                                <ItemWithBoldValue label="Tunnel Engine" value={config.TUNNEL_ENGINE} capitalize />
+                                <ItemWithBoldValue label="Tunnel Engine" value={config.TUNNEL_ENGINE ?? '—'} capitalize />
                                 <ItemWithBoldValue
                                     label="Cloudflare Token"
                                     value={
@@ -101,7 +76,8 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                     </div>
 
                     {/* Nodes */}
-                    <Section title="Nodes" />
+                    <ConfigSectionTitle title="Nodes" />
+
                     <div className="grid grid-cols-2 gap-3">
                         <ItemWithBoldValue label="Target Nodes" value={Number(job.numberOfNodesRequested)} />
                         <ItemWithBoldValue
@@ -125,68 +101,16 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                         />
                     </div>
 
+                    {/* TODO: If plugin is of type WAR */}
                     {/* Worker App Runner */}
                     {!!config.VCS_DATA && (
-                        <>
-                            <Section title="Worker App Runner" />
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <ItemWithBoldValue
-                                    label="GitHub Repository"
-                                    value={
-                                        <CopyableValue value={config.VCS_DATA.REPO_URL}>
-                                            {extractRepositoryPath(config.VCS_DATA.REPO_URL)}
-                                        </CopyableValue>
-                                    }
-                                />
-
-                                <ItemWithBoldValue
-                                    label="Repository Visibility"
-                                    value={repositoryVisibility ?? <Skeleton className="my-0.5 min-h-5 w-20 rounded-md" />}
-                                    capitalize
-                                />
-
-                                <ItemWithBoldValue label="GitHub Username" value={config.VCS_DATA.USERNAME || '—'} />
-
-                                <ItemWithBoldValue
-                                    label="Personal Access Token"
-                                    value={
-                                        config.VCS_DATA.TOKEN ? (
-                                            <CopyableValue value={config.VCS_DATA.TOKEN}>
-                                                {getShortAddressOrHash(config.VCS_DATA.TOKEN, 4, false)}
-                                            </CopyableValue>
-                                        ) : (
-                                            '—'
-                                        )
-                                    }
-                                />
-
-                                {!!config.BUILD_AND_RUN_COMMANDS && (
-                                    <ItemWithBoldValue
-                                        label="Worker Commands"
-                                        value={
-                                            isEmpty(config.BUILD_AND_RUN_COMMANDS) ? (
-                                                '—'
-                                            ) : (
-                                                <JobSimpleTagsSection
-                                                    array={config.BUILD_AND_RUN_COMMANDS}
-                                                    type="col"
-                                                    label="COMMAND"
-                                                />
-                                            )
-                                        }
-                                    />
-                                )}
-
-                                <ItemWithBoldValue label="Image" value={config.IMAGE} />
-                            </div>
-                        </>
+                        <ConfigWAR vcsData={config.VCS_DATA} commands={config.BUILD_AND_RUN_COMMANDS} image={config.IMAGE} />
                     )}
 
                     {/* Container App Runner */}
                     {!!config.CR_DATA && (
                         <>
-                            <Section title="Container App Runner" />
+                            <ConfigSectionTitle title="Container App Runner" />
 
                             <div className="grid grid-cols-2 gap-3">
                                 <ItemWithBoldValue
@@ -225,13 +149,14 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                     {/* Service */}
                     {job.resources.jobType === JobType.Service && (
                         <>
-                            <Section title="Service" />
+                            <ConfigSectionTitle title="Service" />
+
                             <ItemWithBoldValue label="Image" value={config.IMAGE} />
                         </>
                     )}
 
                     {/* Variables */}
-                    <Section title="Variables" />
+                    <ConfigSectionTitle title="Variables" />
 
                     <div className="col gap-3">
                         <div className="col gap-3">
@@ -240,12 +165,18 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                                 value={isEmpty(config.ENV) ? '—' : <JobKeyValueSection obj={config.ENV} />}
                             />
 
-                            <ItemWithBoldValue
-                                label="Dynamic ENV Variables"
-                                value={
-                                    isEmpty(config.DYNAMIC_ENV) ? '—' : <JobDynamicEnvSection dynamicEnv={config.DYNAMIC_ENV} />
-                                }
-                            />
+                            {job.resources.jobType !== JobType.Native && (
+                                <ItemWithBoldValue
+                                    label="Dynamic ENV Variables"
+                                    value={
+                                        isEmpty(config.DYNAMIC_ENV) ? (
+                                            '—'
+                                        ) : (
+                                            <JobDynamicEnvSection dynamicEnv={config.DYNAMIC_ENV} />
+                                        )
+                                    }
+                                />
+                            )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
@@ -254,10 +185,14 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
                                 value={isEmpty(config.VOLUMES) ? '—' : <JobKeyValueSection obj={config.VOLUMES} />}
                             />
 
-                            <ItemWithBoldValue
-                                label="File Volumes"
-                                value={isEmpty(config.FILE_VOLUMES) ? '—' : <JobFileVolumesSection obj={config.FILE_VOLUMES} />}
-                            />
+                            {job.resources.jobType === JobType.Generic && (
+                                <ItemWithBoldValue
+                                    label="File Volumes"
+                                    value={
+                                        isEmpty(config.FILE_VOLUMES) ? '—' : <JobFileVolumesSection obj={config.FILE_VOLUMES} />
+                                    }
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
@@ -265,12 +200,3 @@ export default function JobConfiguration({ job }: { job: RunningJobWithResources
         </BorderedCard>
     );
 }
-
-const Section = ({ title }: { title: string }) => (
-    <div className="row mt-1 w-full gap-3">
-        <SmallTag variant="accent">
-            <div className="whitespace-nowrap">{title}</div>
-        </SmallTag>
-        <div className="w-full border-b-2 border-slate-200"></div>
-    </div>
-);

@@ -1,6 +1,6 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
+import JobConfiguration from '@components/job/config/JobConfiguration';
 import JobBreadcrumbs from '@components/job/JobBreadcrumbs';
-import JobConfiguration from '@components/job/JobConfiguration';
 import JobFullUsage from '@components/job/JobFullUsage';
 import JobInstances from '@components/job/JobInstances';
 import JobSpecifications from '@components/job/JobSpecifications';

@@ -50,11 +50,11 @@ type JobConfig = {
     DYNAMIC_ENV: Record<string, { type: (typeof DYNAMIC_ENV_TYPES)[number]; value: string }[]>;
     ENV: Record<string, any>;
     IMAGE: string;
-    IMAGE_PULL_POLICY: string;
+    IMAGE_PULL_POLICY?: string;
     INSTANCE_ID: string;
     NGROK_USE_API: boolean;
     PORT: number;
-    RESTART_POLICY: string;
+    RESTART_POLICY?: string;
     TUNNEL_ENGINE: string;
     TUNNEL_ENGINE_ENABLED: boolean;
     VOLUMES: Record<string, any>;
@@ -65,11 +65,13 @@ type JobConfig = {
             mounting_point: string;
         }
     >;
-    VCS_DATA?: {
-        REPO_URL: string;
-        TOKEN: string | null;
-        USERNAME: string | null;
-    };
+    VCS_DATA?: JobConfigVCSData;
+};
+
+type JobConfigVCSData = {
+    REPO_URL: string;
+    TOKEN: string | null;
+    USERNAME: string | null;
 };
 
 type GetAppsResponse = DeeployDefaultResponse & {
@@ -101,4 +103,4 @@ type DeeployDefaultResponse = {
     };
 };
 
-export type { Apps, DeeployDefaultResponse, DeeploySpecs, GetAppsResponse, JobConfig, Plugin };
+export type { Apps, DeeployDefaultResponse, DeeploySpecs, GetAppsResponse, JobConfig, JobConfigVCSData, Plugin };
