@@ -204,8 +204,16 @@ const workerSchema = z.object({
         .max(512, 'Value cannot exceed 512 characters')
         .regex(/^https?:\/\/github\.com\/[^/\s]+\/[^/\s]+(?:\.git)?(?:\/.*)?$/i, 'Must be a valid GitHub repository URL'),
     repositoryVisibility: z.enum(['public', 'private'], { required_error: 'Value is required' }),
-    username: getOptionalStringSchema(256),
-    accessToken: getOptionalStringSchema(512),
+    username: z
+        .string()
+        .max(256, `Value cannot exceed 256 characters`)
+        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
+        .optional(),
+    accessToken: z
+        .string()
+        .max(512, `Value cannot exceed 512 characters`)
+        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
+        .optional(),
     workerCommands: z.array(workerCommandSchema).refine(
         (workerCommand) => {
             const commands = workerCommand.map((item) => item.command?.trim()).filter((command) => command && command !== ''); // Only non-empty commands

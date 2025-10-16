@@ -35,7 +35,6 @@ export default function SecondaryPluginsCard() {
     const onAddPlugin = (type: 'image' | 'worker') => {
         if (type === 'image') {
             append({
-                // TODO: Add all the other fields
                 deploymentType: {
                     type: 'image',
                     containerImage: '',
@@ -48,7 +47,6 @@ export default function SecondaryPluginsCard() {
             });
         } else {
             append({
-                // TODO: Add all the other fields
                 deploymentType: {
                     type: 'worker',
                     image: 'node:22',
