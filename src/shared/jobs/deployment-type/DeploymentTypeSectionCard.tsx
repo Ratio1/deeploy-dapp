@@ -4,7 +4,7 @@ import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import ContainerImageSection from './ContainerImageSection';
+import ContainerSection from './ContainerSection';
 import WorkerSection from './WorkerSection';
 
 function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean }) {
@@ -58,7 +58,7 @@ function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean })
                 </div>
             }
         >
-            {type === 'image' ? <ContainerImageSection /> : <WorkerSection isEditingJob={isEditingJob} />}
+            {type === 'image' ? <ContainerSection /> : <WorkerSection isEditingJob={isEditingJob} />}
         </SlateCard>
     );
 }

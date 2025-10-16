@@ -1,3 +1,5 @@
+import WorkerSection from '@shared/jobs/deployment-type/WorkerSection';
+
 export default function WARInputsSection({ index }: { index: number }) {
-    return <div>WARInputsSection</div>;
+    return <WorkerSection baseName={`deployment.secondaryPlugins.${index}`} />;
 }

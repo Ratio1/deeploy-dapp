@@ -1,20 +1,12 @@
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import SelectWithLabel from '@shared/SelectWithLabel';
-import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import InputWithLabel from '../../InputWithLabel';
 
-export default function ContainerImageSection({ baseName = 'deployment' }: { baseName?: string }) {
+export default function ContainerSection({ baseName = 'deployment' }: { baseName?: string }) {
     const { watch } = useFormContext();
 
     const crVisibility: 'Public' | 'Private' = watch(`${baseName}.deploymentType.crVisibility`);
-
-    const values = watch(`${baseName}.deploymentType`);
-
-    useEffect(() => {
-        // TODO: Remove this
-        console.log(values);
-    }, [values]);
 
     return (
         <div className="col gap-4">

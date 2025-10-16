@@ -9,14 +9,20 @@ import WorkerCommandsSection from './WorkerCommandsSection';
 
 const REPOS_CACHE: Record<string, 'public' | 'private'> = {};
 
-export default function WorkerSection({ isEditingJob }: { isEditingJob?: boolean }) {
+export default function WorkerSection({
+    isEditingJob,
+    baseName = 'deployment',
+}: {
+    isEditingJob?: boolean;
+    baseName?: string;
+}) {
     const { watch, setValue, register } = useFormContext();
 
-    const repositoryUrl: string | undefined = watch('deployment.deploymentType.repositoryUrl');
+    const repositoryUrl: string | undefined = watch(`${baseName}.deploymentType.repositoryUrl`);
     const repositoryVisibility: 'public' | 'private' | undefined = watch('deployment.deploymentType.repositoryVisibility');
 
     useEffect(() => {
-        register('deployment.deploymentType.repositoryVisibility');
+        register(`${baseName}.deploymentType.repositoryVisibility`);
     }, [register]);
 
     useEffect(() => {
@@ -77,7 +83,7 @@ export default function WorkerSection({ isEditingJob }: { isEditingJob?: boolean
     return (
         <div className="col gap-4">
             <InputWithLabel
-                name="deployment.deploymentType.repositoryUrl"
+                name={`${baseName}.deploymentType.repositoryUrl`}
                 label="GitHub Repository URL"
                 placeholder="e.g. https://github.com/org/repository"
                 onBlur={() => checkRepositoryVisibility()}
@@ -95,7 +101,7 @@ export default function WorkerSection({ isEditingJob }: { isEditingJob?: boolean
                 displayPasteIcon
             />
 
-            <InputWithLabel name="deployment.deploymentType.image" label="Image" placeholder="node:22" />
+            <InputWithLabel name={`${baseName}.deploymentType.image`} label="Image" placeholder="node:22" />
 
             {repositoryVisibility === 'public' && (
                 <div className="text-warning-800 bg-warning-100 col gap-2 rounded-md p-3 text-sm">
@@ -113,14 +119,14 @@ export default function WorkerSection({ isEditingJob }: { isEditingJob?: boolean
 
             <div className="flex gap-4">
                 <InputWithLabel
-                    name="deployment.deploymentType.username"
+                    name={`${baseName}.deploymentType.username`}
                     label="GitHub Username"
                     placeholder="Username"
                     isOptional={repositoryVisibility === 'public'}
                 />
 
                 <InputWithLabel
-                    name="deployment.deploymentType.accessToken"
+                    name={`${baseName}.deploymentType.accessToken`}
                     label="Personal Access Token"
                     placeholder="None"
                     isOptional={repositoryVisibility === 'public'}
@@ -128,7 +134,7 @@ export default function WorkerSection({ isEditingJob }: { isEditingJob?: boolean
                 />
             </div>
 
-            <WorkerCommandsSection />
+            <WorkerCommandsSection baseName={baseName} />
         </div>
     );
 }

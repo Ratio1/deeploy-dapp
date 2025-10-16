@@ -5,7 +5,6 @@ import VariableSectionRemove from '@shared/jobs/VariableSectionRemove';
 import { SmallTag } from '@shared/SmallTag';
 import { SecondaryPlugin } from '@typedefs/steps/deploymentStepTypes';
 import clsx from 'clsx';
-import { useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine, RiBox3Line } from 'react-icons/ri';
 import CARInputsSection from './CARInputsSection';
@@ -52,11 +51,6 @@ export default function SecondaryPluginsCard() {
             });
         }
     };
-
-    useEffect(() => {
-        // TODO: Remove this
-        console.log(fields);
-    }, [fields]);
 
     return (
         <SlateCard
