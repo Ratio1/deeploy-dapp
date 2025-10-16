@@ -1,13 +1,14 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { POLICY_TYPES } from '@data/policyTypes';
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import ActionButton from '@shared/ActionButton';
 import { SlateCard } from '@shared/cards/SlateCard';
-import VariableSectionRemove from '@shared/jobs/VariableSectionRemove';
 import { SmallTag } from '@shared/SmallTag';
 import { SecondaryPlugin } from '@typedefs/steps/deploymentStepTypes';
 import clsx from 'clsx';
 import { useFieldArray, useFormContext } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { RiAddLine, RiBox3Line } from 'react-icons/ri';
 import CARInputsSection from './CARInputsSection';
 import WARInputsSection from './WARInputsSection';
@@ -23,6 +24,8 @@ const PLUGIN_DEFAULTS = {
 };
 
 export default function SecondaryPluginsCard() {
+    const { confirm } = useInteractionContext() as InteractionContextType;
+
     const { control } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
@@ -74,8 +77,8 @@ export default function SecondaryPluginsCard() {
             {fields.length === 0 ? (
                 <div className="col items-center gap-2.5 text-center">
                     <div className="row gap-0.5">
-                        <RiAddLine className="text-xl" />
-                        <div className="font-medium">Add Plugin</div>
+                        <RiAddLine className="text-xl text-slate-400" />
+                        <div className="font-medium text-slate-500">Add Plugin</div>
                     </div>
 
                     <div className="row gap-2">
@@ -115,7 +118,29 @@ export default function SecondaryPluginsCard() {
                         </div>
                     ))}
 
-                    <VariableSectionRemove onClick={() => remove(0)} fixedHeight={false} />
+                    <div className="center-all mt-2">
+                        <div
+                            className="compact cursor-pointer text-red-600 hover:opacity-50"
+                            onClick={async () => {
+                                try {
+                                    const confirmed = await confirm(<div>Are you sure you want to remove this plugin?</div>);
+
+                                    if (!confirmed) {
+                                        return;
+                                    }
+
+                                    for (let i = fields.length - 1; i >= 0; i--) {
+                                        remove(i);
+                                    }
+                                } catch (error) {
+                                    console.error('Error removing plugin:', error);
+                                    toast.error('Failed to remove plugin.');
+                                }
+                            }}
+                        >
+                            Remove plugin
+                        </div>
+                    </div>
                 </>
             )}
         </SlateCard>

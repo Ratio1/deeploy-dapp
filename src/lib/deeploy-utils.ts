@@ -13,6 +13,7 @@ import {
     GenericJobSpecifications,
     JobSpecifications,
     JobType,
+    KeyValueEntryWithId,
     NativeDraftJob,
     NativeJobDeployment,
     NativeJobSpecifications,
@@ -22,6 +23,7 @@ import {
 } from '@typedefs/deeploys';
 import { addDays, addHours, differenceInDays, differenceInHours } from 'date-fns';
 import _ from 'lodash';
+import { FieldValues, UseFieldArrayAppend, UseFieldArrayRemove } from 'react-hook-form';
 import { formatUnits } from 'viem';
 import { environment } from './config';
 import { deepSort } from './utils';
@@ -360,9 +362,7 @@ export const formatNativeJobPayload = (
                 secondaryPluginConfig.IMAGE = secondaryPlugin.image;
                 secondaryPluginConfig.CONTAINER_RESOURCES = nodeResourceRequirements;
                 secondaryPluginConfig.PORT = secondaryPlugin.port;
-                secondaryPluginConfig.BUILD_AND_RUN_COMMANDS = secondaryPlugin.workerCommands?.map(
-                    (cmd: any) => cmd.command,
-                );
+                secondaryPluginConfig.BUILD_AND_RUN_COMMANDS = secondaryPlugin.workerCommands?.map((cmd: any) => cmd.command);
                 secondaryPluginConfig.VCS_DATA = {
                     REPO_URL: secondaryPlugin.repositoryUrl,
                     USERNAME: secondaryPlugin.username || null,
@@ -487,4 +487,68 @@ export const boolToBooleanType = (bool: boolean) => {
 
 export const titlecase = (str: string) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+export const onDotEnvPaste = async (
+    append: UseFieldArrayAppend<FieldValues, string>,
+    remove: UseFieldArrayRemove,
+    fields: Record<'id', string>[],
+) => {
+    try {
+        const clipboard = await navigator.clipboard.readText();
+
+        // Parse .env file contents
+        const lines = clipboard.split('\n');
+        const parsedEntries: { key: string; value: string }[] = [];
+
+        lines.forEach((line) => {
+            // Remove empty lines and comments
+            const trimmedLine = line.trim();
+            if (!trimmedLine || trimmedLine.startsWith('#')) {
+                return;
+            }
+
+            // Split on first '=' to handle values that might contain '='
+            const equalIndex = trimmedLine.indexOf('=');
+            if (equalIndex === -1) {
+                return; // Skip lines without '='
+            }
+
+            const key = trimmedLine.substring(0, equalIndex).trim();
+            let value = trimmedLine.substring(equalIndex + 1).trim();
+
+            // Remove inline comments (everything after #)
+            const commentIndex = value.indexOf('#');
+            if (commentIndex !== -1) {
+                value = value.substring(0, commentIndex).trim();
+            }
+
+            // Remove surrounding quotes if present
+            if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+                value = value.slice(1, -1);
+            }
+
+            // Only add if key is not empty
+            if (key) {
+                parsedEntries.push({ key, value });
+            }
+        });
+
+        // Add parsed entries to the form
+        if (parsedEntries.length > 0) {
+            const currentFields = fields as KeyValueEntryWithId[];
+
+            // Remove empty fields by their indices (in reverse order to avoid index shifting)
+            for (let i = currentFields.length - 1; i >= 0; i--) {
+                if (currentFields[i].key.trim() === '' && currentFields[i].value.trim() === '') {
+                    remove(i);
+                }
+            }
+
+            // Append the new parsed entries
+            append(parsedEntries);
+        }
+    } catch (error) {
+        console.error('Failed to read clipboard:', error);
+    }
 };

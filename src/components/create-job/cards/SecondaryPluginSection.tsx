@@ -1,9 +1,9 @@
 import ConfigSectionTitle from '@components/job/config/ConfigSectionTitle';
 import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';
-import EnvVariablesCard from '@shared/jobs/EnvVariablesCard';
 import FileVolumesSection from '@shared/jobs/FileVolumesSection';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import AppParametersSection from '../sections/AppParametersSection';
+import PluginEnvVariablesSection from '../sections/PluginEnvVariablesSection';
 import PoliciesSection from '../sections/PoliciesSection';
 
 export default function SecondaryPluginSection({ name }: { name: string }) {
@@ -12,8 +12,7 @@ export default function SecondaryPluginSection({ name }: { name: string }) {
             <ConfigSectionTitle title="App Parameters" />
             <AppParametersSection baseName={name} />
 
-            <ConfigSectionTitle title="ENV Variables" />
-            <EnvVariablesCard baseName={name} />
+            <PluginEnvVariablesSection baseName={name} />
 
             <ConfigSectionTitle title="Dynamic ENV Variables" />
             <DynamicEnvSection baseName={name} />
