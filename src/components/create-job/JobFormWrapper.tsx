@@ -43,7 +43,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         specifications: {
             applicationType: APPLICATION_TYPES[0],
             targetNodesCount: jobType === JobType.Generic || jobType === JobType.Native ? 2 : 1, // Generic and Native jobs always have a minimal balancing of 2 nodes, Services are locked to 1 node
-            jobTags: [...(account!.applicantType === 'company' ? [KYB_TAG] : [])],
+            jobTags: [...(account?.applicantType === 'company' ? [KYB_TAG] : [])],
             nodesCountries: [],
         },
         costAndDuration: {

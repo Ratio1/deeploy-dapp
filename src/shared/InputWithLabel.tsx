@@ -1,6 +1,5 @@
 import { InputProps } from '@heroui/input';
 import StyledInput from '@shared/StyledInput';
-import { useEffect } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { RiClipboardLine } from 'react-icons/ri';
 import Label from './Label';
@@ -26,12 +25,6 @@ export default function InputWithLabel({
     ...props
 }: Props) {
     const { control, formState } = useFormContext();
-
-    const errors = formState.errors;
-
-    useEffect(() => {
-        console.log(errors);
-    }, [errors[name]]);
 
     return (
         <div className="col w-full gap-2">

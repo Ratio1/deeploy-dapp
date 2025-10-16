@@ -14,11 +14,10 @@ import {
     nodeSchema,
     workerCommandSchema,
 } from '@schemas/common';
-import { secondaryPluginSchema } from '@schemas/secondaryPlugins';
 import { z } from 'zod';
 
 // Common validation patterns
-export const validations = {
+const validations = {
     // String patterns
     jobAlias: getNameWithoutSpacesSchema(3, 36),
 
@@ -223,6 +222,29 @@ const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend
 export const genericAppDeploymentSchema = applyDeploymentTypeRefinements(
     applyTunnelingRefinements(genericAppDeploymentSchemaWihtoutRefinements),
 );
+
+// Secondary plugins
+const basePluginSchema = z.object({
+    // Base
+    port: validations.port,
+    enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
+    tunnelingToken: getOptionalStringSchema(512),
+
+    // Deployment type
+    deploymentType: deploymentTypeSchema,
+
+    // Variables
+    envVars: validations.envVars,
+    dynamicEnvVars: validations.dynamicEnvVars,
+    volumes: validations.volumes,
+    fileVolumes: validations.fileVolumes,
+
+    // Policies
+    restartPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
+    imagePullPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
+});
+
+const secondaryPluginSchema = applyDeploymentTypeRefinements(applyTunnelingRefinements(basePluginSchema));
 
 const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,

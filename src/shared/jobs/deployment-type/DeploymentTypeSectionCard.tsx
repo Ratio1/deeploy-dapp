@@ -38,7 +38,7 @@ function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean })
 
     return (
         <SlateCard
-            title={type === 'worker' ? 'Worker App Runner' : 'Container Image'}
+            title={type === 'worker' ? 'Worker App Runner' : 'Container App Runner'}
             label={
                 <div className="row gap-2">
                     <SmallTag variant={type === 'worker' ? 'emerald' : 'default'}>Worker</SmallTag>

@@ -48,6 +48,7 @@ type WorkerDeploymentType = {
     repositoryVisibility: 'public' | 'private';
     username?: string;
     accessToken?: string;
+    workerCommands: Array<{ command: string }>;
 };
 
 type DeploymentType = ContainerDeploymentType | WorkerDeploymentType;
@@ -115,6 +116,7 @@ type JobDeployment = BaseJobDeployment & (GenericJobDeployment | NativeJobDeploy
 
 export type {
     BaseJobDeployment,
+    DeploymentType,
     GenericJobDeployment,
     JobDeployment,
     NativeJobDeployment,
