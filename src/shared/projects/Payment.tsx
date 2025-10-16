@@ -225,7 +225,9 @@ export default function Payment({
                         response.value.status === 'timeout',
                 );
                 const successfulJobs = responses.filter(
-                    (response) => response.status === 'fulfilled' && response.value.status === 'success',
+                    (response) =>
+                        response.status === 'fulfilled' &&
+                        (response.value.status === 'success' || response.value.status === 'command_delivered'),
                 );
 
                 if (failedJobs.length > 0) {
