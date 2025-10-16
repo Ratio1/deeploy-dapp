@@ -1,3 +1,5 @@
-export default function CARInputsSection() {
-    return <div>CARInputsSection</div>;
+import ContainerImageSection from '@shared/jobs/deployment-type/ContainerImageSection';
+
+export default function CARInputsSection({ index }: { index: number }) {
+    return <ContainerImageSection baseName={`deployment.secondaryPlugins.${index}`} />;
 }

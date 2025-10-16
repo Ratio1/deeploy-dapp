@@ -1,3 +1,4 @@
+import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { Switch } from '@heroui/switch';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
@@ -20,7 +21,8 @@ function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean })
             setValue('deployment.deploymentType', {
                 type: 'image',
                 containerImage: '',
-                containerRegistry: '',
+                containerRegistry: 'docker.io',
+                crVisibility: CR_VISIBILITY_OPTIONS[0],
                 crUsername: '',
                 crPassword: '',
             });

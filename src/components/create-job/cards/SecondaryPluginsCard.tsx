@@ -1,14 +1,17 @@
+import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import ActionButton from '@shared/ActionButton';
 import { SlateCard } from '@shared/cards/SlateCard';
 import VariableSectionRemove from '@shared/jobs/VariableSectionRemove';
-import { DeploymentType } from '@typedefs/steps/deploymentStepTypes';
+import { SmallTag } from '@shared/SmallTag';
+import { SecondaryPlugin } from '@typedefs/steps/deploymentStepTypes';
 import clsx from 'clsx';
+import { useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine, RiBox3Line } from 'react-icons/ri';
 import CARInputsSection from './CARInputsSection';
 import WARInputsSection from './WARInputsSection';
 
-type Plugin = DeploymentType & {
+type Plugin = SecondaryPlugin & {
     id: string;
 };
 
@@ -25,26 +28,47 @@ export default function SecondaryPluginsCard() {
     const onAddPlugin = (type: 'image' | 'worker') => {
         if (type === 'image') {
             append({
-                type: 'image',
-                containerImage: '',
-                containerRegistry: '',
-                crUsername: '',
-                crPassword: '',
+                // TODO: Add all the other fields
+                deploymentType: {
+                    type: 'image',
+                    containerImage: '',
+                    containerRegistry: 'docker.io',
+                    crVisibility: CR_VISIBILITY_OPTIONS[0],
+                    crUsername: '',
+                    crPassword: '',
+                },
             });
         } else {
             append({
-                type: 'worker',
-                image: 'node:22',
-                repositoryUrl: '',
-                username: '',
-                accessToken: '',
-                workerCommands: [{ command: 'npm install' }, { command: 'npm build' }, { command: 'npm start' }],
+                // TODO: Add all the other fields
+                deploymentType: {
+                    type: 'worker',
+                    image: 'node:22',
+                    repositoryUrl: '',
+                    username: '',
+                    accessToken: '',
+                    workerCommands: [{ command: 'npm install' }, { command: 'npm build' }, { command: 'npm start' }],
+                },
             });
         }
     };
 
+    useEffect(() => {
+        // TODO: Remove this
+        console.log(fields);
+    }, [fields]);
+
     return (
-        <SlateCard title="Secondary Plugins">
+        <SlateCard
+            title="Secondary Plugins"
+            label={
+                !fields.length ? null : (
+                    <SmallTag variant={plugins[0].deploymentType.type === 'image' ? 'purple' : 'emerald'}>
+                        {plugins[0].deploymentType.type === 'image' ? 'Container App Runner' : 'Worker App Runner'}
+                    </SmallTag>
+                )
+            }
+        >
             {fields.length === 0 ? (
                 <div className="col items-center gap-2.5 text-center">
                     <div className="row gap-0.5">
@@ -80,10 +104,16 @@ export default function SecondaryPluginsCard() {
             ) : (
                 <>
                     {plugins.map((plugin, index) => (
-                        <div key={index}>{plugin.type === 'image' ? <CARInputsSection /> : <WARInputsSection />}</div>
+                        <div key={index}>
+                            {plugin.deploymentType.type === 'image' ? (
+                                <CARInputsSection index={index} />
+                            ) : (
+                                <WARInputsSection index={index} />
+                            )}
+                        </div>
                     ))}
 
-                    <VariableSectionRemove onClick={() => remove(0)} />
+                    <VariableSectionRemove onClick={() => remove(0)} fixedHeight={false} />
                 </>
             )}
         </SlateCard>
