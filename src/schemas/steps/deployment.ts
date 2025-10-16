@@ -38,17 +38,13 @@ const validations = {
         .max(256, 'Value cannot exceed 256 characters')
         .regex(/^https?:\/\/.+/, 'Must be a valid URI'),
 
-    // Number patterns
     port: z
-        .union([
-            z.literal(''),
-            z
-                .number()
-                .int('Value must be a whole number')
-                .min(1, 'Value must be at least 1')
-                .max(65535, 'Value cannot exceed 65535'),
-        ])
-        .transform((val) => (!val ? undefined : (val as number))) as z.ZodType<number | undefined>,
+        .number()
+        .int('Value must be a whole number')
+        .min(1, 'Value must be at least 1')
+        .max(65535, 'Value cannot exceed 65535')
+        .transform((val: any) => (!val || val === '' ? undefined : (val as number)))
+        .optional(),
 
     envVars: getKeyValueEntriesArraySchema(),
     dynamicEnvVars: z
@@ -87,6 +83,15 @@ const createTunnelingRequiredRefinement = (fieldName: 'tunnelingToken') => {
     };
 };
 
+const createPortRequiredRefinement = () => {
+    return (data: { [key: string]: any }) => {
+        if (data.enableTunneling !== BOOLEAN_TYPES[0]) {
+            return true; // Allow undefined when tunneling is not enabled
+        }
+        return data.port !== undefined && data.port !== '';
+    };
+};
+
 const tunnelingRefinements = {
     tunnelingToken: {
         refine: createTunnelingRequiredRefinement('tunnelingToken'),
@@ -95,11 +100,20 @@ const tunnelingRefinements = {
             path: ['tunnelingToken'],
         },
     },
+    port: {
+        refine: createPortRequiredRefinement(),
+        options: {
+            message: 'Required when tunneling is enabled',
+            path: ['port'],
+        },
+    },
 };
 
 // Helper functions to apply refinements
 export const applyTunnelingRefinements = (schema: z.ZodObject<any>) => {
-    return schema.refine(tunnelingRefinements.tunnelingToken.refine, tunnelingRefinements.tunnelingToken.options);
+    return schema
+        .refine(tunnelingRefinements.tunnelingToken.refine, tunnelingRefinements.tunnelingToken.options)
+        .refine(tunnelingRefinements.port.refine, tunnelingRefinements.port.options);
 };
 
 export const applyDeploymentTypeRefinements = (schema) => {

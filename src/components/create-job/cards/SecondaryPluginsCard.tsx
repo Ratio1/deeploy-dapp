@@ -16,7 +16,7 @@ type Plugin = SecondaryPlugin & {
 };
 
 const PLUGIN_DEFAULTS = {
-    enableTunneling: BOOLEAN_TYPES[0],
+    enableTunneling: BOOLEAN_TYPES[1], // Default to False to avoid validation issues
 };
 
 export default function SecondaryPluginsCard() {
