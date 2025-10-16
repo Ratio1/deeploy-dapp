@@ -1,5 +1,5 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
-import JobConfiguration from '@components/job/config/JobConfiguration';
+import JobConfigurations from '@components/job/config/JobConfigurations';
 import JobBreadcrumbs from '@components/job/JobBreadcrumbs';
 import JobFullUsage from '@components/job/JobFullUsage';
 import JobInstances from '@components/job/JobInstances';
@@ -173,7 +173,7 @@ export default function Job() {
                 <JobSpecifications resources={job.resources} />
 
                 {/* Configuration */}
-                <JobConfiguration job={job} />
+                <JobConfigurations job={job} />
 
                 {/* Instances */}
                 <JobInstances

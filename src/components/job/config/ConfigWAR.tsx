@@ -14,7 +14,7 @@ export default function ConfigWAR({
     commands,
     image,
 }: {
-    vcsData: JobConfigVCSData;
+    vcsData?: JobConfigVCSData;
     commands?: string[];
     image: string;
 }) {
@@ -55,6 +55,10 @@ export default function ConfigWAR({
             setRepositoryVisibility('private');
         }
     };
+
+    if (!vcsData) {
+        return null;
+    }
 
     return (
         <>

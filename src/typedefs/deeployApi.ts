@@ -46,7 +46,7 @@ type JobConfig = {
         cpu: number;
         memory: string;
     };
-    CR_DATA: Record<string, any>;
+    CR_DATA?: JobConfigCRData;
     DYNAMIC_ENV: Record<string, { type: (typeof DYNAMIC_ENV_TYPES)[number]; value: string }[]>;
     ENV: Record<string, any>;
     IMAGE: string;
@@ -66,6 +66,12 @@ type JobConfig = {
         }
     >;
     VCS_DATA?: JobConfigVCSData;
+};
+
+type JobConfigCRData = {
+    SERVER?: string;
+    USERNAME?: string | null;
+    PASSWORD?: string | null;
 };
 
 type JobConfigVCSData = {
@@ -103,4 +109,13 @@ type DeeployDefaultResponse = {
     };
 };
 
-export type { Apps, DeeployDefaultResponse, DeeploySpecs, GetAppsResponse, JobConfig, JobConfigVCSData, Plugin };
+export type {
+    Apps,
+    DeeployDefaultResponse,
+    DeeploySpecs,
+    GetAppsResponse,
+    JobConfig,
+    JobConfigCRData,
+    JobConfigVCSData,
+    Plugin,
+};
