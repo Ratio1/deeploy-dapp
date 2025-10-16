@@ -54,7 +54,7 @@ type WorkerDeploymentType = {
 type DeploymentType = ContainerDeploymentType | WorkerDeploymentType;
 
 // Plugin-related types
-type SecondaryPlugin = {
+type Plugin = {
     // Base
     port?: number;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
@@ -102,7 +102,7 @@ type NativeJobDeployment = BaseJobDeployment & {
     pipelineInputType: (typeof PIPELINE_INPUT_TYPES)[number];
     pipelineInputUri?: string;
     chainstoreResponse: (typeof BOOLEAN_TYPES)[number];
-    secondaryPlugins: SecondaryPlugin[];
+    secondaryPlugins: Plugin[];
 };
 
 type ServiceJobDeployment = BaseJobDeployment & {
@@ -120,6 +120,6 @@ export type {
     GenericJobDeployment,
     JobDeployment,
     NativeJobDeployment,
-    SecondaryPlugin,
+    Plugin,
     ServiceJobDeployment,
 };

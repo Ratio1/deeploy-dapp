@@ -10,7 +10,7 @@ type Apps = {
             is_deeployed: boolean;
             deeploy_specs: DeeploySpecs;
             plugins: {
-                [pluginName: string]: Plugin[];
+                [pluginName: string]: AppsPlugin[];
             };
         };
     };
@@ -29,7 +29,7 @@ type DeeploySpecs = {
     spare_nodes: R1Address[];
 };
 
-type Plugin = {
+type AppsPlugin = {
     instance: string;
     start: string; // ISO-like timestamp string
     last_alive: string; // ISO-like timestamp string
@@ -111,11 +111,11 @@ type DeeployDefaultResponse = {
 
 export type {
     Apps,
+    AppsPlugin,
     DeeployDefaultResponse,
     DeeploySpecs,
     GetAppsResponse,
     JobConfig,
     JobConfigCRData,
     JobConfigVCSData,
-    Plugin,
 };

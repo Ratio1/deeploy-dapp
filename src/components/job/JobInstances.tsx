@@ -7,7 +7,7 @@ import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { CopyableValue } from '@shared/CopyableValue';
 import { SmallTag } from '@shared/SmallTag';
 import { R1Address } from '@typedefs/blockchain';
-import { Plugin } from '@typedefs/deeployApi';
+import { AppsPlugin } from '@typedefs/deeployApi';
 import clsx from 'clsx';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
@@ -23,7 +23,7 @@ export default function JobInstances({
 }: {
     instances: {
         nodeAddress: R1Address;
-        plugins: (Plugin & { signature: string })[];
+        plugins: (AppsPlugin & { signature: string })[];
     }[];
     lastNodesChangeTimestamp: bigint;
     jobAlias: string;

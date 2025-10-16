@@ -5,7 +5,7 @@ import { InteractionContextType, useInteractionContext } from '@lib/contexts/int
 import ActionButton from '@shared/ActionButton';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
-import { SecondaryPlugin } from '@typedefs/steps/deploymentStepTypes';
+import { Plugin } from '@typedefs/steps/deploymentStepTypes';
 import clsx from 'clsx';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -13,7 +13,7 @@ import { RiAddLine, RiBox3Line } from 'react-icons/ri';
 import CARInputsSection from './CARInputsSection';
 import WARInputsSection from './WARInputsSection';
 
-type Plugin = SecondaryPlugin & {
+type PluginWithId = Plugin & {
     id: string;
 };
 
@@ -33,7 +33,7 @@ export default function SecondaryPluginsCard() {
         name: 'deployment.secondaryPlugins',
     });
 
-    const plugins = fields as Plugin[];
+    const plugins = fields as PluginWithId[];
 
     const onAddPlugin = (type: 'image' | 'worker') => {
         if (type === 'image') {

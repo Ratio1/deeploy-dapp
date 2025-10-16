@@ -7,12 +7,12 @@ import {
     serviceContainerTypes,
 } from '@data/containerResources';
 import { EthAddress, R1Address } from './blockchain';
-import { JobConfig, Plugin } from './deeployApi';
+import { AppsPlugin, JobConfig } from './deeployApi';
 import {
     GenericJobDeployment,
     JobDeployment,
     NativeJobDeployment,
-    SecondaryPlugin,
+    Plugin,
     ServiceJobDeployment,
 } from './steps/deploymentStepTypes';
 
@@ -123,7 +123,7 @@ type RunningJobWithDetails = RunningJob & {
     nodes: R1Address[];
     instances: {
         nodeAddress: R1Address;
-        plugins: (Plugin & { signature: string })[];
+        plugins: (AppsPlugin & { signature: string })[];
     }[];
     config: JobConfig;
 };
@@ -152,10 +152,10 @@ export type {
     NativeDraftJob,
     NativeJobDeployment,
     NativeJobSpecifications,
+    Plugin,
     RunningJob,
     RunningJobWithDetails,
     RunningJobWithResources,
-    SecondaryPlugin,
     ServiceDraftJob,
     ServiceJobDeployment,
     ServiceJobSpecifications,

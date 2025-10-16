@@ -17,6 +17,7 @@ import {
     NativeDraftJob,
     NativeJobDeployment,
     NativeJobSpecifications,
+    Plugin,
     ServiceDraftJob,
     ServiceJobDeployment,
     ServiceJobSpecifications,
@@ -205,63 +206,86 @@ export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
     return formatServiceJobPayload(containerType, job.specifications, job.deployment);
 };
 
+export const formatGenericJobVariables = (plugin: Plugin) => {
+    return {
+        envVars: formatEnvVars(plugin.envVars),
+        dynamicEnvVars: formatDynamicEnvVars(plugin.dynamicEnvVars),
+        volumes: formatVolumes(plugin.volumes),
+        fileVolumes: formatFileVolumes(plugin.fileVolumes),
+    };
+};
+
+export const formatGenericPluginConfigAndSignature = (
+    resources: {
+        cpu: number;
+        memory: string;
+    },
+    plugin: Plugin,
+) => {
+    const { envVars, dynamicEnvVars, volumes, fileVolumes } = formatGenericJobVariables(plugin);
+    let pluginSignature: string;
+
+    const pluginConfig: any = {
+        CONTAINER_RESOURCES: resources,
+        PORT: plugin.port,
+        // Tunneling
+        TUNNEL_ENGINE: 'cloudflare',
+        CLOUDFLARE_TOKEN: plugin.tunnelingToken || null,
+        TUNNEL_ENGINE_ENABLED: plugin.enableTunneling === 'True',
+        NGROK_USE_API: true,
+        // Variables
+        ENV: envVars,
+        DYNAMIC_ENV: dynamicEnvVars,
+        VOLUMES: volumes,
+        FILE_VOLUMES: fileVolumes,
+        // Policies
+        RESTART_POLICY: plugin.restartPolicy.toLowerCase(),
+        IMAGE_PULL_POLICY: plugin.imagePullPolicy.toLowerCase(),
+    };
+
+    if (plugin.deploymentType.type === 'image') {
+        pluginSignature = 'CONTAINER_APP_RUNNER';
+
+        pluginConfig.IMAGE = plugin.deploymentType.containerImage;
+
+        pluginConfig.CR_DATA = {
+            SERVER: plugin.deploymentType.containerRegistry,
+        };
+
+        if (plugin.deploymentType.crVisibility === 'Private') {
+            pluginConfig.CR_DATA.USERNAME = plugin.deploymentType.crUsername;
+            pluginConfig.CR_DATA.PASSWORD = plugin.deploymentType.crPassword;
+        }
+    } else {
+        pluginSignature = 'WORKER_APP_RUNNER';
+
+        pluginConfig.IMAGE = plugin.deploymentType.image;
+        pluginConfig.BUILD_AND_RUN_COMMANDS = plugin.deploymentType.workerCommands.map((entry) => entry.command);
+
+        pluginConfig.VCS_DATA = {
+            REPO_URL: plugin.deploymentType.repositoryUrl,
+            USERNAME: plugin.deploymentType.username || null,
+            TOKEN: plugin.deploymentType.accessToken || null,
+        };
+    }
+
+    return { pluginConfig, pluginSignature };
+};
+
 export const formatGenericJobPayload = (
     containerType: ContainerOrWorkerType,
     specifications: GenericJobSpecifications,
     deployment: GenericJobDeployment,
 ) => {
     const jobTags = formatJobTags(specifications);
-    const envVars = formatEnvVars(deployment.envVars);
-    const dynamicEnvVars = formatDynamicEnvVars(deployment.dynamicEnvVars);
-    const volumes = formatVolumes(deployment.volumes);
-    const fileVolumes = formatFileVolumes(deployment.fileVolumes);
-    const containerResources = formatContainerResources(containerType);
     const targetNodes = formatNodes(deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, specifications.targetNodesCount);
     const spareNodes = formatNodes(deployment.spareNodes);
 
-    const pluginConfig: any = {
-        CONTAINER_RESOURCES: containerResources,
-        PORT: deployment.port,
-        TUNNEL_ENGINE: 'cloudflare',
-        CLOUDFLARE_TOKEN: deployment.tunnelingToken || null,
-        TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
-        NGROK_USE_API: true,
-        VOLUMES: volumes,
-        FILE_VOLUMES: fileVolumes,
-        ENV: envVars,
-        DYNAMIC_ENV: dynamicEnvVars,
-        RESTART_POLICY: deployment.restartPolicy.toLowerCase(),
-        IMAGE_PULL_POLICY: deployment.imagePullPolicy.toLowerCase(),
-    };
-
-    let pluginSignature: string;
-
-    if (deployment.deploymentType.type === 'image') {
-        pluginSignature = 'CONTAINER_APP_RUNNER';
-
-        pluginConfig.IMAGE = deployment.deploymentType.containerImage;
-
-        pluginConfig.CR_DATA = {
-            SERVER: deployment.deploymentType.containerRegistry,
-        };
-
-        if (deployment.deploymentType.crVisibility === 'Private') {
-            pluginConfig.CR_DATA.USERNAME = deployment.deploymentType.crUsername;
-            pluginConfig.CR_DATA.PASSWORD = deployment.deploymentType.crPassword;
-        }
-    } else {
-        pluginSignature = 'WORKER_APP_RUNNER';
-
-        pluginConfig.IMAGE = deployment.deploymentType.image;
-        pluginConfig.BUILD_AND_RUN_COMMANDS = deployment.deploymentType.workerCommands.map((entry) => entry.command);
-
-        pluginConfig.VCS_DATA = {
-            REPO_URL: deployment.deploymentType.repositoryUrl,
-            USERNAME: deployment.deploymentType.username || null,
-            TOKEN: deployment.deploymentType.accessToken || null,
-        };
-    }
+    const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
+        formatContainerResources(containerType),
+        deployment,
+    );
 
     const nonce = generateDeeployNonce();
 
@@ -306,7 +330,7 @@ export const formatNativeJobPayload = (
         }
     });
 
-    const nodeResourceRequirements = formatContainerResources(workerType);
+    const nodeResources = formatContainerResources(workerType);
     const targetNodes = formatNodes(deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, specifications.targetNodesCount);
 
@@ -329,54 +353,16 @@ export const formatNativeJobPayload = (
         Object.assign(primaryPluginConfig, customParams);
     }
 
-    // Build plugins array starting with primary plugin
+    // Build plugins array starting with the primary plugin
     const plugins = [primaryPluginConfig];
 
     // Add secondary plugins if they exist
-    if (deployment.secondaryPlugins && deployment.secondaryPlugins.length > 0) {
-        deployment.secondaryPlugins.forEach((secondaryPlugin: any) => {
-            const secondaryPluginConfig: any = {};
-
-            if (secondaryPlugin.type === 'container') {
-                secondaryPluginConfig.plugin_signature = 'CONTAINER_APP_RUNNER';
-                secondaryPluginConfig.IMAGE = secondaryPlugin.containerImage;
-                secondaryPluginConfig.CONTAINER_RESOURCES = nodeResourceRequirements;
-                secondaryPluginConfig.PORT = secondaryPlugin.port;
-                secondaryPluginConfig.CR_DATA = {
-                    SERVER: secondaryPlugin.containerRegistry,
-                };
-                if (secondaryPlugin.crVisibility === 'Private') {
-                    secondaryPluginConfig.CR_DATA.USERNAME = secondaryPlugin.crUsername;
-                    secondaryPluginConfig.CR_DATA.PASSWORD = secondaryPlugin.crPassword;
-                }
-                secondaryPluginConfig.ENV = formatEnvVars(secondaryPlugin.envVars || []);
-                secondaryPluginConfig.VOLUMES = formatVolumes(secondaryPlugin.volumes || []);
-                secondaryPluginConfig.RESTART_POLICY = secondaryPlugin.restartPolicy?.toLowerCase() || 'always';
-                secondaryPluginConfig.IMAGE_PULL_POLICY = secondaryPlugin.imagePullPolicy?.toLowerCase() || 'always';
-                secondaryPluginConfig.TUNNEL_ENGINE = 'cloudflare';
-                secondaryPluginConfig.TUNNEL_ENGINE_ENABLED = secondaryPlugin.enableTunneling === 'True';
-                secondaryPluginConfig.CLOUDFLARE_TOKEN = secondaryPlugin.tunnelingToken || null;
-                secondaryPluginConfig.NGROK_USE_API = true;
-            } else if (secondaryPlugin.type === 'worker') {
-                secondaryPluginConfig.plugin_signature = 'WORKER_APP_RUNNER';
-                secondaryPluginConfig.IMAGE = secondaryPlugin.image;
-                secondaryPluginConfig.CONTAINER_RESOURCES = nodeResourceRequirements;
-                secondaryPluginConfig.PORT = secondaryPlugin.port;
-                secondaryPluginConfig.BUILD_AND_RUN_COMMANDS = secondaryPlugin.workerCommands?.map((cmd: any) => cmd.command);
-                secondaryPluginConfig.VCS_DATA = {
-                    REPO_URL: secondaryPlugin.repositoryUrl,
-                    USERNAME: secondaryPlugin.username || null,
-                    TOKEN: secondaryPlugin.accessToken || null,
-                };
-                secondaryPluginConfig.ENV = formatEnvVars(secondaryPlugin.envVars || []);
-                secondaryPluginConfig.TUNNEL_ENGINE = 'cloudflare';
-                secondaryPluginConfig.TUNNEL_ENGINE_ENABLED = secondaryPlugin.enableTunneling === 'True';
-                secondaryPluginConfig.CLOUDFLARE_TOKEN = secondaryPlugin.tunnelingToken || null;
-                secondaryPluginConfig.NGROK_USE_API = true;
-            }
-
-            plugins.push(secondaryPluginConfig);
+    if (deployment.secondaryPlugins.length) {
+        const secondaryPluginConfigs = deployment.secondaryPlugins.map((plugin) => {
+            return formatGenericPluginConfigAndSignature(nodeResources, plugin);
         });
+
+        plugins.push(...secondaryPluginConfigs);
     }
 
     return {
@@ -387,7 +373,7 @@ export const formatNativeJobPayload = (
         allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
         target_nodes_count: targetNodesCount,
         job_tags: jobTags,
-        node_res_req: nodeResourceRequirements,
+        node_res_req: nodeResources,
         TUNNEL_ENGINE: 'cloudflare',
         plugins,
         pipeline_input_type: deployment.pipelineInputType,
