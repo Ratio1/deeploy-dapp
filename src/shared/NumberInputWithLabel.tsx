@@ -8,17 +8,18 @@ interface Props extends InputProps {
     name: string;
     label: string;
     placeholder?: string;
+    isOptional?: boolean;
     tag?: string;
     hasWarning?: boolean;
 }
 
-export default function NumberInputWithLabel({ name, label, placeholder, tag, hasWarning, ...props }: Props) {
+export default function NumberInputWithLabel({ name, label, placeholder, isOptional, tag, hasWarning, ...props }: Props) {
     const { control } = useFormContext();
 
     return (
         <div className="col w-full gap-2">
             <div className="row gap-1.5">
-                <Label value={label} />
+                <Label value={label} isOptional={isOptional} />
                 {!!tag && <SmallTag>{tag}</SmallTag>}
             </div>
 

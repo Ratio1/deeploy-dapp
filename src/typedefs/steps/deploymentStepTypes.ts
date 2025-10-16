@@ -56,7 +56,7 @@ type DeploymentType = ContainerDeploymentType | WorkerDeploymentType;
 // Plugin-related types
 type SecondaryPlugin = {
     // Base
-    port: number;
+    port?: number;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
     tunnelingToken?: string;
     // Deployment type
@@ -85,7 +85,7 @@ type BaseJobDeployment = {
 
 type GenericJobDeployment = BaseJobDeployment & {
     deploymentType: DeploymentType;
-    port: number;
+    port?: number;
     envVars: Array<KeyValueEntry>;
     dynamicEnvVars: Array<DynamicEnvVarsEntry>;
     volumes: Array<VolumesEntry>;
@@ -96,13 +96,13 @@ type GenericJobDeployment = BaseJobDeployment & {
 
 type NativeJobDeployment = BaseJobDeployment & {
     pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
-    port: number;
+    port?: number;
     customParams: Array<KeyValueEntry>;
     pipelineParams: Array<KeyValueEntry>;
     pipelineInputType: (typeof PIPELINE_INPUT_TYPES)[number];
     pipelineInputUri?: string;
     chainstoreResponse: (typeof BOOLEAN_TYPES)[number];
-    secondaryPlugins?: SecondaryPlugin[];
+    secondaryPlugins: SecondaryPlugin[];
 };
 
 type ServiceJobDeployment = BaseJobDeployment & {
