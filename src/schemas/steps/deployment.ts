@@ -242,6 +242,126 @@ export const genericAppDeploymentSchema = applyTunnelingRefinements(genericAppDe
     },
 );
 
+// Secondary plugin schemas for Native deployments
+const secondaryContainerPluginSchemaBase = z.object({
+    type: z.literal('container'),
+    containerImage: validations.containerImage,
+    containerRegistry: validations.containerRegistry,
+    crVisibility: z.enum(CR_VISIBILITY_OPTIONS, { required_error: 'Value is required' }),
+    crUsername: z.union([getStringSchema(3, 128), z.literal('')]).optional(),
+    crPassword: z.union([getStringSchema(3, 256), z.literal('')]).optional(),
+    port: validations.port.optional(),
+    envVars: validations.envVars,
+    volumes: validations.volumes,
+    restartPolicy: validations.restartPolicy,
+    imagePullPolicy: validations.imagePullPolicy,
+    enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
+    tunnelingToken: z
+        .string()
+        .min(3, 'Value must be at least 3 characters')
+        .max(512, 'Value cannot exceed 512 characters')
+        .regex(
+            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
+            'Only letters, numbers, spaces and special characters allowed',
+        )
+        .optional(),
+});
+
+const secondaryWorkerPluginSchemaBase = z.object({
+    type: z.literal('worker'),
+    image: getStringSchema(3, 256),
+    repositoryUrl: z
+        .string({ required_error: 'Value is required' })
+        .min(3, 'Value must be at least 3 characters')
+        .max(512, 'Value cannot exceed 512 characters')
+        .regex(/^https?:\/\/github\.com\/[^/\s]+\/[^/\s]+(?:\.git)?(?:\/.*)?$/i, 'Must be a valid GitHub repository URL'),
+    repositoryVisibility: z.enum(['public', 'private'], { required_error: 'Value is required' }),
+    username: z
+        .string()
+        .max(256, 'Value cannot exceed 256 characters')
+        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
+        .optional(),
+    accessToken: z
+        .string()
+        .max(512, 'Value cannot exceed 512 characters')
+        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
+        .optional(),
+    workerCommands: z.array(workerCommandSchema).refine(
+        (workerCommand) => {
+            const commands = workerCommand.map((item) => item.command?.trim()).filter((command) => command && command !== '');
+
+            const uniqueCommands = new Set(commands);
+            return uniqueCommands.size === commands.length;
+        },
+        {
+            message: 'Duplicate commands are not allowed',
+        },
+    ),
+    port: validations.port.optional(),
+    envVars: validations.envVars,
+    enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
+    tunnelingToken: z
+        .string()
+        .min(3, 'Value must be at least 3 characters')
+        .max(512, 'Value cannot exceed 512 characters')
+        .regex(
+            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
+            'Only letters, numbers, spaces and special characters allowed',
+        )
+        .optional(),
+});
+
+const secondaryPluginSchema = z
+    .discriminatedUnion('type', [secondaryContainerPluginSchemaBase, secondaryWorkerPluginSchemaBase])
+    .superRefine((data, ctx) => {
+        // Validate tunneling token when tunneling is enabled
+        if (data.enableTunneling === 'True' && !data.tunnelingToken) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Required when tunneling is enabled',
+                path: ['tunnelingToken'],
+            });
+        }
+
+        if (data.type === 'container') {
+            // Validate that crUsername and crPassword are provided when crVisibility is 'Private'
+            if (data.crVisibility === 'Private') {
+                if (!data.crUsername) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'Username is required',
+                        path: ['crUsername'],
+                    });
+                }
+                if (!data.crPassword) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'Password/Authentication Token is required',
+                        path: ['crPassword'],
+                    });
+                }
+            }
+        } else if (data.type === 'worker') {
+            // Validate that username and accessToken are provided when repositoryVisibility is 'private'
+            if (data.repositoryVisibility === 'private') {
+                if (!data.username) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'Username is required for private repositories',
+                        path: ['username'],
+                    });
+                }
+                if (!data.accessToken) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'Access token is required for private repositories',
+                        path: ['accessToken'],
+                    });
+                }
+            }
+        }
+    });
+
 const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,
     pluginSignature: validations.pluginSignature,
@@ -251,6 +371,7 @@ const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend(
     pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
     pipelineInputUri: validations.uri.optional(),
     chainstoreResponse: validations.chainstoreResponse,
+    secondaryPlugins: z.array(secondaryPluginSchema).max(1, 'Maximum 1 secondary plugin allowed').optional(),
 });
 
 export const nativeAppDeploymentSchema = applyTunnelingRefinements(nativeAppDeploymentSchemaWihtoutRefinements);

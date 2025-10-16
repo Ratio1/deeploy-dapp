@@ -116,6 +116,48 @@ type GenericJobDeployment = BaseJobDeployment & {
     imagePullPolicy: (typeof POLICY_TYPES)[number];
 };
 
+// Secondary plugin types for Native deployments
+type SecondaryContainerPlugin = {
+    type: 'container';
+    containerImage: string;
+    containerRegistry: string;
+    crVisibility: (typeof CR_VISIBILITY_OPTIONS)[number];
+    crUsername?: string;
+    crPassword?: string;
+    port?: number;
+    envVars: Array<{
+        key: string;
+        value: string;
+    }>;
+    volumes: Array<{
+        key: string;
+        value: string;
+    }>;
+    restartPolicy: (typeof POLICY_TYPES)[number];
+    imagePullPolicy: (typeof POLICY_TYPES)[number];
+    enableTunneling: (typeof BOOLEAN_TYPES)[number];
+    tunnelingToken?: string;
+};
+
+type SecondaryWorkerPlugin = {
+    type: 'worker';
+    image: string;
+    repositoryUrl: string;
+    repositoryVisibility: 'public' | 'private';
+    username?: string;
+    accessToken?: string;
+    workerCommands: Array<{ command: string }>;
+    port?: number;
+    envVars: Array<{
+        key: string;
+        value: string;
+    }>;
+    enableTunneling: (typeof BOOLEAN_TYPES)[number];
+    tunnelingToken?: string;
+};
+
+type SecondaryPlugin = SecondaryContainerPlugin | SecondaryWorkerPlugin;
+
 type NativeJobDeployment = BaseJobDeployment & {
     jobAlias: string;
     pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
@@ -131,6 +173,7 @@ type NativeJobDeployment = BaseJobDeployment & {
     pipelineInputType: (typeof PIPELINE_INPUT_TYPES)[number];
     pipelineInputUri?: string;
     chainstoreResponse: (typeof BOOLEAN_TYPES)[number];
+    secondaryPlugins?: SecondaryPlugin[];
 };
 
 type ServiceJobDeployment = BaseJobDeployment & {
@@ -249,6 +292,9 @@ export type {
     RunningJob,
     RunningJobWithDetails,
     RunningJobWithResources,
+    SecondaryContainerPlugin,
+    SecondaryPlugin,
+    SecondaryWorkerPlugin,
     ServiceDraftJob,
     ServiceJobDeployment,
     ServiceJobSpecifications,
