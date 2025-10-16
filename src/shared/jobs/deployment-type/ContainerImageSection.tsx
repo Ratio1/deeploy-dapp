@@ -11,7 +11,11 @@ export default function ContainerImageSection() {
     return (
         <div className="col gap-4">
             <div className="flex gap-4">
-                <InputWithLabel name="deployment.deploymentType.containerImage" label="Image" placeholder="repo/image:tag" />
+                <InputWithLabel
+                    name="deployment.deploymentType.containerImage"
+                    label="Image"
+                    placeholder="e.g. Ratio1/deeploy-dapp:latest"
+                />
                 <InputWithLabel
                     name="deployment.deploymentType.containerRegistry"
                     label="Container Registry"

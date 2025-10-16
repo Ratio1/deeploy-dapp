@@ -1,5 +1,4 @@
 import { APPLICATION_TYPES } from '@data/applicationTypes';
-import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import {
     genericContainerTypes,
     gpuTypes,
@@ -7,13 +6,9 @@ import {
     RunningJobResources,
     serviceContainerTypes,
 } from '@data/containerResources';
-import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
-import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
-import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
-import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
-import { POLICY_TYPES } from '@data/policyTypes';
 import { EthAddress, R1Address } from './blockchain';
 import { JobConfig, Plugin } from './deeployApi';
+import { GenericJobDeployment, JobDeployment, NativeJobDeployment, ServiceJobDeployment } from './steps/deploymentStepTypes';
 
 enum JobType {
     Generic = 'Generic',
@@ -59,144 +54,6 @@ type JobCostAndDuration = {
     duration: number;
     paymentMonthsCount: number;
 };
-
-// Deployment
-type BaseJobDeployment = {
-    autoAssign: boolean;
-    targetNodes: Array<{ address: R1Address }>;
-    spareNodes: Array<{ address: R1Address }>;
-    allowReplicationInTheWild: boolean;
-    enableTunneling: (typeof BOOLEAN_TYPES)[number];
-    tunnelingLabel?: string;
-    tunnelingToken?: string;
-};
-
-type GenericJobDeployment = BaseJobDeployment & {
-    jobAlias: string;
-    deploymentType:
-        | {
-              type: 'image';
-              containerImage: string;
-              containerRegistry: string;
-              crVisibility: (typeof CR_VISIBILITY_OPTIONS)[number];
-              crUsername?: string;
-              crPassword?: string;
-          }
-        | {
-              type: 'worker';
-              image: string;
-              repositoryUrl: string;
-              repositoryVisibility: 'public' | 'private';
-              username?: string;
-              accessToken?: string;
-              workerCommands: { command: string }[];
-          };
-    port: number;
-    envVars: Array<{
-        key: string;
-        value: string;
-    }>;
-    dynamicEnvVars: Array<{
-        key: string;
-        values: Array<{
-            type: (typeof DYNAMIC_ENV_TYPES)[number];
-            value: string;
-        }>;
-    }>;
-    volumes: Array<{
-        key: string;
-        value: string;
-    }>;
-    fileVolumes: Array<{
-        name: string;
-        mountingPoint: string;
-        content: string;
-    }>;
-    restartPolicy: (typeof POLICY_TYPES)[number];
-    imagePullPolicy: (typeof POLICY_TYPES)[number];
-};
-
-// Secondary plugin types for Native deployments
-type SecondaryContainerPlugin = {
-    type: 'container';
-    containerImage: string;
-    containerRegistry: string;
-    crVisibility: (typeof CR_VISIBILITY_OPTIONS)[number];
-    crUsername?: string;
-    crPassword?: string;
-    port?: number;
-    envVars: Array<{
-        key: string;
-        value: string;
-    }>;
-    volumes: Array<{
-        key: string;
-        value: string;
-    }>;
-    restartPolicy: (typeof POLICY_TYPES)[number];
-    imagePullPolicy: (typeof POLICY_TYPES)[number];
-    enableTunneling: (typeof BOOLEAN_TYPES)[number];
-    tunnelingToken?: string;
-};
-
-type SecondaryWorkerPlugin = {
-    type: 'worker';
-    image: string;
-    repositoryUrl: string;
-    repositoryVisibility: 'public' | 'private';
-    username?: string;
-    accessToken?: string;
-    workerCommands: Array<{ command: string }>;
-    port?: number;
-    envVars: Array<{
-        key: string;
-        value: string;
-    }>;
-    enableTunneling: (typeof BOOLEAN_TYPES)[number];
-    tunnelingToken?: string;
-};
-
-type SecondaryPlugin = SecondaryContainerPlugin | SecondaryWorkerPlugin;
-
-type NativeJobDeployment = BaseJobDeployment & {
-    jobAlias: string;
-    pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
-    port: number;
-    customParams: Array<{
-        key: string;
-        value: string;
-    }>;
-    pipelineParams: Array<{
-        key: string;
-        value: string;
-    }>;
-    pipelineInputType: (typeof PIPELINE_INPUT_TYPES)[number];
-    pipelineInputUri?: string;
-    chainstoreResponse: (typeof BOOLEAN_TYPES)[number];
-    secondaryPlugins?: SecondaryPlugin[];
-};
-
-type ServiceJobDeployment = BaseJobDeployment & {
-    jobAlias: string;
-    envVars: Array<{
-        key: string;
-        value: string;
-    }>;
-    dynamicEnvVars: Array<{
-        key: string;
-        values: Array<{
-            type: (typeof DYNAMIC_ENV_TYPES)[number];
-            value: string;
-        }>;
-    }>;
-    volumes: Array<{
-        key: string;
-        value: string;
-    }>;
-    serviceReplica?: R1Address;
-};
-
-type JobDeployment = BaseJobDeployment & (GenericJobDeployment | NativeJobDeployment | ServiceJobDeployment);
 
 // Draft Job
 type BaseDraftJob = {
@@ -269,7 +126,7 @@ type RunningJobWithResources = RunningJobWithDetails & {
     resources: RunningJobResources;
 };
 
-export interface KeyValueEntry {
+export interface KeyValueEntryWithId {
     id: string;
     key: string;
     value: string;
@@ -292,9 +149,6 @@ export type {
     RunningJob,
     RunningJobWithDetails,
     RunningJobWithResources,
-    SecondaryContainerPlugin,
-    SecondaryPlugin,
-    SecondaryWorkerPlugin,
     ServiceDraftJob,
     ServiceJobDeployment,
     ServiceJobSpecifications,

@@ -1,6 +1,6 @@
 import { Button } from '@heroui/button';
 import { SlateCard } from '@shared/cards/SlateCard';
-import { KeyValueEntry } from '@typedefs/deeploys';
+import { KeyValueEntryWithId } from '@typedefs/deeploys';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { RiClipboardLine } from 'react-icons/ri';
 import KeyValueEntriesSection from './KeyValueEntriesSection';
@@ -56,7 +56,7 @@ export default function EnvVariablesCard({ disabledKeys }: { disabledKeys?: stri
 
             // Add parsed entries to the form
             if (parsedEntries.length > 0) {
-                const currentFields = fields as KeyValueEntry[];
+                const currentFields = fields as KeyValueEntryWithId[];
 
                 // Remove empty fields by their indices (in reverse order to avoid index shifting)
                 for (let i = currentFields.length - 1; i >= 0; i--) {
