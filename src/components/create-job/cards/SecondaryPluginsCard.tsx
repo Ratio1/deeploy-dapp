@@ -1,5 +1,6 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
+import { POLICY_TYPES } from '@data/policyTypes';
 import ActionButton from '@shared/ActionButton';
 import { SlateCard } from '@shared/cards/SlateCard';
 import VariableSectionRemove from '@shared/jobs/VariableSectionRemove';
@@ -17,6 +18,8 @@ type Plugin = SecondaryPlugin & {
 
 const PLUGIN_DEFAULTS = {
     enableTunneling: BOOLEAN_TYPES[1], // Default to False to avoid validation issues
+    restartPolicy: POLICY_TYPES[0],
+    imagePullPolicy: POLICY_TYPES[0],
 };
 
 export default function SecondaryPluginsCard() {

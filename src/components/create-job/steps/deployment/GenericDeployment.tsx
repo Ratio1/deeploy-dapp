@@ -1,4 +1,5 @@
 import AppParametersSection from '@components/create-job/sections/AppParametersSection';
+import PoliciesSection from '@components/create-job/sections/PoliciesSection';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import DeploymentTypeSectionCard from '@shared/jobs/deployment-type/DeploymentTypeSectionCard';
@@ -7,7 +8,6 @@ import EnvVariablesCard from '@shared/jobs/EnvVariablesCard';
 import FileVolumesSection from '@shared/jobs/FileVolumesSection';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
-import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
 
 function GenericDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
@@ -44,14 +44,7 @@ function GenericDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
             </SlateCard>
 
             <SlateCard title="Policies">
-                <div className="flex gap-4">
-                    <SelectWithLabel name="deployment.restartPolicy" label="Restart Policy" options={['Always', 'Manual']} />
-                    <SelectWithLabel
-                        name="deployment.imagePullPolicy"
-                        label="Image Pull Policy"
-                        options={['Always', 'Manual']}
-                    />
-                </div>
+                <PoliciesSection />
             </SlateCard>
         </div>
     );

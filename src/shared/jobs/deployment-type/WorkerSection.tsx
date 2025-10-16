@@ -19,7 +19,7 @@ export default function WorkerSection({
     const { watch, setValue, register } = useFormContext();
 
     const repositoryUrl: string | undefined = watch(`${baseName}.deploymentType.repositoryUrl`);
-    const repositoryVisibility: 'public' | 'private' | undefined = watch('deployment.deploymentType.repositoryVisibility');
+    const repositoryVisibility: 'public' | 'private' | undefined = watch(`${baseName}.deploymentType.repositoryVisibility`);
 
     useEffect(() => {
         register(`${baseName}.deploymentType.repositoryVisibility`);
@@ -36,7 +36,7 @@ export default function WorkerSection({
 
         if (!url) {
             console.error('No repository URL provided');
-            setValue('deployment.deploymentType.repositoryVisibility', undefined);
+            setValue(`${baseName}.deploymentType.repositoryVisibility`, undefined);
 
             return;
         }
@@ -46,13 +46,13 @@ export default function WorkerSection({
 
         if (!match) {
             console.error('Not a valid GitHub repository URL');
-            setValue('deployment.deploymentType.repositoryVisibility', undefined);
+            setValue(`${baseName}.deploymentType.repositoryVisibility`, undefined);
             return;
         }
 
         if (REPOS_CACHE[trimmedUrl]) {
             // console.log('Repository visibility cached', REPOS_CACHE[trimmedUrl]);
-            setValue('deployment.deploymentType.repositoryVisibility', REPOS_CACHE[trimmedUrl]);
+            setValue(`${baseName}.deploymentType.repositoryVisibility`, REPOS_CACHE[trimmedUrl]);
             return;
         }
 
@@ -67,7 +67,7 @@ export default function WorkerSection({
             }
 
             // console.log('Repository visibility is: public');
-            setValue('deployment.deploymentType.repositoryVisibility', 'public');
+            setValue(`${baseName}.deploymentType.repositoryVisibility`, 'public');
             REPOS_CACHE[trimmedUrl] = 'public';
         } catch (error: any) {
             if (error?.name === 'AbortError') {
@@ -75,7 +75,7 @@ export default function WorkerSection({
             }
 
             // console.log('Repository visibility is: private');
-            setValue('deployment.deploymentType.repositoryVisibility', 'private');
+            setValue(`${baseName}.deploymentType.repositoryVisibility`, 'private');
             REPOS_CACHE[trimmedUrl] = 'private';
         }
     };

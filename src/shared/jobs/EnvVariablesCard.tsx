@@ -5,12 +5,18 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { RiClipboardLine } from 'react-icons/ri';
 import KeyValueEntriesSection from './KeyValueEntriesSection';
 
-export default function EnvVariablesCard({ disabledKeys }: { disabledKeys?: string[] }) {
+export default function EnvVariablesCard({
+    disabledKeys,
+    baseName = 'deployment',
+}: {
+    disabledKeys?: string[];
+    baseName?: string;
+}) {
     const { control } = useFormContext();
 
     const { append, remove, fields } = useFieldArray({
         control,
-        name: 'deployment.envVars',
+        name: `${baseName}.envVars`,
     });
 
     const onPaste = async () => {
@@ -92,7 +98,7 @@ export default function EnvVariablesCard({ disabledKeys }: { disabledKeys?: stri
                 </div>
 
                 <KeyValueEntriesSection
-                    name="deployment.envVars"
+                    name={`${baseName}.envVars`}
                     displayLabel="environment variables"
                     disabledKeys={disabledKeys}
                     parentMethods={{ append, remove, fields }}

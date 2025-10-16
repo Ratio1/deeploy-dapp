@@ -7,18 +7,18 @@ import TextFileUpload from './TextFileUpload';
 import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
 
-export default function FileVolumesSection() {
+export default function FileVolumesSection({ baseName = 'deployment' }: { baseName?: string }) {
     const { confirm } = useInteractionContext() as InteractionContextType;
 
     const { control, formState, trigger, setValue } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'deployment.fileVolumes',
+        name: `${baseName}.fileVolumes`,
     });
 
     // Get array-level errors
-    const errors = (formState.errors.deployment as any)?.fileVolumes;
+    const errors = (formState.errors[baseName] as any)?.fileVolumes;
 
     return (
         <div className="col gap-4">
@@ -38,7 +38,7 @@ export default function FileVolumesSection() {
                                     <div className="flex w-full gap-2">
                                         <div className="flex-1/3">
                                             <Controller
-                                                name={`deployment.fileVolumes.${index}.name`}
+                                                name={`${baseName}.fileVolumes.${index}.name`}
                                                 control={control}
                                                 render={({ field, fieldState }) => {
                                                     // Check for an error on this specific property
@@ -59,7 +59,7 @@ export default function FileVolumesSection() {
 
                                                                 // Trigger validation for the entire array to check for duplicate keys
                                                                 if (fields.length > 1) {
-                                                                    await trigger('deployment.fileVolumes');
+                                                                    await trigger(`${baseName}.fileVolumes`);
                                                                 }
                                                             }}
                                                             isInvalid={hasError}
@@ -78,7 +78,7 @@ export default function FileVolumesSection() {
 
                                         <div className="flex-2/3">
                                             <Controller
-                                                name={`deployment.fileVolumes.${index}.mountingPoint`}
+                                                name={`${baseName}.fileVolumes.${index}.mountingPoint`}
                                                 control={control}
                                                 render={({ field, fieldState }) => {
                                                     // Check for an error on this specific property
@@ -99,7 +99,7 @@ export default function FileVolumesSection() {
 
                                                                 // Trigger validation for the entire array to check for duplicate keys
                                                                 if (fields.length > 1) {
-                                                                    await trigger('deployment.fileVolumes');
+                                                                    await trigger(`${baseName}.fileVolumes`);
                                                                 }
                                                             }}
                                                             isInvalid={hasError}
@@ -131,7 +131,7 @@ export default function FileVolumesSection() {
 
                                     <TextFileUpload
                                         onUpload={(content) => {
-                                            setValue(`deployment.fileVolumes.${index}.content`, content);
+                                            setValue(`${baseName}.fileVolumes.${index}.content`, content);
                                         }}
                                         error={!errors ? undefined : errors[index]?.content?.message}
                                     />
