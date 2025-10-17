@@ -359,7 +359,12 @@ export const formatNativeJobPayload = (
     // Add secondary plugins if they exist
     if (deployment.secondaryPlugins.length) {
         const secondaryPluginConfigs = deployment.secondaryPlugins.map((plugin) => {
-            return formatGenericPluginConfigAndSignature(nodeResources, plugin);
+            const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(nodeResources, plugin);
+
+            return {
+                plugin_signature: pluginSignature,
+                ...pluginConfig,
+            };
         });
 
         plugins.push(...secondaryPluginConfigs);
