@@ -39,13 +39,13 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericDraftJob
 
                     // Deployment
                     {
-                        label: `Container ${genericJob.deployment.deploymentType.type === 'image' ? 'Image' : 'Repository'}`,
+                        label: genericJob.deployment.deploymentType.type === 'container' ? 'Container Image' : 'Repository URL',
                         value:
-                            genericJob.deployment.deploymentType.type === 'image'
+                            genericJob.deployment.deploymentType.type === 'container'
                                 ? genericJob.deployment.deploymentType.containerImage
                                 : genericJob.deployment.deploymentType.repositoryUrl,
                     },
-                    ...(genericJob.deployment.deploymentType.type === 'image'
+                    ...(genericJob.deployment.deploymentType.type === 'container'
                         ? [{ label: 'Registry Visibility', value: genericJob.deployment.deploymentType.crVisibility }]
                         : []),
                     ...(genericJob.deployment.deploymentType.type === 'worker'

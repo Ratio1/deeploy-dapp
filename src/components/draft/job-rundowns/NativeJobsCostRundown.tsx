@@ -50,7 +50,7 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[]
                         label: 'Secondary Plugins',
                         value: nativeJob.deployment.secondaryPlugins
                             .map((plugin) =>
-                                plugin.deploymentType.type === 'image' ? 'Container App Runner' : 'Worker App Runner',
+                                plugin.deploymentType.type === 'container' ? 'Container App Runner' : 'Worker App Runner',
                             )
                             .join(', '),
                     });

@@ -91,7 +91,7 @@ export default function JobEditFormWrapper({
             ...getBaseSchemaDefaults().deployment,
             deploymentType: !config.VCS_DATA
                 ? {
-                      type: 'image',
+                      type: 'container',
                       containerImage: config.IMAGE,
                       containerRegistry: config.CR_DATA?.SERVER || 'docker.io',
                       crVisibility: CR_VISIBILITY_OPTIONS[!config.CR_DATA?.USERNAME ? 0 : 1],

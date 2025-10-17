@@ -35,11 +35,11 @@ export default function SecondaryPluginsCard() {
 
     const plugins = fields as PluginWithId[];
 
-    const onAddPlugin = (type: 'image' | 'worker') => {
-        if (type === 'image') {
+    const onAddPlugin = (type: 'container' | 'worker') => {
+        if (type === 'container') {
             append({
                 deploymentType: {
-                    type: 'image',
+                    type: 'container',
                     containerImage: '',
                     containerRegistry: 'docker.io',
                     crVisibility: CR_VISIBILITY_OPTIONS[0],
@@ -68,8 +68,8 @@ export default function SecondaryPluginsCard() {
             title="Secondary Plugins"
             label={
                 !fields.length ? null : (
-                    <SmallTag variant={plugins[0].deploymentType.type === 'image' ? 'purple' : 'emerald'}>
-                        {plugins[0].deploymentType.type === 'image' ? 'Container App Runner' : 'Worker App Runner'}
+                    <SmallTag variant={plugins[0].deploymentType.type === 'container' ? 'purple' : 'emerald'}>
+                        {plugins[0].deploymentType.type === 'container' ? 'Container App Runner' : 'Worker App Runner'}
                     </SmallTag>
                 )
             }
@@ -77,7 +77,7 @@ export default function SecondaryPluginsCard() {
             {fields.length === 0 ? (
                 <div className="col items-center gap-2.5 text-center">
                     <div className="row gap-0.5">
-                        <RiAddLine className="text-xl text-slate-400" />
+                        <RiAddLine className="text-xl text-slate-500" />
                         <div className="font-medium text-slate-500">Add Plugin</div>
                     </div>
 
@@ -88,7 +88,7 @@ export default function SecondaryPluginsCard() {
                                 className="bg-slate-200 hover:opacity-70!"
                                 color="default"
                                 onPress={() => {
-                                    onAddPlugin(index === 0 ? 'image' : 'worker');
+                                    onAddPlugin(index === 0 ? 'container' : 'worker');
                                 }}
                             >
                                 <div className="row gap-1.5">
@@ -110,7 +110,7 @@ export default function SecondaryPluginsCard() {
                 <>
                     {plugins.map((plugin, index) => (
                         <div key={index}>
-                            {plugin.deploymentType.type === 'image' ? (
+                            {plugin.deploymentType.type === 'container' ? (
                                 <CARInputsSection index={index} />
                             ) : (
                                 <WARInputsSection index={index} />

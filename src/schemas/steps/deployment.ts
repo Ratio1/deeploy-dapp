@@ -119,7 +119,7 @@ export const applyTunnelingRefinements = (schema: z.ZodObject<any>) => {
 export const applyDeploymentTypeRefinements = (schema) => {
     return schema.superRefine((data, ctx) => {
         // Validate that crUsername and crPassword are provided when crVisibility is 'Private'
-        if (data.deploymentType.type === 'image' && data.deploymentType.crVisibility === 'Private') {
+        if (data.deploymentType.type === 'container' && data.deploymentType.crVisibility === 'Private') {
             if (!data.deploymentType.crUsername) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
@@ -186,8 +186,8 @@ const baseDeploymentSchema = z.object({
     tunnelingToken: getOptionalStringSchema(512),
 });
 
-const imageSchema = z.object({
-    type: z.literal('image'),
+const containerDeploymentTypeSchema = z.object({
+    type: z.literal('container'),
     containerImage: validations.containerImage,
     containerRegistry: validations.containerRegistry,
     crVisibility: z.enum(CR_VISIBILITY_OPTIONS, { required_error: 'Value is required' }),
@@ -195,7 +195,7 @@ const imageSchema = z.object({
     crPassword: z.union([getStringSchema(3, 256), z.literal('')]).optional(),
 });
 
-const workerSchema = z.object({
+const workerDeploymentTypeSchema = z.object({
     type: z.literal('worker'),
     image: getStringSchema(3, 256),
     repositoryUrl: z
@@ -227,7 +227,7 @@ const workerSchema = z.object({
     ),
 });
 
-export const deploymentTypeSchema = z.discriminatedUnion('type', [imageSchema, workerSchema]);
+export const deploymentTypeSchema = z.discriminatedUnion('type', [containerDeploymentTypeSchema, workerDeploymentTypeSchema]);
 
 const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,

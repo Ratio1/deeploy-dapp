@@ -33,7 +33,7 @@ type FileVolumesEntry = {
 
 // Deployment types
 type ContainerDeploymentType = {
-    type: 'image';
+    type: 'container';
     containerImage: string;
     containerRegistry: string;
     crVisibility: (typeof CR_VISIBILITY_OPTIONS)[number];

@@ -11,15 +11,16 @@ function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean })
     const { setValue, watch } = useFormContext();
     const deploymentType = watch('deployment.deploymentType');
 
-    const [type, setType] = useState<'worker' | 'image'>(deploymentType.type);
+    const [type, setType] = useState<'worker' | 'container'>(deploymentType.type);
 
-    const onContainerTypeChange = (isImage: boolean) => {
-        const type = isImage ? 'image' : 'worker';
+    const onDeploymentTypeChange = (isContainer: boolean) => {
+        const type = isContainer ? 'container' : 'worker';
+
         setType(type);
 
-        if (type === 'image') {
+        if (type === 'container') {
             setValue('deployment.deploymentType', {
-                type: 'image',
+                type: 'container',
                 containerImage: '',
                 containerRegistry: 'docker.io',
                 crVisibility: CR_VISIBILITY_OPTIONS[0],
@@ -46,19 +47,19 @@ function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean })
                     <SmallTag variant={type === 'worker' ? 'emerald' : 'default'}>Worker</SmallTag>
 
                     <Switch
-                        isSelected={type === 'image'}
-                        onValueChange={onContainerTypeChange}
+                        isSelected={type === 'container'}
+                        onValueChange={onDeploymentTypeChange}
                         size="sm"
                         classNames={{
                             wrapper: 'bg-emerald-200 group-data-[selected=true]:bg-purple-300',
                         }}
                     >
-                        <SmallTag variant={type === 'image' ? 'purple' : 'default'}>Image</SmallTag>
+                        <SmallTag variant={type === 'container' ? 'purple' : 'default'}>Container</SmallTag>
                     </Switch>
                 </div>
             }
         >
-            {type === 'image' ? <ContainerSection /> : <WorkerSection isEditingJob={isEditingJob} />}
+            {type === 'container' ? <ContainerSection /> : <WorkerSection isEditingJob={isEditingJob} />}
         </SlateCard>
     );
 }

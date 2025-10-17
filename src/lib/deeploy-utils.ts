@@ -243,7 +243,7 @@ export const formatGenericPluginConfigAndSignature = (
         IMAGE_PULL_POLICY: plugin.imagePullPolicy.toLowerCase(),
     };
 
-    if (plugin.deploymentType.type === 'image') {
+    if (plugin.deploymentType.type === 'container') {
         pluginSignature = 'CONTAINER_APP_RUNNER';
 
         pluginConfig.IMAGE = plugin.deploymentType.containerImage;
