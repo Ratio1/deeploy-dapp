@@ -88,22 +88,23 @@ export default function EditJob() {
         }
 
         const additionalNodesRequested: number = data.specifications.targetNodesCount - Number(job.numberOfNodesRequested);
-        const increaseTargetNodes: boolean = additionalNodesRequested > 0;
+        const increasingTargetNodes: boolean = additionalNodesRequested > 0;
 
-        if (increaseTargetNodes) {
+        if (increasingTargetNodes) {
             setDeeployModalActions(['payment', 'signXMessages', 'callDeeployApi']);
         }
 
         setErrors([]);
         setLoading(true);
 
-        setTimeout(() => deeployFlowModalRef.current?.open(1, increaseTargetNodes ? 2 : 1));
+        setTimeout(() => deeployFlowModalRef.current?.open(1, increasingTargetNodes ? 2 : 1));
 
         try {
+            let scaleUpWorkersRequest;
             let scaleUpWorkersResponse;
 
             // Pay for job extension in the smart contract
-            if (increaseTargetNodes) {
+            if (increasingTargetNodes) {
                 const txHash = await walletClient.writeContract({
                     address: escrowContractAddress,
                     abi: CspEscrowAbi,
@@ -152,14 +153,19 @@ export default function EditJob() {
 
             deeployFlowModalRef.current?.progress('signXMessages');
 
+            console.log('[EditJob] Triggering update pipeline signing', payload);
             const updatePipelineRequest = await signAndBuildUpdatePipelineRequest(job!, payload);
             console.log('[EditJob] Signed update pipeline request', updatePipelineRequest);
-            const scaleUpWorkersRequest = await signAndBuildScaleUpWorkersRequest(
-                job!,
-                data.deployment.targetNodes.map((node) => node.address),
-                job!.resources.containerOrWorkerType,
-            );
-            console.log('[EditJob] Signed scale up workers request', scaleUpWorkersRequest);
+
+            if (increasingTargetNodes) {
+                console.log('[EditJob] Triggering scale up workers signing');
+                scaleUpWorkersRequest = await signAndBuildScaleUpWorkersRequest(
+                    job!,
+                    data.deployment.targetNodes.map((node) => node.address),
+                    job!.resources.containerOrWorkerType,
+                );
+                console.log('[EditJob] Signed scale up workers request', scaleUpWorkersRequest);
+            }
 
             deeployFlowModalRef.current?.progress('callDeeployApi');
 
@@ -167,7 +173,7 @@ export default function EditJob() {
             const updatePipelineResponse = await updatePipeline(updatePipelineRequest);
             console.log('[EditJob] updatePipeline', updatePipelineResponse);
 
-            if (increaseTargetNodes) {
+            if (increasingTargetNodes) {
                 console.log('[EditJob] Calling scale up workers');
                 scaleUpWorkersResponse = await scaleUpJobWorkers(scaleUpWorkersRequest);
                 console.log('[EditJob] scaleUpWorkers', scaleUpWorkersResponse);
@@ -175,17 +181,24 @@ export default function EditJob() {
 
             if (
                 updatePipelineResponse.status === 'success' &&
-                (increaseTargetNodes ? scaleUpWorkersResponse.status === 'success' : true)
+                (increasingTargetNodes ? scaleUpWorkersResponse.status === 'success' : true)
             ) {
                 deeployFlowModalRef.current?.progress('done');
                 setFetchAppsRequired(true);
                 toast.success('Job updated successfully.');
 
+                const serverAliases = [updatePipelineResponse?.server_info?.alias];
+
+                if (increasingTargetNodes) {
+                    serverAliases.push(scaleUpWorkersResponse?.server_info?.alias);
+                }
+
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
+
                     navigate(`${routePath.deeploys}/${routePath.job}/${Number(job!.id)}`, {
                         state: {
-                            serverAliases: [updatePipelineResponse.server_info.alias, scaleUpWorkersResponse.server_info.alias],
+                            serverAliases,
                         },
                     });
                 }, 1000);
@@ -193,13 +206,19 @@ export default function EditJob() {
                 deeployFlowModalRef.current?.displayError();
                 toast.error('Failed to update job, please try again.');
 
-                const aggregatedErrors = [updatePipelineResponse, scaleUpWorkersResponse]
+                const responses = [updatePipelineResponse];
+
+                if (increasingTargetNodes) {
+                    responses.push(scaleUpWorkersResponse);
+                }
+
+                const aggregatedErrors = responses
                     .map((response) => {
                         if (!response) {
                             return undefined;
                         }
 
-                        const serverAlias = response.server_info?.alias ?? 'Unknown server';
+                        const serverAlias = response?.server_info?.alias ?? 'Unknown server';
                         let text: string | undefined;
 
                         if (response.status === 'timeout') {

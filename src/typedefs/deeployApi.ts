@@ -10,7 +10,7 @@ type Apps = {
             is_deeployed: boolean;
             deeploy_specs: DeeploySpecs;
             plugins: {
-                [pluginName: string]: Plugin[];
+                [pluginName: string]: AppsPlugin[];
             };
         };
     };
@@ -29,7 +29,7 @@ type DeeploySpecs = {
     spare_nodes: R1Address[];
 };
 
-type Plugin = {
+type AppsPlugin = {
     instance: string;
     start: string; // ISO-like timestamp string
     last_alive: string; // ISO-like timestamp string
@@ -46,15 +46,15 @@ type JobConfig = {
         cpu: number;
         memory: string;
     };
-    CR_DATA: Record<string, any>;
+    CR_DATA?: JobConfigCRData;
     DYNAMIC_ENV: Record<string, { type: (typeof DYNAMIC_ENV_TYPES)[number]; value: string }[]>;
     ENV: Record<string, any>;
     IMAGE: string;
-    IMAGE_PULL_POLICY: string;
+    IMAGE_PULL_POLICY?: string;
     INSTANCE_ID: string;
     NGROK_USE_API: boolean;
     PORT: number;
-    RESTART_POLICY: string;
+    RESTART_POLICY?: string;
     TUNNEL_ENGINE: string;
     TUNNEL_ENGINE_ENABLED: boolean;
     VOLUMES: Record<string, any>;
@@ -65,11 +65,19 @@ type JobConfig = {
             mounting_point: string;
         }
     >;
-    VCS_DATA?: {
-        REPO_URL: string;
-        TOKEN: string | null;
-        USERNAME: string | null;
-    };
+    VCS_DATA?: JobConfigVCSData;
+};
+
+type JobConfigCRData = {
+    SERVER?: string;
+    USERNAME?: string | null;
+    PASSWORD?: string | null;
+};
+
+type JobConfigVCSData = {
+    REPO_URL: string;
+    TOKEN: string | null;
+    USERNAME: string | null;
 };
 
 type GetAppsResponse = DeeployDefaultResponse & {
@@ -101,4 +109,13 @@ type DeeployDefaultResponse = {
     };
 };
 
-export type { Apps, DeeployDefaultResponse, DeeploySpecs, GetAppsResponse, JobConfig, Plugin };
+export type {
+    Apps,
+    AppsPlugin,
+    DeeployDefaultResponse,
+    DeeploySpecs,
+    GetAppsResponse,
+    JobConfig,
+    JobConfigCRData,
+    JobConfigVCSData,
+};

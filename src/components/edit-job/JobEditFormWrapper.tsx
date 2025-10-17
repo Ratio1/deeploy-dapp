@@ -91,12 +91,12 @@ export default function JobEditFormWrapper({
             ...getBaseSchemaDefaults().deployment,
             deploymentType: !config.VCS_DATA
                 ? {
-                      type: 'image',
+                      type: 'container',
                       containerImage: config.IMAGE,
-                      containerRegistry: config.CR_DATA.SERVER || 'docker.io',
-                      crVisibility: CR_VISIBILITY_OPTIONS[!config.CR_DATA.USERNAME ? 0 : 1],
-                      crUsername: config.CR_DATA.USERNAME || '',
-                      crPassword: config.CR_DATA.PASSWORD || '',
+                      containerRegistry: config.CR_DATA?.SERVER || 'docker.io',
+                      crVisibility: CR_VISIBILITY_OPTIONS[!config.CR_DATA?.USERNAME ? 0 : 1],
+                      crUsername: config.CR_DATA?.USERNAME || '',
+                      crPassword: config.CR_DATA?.PASSWORD || '',
                   }
                 : {
                       type: 'worker',
@@ -107,9 +107,9 @@ export default function JobEditFormWrapper({
                       accessToken: config.VCS_DATA.TOKEN || '',
                       workerCommands: config.BUILD_AND_RUN_COMMANDS!.map((command) => ({ command })),
                   },
-            port: !config.PORT ? '' : config.PORT,
-            restartPolicy: titlecase(config.RESTART_POLICY),
-            imagePullPolicy: titlecase(config.IMAGE_PULL_POLICY),
+            port: config.PORT,
+            restartPolicy: titlecase(config.RESTART_POLICY!),
+            imagePullPolicy: titlecase(config.IMAGE_PULL_POLICY!),
             envVars: getEnvVars(),
             dynamicEnvVars: getDynamicEnvVars(),
             volumes: getVolumes(),
@@ -125,7 +125,7 @@ export default function JobEditFormWrapper({
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            port: !config.PORT ? '' : config.PORT,
+            port: config.PORT,
             pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
             customParams: [{ key: '', value: '' }],
             pipelineParams: [{ key: '', value: '' }],

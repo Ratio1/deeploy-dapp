@@ -3,17 +3,21 @@ import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
 import InputWithLabel from '../../InputWithLabel';
 
-export default function ContainerImageSection() {
+export default function ContainerSection({ baseName = 'deployment' }: { baseName?: string }) {
     const { watch } = useFormContext();
 
-    const crVisibility: 'Public' | 'Private' = watch('deployment.deploymentType.crVisibility');
+    const crVisibility: 'Public' | 'Private' = watch(`${baseName}.deploymentType.crVisibility`);
 
     return (
         <div className="col gap-4">
             <div className="flex gap-4">
-                <InputWithLabel name="deployment.deploymentType.containerImage" label="Image" placeholder="repo/image:tag" />
                 <InputWithLabel
-                    name="deployment.deploymentType.containerRegistry"
+                    name={`${baseName}.deploymentType.containerImage`}
+                    label="Image"
+                    placeholder="e.g. Ratio1/deeploy-dapp:latest"
+                />
+                <InputWithLabel
+                    name={`${baseName}.deploymentType.containerRegistry`}
                     label="Container Registry"
                     placeholder="docker.io"
                 />
@@ -21,7 +25,7 @@ export default function ContainerImageSection() {
 
             <div className="flex max-w-[50%] pr-2">
                 <SelectWithLabel
-                    name="deployment.deploymentType.crVisibility"
+                    name={`${baseName}.deploymentType.crVisibility`}
                     label="Registry Visibility"
                     options={CR_VISIBILITY_OPTIONS}
                 />
@@ -30,13 +34,13 @@ export default function ContainerImageSection() {
             {crVisibility === 'Private' && (
                 <div className="flex gap-4">
                     <InputWithLabel
-                        name="deployment.deploymentType.crUsername"
+                        name={`${baseName}.deploymentType.crUsername`}
                         autoComplete="username"
                         label="Username"
                         placeholder=""
                     />
                     <InputWithLabel
-                        name="deployment.deploymentType.crPassword"
+                        name={`${baseName}.deploymentType.crPassword`}
                         type="password"
                         autoComplete="current-password"
                         label="Password or Authentication Token"

@@ -2,7 +2,7 @@ import { InteractionContextType, useInteractionContext } from '@lib/contexts/int
 import { isKeySecret } from '@lib/utils';
 import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
-import { KeyValueEntry } from '@typedefs/deeploys';
+import { KeyValueEntryWithId } from '@typedefs/deeploys';
 import { useEffect, useState } from 'react';
 import {
     Controller,
@@ -55,7 +55,7 @@ export default function KeyValueEntriesSection({
         });
 
     // Explicitly type the fields to match the expected structure
-    const entries = fields as KeyValueEntry[];
+    const entries = fields as KeyValueEntryWithId[];
 
     const [isFieldSecret, setFieldSecret] = useState<{ [id: string]: boolean }>({});
 
@@ -109,7 +109,7 @@ export default function KeyValueEntriesSection({
                     {entries.length === 0 ? (
                         <div className="text-sm text-slate-500 italic">No {displayLabel} added yet.</div>
                     ) : (
-                        entries.map((entry: KeyValueEntry, index) => {
+                        entries.map((entry: KeyValueEntryWithId, index) => {
                             // Get the error for this specific entry
                             const entryError = errors?.[index];
 

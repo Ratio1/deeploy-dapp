@@ -66,7 +66,7 @@ function Invoicing() {
 
     return (
         <div className="col w-full flex-1 gap-5">
-            <BorderedCard isBorderDark>
+            <BorderedCard>
                 <div className="flex gap-2">
                     <div className="flex">
                         <RiFileInfoLine className="text-primary text-xl" />

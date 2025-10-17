@@ -45,6 +45,17 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[]
                     { label: 'Chainstore Response', value: nativeJob.deployment.chainstoreResponse },
                 ];
 
+                if (nativeJob.deployment.secondaryPlugins.length) {
+                    entries.push({
+                        label: 'Secondary Plugins',
+                        value: nativeJob.deployment.secondaryPlugins
+                            .map((plugin) =>
+                                plugin.deploymentType.type === 'container' ? 'Container App Runner' : 'Worker App Runner',
+                            )
+                            .join(', '),
+                    });
+                }
+
                 return (
                     <div>
                         {entries.map((entry, index) => (

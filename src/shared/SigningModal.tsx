@@ -45,8 +45,8 @@ export const SigningModal = forwardRef(({ type }: { type: 'signMessage' | 'token
                                 <div className="col items-center gap-4">
                                     <div className="text-[15px]">
                                         Please <span className="text-primary font-medium">sign</span> the required{' '}
-                                        {type === 'signMessage' ? 'message' : 'token approval'} when prompted by your wallet
-                                        extension.
+                                        {type === 'signMessage' ? 'message' : 'spending cap request'} when prompted by your
+                                        wallet extension.
                                     </div>
 
                                     {!!connector?.icon && (

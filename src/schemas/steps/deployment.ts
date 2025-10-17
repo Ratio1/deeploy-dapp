@@ -9,6 +9,7 @@ import {
     getFileVolumesArraySchema,
     getKeyValueEntriesArraySchema,
     getNameWithoutSpacesSchema,
+    getOptionalStringSchema,
     getStringSchema,
     nodeSchema,
     workerCommandSchema,
@@ -37,17 +38,13 @@ const validations = {
         .max(256, 'Value cannot exceed 256 characters')
         .regex(/^https?:\/\/.+/, 'Must be a valid URI'),
 
-    // Number patterns
     port: z
-        .union([
-            z.literal(''),
-            z
-                .number()
-                .int('Value must be a whole number')
-                .min(1, 'Value must be at least 1')
-                .max(65535, 'Value cannot exceed 65535'),
-        ])
-        .transform((val) => (!val ? undefined : (val as number))) as z.ZodType<number | undefined>,
+        .number()
+        .int('Value must be a whole number')
+        .min(1, 'Value must be at least 1')
+        .max(65535, 'Value cannot exceed 65535')
+        .transform((val: any) => (!val || val === '' ? undefined : (val as number)))
+        .optional(),
 
     envVars: getKeyValueEntriesArraySchema(),
     dynamicEnvVars: z
@@ -86,6 +83,15 @@ const createTunnelingRequiredRefinement = (fieldName: 'tunnelingToken') => {
     };
 };
 
+const createPortRequiredRefinement = () => {
+    return (data: { [key: string]: any }) => {
+        if (data.enableTunneling !== BOOLEAN_TYPES[0]) {
+            return true; // Allow undefined when tunneling is not enabled
+        }
+        return data.port !== undefined && data.port !== '';
+    };
+};
+
 const tunnelingRefinements = {
     tunnelingToken: {
         refine: createTunnelingRequiredRefinement('tunnelingToken'),
@@ -94,11 +100,60 @@ const tunnelingRefinements = {
             path: ['tunnelingToken'],
         },
     },
+    port: {
+        refine: createPortRequiredRefinement(),
+        options: {
+            message: 'Required when tunneling is enabled',
+            path: ['port'],
+        },
+    },
 };
 
-// Helper function to apply tunneling refinements
-const applyTunnelingRefinements = (schema: z.ZodObject<any>) => {
-    return schema.refine(tunnelingRefinements.tunnelingToken.refine, tunnelingRefinements.tunnelingToken.options);
+// Helper functions to apply refinements
+export const applyTunnelingRefinements = (schema: z.ZodObject<any>) => {
+    return schema
+        .refine(tunnelingRefinements.tunnelingToken.refine, tunnelingRefinements.tunnelingToken.options)
+        .refine(tunnelingRefinements.port.refine, tunnelingRefinements.port.options);
+};
+
+export const applyDeploymentTypeRefinements = (schema) => {
+    return schema.superRefine((data, ctx) => {
+        // Validate that crUsername and crPassword are provided when crVisibility is 'Private'
+        if (data.deploymentType.type === 'container' && data.deploymentType.crVisibility === 'Private') {
+            if (!data.deploymentType.crUsername) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Username is required',
+                    path: ['deploymentType', 'crUsername'],
+                });
+            }
+            if (!data.deploymentType.crPassword) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Password/Authentication Token is required',
+                    path: ['deploymentType', 'crPassword'],
+                });
+            }
+        }
+
+        // Validate that username and accessToken are provided when worker repositoryVisibility is 'private'
+        if (data.deploymentType.type === 'worker' && data.deploymentType.repositoryVisibility === 'private') {
+            if (!data.deploymentType.username) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Username is required for private repositories',
+                    path: ['deploymentType', 'username'],
+                });
+            }
+            if (!data.deploymentType.accessToken) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Access token is required for private repositories',
+                    path: ['deploymentType', 'accessToken'],
+                });
+            }
+        }
+    });
 };
 
 const baseDeploymentSchema = z.object({
@@ -125,30 +180,14 @@ const baseDeploymentSchema = z.object({
             message: 'Duplicate addresses are not allowed',
         },
     ),
-    enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
     allowReplicationInTheWild: z.boolean(),
-    tunnelingLabel: z
-        .string()
-        .min(3, 'Value must be at least 3 characters')
-        .max(64, 'Value cannot exceed 64 characters')
-        .regex(
-            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
-            'Only letters, numbers, spaces and special characters allowed',
-        )
-        .optional(),
-    tunnelingToken: z
-        .string()
-        .min(3, 'Value must be at least 3 characters')
-        .max(512, 'Value cannot exceed 512 characters')
-        .regex(
-            /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
-            'Only letters, numbers, spaces and special characters allowed',
-        )
-        .optional(),
+    enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
+    tunnelingLabel: getOptionalStringSchema(64),
+    tunnelingToken: getOptionalStringSchema(512),
 });
 
-const imageSchema = z.object({
-    type: z.literal('image'),
+const containerDeploymentTypeSchema = z.object({
+    type: z.literal('container'),
     containerImage: validations.containerImage,
     containerRegistry: validations.containerRegistry,
     crVisibility: z.enum(CR_VISIBILITY_OPTIONS, { required_error: 'Value is required' }),
@@ -156,7 +195,7 @@ const imageSchema = z.object({
     crPassword: z.union([getStringSchema(3, 256), z.literal('')]).optional(),
 });
 
-const workerSchema = z.object({
+const workerDeploymentTypeSchema = z.object({
     type: z.literal('worker'),
     image: getStringSchema(3, 256),
     repositoryUrl: z
@@ -167,12 +206,12 @@ const workerSchema = z.object({
     repositoryVisibility: z.enum(['public', 'private'], { required_error: 'Value is required' }),
     username: z
         .string()
-        .max(256, 'Value cannot exceed 256 characters')
+        .max(256, `Value cannot exceed 256 characters`)
         .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
         .optional(),
     accessToken: z
         .string()
-        .max(512, 'Value cannot exceed 512 characters')
+        .max(512, `Value cannot exceed 512 characters`)
         .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
         .optional(),
     workerCommands: z.array(workerCommandSchema).refine(
@@ -188,7 +227,7 @@ const workerSchema = z.object({
     ),
 });
 
-const deploymentTypeSchema = z.discriminatedUnion('type', [imageSchema, workerSchema]);
+export const deploymentTypeSchema = z.discriminatedUnion('type', [containerDeploymentTypeSchema, workerDeploymentTypeSchema]);
 
 const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,
@@ -202,45 +241,32 @@ const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend
     imagePullPolicy: validations.imagePullPolicy,
 });
 
-export const genericAppDeploymentSchema = applyTunnelingRefinements(genericAppDeploymentSchemaWihtoutRefinements).superRefine(
-    (data, ctx) => {
-        // Validate that crUsername and crPassword are provided when crVisibility is 'Private'
-        if (data.deploymentType.type === 'image' && data.deploymentType.crVisibility === 'Private') {
-            if (!data.deploymentType.crUsername) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: 'Username is required',
-                    path: ['container', 'crUsername'],
-                });
-            }
-            if (!data.deploymentType.crPassword) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: 'Password/Authentication Token is required',
-                    path: ['container', 'crPassword'],
-                });
-            }
-        }
-
-        // Validate that username and accessToken are provided when worker repositoryVisibility is 'private'
-        if (data.deploymentType.type === 'worker' && data.deploymentType.repositoryVisibility === 'private') {
-            if (!data.deploymentType.username) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: 'Username is required for private repositories',
-                    path: ['deploymentType', 'username'],
-                });
-            }
-            if (!data.deploymentType.accessToken) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: 'Access token is required for private repositories',
-                    path: ['deploymentType', 'accessToken'],
-                });
-            }
-        }
-    },
+export const genericAppDeploymentSchema = applyDeploymentTypeRefinements(
+    applyTunnelingRefinements(genericAppDeploymentSchemaWihtoutRefinements),
 );
+
+// Secondary plugins
+const basePluginSchema = z.object({
+    // Base
+    port: validations.port,
+    enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
+    tunnelingToken: getOptionalStringSchema(512),
+
+    // Deployment type
+    deploymentType: deploymentTypeSchema,
+
+    // Variables
+    envVars: validations.envVars,
+    dynamicEnvVars: validations.dynamicEnvVars,
+    volumes: validations.volumes,
+    fileVolumes: validations.fileVolumes,
+
+    // Policies
+    restartPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
+    imagePullPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
+});
+
+const secondaryPluginSchema = applyDeploymentTypeRefinements(applyTunnelingRefinements(basePluginSchema));
 
 const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,
@@ -251,6 +277,7 @@ const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend(
     pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
     pipelineInputUri: validations.uri.optional(),
     chainstoreResponse: validations.chainstoreResponse,
+    secondaryPlugins: z.array(secondaryPluginSchema).max(1, 'Only one secondary plugin allowed').optional(),
 });
 
 export const nativeAppDeploymentSchema = applyTunnelingRefinements(nativeAppDeploymentSchemaWihtoutRefinements);

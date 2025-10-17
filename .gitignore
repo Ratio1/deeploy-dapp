@@ -29,3 +29,5 @@ scripts/deploy-vercel.sh
 
 # Env files
 .env
+
+tsconfig.app.tsbuildinfo

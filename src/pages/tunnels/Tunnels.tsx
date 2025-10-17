@@ -159,6 +159,7 @@ function Tunnels() {
                     url: t.metadata.dns_name,
                     token: t.metadata.tunnel_token,
                     custom_hostnames: t.metadata.custom_hostnames,
+                    aliases: t.metadata.aliases || [],
                 }));
 
             setTunnels(tunnelsArray);

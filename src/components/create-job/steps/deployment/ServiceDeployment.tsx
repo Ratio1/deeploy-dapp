@@ -1,4 +1,4 @@
-import { BOOLEAN_TYPES } from '@data/booleanTypes';
+import AppParametersSection from '@components/create-job/sections/AppParametersSection';
 import { ContainerOrWorkerType } from '@data/containerResources';
 import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { SlateCard } from '@shared/cards/SlateCard';
@@ -7,7 +7,6 @@ import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';
 import EnvVariablesCard from '@shared/jobs/EnvVariablesCard';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
-import SelectWithLabel from '@shared/SelectWithLabel';
 import { JobSpecifications, JobType } from '@typedefs/deeploys';
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -17,7 +16,6 @@ function ServiceDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
 
     const jobType: JobType = watch('jobType');
     const specifications: JobSpecifications = watch('specifications');
-    const enableTunneling = watch('deployment.enableTunneling');
 
     // Init
     useEffect(() => {
@@ -62,23 +60,7 @@ function ServiceDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
             <TargetNodesCard isEditingJob={isEditingJob} />
 
             <SlateCard title="App Parameters">
-                <div className="col gap-4">
-                    <div className="flex">
-                        <SelectWithLabel name="deployment.enableTunneling" label="Enable Tunneling" options={BOOLEAN_TYPES} />
-                    </div>
-
-                    {enableTunneling === BOOLEAN_TYPES[0] && (
-                        <div className="flex gap-4">
-                            <InputWithLabel name="deployment.tunnelingToken" label="Tunneling Token" placeholder="None" />
-                            <InputWithLabel
-                                name="deployment.tunnelingLabel"
-                                label="Tunneling Label"
-                                placeholder="None"
-                                isOptional
-                            />
-                        </div>
-                    )}
-                </div>
+                <AppParametersSection />
             </SlateCard>
 
             <EnvVariablesCard

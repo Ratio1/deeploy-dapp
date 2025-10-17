@@ -8,16 +8,16 @@ import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
 
 // This component assumes it's being used in the deployment step
-export default function DynamicEnvSection() {
+export default function DynamicEnvSection({ baseName = 'deployment' }: { baseName?: string }) {
     const { control, formState, trigger } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'deployment.dynamicEnvVars',
+        name: `${baseName}.dynamicEnvVars`,
     });
 
     // Get array-level errors
-    const errors = (formState.errors.deployment as any)?.dynamicEnvVars;
+    const errors = (formState.errors[baseName] as any)?.dynamicEnvVars;
 
     return (
         <div className="col gap-4">
@@ -35,7 +35,7 @@ export default function DynamicEnvSection() {
                                     <VariableSectionIndex index={index} />
 
                                     <Controller
-                                        name={`deployment.dynamicEnvVars.${index}.key`}
+                                        name={`${baseName}.dynamicEnvVars.${index}.key`}
                                         control={control}
                                         render={({ field, fieldState }) => {
                                             // Check for specific error on this key input or array-level error
@@ -56,7 +56,7 @@ export default function DynamicEnvSection() {
 
                                                         // Trigger validation for the entire array to check for duplicate keys
                                                         if (fields.length > 1) {
-                                                            await trigger('deployment.dynamicEnvVars');
+                                                            await trigger(`${baseName}.dynamicEnvVars`);
                                                         }
                                                     }}
                                                     isInvalid={hasError}
@@ -78,7 +78,7 @@ export default function DynamicEnvSection() {
                                         <div className="flex w-full items-start gap-2 pl-7">
                                             <div className="w-1/3">
                                                 <Controller
-                                                    name={`deployment.dynamicEnvVars.${index}.values.${k}.type`}
+                                                    name={`${baseName}.dynamicEnvVars.${index}.values.${k}.type`}
                                                     control={control}
                                                     render={({ field, fieldState }) => (
                                                         <StyledSelect
@@ -106,7 +106,7 @@ export default function DynamicEnvSection() {
 
                                             <div className="w-2/3">
                                                 <Controller
-                                                    name={`deployment.dynamicEnvVars.${index}.values.${k}.value`}
+                                                    name={`${baseName}.dynamicEnvVars.${index}.values.${k}.value`}
                                                     control={control}
                                                     render={({ field, fieldState }) => {
                                                         // Check for specific error on this value input
@@ -120,7 +120,7 @@ export default function DynamicEnvSection() {
                                                                     const value = e.target.value;
                                                                     field.onChange(value);
                                                                     // Trigger validation for the entire entry when value changes
-                                                                    await trigger(`deployment.dynamicEnvVars.${index}`);
+                                                                    await trigger(`${baseName}.dynamicEnvVars.${index}`);
                                                                 }}
                                                                 onBlur={field.onBlur}
                                                                 isInvalid={!!fieldState.error || !!specificValueError}

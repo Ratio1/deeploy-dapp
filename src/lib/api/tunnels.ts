@@ -102,6 +102,7 @@ export async function getTunnel(
             dns_name: string;
             tunnel_token?: string | null;
             custom_hostnames: { id: string; hostname: string }[];
+            aliases?: { id: string; name: string }[];
         };
     };
 }> {
@@ -160,13 +161,14 @@ export async function addTunnelHostname(tunnelId: string, hostname: string, tunn
         throw new Error('Received undefined tunneling secrets.');
     }
 
-    const { cloudflareAccountId, cloudflareZoneId, cloudflareApiKey } = tunnelingSecrets;
+    const { cloudflareAccountId, cloudflareZoneId, cloudflareApiKey, cloudflareDomain } = tunnelingSecrets;
     const { data } = await axiosInstance.post('/add_custom_hostname', {
         tunnel_id: tunnelId,
         hostname,
         cloudflare_account_id: cloudflareAccountId,
         cloudflare_zone_id: cloudflareZoneId,
         cloudflare_api_key: cloudflareApiKey,
+        cloudflare_domain: cloudflareDomain,
     });
     if (data.result.error) {
         throw new Error(data.result.error);
@@ -204,6 +206,41 @@ export async function renameTunnel(tunnelId: string, alias: string, tunnelingSec
         cloudflare_account_id: cloudflareAccountId,
         cloudflare_api_key: cloudflareApiKey,
     });
+    if (data.result.error) {
+        throw new Error(data.result.error);
+    }
+    return data;
+}
+
+export async function addTunnelAlias(tunnelId: string, alias: string, tunnelingSecrets: TunnelingSecrets) {
+    if (!tunnelingSecrets) {
+        throw new Error('Received undefined tunneling secrets.');
+    }
+
+    const { cloudflareAccountId, cloudflareZoneId, cloudflareApiKey, cloudflareDomain } = tunnelingSecrets;
+    const { data } = await axiosInstance.post('/add_alias', {
+        tunnel_id: tunnelId,
+        alias,
+        cloudflare_account_id: cloudflareAccountId,
+        cloudflare_zone_id: cloudflareZoneId,
+        cloudflare_api_key: cloudflareApiKey,
+        cloudflare_domain: cloudflareDomain,
+    });
+    if (data.result.error) {
+        throw new Error(data.result.error);
+    }
+    return data;
+}
+
+export async function removeTunnelAlias(tunnelId: string, aliasId: string, tunnelingSecrets: TunnelingSecrets) {
+    if (!tunnelingSecrets) {
+        throw new Error('Received undefined tunneling secrets.');
+    }
+
+    const { cloudflareAccountId, cloudflareZoneId, cloudflareApiKey } = tunnelingSecrets;
+    const { data } = await axiosInstance.delete(
+        `/delete_alias?tunnel_id=${tunnelId}&alias_id=${aliasId}&cloudflare_account_id=${cloudflareAccountId}&cloudflare_zone_id=${cloudflareZoneId}&cloudflare_api_key=${cloudflareApiKey}`,
+    );
     if (data.result.error) {
         throw new Error(data.result.error);
     }
