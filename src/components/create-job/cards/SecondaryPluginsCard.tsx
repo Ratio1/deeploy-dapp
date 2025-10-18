@@ -56,7 +56,7 @@ export default function SecondaryPluginsCard() {
                     repositoryUrl: '',
                     username: '',
                     accessToken: '',
-                    workerCommands: [{ command: 'npm install' }, { command: 'npm build' }, { command: 'npm start' }],
+                    workerCommands: [{ command: 'npm install' }, { command: 'npm run build' }, { command: 'npm run start' }],
                 },
                 ...PLUGIN_DEFAULTS,
             });

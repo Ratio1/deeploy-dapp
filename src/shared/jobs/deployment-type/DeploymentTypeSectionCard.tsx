@@ -34,7 +34,7 @@ function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean })
                 repositoryUrl: '',
                 username: '',
                 accessToken: '',
-                workerCommands: [{ command: 'npm install' }, { command: 'npm build' }, { command: 'npm start' }],
+                workerCommands: [{ command: 'npm install' }, { command: 'npm run build' }, { command: 'npm run start' }],
             });
         }
     };
