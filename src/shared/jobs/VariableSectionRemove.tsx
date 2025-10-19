@@ -1,6 +1,13 @@
-export default function VariableSectionRemove({ onClick }: { onClick: () => void }) {
+import clsx from 'clsx';
+
+export default function VariableSectionRemove({ onClick, fixedHeight = true }: { onClick: () => void; fixedHeight?: boolean }) {
     return (
-        <div className="center-all compact h-10 cursor-pointer text-slate-500 hover:opacity-50" onClick={onClick}>
+        <div
+            className={clsx('center-all compact cursor-pointer text-slate-500 hover:opacity-50', {
+                'h-10': fixedHeight,
+            })}
+            onClick={onClick}
+        >
             <div>Remove</div>
         </div>
     );

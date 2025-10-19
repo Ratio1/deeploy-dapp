@@ -13,15 +13,18 @@ import {
     GenericJobSpecifications,
     JobSpecifications,
     JobType,
+    KeyValueEntryWithId,
     NativeDraftJob,
     NativeJobDeployment,
     NativeJobSpecifications,
+    Plugin,
     ServiceDraftJob,
     ServiceJobDeployment,
     ServiceJobSpecifications,
 } from '@typedefs/deeploys';
 import { addDays, addHours, differenceInDays, differenceInHours } from 'date-fns';
 import _ from 'lodash';
+import { FieldValues, UseFieldArrayAppend, UseFieldArrayRemove } from 'react-hook-form';
 import { formatUnits } from 'viem';
 import { environment } from './config';
 import { deepSort } from './utils';
@@ -203,76 +206,103 @@ export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
     return formatServiceJobPayload(containerType, job.specifications, job.deployment);
 };
 
+export const formatGenericJobVariables = (plugin: Plugin) => {
+    return {
+        envVars: formatEnvVars(plugin.envVars),
+        dynamicEnvVars: formatDynamicEnvVars(plugin.dynamicEnvVars),
+        volumes: formatVolumes(plugin.volumes),
+        fileVolumes: formatFileVolumes(plugin.fileVolumes),
+    };
+};
+
+export const formatGenericPluginConfigAndSignature = (
+    resources: {
+        cpu: number;
+        memory: string;
+    },
+    plugin: Plugin,
+) => {
+    const { envVars, dynamicEnvVars, volumes, fileVolumes } = formatGenericJobVariables(plugin);
+    let pluginSignature: string;
+
+    const pluginConfig: any = {
+        CONTAINER_RESOURCES: resources,
+        PORT: plugin.port,
+        // Tunneling
+        TUNNEL_ENGINE: 'cloudflare',
+        CLOUDFLARE_TOKEN: plugin.tunnelingToken || null,
+        TUNNEL_ENGINE_ENABLED: plugin.enableTunneling === 'True',
+        NGROK_USE_API: true,
+        // Variables
+        ENV: envVars,
+        DYNAMIC_ENV: dynamicEnvVars,
+        VOLUMES: volumes,
+        FILE_VOLUMES: fileVolumes,
+        // Policies
+        RESTART_POLICY: plugin.restartPolicy.toLowerCase(),
+        IMAGE_PULL_POLICY: plugin.imagePullPolicy.toLowerCase(),
+    };
+
+    if (plugin.deploymentType.type === 'container') {
+        pluginSignature = 'CONTAINER_APP_RUNNER';
+
+        pluginConfig.IMAGE = plugin.deploymentType.containerImage;
+
+        pluginConfig.CR_DATA = {
+            SERVER: plugin.deploymentType.containerRegistry,
+        };
+
+        if (plugin.deploymentType.crVisibility === 'Private') {
+            pluginConfig.CR_DATA.USERNAME = plugin.deploymentType.crUsername;
+            pluginConfig.CR_DATA.PASSWORD = plugin.deploymentType.crPassword;
+        }
+    } else {
+        pluginSignature = 'WORKER_APP_RUNNER';
+
+        pluginConfig.IMAGE = plugin.deploymentType.image;
+        pluginConfig.BUILD_AND_RUN_COMMANDS = plugin.deploymentType.workerCommands.map((entry) => entry.command);
+
+        pluginConfig.VCS_DATA = {
+            REPO_URL: plugin.deploymentType.repositoryUrl,
+            USERNAME: plugin.deploymentType.username || null,
+            TOKEN: plugin.deploymentType.accessToken || null,
+        };
+    }
+
+    return { pluginConfig, pluginSignature };
+};
+
 export const formatGenericJobPayload = (
     containerType: ContainerOrWorkerType,
     specifications: GenericJobSpecifications,
     deployment: GenericJobDeployment,
 ) => {
     const jobTags = formatJobTags(specifications);
-    const envVars = formatEnvVars(deployment.envVars);
-    const dynamicEnvVars = formatDynamicEnvVars(deployment.dynamicEnvVars);
-    const volumes = formatVolumes(deployment.volumes);
-    const fileVolumes = formatFileVolumes(deployment.fileVolumes);
-    const containerResources = formatContainerResources(containerType);
     const targetNodes = formatNodes(deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, specifications.targetNodesCount);
     const spareNodes = formatNodes(deployment.spareNodes);
 
-    const appParams: any = {
-        CONTAINER_RESOURCES: containerResources,
-        PORT: deployment.port,
-        TUNNEL_ENGINE: 'cloudflare',
-        CLOUDFLARE_TOKEN: deployment.tunnelingToken || null,
-        TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
-        NGROK_USE_API: true,
-        VOLUMES: volumes,
-        FILE_VOLUMES: fileVolumes,
-        ENV: envVars,
-        DYNAMIC_ENV: dynamicEnvVars,
-        RESTART_POLICY: deployment.restartPolicy.toLowerCase(),
-        IMAGE_PULL_POLICY: deployment.imagePullPolicy.toLowerCase(),
-    };
-
-    let pluginSignature: string;
-
-    if (deployment.deploymentType.type === 'image') {
-        pluginSignature = 'CONTAINER_APP_RUNNER';
-
-        appParams.IMAGE = deployment.deploymentType.containerImage;
-
-        appParams.CR_DATA = {
-            SERVER: deployment.deploymentType.containerRegistry,
-        };
-
-        if (deployment.deploymentType.crVisibility === 'Private') {
-            appParams.CR_DATA.USERNAME = deployment.deploymentType.crUsername;
-            appParams.CR_DATA.PASSWORD = deployment.deploymentType.crPassword;
-        }
-    } else {
-        pluginSignature = 'WORKER_APP_RUNNER';
-
-        appParams.IMAGE = deployment.deploymentType.image;
-        appParams.BUILD_AND_RUN_COMMANDS = deployment.deploymentType.workerCommands.map((entry) => entry.command);
-
-        appParams.VCS_DATA = {
-            REPO_URL: deployment.deploymentType.repositoryUrl,
-            USERNAME: deployment.deploymentType.username || null,
-            TOKEN: deployment.deploymentType.accessToken || null,
-        };
-    }
+    const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
+        formatContainerResources(containerType),
+        deployment,
+    );
 
     const nonce = generateDeeployNonce();
 
     return {
         app_alias: deployment.jobAlias,
-        plugin_signature: pluginSignature,
         nonce,
         target_nodes: targetNodes,
         spare_nodes: spareNodes,
         allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
         target_nodes_count: targetNodesCount,
         job_tags: jobTags,
-        app_params: appParams,
+        plugins: [
+            {
+                plugin_signature: pluginSignature,
+                ...pluginConfig,
+            },
+        ],
         pipeline_input_type: 'void',
         pipeline_input_uri: null,
         chainstore_response: true,
@@ -300,7 +330,7 @@ export const formatNativeJobPayload = (
         }
     });
 
-    const nodeResourceRequirements = formatContainerResources(workerType);
+    const nodeResources = formatContainerResources(workerType);
     const targetNodes = formatNodes(deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, specifications.targetNodesCount);
 
@@ -308,7 +338,9 @@ export const formatNativeJobPayload = (
 
     const nonce = generateDeeployNonce();
 
-    let appParams = {
+    // Primary plugin configuration
+    const primaryPluginConfig: any = {
+        plugin_signature: deployment.pluginSignature,
         PORT: deployment.port,
         CLOUDFLARE_TOKEN: deployment.tunnelingToken || null,
         TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
@@ -317,25 +349,38 @@ export const formatNativeJobPayload = (
         DYNAMIC_ENV: {},
     };
 
-    if (_.isEmpty(customParams)) {
-        appParams = {
-            ...appParams,
-            ...customParams,
-        };
+    if (!_.isEmpty(customParams)) {
+        Object.assign(primaryPluginConfig, customParams);
+    }
+
+    // Build plugins array starting with the primary plugin
+    const plugins = [primaryPluginConfig];
+
+    // Add secondary plugins if they exist
+    if (deployment.secondaryPlugins.length) {
+        const secondaryPluginConfigs = deployment.secondaryPlugins.map((plugin) => {
+            const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(nodeResources, plugin);
+
+            return {
+                plugin_signature: pluginSignature,
+                ...pluginConfig,
+            };
+        });
+
+        plugins.push(...secondaryPluginConfigs);
     }
 
     return {
         app_alias: deployment.jobAlias,
-        plugin_signature: deployment.pluginSignature,
         nonce,
         target_nodes: targetNodes,
         spare_nodes: spareNodes,
         allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
         target_nodes_count: targetNodesCount,
         job_tags: jobTags,
-        node_res_req: nodeResourceRequirements,
+        node_res_req: nodeResources,
         TUNNEL_ENGINE: 'cloudflare',
-        app_params: appParams,
+        plugins,
         pipeline_input_type: deployment.pipelineInputType,
         pipeline_input_uri: deployment.pipelineInputUri || null,
         pipeline_params: !_.isEmpty(pipelineParams) ? pipelineParams : {},
@@ -361,28 +406,30 @@ export const formatServiceJobPayload = (
     return {
         nonce,
         app_alias: deployment.jobAlias,
-        plugin_signature: 'CONTAINER_APP_RUNNER',
         target_nodes: targetNodes,
         spare_nodes: spareNodes,
         allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
         target_nodes_count: 1, // Service jobs are always single-node
         job_tags: jobTags,
         service_replica: deployment.serviceReplica,
-        app_params: {
-            IMAGE: containerType.image,
-            CONTAINER_RESOURCES: containerResources,
-            PORT: containerType.port,
-            TUNNEL_ENGINE: 'ngrok',
-            NGROK_AUTH_TOKEN: deployment.tunnelingToken || null,
-            NGROK_EDGE_LABEL: deployment.tunnelingLabel || null,
-            TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
-            NGROK_USE_API: true,
-            VOLUMES: volumes,
-            ENV: envVars,
-            DYNAMIC_ENV: dynamicEnvVars,
-            RESTART_POLICY: 'always',
-            IMAGE_PULL_POLICY: 'always',
-        },
+        plugins: [
+            {
+                plugin_signature: 'CONTAINER_APP_RUNNER',
+                IMAGE: containerType.image,
+                CONTAINER_RESOURCES: containerResources,
+                PORT: containerType.port,
+                TUNNEL_ENGINE: 'ngrok',
+                NGROK_AUTH_TOKEN: deployment.tunnelingToken || null,
+                NGROK_EDGE_LABEL: deployment.tunnelingLabel || null,
+                TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
+                NGROK_USE_API: true,
+                VOLUMES: volumes,
+                ENV: envVars,
+                DYNAMIC_ENV: dynamicEnvVars,
+                RESTART_POLICY: 'always',
+                IMAGE_PULL_POLICY: 'always',
+            },
+        ],
         pipeline_input_type: 'void',
         pipeline_input_uri: null,
         chainstore_response: true,
@@ -431,4 +478,68 @@ export const boolToBooleanType = (bool: boolean) => {
 
 export const titlecase = (str: string) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+export const onDotEnvPaste = async (
+    append: UseFieldArrayAppend<FieldValues, string>,
+    remove: UseFieldArrayRemove,
+    fields: Record<'id', string>[],
+) => {
+    try {
+        const clipboard = await navigator.clipboard.readText();
+
+        // Parse .env file contents
+        const lines = clipboard.split('\n');
+        const parsedEntries: { key: string; value: string }[] = [];
+
+        lines.forEach((line) => {
+            // Remove empty lines and comments
+            const trimmedLine = line.trim();
+            if (!trimmedLine || trimmedLine.startsWith('#')) {
+                return;
+            }
+
+            // Split on first '=' to handle values that might contain '='
+            const equalIndex = trimmedLine.indexOf('=');
+            if (equalIndex === -1) {
+                return; // Skip lines without '='
+            }
+
+            const key = trimmedLine.substring(0, equalIndex).trim();
+            let value = trimmedLine.substring(equalIndex + 1).trim();
+
+            // Remove inline comments (everything after #)
+            const commentIndex = value.indexOf('#');
+            if (commentIndex !== -1) {
+                value = value.substring(0, commentIndex).trim();
+            }
+
+            // Remove surrounding quotes if present
+            if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+                value = value.slice(1, -1);
+            }
+
+            // Only add if key is not empty
+            if (key) {
+                parsedEntries.push({ key, value });
+            }
+        });
+
+        // Add parsed entries to the form
+        if (parsedEntries.length > 0) {
+            const currentFields = fields as KeyValueEntryWithId[];
+
+            // Remove empty fields by their indices (in reverse order to avoid index shifting)
+            for (let i = currentFields.length - 1; i >= 0; i--) {
+                if (currentFields[i].key.trim() === '' && currentFields[i].value.trim() === '') {
+                    remove(i);
+                }
+            }
+
+            // Append the new parsed entries
+            append(parsedEntries);
+        }
+    } catch (error) {
+        console.error('Failed to read clipboard:', error);
+    }
 };

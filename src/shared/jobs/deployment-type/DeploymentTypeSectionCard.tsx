@@ -1,26 +1,29 @@
+import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { Switch } from '@heroui/switch';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import ContainerImageSection from './ContainerImageSection';
+import ContainerSection from './ContainerSection';
 import WorkerSection from './WorkerSection';
 
 function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean }) {
     const { setValue, watch } = useFormContext();
     const deploymentType = watch('deployment.deploymentType');
 
-    const [type, setType] = useState<'worker' | 'image'>(deploymentType.type);
+    const [type, setType] = useState<'worker' | 'container'>(deploymentType.type);
 
-    const onContainerTypeChange = (isImage: boolean) => {
-        const type = isImage ? 'image' : 'worker';
+    const onDeploymentTypeChange = (isContainer: boolean) => {
+        const type = isContainer ? 'container' : 'worker';
+
         setType(type);
 
-        if (type === 'image') {
+        if (type === 'container') {
             setValue('deployment.deploymentType', {
-                type: 'image',
+                type: 'container',
                 containerImage: '',
-                containerRegistry: '',
+                containerRegistry: 'docker.io',
+                crVisibility: CR_VISIBILITY_OPTIONS[0],
                 crUsername: '',
                 crPassword: '',
             });
@@ -31,32 +34,32 @@ function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean })
                 repositoryUrl: '',
                 username: '',
                 accessToken: '',
-                workerCommands: [{ command: 'npm install' }, { command: 'npm build' }, { command: 'npm start' }],
+                workerCommands: [{ command: 'npm install' }, { command: 'npm run build' }, { command: 'npm run start' }],
             });
         }
     };
 
     return (
         <SlateCard
-            title={type === 'worker' ? 'Worker App Runner' : 'Container Image'}
+            title={type === 'worker' ? 'Worker App Runner' : 'Container App Runner'}
             label={
                 <div className="row gap-2">
                     <SmallTag variant={type === 'worker' ? 'emerald' : 'default'}>Worker</SmallTag>
 
                     <Switch
-                        isSelected={type === 'image'}
-                        onValueChange={onContainerTypeChange}
+                        isSelected={type === 'container'}
+                        onValueChange={onDeploymentTypeChange}
                         size="sm"
                         classNames={{
                             wrapper: 'bg-emerald-200 group-data-[selected=true]:bg-purple-300',
                         }}
                     >
-                        <SmallTag variant={type === 'image' ? 'purple' : 'default'}>Image</SmallTag>
+                        <SmallTag variant={type === 'container' ? 'purple' : 'default'}>Container</SmallTag>
                     </Switch>
                 </div>
             }
         >
-            {type === 'image' ? <ContainerImageSection /> : <WorkerSection isEditingJob={isEditingJob} />}
+            {type === 'container' ? <ContainerSection /> : <WorkerSection isEditingJob={isEditingJob} />}
         </SlateCard>
     );
 }

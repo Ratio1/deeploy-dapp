@@ -43,7 +43,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         specifications: {
             applicationType: APPLICATION_TYPES[0],
             targetNodesCount: jobType === JobType.Generic || jobType === JobType.Native ? 2 : 1, // Generic and Native jobs always have a minimal balancing of 2 nodes, Services are locked to 1 node
-            jobTags: [...(account!.applicantType === 'company' ? [KYB_TAG] : [])],
+            jobTags: [...(account?.applicantType === 'company' ? [KYB_TAG] : [])],
             nodesCountries: [],
         },
         costAndDuration: {
@@ -55,7 +55,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             targetNodes: [{ address: '' }],
             spareNodes: [{ address: '' }],
             allowReplicationInTheWild: true,
-            enableTunneling: BOOLEAN_TYPES[0],
+            enableTunneling: BOOLEAN_TYPES[1], // Default to False to avoid validation issues
         },
     });
 
@@ -68,14 +68,13 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             deploymentType: {
-                type: 'image',
+                type: 'container',
                 containerImage: '',
                 containerRegistry: 'docker.io',
                 crVisibility: CR_VISIBILITY_OPTIONS[0],
                 crUsername: '',
                 crPassword: '',
             },
-            port: '',
             restartPolicy: POLICY_TYPES[0],
             imagePullPolicy: POLICY_TYPES[0],
         },
@@ -89,12 +88,12 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            port: '',
             pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
             customParams: [{ key: '', value: '' }],
             pipelineParams: [{ key: '', value: '' }],
             pipelineInputType: PIPELINE_INPUT_TYPES[0],
             chainstoreResponse: BOOLEAN_TYPES[1],
+            secondaryPlugins: [],
         },
     });
 

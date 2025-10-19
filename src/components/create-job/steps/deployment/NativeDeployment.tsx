@@ -1,3 +1,4 @@
+import AppParametersSection from '@components/create-job/sections/AppParametersSection';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { pluginSignaturesCustomParams } from '@data/default-values/customParams';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
@@ -7,13 +8,13 @@ import InputWithLabel from '@shared/InputWithLabel';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import Label from '@shared/Label';
-import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
+import SecondaryPluginsCard from '../../cards/SecondaryPluginsCard';
 
 function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
     const { watch } = useFormContext();
-    const enableTunneling = watch('deployment.enableTunneling');
+
     const pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number] = watch('deployment.pluginSignature');
 
     return (
@@ -32,22 +33,7 @@ function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
             <TargetNodesCard isEditingJob={isEditingJob} />
 
             <SlateCard title="App Parameters">
-                <div className="col gap-4">
-                    <div className="flex gap-4">
-                        <NumberInputWithLabel name="deployment.port" label="Port" />
-                        <SelectWithLabel name="deployment.enableTunneling" label="Enable Tunneling" options={BOOLEAN_TYPES} />
-                    </div>
-
-                    {enableTunneling === BOOLEAN_TYPES[0] && (
-                        <div className="flex gap-4">
-                            <InputWithLabel
-                                name="deployment.tunnelingToken"
-                                label="Tunnel Token"
-                                placeholder="Starts with 'ey'"
-                            />
-                        </div>
-                    )}
-                </div>
+                <AppParametersSection />
             </SlateCard>
 
             <SlateCard title="Custom Parameters">
@@ -87,6 +73,8 @@ function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
                     </div>
                 </div>
             </SlateCard>
+
+            <SecondaryPluginsCard />
 
             <SlateCard title="Other">
                 <SelectWithLabel name="deployment.chainstoreResponse" label="Chainstore Response" options={BOOLEAN_TYPES} />

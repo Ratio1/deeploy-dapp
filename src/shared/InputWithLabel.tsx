@@ -24,7 +24,7 @@ export default function InputWithLabel({
     customLabel,
     ...props
 }: Props) {
-    const { control } = useFormContext();
+    const { control, formState } = useFormContext();
 
     return (
         <div className="col w-full gap-2">
@@ -34,6 +34,10 @@ export default function InputWithLabel({
                 name={name}
                 control={control}
                 render={({ field, fieldState }) => {
+                    if (name === 'deployment.deploymentType.crUsername') {
+                        console.log({ field, fieldState });
+                    }
+
                     return (
                         <StyledInput
                             placeholder={placeholder}

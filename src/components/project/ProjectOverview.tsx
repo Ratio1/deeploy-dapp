@@ -39,6 +39,8 @@ export default function ProjectOverview({
     const { fetchApps, projectOverviewTab, setProjectOverviewTab } = useDeploymentContext() as DeploymentContextType;
     const [runningJobsWithResources, setRunningJobsWithResources] = useState<RunningJobWithResources[]>([]);
 
+    console.log('[ProjectOverview]', { draftJobs });
+
     useEffect(() => {
         const runningJobsWithResources: RunningJobWithResources[] = _(runningJobs)
             .map((job) => {

@@ -94,7 +94,7 @@ export default function DraftEditFormWrapper({
                 ...baseDefaults.deployment,
                 jobAlias: deployment.jobAlias,
                 deploymentType:
-                    deployment.deploymentType.type === 'image'
+                    deployment.deploymentType.type === 'container'
                         ? {
                               ...deployment.deploymentType,
                               crUsername: deployment.deploymentType.crUsername ?? '',

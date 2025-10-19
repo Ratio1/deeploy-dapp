@@ -4,7 +4,7 @@ import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import { SigningModal } from '@shared/SigningModal';
 import { EthAddress, R1Address } from '@typedefs/blockchain';
-import { Apps, DeeploySpecs, JobConfig, Plugin } from '@typedefs/deeployApi';
+import { Apps, AppsPlugin, DeeploySpecs, JobConfig } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { useRef, useState } from 'react';
@@ -160,7 +160,7 @@ export const DeploymentProvider = ({ children }) => {
             alias: string;
             instances: {
                 nodeAddress: R1Address;
-                plugins: (Plugin & { signature: string })[];
+                plugins: (AppsPlugin & { signature: string })[];
             }[];
         }[] = [];
 
@@ -183,7 +183,7 @@ export const DeploymentProvider = ({ children }) => {
 
                 const instances: {
                     nodeAddress: R1Address;
-                    plugins: (Plugin & { signature: string })[];
+                    plugins: (AppsPlugin & { signature: string })[];
                 }[] = [];
 
                 if (!filteredInstances.length) {
@@ -195,7 +195,7 @@ export const DeploymentProvider = ({ children }) => {
 
                         const instanceWithDetails: {
                             nodeAddress: R1Address;
-                            plugins: (Plugin & { signature: string })[];
+                            plugins: (AppsPlugin & { signature: string })[];
                         } = {
                             nodeAddress: nodeAddress as R1Address,
                             plugins: _.flatten(
@@ -233,7 +233,7 @@ export const DeploymentProvider = ({ children }) => {
                 }
 
                 // Job Config is taken from the first plugin. This is subject to change in the future.
-                const plugin: Plugin & { signature: string } = appWithInstances.instances[0].plugins[0];
+                const plugin: AppsPlugin & { signature: string } = appWithInstances.instances[0].plugins[0];
                 const config: JobConfig = plugin.instance_conf;
 
                 const job = runningJobs.find((job) => Number(job.id) === jobId && job.projectHash === specs.project_id);

@@ -8,10 +8,14 @@ export default function ItemWithBoldValue({
     capitalize = false,
 }: {
     label: string;
-    value: string | ReactNode;
+    value?: string | ReactNode;
     isLast?: boolean;
     capitalize?: boolean;
 }) {
+    if (!value) {
+        return null;
+    }
+
     return (
         <div className={clsx('col', isLast && 'text-right')}>
             <div className="text-sm font-medium text-slate-500">{label}</div>

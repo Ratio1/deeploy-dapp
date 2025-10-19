@@ -6,15 +6,15 @@ import VariableSectionIndex from '../VariableSectionIndex';
 import VariableSectionRemove from '../VariableSectionRemove';
 
 // This component assumes it's being used in the deployment step
-export default function WorkerCommandsSection() {
+export default function WorkerCommandsSection({ baseName }: { baseName: string }) {
     const { control, formState, trigger } = useFormContext();
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'deployment.deploymentType.workerCommands',
+        name: `${baseName}.deploymentType.workerCommands`,
     });
 
     // Get array-level errors
-    const errors = (formState.errors.deployment as any)?.deploymentType?.workerCommands;
+    const errors = (formState.errors[baseName] as any)?.deploymentType?.workerCommands;
 
     return (
         <div className="col gap-4">
@@ -33,7 +33,7 @@ export default function WorkerCommandsSection() {
                                 <VariableSectionIndex index={index} />
 
                                 <Controller
-                                    name={`deployment.deploymentType.workerCommands.${index}.command`}
+                                    name={`${baseName}.deploymentType.workerCommands.${index}.command`}
                                     control={control}
                                     render={({ field, fieldState }) => {
                                         const specificError = entryError?.command;
