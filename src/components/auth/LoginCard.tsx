@@ -14,7 +14,7 @@ import { RiFileTextLine, RiPencilLine } from 'react-icons/ri';
 import { decodeEventLog } from 'viem';
 import { usePublicClient, useWalletClient } from 'wagmi';
 
-export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
+export default function LoginCard({ hasOracles }: { hasOracles: boolean }) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
     const { escrowContractAddress, isFetchingApps, fetchApps, setEscrowContractAddress } =
         useDeploymentContext() as DeploymentContextType;
@@ -85,14 +85,7 @@ export default function LoginCard({ oraclesCount }: { oraclesCount: number }) {
                 <div className="col gap-6 py-2">
                     <div className="row justify-center gap-1.5">
                         <div className="compact text-center leading-none">
-                            {!oraclesCount ? (
-                                <>Your wallet does not own any oracles.</>
-                            ) : (
-                                <>
-                                    Your wallet owns <span className="text-primary">{oraclesCount}</span> oracle
-                                    {oraclesCount > 1 ? 's' : ''}
-                                </>
-                            )}
+                            {!hasOracles ? <>Your wallet does not own any oracles.</> : <>Your wallet owns an oracle node.</>}
                         </div>
 
                         {process.env.NODE_ENV === 'development' && <SmallTag>Mock value</SmallTag>}
