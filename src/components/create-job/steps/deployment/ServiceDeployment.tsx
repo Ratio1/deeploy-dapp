@@ -15,11 +15,11 @@ function ServiceDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
     const jobType: JobType = watch('jobType');
     const specifications: JobSpecifications = watch('specifications');
 
+    const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(jobType, specifications);
+
     // Init
     useEffect(() => {
         if (!isEditingJob) {
-            const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(jobType, specifications);
-
             if (containerOrWorkerType) {
                 setValue('deployment.jobAlias', containerOrWorkerType.notes.split(' ')[0]?.toLowerCase());
                 setValue('deployment.port', containerOrWorkerType.port);
@@ -50,7 +50,7 @@ function ServiceDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
 
     return (
         <div className="col gap-6">
-            <SlateCard title="Service Identity">
+            <SlateCard title="Service Identity" label={containerOrWorkerType?.icon}>
                 <div className="flex gap-4">
                     <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="Service" />
                 </div>

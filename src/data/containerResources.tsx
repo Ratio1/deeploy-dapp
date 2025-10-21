@@ -1,4 +1,6 @@
 import { JobType } from '@typedefs/deeploys';
+import { DiMysql } from 'react-icons/di';
+import { SiMongodb, SiPostgresql } from 'react-icons/si';
 
 export type ContainerOrWorkerType = {
     id: number;
@@ -16,6 +18,7 @@ export type ContainerOrWorkerType = {
     port?: number;
     image?: string;
     dbSystem?: string;
+    icon?: React.ReactNode;
 };
 
 export type GpuType = {
@@ -38,6 +41,33 @@ export type RunningJobResources = {
     gpuType?: GpuType;
     jobType: JobType;
 };
+
+const getPostgresTag = () => (
+    <div className="center-all h-[30px] rounded-md bg-blue-100 px-2">
+        <div className="row gap-1.5 text-blue-600">
+            <SiPostgresql className="text-xl" />
+            <div className="compact">PostgreSQL</div>
+        </div>
+    </div>
+);
+
+const getMySQLTag = () => (
+    <div className="center-all h-[30px] rounded-md bg-orange-100 px-2">
+        <div className="row gap-0.5 text-orange-600">
+            <DiMysql className="text-[28px]" />
+            <div className="compact">MySQL</div>
+        </div>
+    </div>
+);
+
+const getMongoDBTag = () => (
+    <div className="center-all h-[30px] rounded-md bg-green-100 px-2">
+        <div className="row gap-0.5 text-green-600">
+            <SiMongodb className="text-xl" />
+            <div className="compact">MongoDB</div>
+        </div>
+    </div>
+);
 
 export const genericContainerTypes: ContainerOrWorkerType[] = [
     {
@@ -244,6 +274,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         port: 5432,
         image: 'postgres:17',
         dbSystem: 'PostgreSQL',
+        icon: getPostgresTag(),
     },
     {
         id: 2,
@@ -261,6 +292,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         port: 5432,
         image: 'postgres:17',
         dbSystem: 'PostgreSQL',
+        icon: getPostgresTag(),
     },
     {
         id: 3,
@@ -278,6 +310,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         port: 3306,
         image: 'mysql',
         dbSystem: 'MySQL',
+        icon: getMySQLTag(),
     },
     {
         id: 4,
@@ -295,6 +328,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         port: 3306,
         image: 'mysql',
         dbSystem: 'MySQL',
+        icon: getMySQLTag(),
     },
     {
         id: 5,
@@ -312,6 +346,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         port: 27017,
         image: 'mongodb',
         dbSystem: 'MongoDB',
+        icon: getMongoDBTag(),
     },
     {
         id: 6,
@@ -329,6 +364,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         port: 27017,
         image: 'mongodb',
         dbSystem: 'MongoDB',
+        icon: getMongoDBTag(),
     },
 ];
 
