@@ -170,10 +170,18 @@ export const formatFileVolumes = (fileVolumes: { name: string; mountingPoint: st
     return formatted;
 };
 
-export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType) => {
+export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType, ports?: Array<{ key: string; value: string }>) => {
+    const portsRecord = ports?.reduce((acc, port) => {
+        if (port.key && port.value) {
+            acc[port.key] = port.value;
+        }
+        return acc;
+    }, {} as Record<string, string>);
+
     return {
         cpu: containerOrWorkerType.cores,
         memory: `${containerOrWorkerType.ram}g`,
+        ...(portsRecord && Object.keys(portsRecord).length > 0 && { ports: portsRecord }),
     };
 };
 
@@ -227,6 +235,7 @@ export const formatGenericPluginConfigAndSignature = (
     resources: {
         cpu: number;
         memory: string;
+        ports?: Record<string, string>;
     },
     plugin: GenericSecondaryPlugin,
 ) => {
@@ -291,7 +300,7 @@ export const formatGenericJobPayload = (
     const spareNodes = formatNodes(deployment.spareNodes);
 
     const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
-        formatContainerResources(containerType),
+        formatContainerResources(containerType, deployment.deploymentType.ports),
         deployment,
     );
 
@@ -331,7 +340,7 @@ export const formatNativeJobPayload = (
         }
     });
 
-    const nodeResources = formatContainerResources(workerType);
+    const nodeResources = formatContainerResources(workerType, undefined);
     const targetNodes = formatNodes(deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, specifications.targetNodesCount);
 
@@ -424,7 +433,7 @@ export const formatServiceJobPayload = (
     deployment: ServiceJobDeployment,
 ) => {
     const jobTags = formatJobTags(specifications);
-    const containerResources = formatContainerResources(containerType);
+    const containerResources = formatContainerResources(containerType, undefined);
     const targetNodes = formatNodes(deployment.targetNodes);
     const spareNodes = formatNodes(deployment.spareNodes);
 

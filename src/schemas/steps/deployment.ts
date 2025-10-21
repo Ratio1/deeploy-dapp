@@ -221,6 +221,10 @@ const containerDeploymentTypeSchema = z.object({
     crVisibility: z.enum(CR_VISIBILITY_OPTIONS, { required_error: 'Value is required' }),
     crUsername: z.union([getStringSchema(3, 128), z.literal('')]).optional(),
     crPassword: z.union([getStringSchema(3, 256), z.literal('')]).optional(),
+    ports: z.array(z.object({
+        key: z.string(),
+        value: z.string(),
+    })).optional(),
 });
 
 const workerDeploymentTypeSchema = z.object({
@@ -253,6 +257,10 @@ const workerDeploymentTypeSchema = z.object({
             message: 'Duplicate commands are not allowed',
         },
     ),
+    ports: z.array(z.object({
+        key: z.string(),
+        value: z.string(),
+    })).optional(),
 });
 
 export const deploymentTypeSchema = z.discriminatedUnion('type', [containerDeploymentTypeSchema, workerDeploymentTypeSchema]);
