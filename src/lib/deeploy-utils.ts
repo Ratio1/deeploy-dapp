@@ -4,6 +4,7 @@ import {
     GpuType,
     gpuTypes,
     nativeWorkerTypes,
+    Service,
     serviceContainerTypes,
 } from '@data/containerResources';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
@@ -203,7 +204,7 @@ export const formatNativeDraftJobPayload = (job: NativeDraftJob) => {
 };
 
 export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
-    const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+    const containerType: Service = getContainerOrWorkerType(job.jobType, job.specifications);
     return formatServiceJobPayload(containerType, job.specifications, job.deployment);
 };
 
@@ -393,15 +394,16 @@ export const formatNativeJobPayload = (
 };
 
 export const formatServiceJobPayload = (
-    containerType: ContainerOrWorkerType,
+    containerType: Service,
     specifications: ServiceJobSpecifications,
     deployment: ServiceJobDeployment,
 ) => {
     const jobTags = formatJobTags(specifications);
-    const envVars = formatEnvVars(deployment.envVars);
     const containerResources = formatContainerResources(containerType);
     const targetNodes = formatNodes(deployment.targetNodes);
     const spareNodes = formatNodes(deployment.spareNodes);
+
+    const envVars = formatEnvVars(deployment.inputs);
 
     const nonce = generateDeeployNonce();
 

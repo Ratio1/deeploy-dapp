@@ -15,10 +15,14 @@ export type ContainerOrWorkerType = {
     cores: number;
     ram: number;
     storage?: number;
+};
+
+export type Service = ContainerOrWorkerType & {
     port?: number;
     image?: string;
     dbSystem?: string;
     icon?: React.ReactNode;
+    inputs?: { key: string; label: string }[];
 };
 
 export type GpuType = {
@@ -257,7 +261,7 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
     },
 ];
 
-export const serviceContainerTypes: ContainerOrWorkerType[] = [
+export const serviceContainerTypes: Service[] = [
     {
         id: 1,
         name: 'PGSQL-LOW',
@@ -275,6 +279,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         image: 'postgres:17',
         dbSystem: 'PostgreSQL',
         icon: getPostgresTag(),
+        inputs: [{ key: 'POSTGRES_PASSWORD', label: 'PostgreSQL Password' }],
     },
     {
         id: 2,
@@ -293,6 +298,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         image: 'postgres:17',
         dbSystem: 'PostgreSQL',
         icon: getPostgresTag(),
+        inputs: [{ key: 'POSTGRES_PASSWORD', label: 'PostgreSQL Password' }],
     },
     {
         id: 3,
@@ -311,6 +317,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         image: 'mysql',
         dbSystem: 'MySQL',
         icon: getMySQLTag(),
+        inputs: [{ key: 'MYSQL_ROOT_PASSWORD', label: 'MySQL Root Password' }],
     },
     {
         id: 4,
@@ -329,6 +336,7 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         image: 'mysql',
         dbSystem: 'MySQL',
         icon: getMySQLTag(),
+        inputs: [{ key: 'MYSQL_ROOT_PASSWORD', label: 'MySQL Root Password' }],
     },
     {
         id: 5,
@@ -347,6 +355,10 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         image: 'mongodb',
         dbSystem: 'MongoDB',
         icon: getMongoDBTag(),
+        inputs: [
+            { key: 'MONGO_INITDB_ROOT_USERNAME', label: 'MongoDB Root Username' },
+            { key: 'MONGO_INITDB_ROOT_PASSWORD', label: 'MongoDB Root Password' },
+        ],
     },
     {
         id: 6,
@@ -365,6 +377,10 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         image: 'mongodb',
         dbSystem: 'MongoDB',
         icon: getMongoDBTag(),
+        inputs: [
+            { key: 'MONGO_INITDB_ROOT_USERNAME', label: 'MongoDB Root Username' },
+            { key: 'MONGO_INITDB_ROOT_PASSWORD', label: 'MongoDB Root Password' },
+        ],
     },
 ];
 

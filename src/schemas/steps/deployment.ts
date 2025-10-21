@@ -304,7 +304,10 @@ export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(
 
 const serviceAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,
-    envVars: validations.envVars,
+    port: validations.port,
+    enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
+    tunnelingToken: getOptionalStringSchema(512),
+    inputs: validations.envVars,
     serviceReplica: nodeSchema.shape.address.optional(),
 });
 

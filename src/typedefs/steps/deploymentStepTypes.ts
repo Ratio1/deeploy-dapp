@@ -107,9 +107,7 @@ type NativeJobDeployment = BaseJobDeployment & {
 };
 
 type ServiceJobDeployment = BaseJobDeployment & {
-    envVars: Array<KeyValueEntry>;
-    // dynamicEnvVars: Array<DynamicEnvVarsEntry>;
-    // volumes: Array<VolumesEntry>;
+    inputs: Array<KeyValueEntry>;
     serviceReplica?: R1Address;
 };
 
