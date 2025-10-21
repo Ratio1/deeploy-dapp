@@ -126,7 +126,7 @@ export default function JobEditFormWrapper({
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             port: config.PORT ?? '',
-            pluginSignature: PLUGIN_SIGNATURE_TYPES[0], // TODO:
+            pluginSignature: PLUGIN_SIGNATURE_TYPES[0], // TODO: Native Job editing flow
             customParams: [{ key: '', value: '' }],
             pipelineParams: [{ key: '', value: '' }],
             pipelineInputType: PIPELINE_INPUT_TYPES[0],
