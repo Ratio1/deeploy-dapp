@@ -92,7 +92,7 @@ export default function WorkerSection({
                     repositoryVisibility ? (
                         <div className="row gap-1.5">
                             <Label value="GitHub Repository URL" />
-                            <SmallTag variant={repositoryVisibility === 'public' ? 'emerald' : 'orange'}>
+                            <SmallTag variant={repositoryVisibility === 'public' ? 'emerald' : 'red'}>
                                 <div className="capitalize">{repositoryVisibility}</div>
                             </SmallTag>
                         </div>

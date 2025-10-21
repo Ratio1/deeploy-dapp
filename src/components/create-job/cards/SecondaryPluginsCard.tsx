@@ -53,15 +53,15 @@ const OPTIONS: {
         pluginType: PluginType.Container,
         title: 'Container App Runner',
         icon: <RiBox3Line />,
-        textColorClass: 'text-purple-500',
-        color: 'purple',
+        textColorClass: 'text-pink-400',
+        color: 'pink',
     },
     {
         pluginType: PluginType.Worker,
         title: 'Worker App Runner',
         icon: <RiBox3Line />,
-        textColorClass: 'text-emerald-500',
-        color: 'emerald',
+        textColorClass: 'text-yellow-500',
+        color: 'yellow',
     },
 ];
 

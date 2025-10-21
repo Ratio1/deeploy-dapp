@@ -44,17 +44,17 @@ function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean })
             title={type === 'worker' ? 'Worker App Runner' : 'Container App Runner'}
             label={
                 <div className="row gap-2">
-                    <SmallTag variant={type === 'worker' ? 'emerald' : 'default'}>Worker</SmallTag>
+                    <SmallTag variant={type === 'worker' ? 'yellow' : 'default'}>Worker</SmallTag>
 
                     <Switch
                         isSelected={type === 'container'}
                         onValueChange={onDeploymentTypeChange}
                         size="sm"
                         classNames={{
-                            wrapper: 'bg-emerald-200 group-data-[selected=true]:bg-purple-300',
+                            wrapper: 'bg-yellow-200 group-data-[selected=true]:bg-pink-300',
                         }}
                     >
-                        <SmallTag variant={type === 'container' ? 'purple' : 'default'}>Container</SmallTag>
+                        <SmallTag variant={type === 'container' ? 'pink' : 'default'}>Container</SmallTag>
                     </Switch>
                 </div>
             }
