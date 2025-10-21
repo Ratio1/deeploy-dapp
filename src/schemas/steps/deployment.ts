@@ -263,8 +263,10 @@ export const genericAppDeploymentSchema = applyDeploymentTypeRefinements(
 );
 
 // Secondary plugins
-const basePluginSchema = z.object({
-    // Base
+const baseGenericPluginSchema = z.object({
+    pluginType: z.literal('generic'),
+
+    // Tunneling
     port: validations.port,
     enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
     tunnelingToken: getOptionalStringSchema(512),
@@ -283,9 +285,25 @@ const basePluginSchema = z.object({
     imagePullPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
 });
 
-const secondaryPluginSchema = applyCustomPluginSignatureRefinements(
-    applyDeploymentTypeRefinements(applyTunnelingRefinements(basePluginSchema)),
-);
+const genericPluginSchema = applyDeploymentTypeRefinements(applyTunnelingRefinements(baseGenericPluginSchema));
+
+const nativePluginSchema = z.object({
+    pluginType: z.literal('native'),
+
+    // Signature
+    pluginSignature: validations.pluginSignature,
+    customPluginSignature: getOptionalStringSchema(128),
+
+    // Tunneling
+    port: validations.port,
+    enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
+    tunnelingToken: getOptionalStringSchema(512),
+
+    // Custom Parameters
+    customParams: validations.customParams,
+});
+
+const secondaryPluginSchema = z.discriminatedUnion('pluginType', [genericPluginSchema, nativePluginSchema]);
 
 const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,
@@ -297,7 +315,7 @@ const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend(
     pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
     pipelineInputUri: validations.uri.optional(),
     chainstoreResponse: validations.chainstoreResponse,
-    secondaryPlugins: z.array(secondaryPluginSchema).max(1, 'Only one secondary plugin allowed').optional(),
+    secondaryPlugins: z.array(secondaryPluginSchema).max(5, 'Only 5 secondary plugins allowed').optional(),
 });
 
 export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(
