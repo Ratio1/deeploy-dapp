@@ -3,9 +3,7 @@ import { ContainerOrWorkerType } from '@data/containerResources';
 import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
-import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';
 import EnvVariablesCard from '@shared/jobs/EnvVariablesCard';
-import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import { JobSpecifications, JobType } from '@typedefs/deeploys';
 import { useEffect } from 'react';
@@ -23,7 +21,8 @@ function ServiceDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
             const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(jobType, specifications);
 
             if (containerOrWorkerType) {
-                setValue('deployment.jobAlias', containerOrWorkerType.notes.split(' ')[0]);
+                setValue('deployment.jobAlias', containerOrWorkerType.notes.split(' ')[0]?.toLowerCase());
+                setValue('deployment.port', containerOrWorkerType.port);
 
                 let envEntries: { key: string; value: string }[] = [];
 
@@ -72,17 +71,9 @@ function ServiceDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
                 ]}
             />
 
-            <SlateCard title="Dynamic ENV Variables">
-                <DynamicEnvSection />
-            </SlateCard>
-
-            <SlateCard title="Volumes">
-                <KeyValueEntriesSection name="deployment.volumes" displayLabel="volumes" placeholders={['VOLUME', 'PATH']} />
-            </SlateCard>
-
-            <SlateCard title="Other">
+            {/* <SlateCard title="Other">
                 <InputWithLabel name="deployment.serviceReplica" label="Service Replica" placeholder="0x_ai" isOptional />
-            </SlateCard>
+            </SlateCard> */}
         </div>
     );
 }

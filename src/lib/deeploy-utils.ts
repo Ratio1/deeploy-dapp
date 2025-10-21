@@ -399,8 +399,6 @@ export const formatServiceJobPayload = (
 ) => {
     const jobTags = formatJobTags(specifications);
     const envVars = formatEnvVars(deployment.envVars);
-    const dynamicEnvVars = formatDynamicEnvVars(deployment.dynamicEnvVars);
-    const volumes = formatVolumes(deployment.volumes);
     const containerResources = formatContainerResources(containerType);
     const targetNodes = formatNodes(deployment.targetNodes);
     const spareNodes = formatNodes(deployment.spareNodes);
@@ -427,9 +425,7 @@ export const formatServiceJobPayload = (
                 NGROK_EDGE_LABEL: deployment.tunnelingLabel || null,
                 TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
                 NGROK_USE_API: true,
-                VOLUMES: volumes,
                 ENV: envVars,
-                DYNAMIC_ENV: dynamicEnvVars,
                 RESTART_POLICY: 'always',
                 IMAGE_PULL_POLICY: 'always',
             },

@@ -305,8 +305,6 @@ export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(
 const serviceAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,
     envVars: validations.envVars,
-    dynamicEnvVars: validations.dynamicEnvVars,
-    volumes: validations.volumes,
     serviceReplica: nodeSchema.shape.address.optional(),
 });
 
