@@ -37,19 +37,10 @@ export default function AppParametersSection({ baseName = 'deployment' }: { base
             )}
 
             {(deploymentType === 'container' || deploymentType === 'worker') && (
-                <div className="col gap-3">
-                    <PortMappingSection
-                        name={`${baseName}.deploymentType.ports`}
-                        label="Port Mapping"
-                    />
-                    <div className="text-warning-800 bg-warning-100 col gap-2 rounded-md p-3 text-sm">
-                        <div className="font-medium">⚠️ Port Availability Warning</div>
-                        <div>
-                            The plugin may fail to start if the specified host ports are not available on the Edge Node. 
-                            Ensure the ports you map are free and accessible.
-                        </div>
-                    </div>
-                </div>
+                <PortMappingSection
+                    name={`${baseName}.deploymentType.ports`}
+                    label="Port Mapping"
+                />
             )}
         </div>
     );

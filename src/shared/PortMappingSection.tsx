@@ -64,20 +64,19 @@ export default function PortMappingSection({ name, label = 'Port Mapping' }: Por
         <div className="col gap-3">
             <div className="row items-center justify-between">
                 <label className="text-sm font-medium text-gray-700">{label}</label>
-                <Button
-                    type="button"
-                    size="sm"
-                    variant="light"
-                    startContent={<RiAddLine />}
-                    onPress={addPortMapping}
-                >
-                    Add Port
-                </Button>
+            </div>
+
+            <div className="text-warning-800 bg-warning-100 col gap-2 rounded-md p-3 text-sm">
+                <div className="font-medium">⚠️ Port Availability Warning</div>
+                <div>
+                    The plugin may fail to start if the specified host ports are not available on the Edge Node. 
+                    Ensure the ports you map are free and accessible.
+                </div>
             </div>
 
             {portEntries.length === 0 && (
                 <div className="text-sm text-gray-500 italic">
-                    No port mappings configured. Click "Add Port" to map host ports to container ports.
+                    No port mappings configured. Click "Add" to map host ports to container ports.
                 </div>
             )}
 
@@ -129,6 +128,13 @@ export default function PortMappingSection({ name, label = 'Port Mapping' }: Por
                     ⚠️ Duplicate host ports detected. Each host port must be unique.
                 </div>
             )}
+
+            <div
+                className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
+                onClick={addPortMapping}
+            >
+                <RiAddLine className="text-lg" /> Add
+            </div>
         </div>
     );
 }
