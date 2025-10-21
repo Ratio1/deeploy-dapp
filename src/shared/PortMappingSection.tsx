@@ -1,8 +1,9 @@
-import { Button } from '@heroui/button';
-import { Input } from '@heroui/input';
 import { useFormContext } from 'react-hook-form';
 import { useState } from 'react';
-import { RiAddLine, RiDeleteBin6Line } from 'react-icons/ri';
+import { RiAddLine } from 'react-icons/ri';
+import ConfigSectionTitle from '@components/job/config/ConfigSectionTitle';
+import StyledInput from '@shared/StyledInput';
+import VariableSectionRemove from '@shared/jobs/VariableSectionRemove';
 
 interface PortMappingSectionProps {
     name: string;
@@ -62,9 +63,7 @@ export default function PortMappingSection({ name, label = 'Port Mapping' }: Por
 
     return (
         <div className="col gap-3">
-            <div className="row items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">{label}</label>
-            </div>
+            <ConfigSectionTitle title={label} />
 
             <div className="text-warning-800 bg-warning-100 col gap-2 rounded-md p-3 text-sm">
                 <div className="font-medium">⚠️ Port Availability Warning</div>
@@ -83,8 +82,7 @@ export default function PortMappingSection({ name, label = 'Port Mapping' }: Por
             {portEntries.map((entry, index) => (
                 <div key={entry.id} className="row gap-3 items-end">
                     <div className="flex-1">
-                        <Input
-                            label="Host Port"
+                        <StyledInput
                             placeholder="e.g. 8080"
                             value={entry.hostPort}
                             onChange={(e) => updateEntry(entry.id, 'hostPort', e.target.value)}
@@ -97,23 +95,13 @@ export default function PortMappingSection({ name, label = 'Port Mapping' }: Por
                         />
                     </div>
                     <div className="flex-1">
-                        <Input
-                            label="Container Port"
+                        <StyledInput
                             placeholder="e.g. 8081"
                             value={entry.containerPort}
                             onChange={(e) => updateEntry(entry.id, 'containerPort', e.target.value)}
                         />
                     </div>
-                    <Button
-                        type="button"
-                        size="sm"
-                        variant="light"
-                        color="danger"
-                        isIconOnly
-                        onPress={() => removePortMapping(entry.id)}
-                    >
-                        <RiDeleteBin6Line />
-                    </Button>
+                    <VariableSectionRemove onClick={() => removePortMapping(entry.id)} />
                 </div>
             ))}
 
