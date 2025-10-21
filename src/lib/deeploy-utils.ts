@@ -6,6 +6,7 @@ import {
     nativeWorkerTypes,
     serviceContainerTypes,
 } from '@data/containerResources';
+import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import {
     DraftJob,
     GenericDraftJob,
@@ -340,7 +341,10 @@ export const formatNativeJobPayload = (
 
     // Primary plugin configuration
     const primaryPluginConfig: any = {
-        plugin_signature: deployment.pluginSignature,
+        plugin_signature:
+            deployment.pluginSignature === PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1]
+                ? deployment.customPluginSignature
+                : deployment.pluginSignature,
         PORT: deployment.port,
         CLOUDFLARE_TOKEN: deployment.tunnelingToken || null,
         TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',

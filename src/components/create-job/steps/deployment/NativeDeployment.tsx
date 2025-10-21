@@ -20,13 +20,23 @@ function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
     return (
         <div className="col gap-6">
             <SlateCard title="App Identity">
-                <div className="flex gap-4">
-                    <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="My App" />
-                    <SelectWithLabel
-                        name="deployment.pluginSignature"
-                        label="Plugin Signature"
-                        options={PLUGIN_SIGNATURE_TYPES}
-                    />
+                <div className="col gap-4">
+                    <div className="flex gap-4">
+                        <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="My App" />
+                        <SelectWithLabel
+                            name="deployment.pluginSignature"
+                            label="Plugin Signature"
+                            options={PLUGIN_SIGNATURE_TYPES}
+                        />
+                    </div>
+
+                    {pluginSignature === PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1] && (
+                        <InputWithLabel
+                            name="deployment.customPluginSignature"
+                            label="Custom Plugin Signature"
+                            placeholder="None"
+                        />
+                    )}
                 </div>
             </SlateCard>
 

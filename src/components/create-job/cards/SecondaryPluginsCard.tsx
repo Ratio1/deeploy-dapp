@@ -77,8 +77,8 @@ export default function SecondaryPluginsCard() {
             {fields.length === 0 ? (
                 <div className="col items-center gap-2.5 text-center">
                     <div className="row gap-0.5">
-                        <RiAddLine className="text-xl text-slate-500" />
-                        <div className="font-medium text-slate-500">Add Plugin</div>
+                        <RiAddLine className="text-xl" />
+                        <div className="font-medium">Add Plugin</div>
                     </div>
 
                     <div className="row gap-2">

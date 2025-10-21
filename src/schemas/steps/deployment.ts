@@ -110,7 +110,7 @@ const tunnelingRefinements = {
 };
 
 // Helper functions to apply refinements
-export const applyTunnelingRefinements = (schema: z.ZodObject<any>) => {
+export const applyTunnelingRefinements = (schema) => {
     return schema
         .refine(tunnelingRefinements.tunnelingToken.refine, tunnelingRefinements.tunnelingToken.options)
         .refine(tunnelingRefinements.port.refine, tunnelingRefinements.port.options);
@@ -154,6 +154,21 @@ export const applyDeploymentTypeRefinements = (schema) => {
             }
         }
     });
+};
+
+export const applyCustomPluginSignatureRefinements = (schema) => {
+    return schema.refine(
+        (data) => {
+            if (data.pluginSignature === PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1]) {
+                return typeof data.customPluginSignature === 'string' && data.customPluginSignature.trim() !== '';
+            }
+            return true;
+        },
+        {
+            message: 'Required when plugin signature is CUSTOM',
+            path: ['customPluginSignature'],
+        },
+    );
 };
 
 const baseDeploymentSchema = z.object({
@@ -266,11 +281,14 @@ const basePluginSchema = z.object({
     imagePullPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
 });
 
-const secondaryPluginSchema = applyDeploymentTypeRefinements(applyTunnelingRefinements(basePluginSchema));
+const secondaryPluginSchema = applyCustomPluginSignatureRefinements(
+    applyDeploymentTypeRefinements(applyTunnelingRefinements(basePluginSchema)),
+);
 
 const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,
     pluginSignature: validations.pluginSignature,
+    customPluginSignature: getOptionalStringSchema(128),
     port: validations.port,
     customParams: validations.customParams,
     pipelineParams: validations.pipelineParams,
@@ -280,7 +298,9 @@ const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend(
     secondaryPlugins: z.array(secondaryPluginSchema).max(1, 'Only one secondary plugin allowed').optional(),
 });
 
-export const nativeAppDeploymentSchema = applyTunnelingRefinements(nativeAppDeploymentSchemaWihtoutRefinements);
+export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(
+    applyTunnelingRefinements(nativeAppDeploymentSchemaWihtoutRefinements),
+);
 
 const serviceAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,
