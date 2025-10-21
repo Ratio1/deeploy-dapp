@@ -55,6 +55,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             targetNodes: [{ address: '' }],
             spareNodes: [{ address: '' }],
             allowReplicationInTheWild: true,
+            port: '',
             enableTunneling: BOOLEAN_TYPES[0],
         },
     });

@@ -108,7 +108,7 @@ export default function DraftEditFormWrapper({
                               username: deployment.deploymentType.username ?? '',
                               accessToken: deployment.deploymentType.accessToken ?? '',
                           },
-                port: deployment.port,
+                port: deployment.port ?? '',
                 restartPolicy: deployment.restartPolicy,
                 imagePullPolicy: deployment.imagePullPolicy,
                 envVars: cloneKeyValueEntries(deployment.envVars),
@@ -140,7 +140,7 @@ export default function DraftEditFormWrapper({
             deployment: {
                 ...baseDefaults.deployment,
                 jobAlias: deployment.jobAlias,
-                port: deployment.port,
+                port: deployment.port ?? '',
                 pluginSignature: deployment.pluginSignature,
                 customPluginSignature: deployment.customPluginSignature,
                 customParams: cloneKeyValueEntries(deployment.customParams),
@@ -166,9 +166,6 @@ export default function DraftEditFormWrapper({
             deployment: {
                 ...baseDefaults.deployment,
                 jobAlias: deployment.jobAlias,
-                envVars: cloneKeyValueEntries(deployment.envVars),
-                dynamicEnvVars: cloneDynamicEnvEntries(deployment.dynamicEnvVars),
-                volumes: cloneKeyValueEntries(deployment.volumes),
                 serviceReplica: deployment.serviceReplica ?? '',
             },
         } as z.infer<typeof jobSchema>;

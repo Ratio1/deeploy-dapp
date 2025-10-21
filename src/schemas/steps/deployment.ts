@@ -38,13 +38,14 @@ const validations = {
         .max(256, 'Value cannot exceed 256 characters')
         .regex(/^https?:\/\/.+/, 'Must be a valid URI'),
 
-    port: z
-        .number()
-        .int('Value must be a whole number')
-        .min(1, 'Value must be at least 1')
-        .max(65535, 'Value cannot exceed 65535')
-        .transform((val: any) => (!val || val === '' ? undefined : (val as number)))
-        .optional(),
+    port: z.union([
+        z.literal(''),
+        z
+            .number()
+            .int('Value must be a whole number')
+            .min(1, 'Value must be at least 1')
+            .max(65535, 'Value cannot exceed 65535'),
+    ]),
 
     envVars: getKeyValueEntriesArraySchema(),
     dynamicEnvVars: z
@@ -86,9 +87,10 @@ const createTunnelingRequiredRefinement = (fieldName: 'tunnelingToken') => {
 const createPortRequiredRefinement = () => {
     return (data: { [key: string]: any }) => {
         if (data.enableTunneling !== BOOLEAN_TYPES[0]) {
-            return true; // Allow undefined when tunneling is not enabled
+            return true; // Allow any value when tunneling is not enabled
         }
-        return data.port !== undefined && data.port !== '';
+
+        return data.port !== '';
     };
 };
 
