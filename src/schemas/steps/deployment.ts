@@ -121,6 +121,10 @@ export const applyTunnelingRefinements = (schema) => {
 
 export const applyDeploymentTypeRefinements = (schema) => {
     return schema.superRefine((data, ctx) => {
+        if (!data?.deploymentType) {
+            return;
+        }
+
         // Validate that crUsername and crPassword are provided when crVisibility is 'Private'
         if (data.deploymentType.type === 'container' && data.deploymentType.crVisibility === 'Private') {
             if (!data.deploymentType.crUsername) {
@@ -286,11 +290,9 @@ const baseGenericSecondaryPluginSchema = z.object({
     imagePullPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
 });
 
-const genericSecondaryPluginSchema = applyDeploymentTypeRefinements(
-    applyTunnelingRefinements(baseGenericSecondaryPluginSchema),
-);
+const genericSecondaryPluginSchema = baseGenericSecondaryPluginSchema;
 
-const nativeSecondaryPluginSchema = z.object({
+const baseNativeSecondaryPluginSchema = z.object({
     secondaryPluginType: z.literal(SecondaryPluginType.Native),
 
     // Signature
@@ -306,10 +308,14 @@ const nativeSecondaryPluginSchema = z.object({
     customParams: validations.customParams,
 });
 
-const secondaryPluginSchema = z.discriminatedUnion('secondaryPluginType', [
+const secondaryPluginSchemaWithoutRefinements = z.discriminatedUnion('secondaryPluginType', [
     genericSecondaryPluginSchema,
-    nativeSecondaryPluginSchema,
+    baseNativeSecondaryPluginSchema,
 ]);
+
+const secondaryPluginSchema = applyCustomPluginSignatureRefinements(
+    applyDeploymentTypeRefinements(applyTunnelingRefinements(secondaryPluginSchemaWithoutRefinements)),
+);
 
 const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,

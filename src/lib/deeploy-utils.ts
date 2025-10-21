@@ -13,7 +13,6 @@ import {
     GenericDraftJob,
     GenericJobDeployment,
     GenericJobSpecifications,
-    GenericSecondaryPlugin,
     JobSpecifications,
     JobType,
     KeyValueEntryWithId,
@@ -24,6 +23,7 @@ import {
     ServiceJobDeployment,
     ServiceJobSpecifications,
 } from '@typedefs/deeploys';
+import { GenericSecondaryPlugin, SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
 import { addDays, addHours, differenceInDays, differenceInHours } from 'date-fns';
 import _ from 'lodash';
 import { FieldValues, UseFieldArrayAppend, UseFieldArrayRemove } from 'react-hook-form';
@@ -363,14 +363,20 @@ export const formatNativeJobPayload = (
 
     // Add secondary plugins if they exist
     if (deployment.secondaryPlugins.length) {
-        const secondaryPluginConfigs = deployment.secondaryPlugins.map((plugin) => {
-            const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(nodeResources, plugin);
+        // TODO: Implement native secondary plugin configuration
+        const secondaryPluginConfigs = deployment.secondaryPlugins
+            .filter((plugin) => plugin.secondaryPluginType === SecondaryPluginType.Generic)
+            .map((plugin) => {
+                const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
+                    nodeResources,
+                    plugin as GenericSecondaryPlugin,
+                );
 
-            return {
-                plugin_signature: pluginSignature,
-                ...pluginConfig,
-            };
-        });
+                return {
+                    plugin_signature: pluginSignature,
+                    ...pluginConfig,
+                };
+            });
 
         plugins.push(...secondaryPluginConfigs);
     }

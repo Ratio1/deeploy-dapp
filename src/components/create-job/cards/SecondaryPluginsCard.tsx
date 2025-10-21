@@ -121,6 +121,7 @@ export default function SecondaryPluginsCard() {
                 append({
                     secondaryPluginType: SecondaryPluginType.Native,
                     pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
+                    customParams: [],
                     ...TUNNELING_DEFAULTS,
                 });
                 break;
