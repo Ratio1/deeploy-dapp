@@ -39,7 +39,9 @@ function ServiceDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
                 <AppParametersSection />
             </SlateCard>
 
-            {containerOrWorkerType.inputs && <ServiceInputsSection inputs={containerOrWorkerType.inputs} />}
+            {containerOrWorkerType.inputs && (
+                <ServiceInputsSection inputs={containerOrWorkerType.inputs} isEditingJob={isEditingJob} />
+            )}
 
             {/* <SlateCard title="Other">
                 <InputWithLabel name="deployment.serviceReplica" label="Service Replica" placeholder="0x_ai" isOptional />

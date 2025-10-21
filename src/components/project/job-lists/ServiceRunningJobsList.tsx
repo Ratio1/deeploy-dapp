@@ -1,3 +1,4 @@
+import { Service } from '@data/containerResources';
 import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
 import { applyWidthClasses } from '@lib/utils';
 import RunningJobsList from '@shared/jobs/projects/RunningJobsList';
@@ -34,6 +35,7 @@ function ServiceRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
             }}
             renderJob={(job) => {
                 const { containerOrWorkerType } = job.resources;
+                const service: Service = containerOrWorkerType as Service;
                 const targetNodes = Number(job.numberOfNodesRequested);
 
                 return (
@@ -46,7 +48,7 @@ function ServiceRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
                         </div>
 
                         <div className={widthClasses[2]}>
-                            <SmallTag variant={containerOrWorkerType.notesColor}>{containerOrWorkerType.dbSystem}</SmallTag>
+                            <SmallTag variant={service.notesColor}>{service.dbSystem}</SmallTag>
                         </div>
 
                         <div className={widthClasses[3]}>
