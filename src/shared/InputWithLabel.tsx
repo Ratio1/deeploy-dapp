@@ -24,7 +24,7 @@ export default function InputWithLabel({
     customLabel,
     ...props
 }: Props) {
-    const { control, formState } = useFormContext();
+    const { control } = useFormContext();
 
     return (
         <div className="col w-full gap-2">

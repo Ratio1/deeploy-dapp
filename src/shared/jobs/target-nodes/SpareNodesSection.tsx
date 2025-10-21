@@ -1,12 +1,12 @@
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
-import { RiAddLine } from 'react-icons/ri';
+import { RiAddLine, RiClipboardLine } from 'react-icons/ri';
 import VariableSectionIndex from '../VariableSectionIndex';
 import VariableSectionRemove from '../VariableSectionRemove';
 
 // This component assumes it's being used in the deployment step
 export default function SpareNodesSection() {
-    const { control, formState, trigger } = useFormContext();
+    const { control, formState, trigger, setValue } = useFormContext();
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'deployment.spareNodes',
@@ -58,6 +58,26 @@ export default function SpareNodesSection() {
                                                     fieldState.error?.message ||
                                                     specificError?.message ||
                                                     (errors?.root?.message && index === 0 ? errors.root.message : undefined)
+                                                }
+                                                endContent={
+                                                    <div
+                                                        className="cursor-pointer hover:opacity-60"
+                                                        onClick={async () => {
+                                                            try {
+                                                                const clipboardText = await navigator.clipboard.readText();
+                                                                field.onChange(clipboardText);
+
+                                                                setValue(
+                                                                    `deployment.spareNodes.${index}.address`,
+                                                                    clipboardText,
+                                                                );
+                                                            } catch (error) {
+                                                                console.error('Failed to read clipboard:', error);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <RiClipboardLine className="text-lg text-slate-600" />
+                                                    </div>
                                                 }
                                             />
                                         );
