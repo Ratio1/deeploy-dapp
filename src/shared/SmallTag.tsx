@@ -14,7 +14,8 @@ export const SmallTag: FunctionComponent<
             | 'yellow'
             | 'accent'
             | 'darkred'
-            | 'darkgreen';
+            | 'darkgreen'
+            | 'pink';
         isLarge?: boolean;
     }>
 > = ({ children, variant = 'default', isLarge = false }) => (
@@ -34,6 +35,7 @@ export const SmallTag: FunctionComponent<
                 'bg-blue-100': variant === 'accent',
                 'bg-red-150 text-red-600': variant === 'darkred',
                 'bg-green-150 text-green-600': variant === 'darkgreen',
+                'bg-pink-100 text-pink-600': variant === 'pink',
             })}
         >
             {children}

@@ -14,6 +14,7 @@ import {
     nodeSchema,
     workerCommandSchema,
 } from '@schemas/common';
+import { SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
 import { z } from 'zod';
 
 // Common validation patterns
@@ -120,6 +121,10 @@ export const applyTunnelingRefinements = (schema) => {
 
 export const applyDeploymentTypeRefinements = (schema) => {
     return schema.superRefine((data, ctx) => {
+        if (!data?.deploymentType) {
+            return;
+        }
+
         // Validate that crUsername and crPassword are provided when crVisibility is 'Private'
         if (data.deploymentType.type === 'container' && data.deploymentType.crVisibility === 'Private') {
             if (!data.deploymentType.crUsername) {
@@ -263,8 +268,10 @@ export const genericAppDeploymentSchema = applyDeploymentTypeRefinements(
 );
 
 // Secondary plugins
-const basePluginSchema = z.object({
-    // Base
+const baseGenericSecondaryPluginSchema = z.object({
+    secondaryPluginType: z.literal(SecondaryPluginType.Generic),
+
+    // Tunneling
     port: validations.port,
     enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
     tunnelingToken: getOptionalStringSchema(512),
@@ -283,8 +290,31 @@ const basePluginSchema = z.object({
     imagePullPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
 });
 
+const genericSecondaryPluginSchema = baseGenericSecondaryPluginSchema;
+
+const baseNativeSecondaryPluginSchema = z.object({
+    secondaryPluginType: z.literal(SecondaryPluginType.Native),
+
+    // Signature
+    pluginSignature: validations.pluginSignature,
+    customPluginSignature: getOptionalStringSchema(128),
+
+    // Tunneling
+    port: validations.port,
+    enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
+    tunnelingToken: getOptionalStringSchema(512),
+
+    // Custom Parameters
+    customParams: validations.customParams,
+});
+
+const secondaryPluginSchemaWithoutRefinements = z.discriminatedUnion('secondaryPluginType', [
+    genericSecondaryPluginSchema,
+    baseNativeSecondaryPluginSchema,
+]);
+
 const secondaryPluginSchema = applyCustomPluginSignatureRefinements(
-    applyDeploymentTypeRefinements(applyTunnelingRefinements(basePluginSchema)),
+    applyDeploymentTypeRefinements(applyTunnelingRefinements(secondaryPluginSchemaWithoutRefinements)),
 );
 
 const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
@@ -297,7 +327,7 @@ const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend(
     pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
     pipelineInputUri: validations.uri.optional(),
     chainstoreResponse: validations.chainstoreResponse,
-    secondaryPlugins: z.array(secondaryPluginSchema).max(1, 'Only one secondary plugin allowed').optional(),
+    secondaryPlugins: z.array(secondaryPluginSchema).max(5, 'Only 5 secondary plugins allowed').optional(),
 });
 
 export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(
