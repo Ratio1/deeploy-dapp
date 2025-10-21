@@ -39,7 +39,7 @@ type ContainerDeploymentType = {
     crVisibility: (typeof CR_VISIBILITY_OPTIONS)[number];
     crUsername?: string;
     crPassword?: string;
-    ports?: Array<{ key: string; value: string }>;
+    ports?: Record<string, string>;
 };
 
 type WorkerDeploymentType = {
@@ -50,7 +50,7 @@ type WorkerDeploymentType = {
     username?: string;
     accessToken?: string;
     workerCommands: Array<{ command: string }>;
-    ports?: Array<{ key: string; value: string }>;
+    ports?: Record<string, string>;
 };
 
 type DeploymentType = ContainerDeploymentType | WorkerDeploymentType;

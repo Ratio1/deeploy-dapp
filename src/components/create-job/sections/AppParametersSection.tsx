@@ -1,7 +1,7 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import InputWithLabel from '@shared/InputWithLabel';
-import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
+import PortMappingSection from '@shared/PortMappingSection';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
 
@@ -38,11 +38,9 @@ export default function AppParametersSection({ baseName = 'deployment' }: { base
 
             {(deploymentType === 'container' || deploymentType === 'worker') && (
                 <div className="col gap-3">
-                    <KeyValueEntriesSection
+                    <PortMappingSection
                         name={`${baseName}.deploymentType.ports`}
                         label="Port Mapping"
-                        displayLabel="port mappings"
-                        placeholders={['Host Port', 'Container Port']}
                     />
                     <div className="text-warning-800 bg-warning-100 col gap-2 rounded-md p-3 text-sm">
                         <div className="font-medium">⚠️ Port Availability Warning</div>

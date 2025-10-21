@@ -26,7 +26,7 @@ function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean })
                 crVisibility: CR_VISIBILITY_OPTIONS[0],
                 crUsername: '',
                 crPassword: '',
-                ports: [],
+                ports: {},
             });
         } else {
             setValue('deployment.deploymentType', {
@@ -36,7 +36,7 @@ function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean })
                 username: '',
                 accessToken: '',
                 workerCommands: [{ command: 'npm install' }, { command: 'npm run build' }, { command: 'npm run start' }],
-                ports: [],
+                ports: {},
             });
         }
     };

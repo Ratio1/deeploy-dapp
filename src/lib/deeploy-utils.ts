@@ -170,18 +170,11 @@ export const formatFileVolumes = (fileVolumes: { name: string; mountingPoint: st
     return formatted;
 };
 
-export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType, ports?: Array<{ key: string; value: string }>) => {
-    const portsRecord = ports?.reduce((acc, port) => {
-        if (port.key && port.value) {
-            acc[port.key] = port.value;
-        }
-        return acc;
-    }, {} as Record<string, string>);
-
+export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType, ports?: Record<string, string>) => {
     return {
         cpu: containerOrWorkerType.cores,
         memory: `${containerOrWorkerType.ram}g`,
-        ...(portsRecord && Object.keys(portsRecord).length > 0 && { ports: portsRecord }),
+        ...(ports && Object.keys(ports).length > 0 && { ports }),
     };
 };
 
