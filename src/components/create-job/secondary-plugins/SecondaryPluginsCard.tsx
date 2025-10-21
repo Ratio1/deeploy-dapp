@@ -13,6 +13,7 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { RiAddLine, RiBox3Line, RiTerminalBoxLine } from 'react-icons/ri';
 import CARInputsSection from './CARInputsSection';
+import NativeInputsSection from './NativeInputsSection';
 import WARInputsSection from './WARInputsSection';
 
 enum PluginType {
@@ -60,7 +61,7 @@ const OPTIONS: {
         pluginType: PluginType.Worker,
         title: 'Worker App Runner',
         icon: <RiBox3Line />,
-        textColorClass: 'text-yellow-500',
+        textColorClass: 'text-yellow-400',
         color: 'yellow',
     },
 ];
@@ -217,7 +218,7 @@ export default function SecondaryPluginsCard() {
                                     )}
                                 </>
                             ) : (
-                                <div>Native Secondary Plugin</div>
+                                <NativeInputsSection index={index} />
                             )}
                         </div>
                     );
