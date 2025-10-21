@@ -5,8 +5,8 @@ import { POLICY_TYPES } from '@data/policyTypes';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import ActionButton from '@shared/ActionButton';
 import { SlateCard } from '@shared/cards/SlateCard';
-import { SmallTag } from '@shared/SmallTag';
-import { Plugin } from '@typedefs/steps/deploymentStepTypes';
+import { GenericSecondaryPlugin, SecondaryPlugin, SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
+import { useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { RiAddLine, RiBox3Line, RiTerminalBoxLine } from 'react-icons/ri';
@@ -19,7 +19,7 @@ enum PluginType {
     Worker = 'worker',
 }
 
-type PluginWithId = Plugin & {
+type SecondaryPluginWithId = SecondaryPlugin & {
     id: string;
 };
 
@@ -73,13 +73,17 @@ export default function SecondaryPluginsCard() {
         name: 'deployment.secondaryPlugins',
     });
 
-    const plugins = fields as PluginWithId[];
+    const plugins = fields as SecondaryPluginWithId[];
+
+    useEffect(() => {
+        console.log({ plugins });
+    }, [plugins]);
 
     const onAddPlugin = (type: PluginType) => {
         switch (type) {
             case PluginType.Container:
                 append({
-                    pluginType: 'generic',
+                    secondaryPluginType: SecondaryPluginType.Generic,
                     deploymentType: {
                         type: 'container',
                         containerImage: '',
@@ -95,7 +99,7 @@ export default function SecondaryPluginsCard() {
 
             case PluginType.Worker:
                 append({
-                    pluginType: 'generic',
+                    secondaryPluginType: SecondaryPluginType.Generic,
                     deploymentType: {
                         type: 'worker',
                         image: 'node:22',
@@ -115,7 +119,7 @@ export default function SecondaryPluginsCard() {
 
             case PluginType.Native:
                 append({
-                    pluginType: 'native',
+                    secondaryPluginType: SecondaryPluginType.Native,
                     pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
                     ...TUNNELING_DEFAULTS,
                 });
@@ -127,17 +131,7 @@ export default function SecondaryPluginsCard() {
     };
 
     return (
-        <SlateCard
-            title="Secondary Plugins"
-            label={
-                // TODO: Refactor into bigger section titles for each plugin
-                !fields.length ? null : (
-                    <SmallTag variant={plugins[0].deploymentType.type === 'container' ? 'purple' : 'emerald'}>
-                        {plugins[0].deploymentType.type === 'container' ? 'Container App Runner' : 'Worker App Runner'}
-                    </SmallTag>
-                )
-            }
-        >
+        <SlateCard title="Secondary Plugins">
             {fields.length === 0 ? (
                 <div className="col items-center gap-2.5 text-center">
                     <div className="row gap-0.5">
@@ -167,10 +161,18 @@ export default function SecondaryPluginsCard() {
                 <>
                     {plugins.map((plugin, index) => (
                         <div key={index}>
-                            {plugin.deploymentType.type === 'container' ? (
-                                <CARInputsSection index={index} />
+                            {/* TODO: Section titles for each plugin */}
+
+                            {plugin.secondaryPluginType === SecondaryPluginType.Generic ? (
+                                <>
+                                    {(plugin as GenericSecondaryPlugin).deploymentType.type === 'container' ? (
+                                        <CARInputsSection index={index} />
+                                    ) : (
+                                        <WARInputsSection index={index} />
+                                    )}
+                                </>
                             ) : (
-                                <WARInputsSection index={index} />
+                                <div>Native Secondary Plugin</div>
                             )}
                         </div>
                     ))}

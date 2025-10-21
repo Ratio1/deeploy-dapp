@@ -1,5 +1,5 @@
 import WorkerSection from '@shared/jobs/deployment-type/WorkerSection';
-import GenericSecondaryPlugin from './GenericSecondaryPlugin';
+import GenericSecondaryPluginSections from './GenericSecondaryPluginSections';
 
 export default function WARInputsSection({ index }: { index: number }) {
     const name = `deployment.secondaryPlugins.${index}`;
@@ -7,7 +7,7 @@ export default function WARInputsSection({ index }: { index: number }) {
     return (
         <div className="col gap-4">
             <WorkerSection baseName={name} />
-            <GenericSecondaryPlugin name={name} />
+            <GenericSecondaryPluginSections name={name} />
         </div>
     );
 }

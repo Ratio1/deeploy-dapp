@@ -8,13 +8,7 @@ import {
 } from '@data/containerResources';
 import { EthAddress, R1Address } from './blockchain';
 import { AppsPlugin, JobConfig } from './deeployApi';
-import {
-    GenericJobDeployment,
-    JobDeployment,
-    NativeJobDeployment,
-    Plugin,
-    ServiceJobDeployment,
-} from './steps/deploymentStepTypes';
+import { GenericJobDeployment, JobDeployment, NativeJobDeployment, ServiceJobDeployment } from './steps/deploymentStepTypes';
 
 enum JobType {
     Generic = 'Generic',
@@ -152,7 +146,6 @@ export type {
     NativeDraftJob,
     NativeJobDeployment,
     NativeJobSpecifications,
-    Plugin,
     RunningJob,
     RunningJobWithDetails,
     RunningJobWithResources,

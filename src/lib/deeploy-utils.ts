@@ -13,13 +13,13 @@ import {
     GenericDraftJob,
     GenericJobDeployment,
     GenericJobSpecifications,
+    GenericSecondaryPlugin,
     JobSpecifications,
     JobType,
     KeyValueEntryWithId,
     NativeDraftJob,
     NativeJobDeployment,
     NativeJobSpecifications,
-    Plugin,
     ServiceDraftJob,
     ServiceJobDeployment,
     ServiceJobSpecifications,
@@ -208,7 +208,7 @@ export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
     return formatServiceJobPayload(containerType, job.specifications, job.deployment);
 };
 
-export const formatGenericJobVariables = (plugin: Plugin) => {
+export const formatGenericJobVariables = (plugin: GenericSecondaryPlugin) => {
     return {
         envVars: formatEnvVars(plugin.envVars),
         dynamicEnvVars: formatDynamicEnvVars(plugin.dynamicEnvVars),
@@ -222,7 +222,7 @@ export const formatGenericPluginConfigAndSignature = (
         cpu: number;
         memory: string;
     },
-    plugin: Plugin,
+    plugin: GenericSecondaryPlugin,
 ) => {
     const { envVars, dynamicEnvVars, volumes, fileVolumes } = formatGenericJobVariables(plugin);
     let pluginSignature: string;

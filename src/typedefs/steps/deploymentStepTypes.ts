@@ -54,21 +54,48 @@ type WorkerDeploymentType = {
 type DeploymentType = ContainerDeploymentType | WorkerDeploymentType;
 
 // Plugin-related types
-type Plugin = {
+
+export enum SecondaryPluginType {
+    Generic = 'generic',
+    Native = 'native',
+}
+
+type GenericSecondaryPlugin = {
     // Base
     port?: number;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
     tunnelingToken?: string;
+
     // Deployment type
     deploymentType: DeploymentType;
+
     // Variables
     envVars: Array<KeyValueEntry>;
     dynamicEnvVars: Array<DynamicEnvVarsEntry>;
     volumes: Array<VolumesEntry>;
     fileVolumes: Array<FileVolumesEntry>;
+
     // Policies
     restartPolicy: (typeof POLICY_TYPES)[number];
     imagePullPolicy: (typeof POLICY_TYPES)[number];
+};
+
+type NativeSecondaryPlugin = {
+    // Signature
+    pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
+    customPluginSignature?: string;
+
+    // Tunneling
+    port?: number;
+    enableTunneling: (typeof BOOLEAN_TYPES)[number];
+    tunnelingToken?: string;
+
+    // Custom Parameters
+    customParams: Array<KeyValueEntry>;
+};
+
+type SecondaryPlugin = (GenericSecondaryPlugin | NativeSecondaryPlugin) & {
+    secondaryPluginType: SecondaryPluginType;
 };
 
 // Deployment types
@@ -103,7 +130,7 @@ type NativeJobDeployment = BaseJobDeployment & {
     pipelineInputType: (typeof PIPELINE_INPUT_TYPES)[number];
     pipelineInputUri?: string;
     chainstoreResponse: (typeof BOOLEAN_TYPES)[number];
-    secondaryPlugins: Plugin[];
+    secondaryPlugins: GenericSecondaryPlugin[];
 };
 
 type ServiceJobDeployment = BaseJobDeployment & {
@@ -117,8 +144,10 @@ export type {
     BaseJobDeployment,
     DeploymentType,
     GenericJobDeployment,
+    GenericSecondaryPlugin,
     JobDeployment,
     NativeJobDeployment,
-    Plugin,
+    NativeSecondaryPlugin,
+    SecondaryPlugin,
     ServiceJobDeployment,
 };

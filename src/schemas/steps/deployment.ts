@@ -14,6 +14,7 @@ import {
     nodeSchema,
     workerCommandSchema,
 } from '@schemas/common';
+import { SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
 import { z } from 'zod';
 
 // Common validation patterns
@@ -263,8 +264,8 @@ export const genericAppDeploymentSchema = applyDeploymentTypeRefinements(
 );
 
 // Secondary plugins
-const baseGenericPluginSchema = z.object({
-    pluginType: z.literal('generic'),
+const baseGenericSecondaryPluginSchema = z.object({
+    secondaryPluginType: z.literal(SecondaryPluginType.Generic),
 
     // Tunneling
     port: validations.port,
@@ -285,10 +286,12 @@ const baseGenericPluginSchema = z.object({
     imagePullPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
 });
 
-const genericPluginSchema = applyDeploymentTypeRefinements(applyTunnelingRefinements(baseGenericPluginSchema));
+const genericSecondaryPluginSchema = applyDeploymentTypeRefinements(
+    applyTunnelingRefinements(baseGenericSecondaryPluginSchema),
+);
 
-const nativePluginSchema = z.object({
-    pluginType: z.literal('native'),
+const nativeSecondaryPluginSchema = z.object({
+    secondaryPluginType: z.literal(SecondaryPluginType.Native),
 
     // Signature
     pluginSignature: validations.pluginSignature,
@@ -303,7 +306,10 @@ const nativePluginSchema = z.object({
     customParams: validations.customParams,
 });
 
-const secondaryPluginSchema = z.discriminatedUnion('pluginType', [genericPluginSchema, nativePluginSchema]);
+const secondaryPluginSchema = z.discriminatedUnion('secondaryPluginType', [
+    genericSecondaryPluginSchema,
+    nativeSecondaryPluginSchema,
+]);
 
 const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,
