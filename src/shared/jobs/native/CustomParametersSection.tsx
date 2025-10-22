@@ -3,8 +3,7 @@ import CustomTabs from '@shared/CustomTabs';
 import JsonEditor from '@shared/JsonEditor';
 import StyledInput from '@shared/StyledInput';
 import { CustomParameterEntry } from '@typedefs/steps/deploymentStepTypes';
-import { useEffect, useState } from 'react';
-import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
+import { Controller, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { RiAddLine } from 'react-icons/ri';
 import VariableSectionIndex from '../VariableSectionIndex';
@@ -19,7 +18,7 @@ export default function CustomParametersSection() {
     const placeholders = ['KEY', 'VALUE'];
 
     const { confirm } = useInteractionContext() as InteractionContextType;
-    const { control, formState, trigger, setValue } = useFormContext();
+    const { control, formState, trigger } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -29,25 +28,15 @@ export default function CustomParametersSection() {
     // Explicitly type the fields to match the expected structure
     const entries = fields as CustomParameterEntryWithId[];
 
-    const [fieldValueType, setFieldValueType] = useState<{ [id: string]: 'string' | 'JSON' }>({});
-
     // Get array-level errors
     const key = name.split('.')[1];
     const deploymentErrors = formState.errors.deployment as any;
     const errors = deploymentErrors?.[key];
 
-    useEffect(() => {
-        console.log('entries', entries);
-
-        entries.forEach((entry) => {
-            if (fieldValueType[entry.id] === undefined) {
-                setFieldValueType((previous) => ({
-                    ...previous,
-                    [entry.id]: entry.valueType || 'string',
-                }));
-            }
-        });
-    }, [entries]);
+    const watchedEntries = useWatch({
+        control,
+        name,
+    }) as CustomParameterEntry[] | undefined;
 
     return (
         <div className="col gap-4">
@@ -59,6 +48,8 @@ export default function CustomParametersSection() {
                         entries.map((entry: CustomParameterEntryWithId, index) => {
                             // Get the error for this specific entry
                             const entryError = errors?.[index];
+                            const currentEntry = watchedEntries?.[index];
+                            const valueType = currentEntry?.valueType ?? entry.valueType;
 
                             return (
                                 <div key={entry.id} className="col gap-1.5">
@@ -66,23 +57,28 @@ export default function CustomParametersSection() {
                                         <VariableSectionIndex index={index} />
 
                                         <div className="flex w-full gap-2">
-                                            <CustomTabs
-                                                tabs={[
-                                                    {
-                                                        key: 'string',
-                                                        title: 'String',
-                                                    },
-                                                    {
-                                                        key: 'JSON',
-                                                        title: 'JSON',
-                                                    },
-                                                ]}
-                                                selectedKey={fieldValueType[entry.id]}
-                                                onSelectionChange={(key) => {
-                                                    console.log('key', key);
-                                                    setValue(`${name}.${index}.valueType`, key, { shouldDirty: true });
-                                                }}
-                                                isCompact
+                                            <Controller
+                                                name={`${name}.${index}.valueType`}
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <CustomTabs
+                                                        tabs={[
+                                                            {
+                                                                key: 'string',
+                                                                title: 'String',
+                                                            },
+                                                            {
+                                                                key: 'json',
+                                                                title: 'JSON',
+                                                            },
+                                                        ]}
+                                                        selectedKey={(field.value ?? 'string') as 'string' | 'json'}
+                                                        onSelectionChange={(selectedKey) => {
+                                                            field.onChange(selectedKey);
+                                                        }}
+                                                        isCompact
+                                                    />
+                                                )}
                                             />
 
                                             <Controller
@@ -138,7 +134,7 @@ export default function CustomParametersSection() {
                                         </div>
 
                                         <div className="flex w-full min-w-md">
-                                            {entry.valueType === 'string' ? (
+                                            {valueType === 'string' ? (
                                                 <Controller
                                                     name={`${name}.${index}.value`}
                                                     control={control}
@@ -167,15 +163,33 @@ export default function CustomParametersSection() {
                                                     }}
                                                 />
                                             ) : (
-                                                <JsonEditor
-                                                    height="150px"
-                                                    onChange={(value) => {
-                                                        console.log(value);
+                                                <Controller
+                                                    name={`${name}.${index}.value`}
+                                                    control={control}
+                                                    render={({ field, fieldState }) => {
+                                                        const specificValueError = entryError?.value;
+                                                        const errorMessage: string | undefined =
+                                                            fieldState.error?.message || specificValueError?.message;
+
+                                                        return (
+                                                            <div className="w-full">
+                                                                <JsonEditor
+                                                                    key={`${entry.id}-json`}
+                                                                    height="150px"
+                                                                    initialValue={field.value || '{}'}
+                                                                    onChange={(value) => {
+                                                                        field.onChange(value);
+                                                                    }}
+                                                                    onBlur={() => {
+                                                                        field.onBlur();
+                                                                    }}
+                                                                    errorMessage={errorMessage}
+                                                                />
+                                                            </div>
+                                                        );
                                                     }}
                                                 />
                                             )}
-                                            {/* TODO: Controller */}
-                                            {/* TODO: Display the errors from the refinement */}
                                         </div>
 
                                         {/* Displayed for styling purposes */}

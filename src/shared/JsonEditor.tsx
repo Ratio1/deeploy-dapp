@@ -9,18 +9,19 @@ export default function JsonEditor({
     initialValue = '{}',
     height = '300px',
     onChange,
+    onBlur,
+    errorMessage,
 }: {
     initialValue?: string;
     height?: string;
     onChange: (value: string) => void;
+    onBlur: () => void;
+    errorMessage?: string;
 }) {
     const [code, setCode] = useState(initialValue);
 
-    const [isJsonInvalid, setJsonInvalid] = useState<boolean>(false);
-
     const handleChange = useCallback((value: string) => {
         setCode(value);
-        setJsonInvalid(false);
         onChange(value);
     }, []);
 
@@ -38,8 +39,10 @@ export default function JsonEditor({
             if (formatted !== code) {
                 setCode(formatted);
             }
+
+            onBlur();
         } catch {
-            setJsonInvalid(true);
+            // Invalid json
         }
     }, [code]);
 
@@ -54,8 +57,8 @@ export default function JsonEditor({
                 onBlur={handleBlur}
             />
 
-            {isJsonInvalid && (
-                <div className="border-default-200 w-full border-t bg-red-50 px-2 py-1 text-sm text-red-600">Invalid JSON</div>
+            {!!errorMessage && (
+                <div className="border-default-200 text-danger w-full border-t bg-red-50 px-2 py-1 text-sm">{errorMessage}</div>
             )}
         </div>
     );

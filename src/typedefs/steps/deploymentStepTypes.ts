@@ -13,7 +13,7 @@ type KeyValueEntry = {
 };
 
 type CustomParameterEntry = KeyValueEntry & {
-    valueType: 'string' | 'JSON';
+    valueType: 'string' | 'json';
 };
 
 type DynamicEnvVarsEntry = {

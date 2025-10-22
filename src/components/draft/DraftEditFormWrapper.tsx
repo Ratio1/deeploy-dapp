@@ -143,7 +143,7 @@ export default function DraftEditFormWrapper({
                 port: deployment.port ?? '',
                 pluginSignature: deployment.pluginSignature,
                 customPluginSignature: deployment.customPluginSignature,
-                customParams: cloneKeyValueEntries(deployment.customParams),
+                customParams: cloneKeyValueEntries(deployment.customParams), // TODO: Clone with valueType
                 pipelineParams: cloneKeyValueEntries(deployment.pipelineParams),
                 pipelineInputType: deployment.pipelineInputType ?? PIPELINE_INPUT_TYPES[0],
                 pipelineInputUri: deployment.pipelineInputUri,
