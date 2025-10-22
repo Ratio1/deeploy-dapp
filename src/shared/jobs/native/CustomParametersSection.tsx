@@ -30,9 +30,13 @@ export default function CustomParametersSection({ baseName = 'deployment' }: { b
     const entries = fields as CustomParameterEntryWithId[];
 
     // Get array-level errors
-    const key = name.split('.')[1];
-    const deploymentErrors = formState.errors.deployment as any;
-    const errors = deploymentErrors?.[key];
+    const errors = name.split('.').reduce<unknown>((acc, segment) => {
+        if (!acc || typeof acc !== 'object') {
+            return undefined;
+        }
+
+        return (acc as Record<string, unknown>)[segment];
+    }, formState.errors as unknown) as any;
 
     const watchedEntries = useWatch({
         control,

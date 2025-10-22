@@ -7,14 +7,22 @@ import VariableSectionRemove from '../VariableSectionRemove';
 
 // This component assumes it's being used in the deployment step
 export default function WorkerCommandsSection({ baseName }: { baseName: string }) {
+    const name = `${baseName}.deploymentType.workerCommands`;
+
     const { control, formState, trigger } = useFormContext();
     const { fields, append, remove } = useFieldArray({
         control,
-        name: `${baseName}.deploymentType.workerCommands`,
+        name,
     });
 
     // Get array-level errors
-    const errors = (formState.errors[baseName] as any)?.deploymentType?.workerCommands;
+    const errors = name.split('.').reduce<unknown>((acc, segment) => {
+        if (!acc || typeof acc !== 'object') {
+            return undefined;
+        }
+
+        return (acc as Record<string, unknown>)[segment];
+    }, formState.errors as unknown) as any;
 
     return (
         <div className="col gap-4">

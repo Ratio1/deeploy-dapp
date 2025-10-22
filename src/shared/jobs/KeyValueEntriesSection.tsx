@@ -71,9 +71,13 @@ export default function KeyValueEntriesSection({
     }, [entries]);
 
     // Get array-level errors
-    const key = name.split('.')[1];
-    const deploymentErrors = formState.errors.deployment as any;
-    const errors = deploymentErrors?.[key];
+    const errors = name.split('.').reduce<unknown>((acc, segment) => {
+        if (!acc || typeof acc !== 'object') {
+            return undefined;
+        }
+
+        return (acc as Record<string, unknown>)[segment];
+    }, formState.errors as unknown) as any;
 
     return (
         <div className="col gap-4">

@@ -9,15 +9,23 @@ import VariableSectionRemove from './VariableSectionRemove';
 
 // This component assumes it's being used in the deployment step
 export default function DynamicEnvSection({ baseName = 'deployment' }: { baseName?: string }) {
+    const name = `${baseName}.dynamicEnvVars`;
+
     const { control, formState, trigger } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: `${baseName}.dynamicEnvVars`,
+        name,
     });
 
     // Get array-level errors
-    const errors = (formState.errors[baseName] as any)?.dynamicEnvVars;
+    const errors = name.split('.').reduce<unknown>((acc, segment) => {
+        if (!acc || typeof acc !== 'object') {
+            return undefined;
+        }
+
+        return (acc as Record<string, unknown>)[segment];
+    }, formState.errors as unknown) as any;
 
     return (
         <div className="col gap-4">
