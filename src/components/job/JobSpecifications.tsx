@@ -27,7 +27,7 @@ export default function JobSpecifications({ resources }: { resources: RunningJob
                     value={fBI(
                         getResourcesCostPerEpoch(resources.containerOrWorkerType, resources.gpuType) *
                             30n *
-                            (environment === 'mainnet' ? 1n : 24n),
+                            (environment === 'devnet' ? 24n : 1n),
                         6,
                         2,
                     )}

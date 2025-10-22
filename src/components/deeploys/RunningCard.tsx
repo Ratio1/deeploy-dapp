@@ -27,7 +27,7 @@ export default function RunningCard({
 }) {
     const getDaysLeftUntilNextPayment = (job: RunningJobWithDetails): any => {
         const epochsCovered = Math.floor(
-            Number(job.balance / (job.pricePerEpoch * job.numberOfNodesRequested * (environment === 'mainnet' ? 1n : 24n))),
+            Number(job.balance / (job.pricePerEpoch * job.numberOfNodesRequested * (environment === 'devnet' ? 24n : 1n))),
         );
         return epochsCovered;
     };

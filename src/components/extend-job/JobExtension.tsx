@@ -124,7 +124,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
             },
             {
                 label: 'Monthly Cost',
-                value: `~$${formatUsdc(costPerEpoch * 30n * (environment === 'mainnet' ? 1n : 24n), 1)}`,
+                value: `~$${formatUsdc(costPerEpoch * 30n * (environment === 'devnet' ? 24n : 1n), 1)}`,
             },
             {
                 label: 'End Date',
@@ -139,7 +139,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
                 label: 'End Date',
                 value: addTimeFn(
                     max([new Date(), addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch))]),
-                    duration * 30 * (environment === 'mainnet' ? 1 : 24),
+                    duration * 30 * (environment === 'devnet' ? 24 : 1),
                 ).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',

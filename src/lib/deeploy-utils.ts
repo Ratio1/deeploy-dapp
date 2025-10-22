@@ -59,7 +59,7 @@ export const getJobCost = (job: DraftJob): bigint => {
     const costPerEpoch: bigint = targetNodesCount * getResourcesCostPerEpoch(containerOrWorkerType, gpuType);
 
     // +1 to account for the current ongoing epoch
-    const epochs = 1n + BigInt(job.costAndDuration.paymentMonthsCount) * 30n * (environment === 'mainnet' ? 1n : 24n);
+    const epochs = 1n + BigInt(job.costAndDuration.paymentMonthsCount) * 30n * (environment === 'devnet' ? 24n : 1n);
     let totalCost = costPerEpoch * epochs;
 
     const discountPercentage = getDiscountPercentage(job.costAndDuration.paymentMonthsCount);
@@ -502,8 +502,8 @@ export function buildDeeployMessage(data: Record<string, any>, prefix: string = 
 }
 
 // These functions are used for epoch calculations while taking into account the different epoch durations of the environments
-export const addTimeFn = environment === 'mainnet' ? addDays : addHours;
-export const diffTimeFn = environment === 'mainnet' ? differenceInDays : differenceInHours;
+export const addTimeFn = environment === 'devnet' ? addHours : addDays;
+export const diffTimeFn = environment === 'devnet' ? differenceInHours : differenceInDays;
 
 export const boolToBooleanType = (bool: boolean) => {
     return bool ? 'True' : 'False';

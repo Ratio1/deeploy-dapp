@@ -17,7 +17,7 @@ export default function DraftStats({ jobs }: { jobs: DraftJob[] | undefined }) {
         const targetNodesCount: bigint = BigInt(job.specifications.targetNodesCount);
         const costPerEpoch = getResourcesCostPerEpoch(containerOrWorkerType, gpuType);
 
-        return targetNodesCount * costPerEpoch * 30n * (environment === 'mainnet' ? 1n : 24n);
+        return targetNodesCount * costPerEpoch * 30n * (environment === 'devnet' ? 24n : 1n);
     };
 
     const monthlyCostEstimate = jobs.reduce((acc, job) => acc + getJobMonthlyCost(job), 0n);

@@ -58,7 +58,7 @@ export default function JobStats({
         },
         {
             label: 'Monthly Cost',
-            value: <UsdcValue value={fBI(costPerEpoch * 30n * (environment === 'mainnet' ? 1n : 24n), 6, 2)} isAproximate />,
+            value: <UsdcValue value={fBI(costPerEpoch * 30n * (environment === 'devnet' ? 24n : 1n), 6, 2)} isAproximate />,
         },
     ];
 

@@ -332,9 +332,7 @@ export default function Payment({
                                         <UsdcValue value={formatUsdc(totalCost).toLocaleString()} isAproximate />
                                     </div>
 
-                                    {environment !== 'mainnet' && (
-                                        <SmallTag variant="blue">Adjusted for 1-hour epochs</SmallTag>
-                                    )}
+                                    {environment === 'devnet' && <SmallTag variant="blue">Adjusted for 1-hour epochs</SmallTag>}
                                 </div>
                             </div>
 
