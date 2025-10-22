@@ -20,7 +20,7 @@ export default function NativeInputsSection({ index }: { index: number }) {
             <AppParametersSection baseName={name} />
 
             <ConfigSectionTitle title="Custom Parameters" />
-            <CustomParametersSection />
+            <CustomParametersSection baseName={name} />
         </div>
     );
 }

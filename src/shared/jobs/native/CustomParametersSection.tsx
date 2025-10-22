@@ -13,12 +13,13 @@ type CustomParameterEntryWithId = CustomParameterEntry & {
     id: string;
 };
 
-export default function CustomParametersSection() {
-    const name = 'deployment.customParams';
-    const placeholders = ['KEY', 'VALUE'];
+const PLACEHOLDERS = ['KEY', 'VALUE'];
 
+export default function CustomParametersSection({ baseName = 'deployment' }: { baseName?: string }) {
     const { confirm } = useInteractionContext() as InteractionContextType;
     const { control, formState, trigger } = useFormContext();
+
+    const name = `${baseName}.customParams`;
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -92,7 +93,7 @@ export default function CustomParametersSection() {
 
                                                     return (
                                                         <StyledInput
-                                                            placeholder={placeholders[0]}
+                                                            placeholder={PLACEHOLDERS[0]}
                                                             value={field.value ?? ''}
                                                             onChange={async (e) => {
                                                                 const value = e.target.value;
@@ -145,7 +146,7 @@ export default function CustomParametersSection() {
 
                                                         return (
                                                             <StyledInput
-                                                                placeholder={placeholders[1]}
+                                                                placeholder={PLACEHOLDERS[1]}
                                                                 value={field.value ?? ''}
                                                                 onChange={(e) => {
                                                                     const value = e.target.value;
