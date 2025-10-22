@@ -2,7 +2,7 @@ import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { SelectItem } from '@heroui/select';
 import StyledInput from '@shared/StyledInput';
 import StyledSelect from '@shared/StyledSelect';
-import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
+import { Controller, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { RiAddLine } from 'react-icons/ri';
 import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
@@ -112,9 +112,17 @@ export default function DynamicEnvSection({ baseName = 'deployment' }: { baseNam
                                                         // Check for specific error on this value input
                                                         const specificValueError = entryError?.values?.[k]?.value;
 
+                                                        // Watch the type value to conditionally disable input
+                                                        const typeValue = useWatch({
+                                                            control,
+                                                            name: `${baseName}.dynamicEnvVars.${index}.values.${k}.type`,
+                                                        });
+
+                                                        const isHostIP = typeValue === 'host_ip';
+
                                                         return (
                                                             <StyledInput
-                                                                placeholder="None"
+                                                                placeholder={isHostIP ? 'Auto-filled by system' : 'None'}
                                                                 value={field.value ?? ''}
                                                                 onChange={async (e) => {
                                                                     const value = e.target.value;
@@ -127,6 +135,7 @@ export default function DynamicEnvSection({ baseName = 'deployment' }: { baseNam
                                                                 errorMessage={
                                                                     fieldState.error?.message || specificValueError?.message
                                                                 }
+                                                                isDisabled={isHostIP}
                                                             />
                                                         );
                                                     }}

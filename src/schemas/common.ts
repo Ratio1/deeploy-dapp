@@ -126,8 +126,8 @@ export const dynamicEnvEntrySchema = z
             if (!data.key) {
                 return true;
             }
-            // Check if any value is missing when key is present
-            const hasEmptyValue = data.values.some((pair) => !pair.value);
+            // Check if any value is missing when key is present (skip host_ip fields)
+            const hasEmptyValue = data.values.some((pair) => pair.type !== 'host_ip' && !pair.value);
             return !hasEmptyValue;
         },
         {
@@ -139,6 +139,7 @@ export const dynamicEnvEntrySchema = z
     .refine(
         (data) => {
             if (!data.key) return true;
+            if (data.values[0]?.type === 'host_ip') return true;
             return data.values[0]?.value || false;
         },
         {
@@ -149,6 +150,7 @@ export const dynamicEnvEntrySchema = z
     .refine(
         (data) => {
             if (!data.key) return true;
+            if (data.values[1]?.type === 'host_ip') return true;
             return data.values[1]?.value || false;
         },
         {
@@ -159,6 +161,7 @@ export const dynamicEnvEntrySchema = z
     .refine(
         (data) => {
             if (!data.key) return true;
+            if (data.values[2]?.type === 'host_ip') return true;
             return data.values[2]?.value || false;
         },
         {
