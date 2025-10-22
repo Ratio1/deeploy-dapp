@@ -36,11 +36,9 @@ export default function AppParametersSection({ baseName = 'deployment' }: { base
                 </div>
             )}
 
+            {/* TODO: Check if deploying generic plugin/job */}
             {(deploymentType === 'container' || deploymentType === 'worker') && (
-                <PortMappingSection
-                    name={`${baseName}.deploymentType.ports`}
-                    label="Port Mapping"
-                />
+                <PortMappingSection name={`${baseName}.deploymentType.ports`} label="Port Mapping" />
             )}
         </div>
     );

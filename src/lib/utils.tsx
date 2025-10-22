@@ -106,7 +106,7 @@ export const extractRepositoryPath = (url: string): string => {
  * @param length - The length of the password (default: 24)
  * @returns A secure password string
  */
-function generateSecurePassword(length: number = 24): string {
+export function generateSecurePassword(length: number = 24): string {
     const lowercase = 'abcdefghijklmnopqrstuvwxyz';
     const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const numbers = '0123456789';
@@ -131,4 +131,13 @@ function generateSecurePassword(length: number = 24): string {
         .split('')
         .sort(() => Math.random() - 0.5)
         .join('');
+}
+
+export function parseIfJson<T = any>(input: string): T | string {
+    try {
+        const parsed = JSON.parse(input);
+        return parsed;
+    } catch {
+        return input;
+    }
 }

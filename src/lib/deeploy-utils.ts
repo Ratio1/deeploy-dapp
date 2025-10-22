@@ -29,7 +29,7 @@ import _ from 'lodash';
 import { FieldValues, UseFieldArrayAppend, UseFieldArrayRemove } from 'react-hook-form';
 import { formatUnits } from 'viem';
 import { environment } from './config';
-import { deepSort } from './utils';
+import { deepSort, parseIfJson } from './utils';
 
 export const GITHUB_REPO_REGEX = new RegExp('^https?://github\\.com/([^\\s/]+)/([^\\s/]+?)(?:\\.git)?(?:/.*)?$', 'i');
 
@@ -123,7 +123,7 @@ export const downloadDataAsJson = (data: any, filename: string) => {
 export const generateDeeployNonce = (): string => {
     const now = new Date();
     const unixTimestamp = now.getTime();
-    console.log({ now, unixTimestamp });
+    // console.log({ now, unixTimestamp });
     return `0x${unixTimestamp.toString(16)}`;
 };
 
@@ -209,7 +209,7 @@ export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
     return formatServiceJobPayload(containerType, job.specifications, job.deployment);
 };
 
-export const formatGenericJobVariables = (plugin: GenericSecondaryPlugin) => {
+const formatGenericJobVariables = (plugin: GenericSecondaryPlugin) => {
     return {
         envVars: formatEnvVars(plugin.envVars),
         dynamicEnvVars: formatDynamicEnvVars(plugin.dynamicEnvVars),
@@ -218,10 +218,20 @@ export const formatGenericJobVariables = (plugin: GenericSecondaryPlugin) => {
     };
 };
 
-export const formatNativeJobPluginSignature = (plugin: NativeSecondaryPlugin) => {
+const formatNativeJobPluginSignature = (plugin: NativeSecondaryPlugin) => {
     return plugin.pluginSignature === PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1]
         ? plugin.customPluginSignature
         : plugin.pluginSignature;
+};
+
+const formatNativeJobCustomParams = (pluginConfig: any, plugin: NativeSecondaryPlugin) => {
+    if (!_.isEmpty(plugin.customParams)) {
+        plugin.customParams.forEach((param) => {
+            if (param.key) {
+                pluginConfig[param.key] = parseIfJson(param.value);
+            }
+        });
+    }
 };
 
 export const formatGenericPluginConfigAndSignature = (
@@ -350,13 +360,7 @@ export const formatNativeJobPayload = (
         NGROK_USE_API: true,
     };
 
-    if (!_.isEmpty(deployment.customParams)) {
-        deployment.customParams.forEach((param) => {
-            if (param.key) {
-                primaryPluginConfig[param.key] = param.value;
-            }
-        });
-    }
+    formatNativeJobCustomParams(primaryPluginConfig, deployment);
 
     // Build plugins array starting with the primary plugin
     const plugins = [primaryPluginConfig];

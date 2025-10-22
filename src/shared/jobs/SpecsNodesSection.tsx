@@ -7,6 +7,7 @@ import { JobType } from '@typedefs/deeploys';
 import { useEffect, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { RiErrorWarningLine } from 'react-icons/ri';
+import DeeployWarning from './DeeployWarning';
 import JobTags from './target-nodes/JobTags';
 
 export default function SpecsNodesSection({
@@ -131,21 +132,20 @@ export default function SpecsNodesSection({
                         )}
 
                         {hasMinimalBalancingWarning && (
-                            <div className="text-warning-800 bg-warning-100 col gap-2 rounded-md p-3 text-sm">
-                                <div className="row gap-1.5">
-                                    <RiErrorWarningLine className="text-[20px]" />
-
+                            <DeeployWarning
+                                title={
                                     <div>
                                         The minimal recommended balancing is{' '}
                                         <span className="font-medium">{containerOrWorkerType.minimalBalancing} nodes</span>.
                                     </div>
-                                </div>
-
-                                <div>
-                                    A target nodes count of <span className="font-medium">{targetNodesCount}</span> is not
-                                    recommended/supported. Proceed at your own risk.
-                                </div>
-                            </div>
+                                }
+                                description={
+                                    <div>
+                                        A target nodes count of <span className="font-medium">{targetNodesCount}</span> is not
+                                        recommended/supported. Proceed at your own risk.
+                                    </div>
+                                }
+                            />
                         )}
                     </div>
 

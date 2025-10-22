@@ -85,7 +85,7 @@ export default function WorkerSection({
             <InputWithLabel
                 name={`${baseName}.deploymentType.repositoryUrl`}
                 label="GitHub Repository URL"
-                placeholder="e.g. https://github.com/org/repository"
+                placeholder="e.g., https://github.com/org/repository"
                 onBlur={() => checkRepositoryVisibility()}
                 onPasteValue={(value) => checkRepositoryVisibility(value)}
                 customLabel={

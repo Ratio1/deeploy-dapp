@@ -88,7 +88,7 @@ export default function FileVolumesSection({ baseName = 'deployment' }: { baseNa
 
                                                     return (
                                                         <StyledInput
-                                                            placeholder="Path e.g. /app/config.json"
+                                                            placeholder="Path e.g., /app/config.json"
                                                             value={field.value ?? ''}
                                                             onChange={async (e) => {
                                                                 const value = e.target.value;
