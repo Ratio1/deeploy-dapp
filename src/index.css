@@ -162,3 +162,14 @@ button {
 ul {
     list-style: inside;
 }
+
+/* CodeMirror */
+.cm-editor {
+    outline: none !important;
+}
+
+.cm-editor.cm-focused {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
