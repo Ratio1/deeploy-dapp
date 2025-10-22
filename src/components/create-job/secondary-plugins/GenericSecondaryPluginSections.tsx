@@ -6,7 +6,7 @@ import AppParametersSection from '../sections/AppParametersSection';
 import PluginEnvVariablesSection from '../sections/PluginEnvVariablesSection';
 import PoliciesSection from '../sections/PoliciesSection';
 
-export default function SecondaryPluginSection({ name }: { name: string }) {
+export default function GenericSecondaryPluginSections({ name }: { name: string }) {
     return (
         <>
             <ConfigSectionTitle title="App Parameters" />

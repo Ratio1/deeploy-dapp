@@ -45,6 +45,7 @@ type JobConfig = {
     CONTAINER_RESOURCES: {
         cpu: number;
         memory: string;
+        ports?: Record<string, string>;
     };
     CR_DATA?: JobConfigCRData;
     DYNAMIC_ENV: Record<string, { type: (typeof DYNAMIC_ENV_TYPES)[number]; value: string }[]>;

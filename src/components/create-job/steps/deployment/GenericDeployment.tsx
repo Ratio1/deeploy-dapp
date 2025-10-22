@@ -8,11 +8,8 @@ import EnvVariablesCard from '@shared/jobs/EnvVariablesCard';
 import FileVolumesSection from '@shared/jobs/FileVolumesSection';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
-import { useFormContext } from 'react-hook-form';
 
 function GenericDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
-    const { watch } = useFormContext();
-
     return (
         <div className="col gap-6">
             <SlateCard title="App Identity">

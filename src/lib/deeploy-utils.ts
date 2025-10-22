@@ -4,8 +4,10 @@ import {
     GpuType,
     gpuTypes,
     nativeWorkerTypes,
+    Service,
     serviceContainerTypes,
 } from '@data/containerResources';
+import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import {
     DraftJob,
     GenericDraftJob,
@@ -17,17 +19,17 @@ import {
     NativeDraftJob,
     NativeJobDeployment,
     NativeJobSpecifications,
-    Plugin,
     ServiceDraftJob,
     ServiceJobDeployment,
     ServiceJobSpecifications,
 } from '@typedefs/deeploys';
+import { GenericSecondaryPlugin, NativeSecondaryPlugin, SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
 import { addDays, addHours, differenceInDays, differenceInHours } from 'date-fns';
 import _ from 'lodash';
 import { FieldValues, UseFieldArrayAppend, UseFieldArrayRemove } from 'react-hook-form';
 import { formatUnits } from 'viem';
 import { environment } from './config';
-import { deepSort } from './utils';
+import { deepSort, parseIfJson } from './utils';
 
 export const GITHUB_REPO_REGEX = new RegExp('^https?://github\\.com/([^\\s/]+)/([^\\s/]+?)(?:\\.git)?(?:/.*)?$', 'i');
 
@@ -121,7 +123,7 @@ export const downloadDataAsJson = (data: any, filename: string) => {
 export const generateDeeployNonce = (): string => {
     const now = new Date();
     const unixTimestamp = now.getTime();
-    console.log({ now, unixTimestamp });
+    // console.log({ now, unixTimestamp });
     return `0x${unixTimestamp.toString(16)}`;
 };
 
@@ -168,10 +170,11 @@ export const formatFileVolumes = (fileVolumes: { name: string; mountingPoint: st
     return formatted;
 };
 
-export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType) => {
+export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType, ports?: Record<string, string>) => {
     return {
         cpu: containerOrWorkerType.cores,
         memory: `${containerOrWorkerType.ram}g`,
+        ...(ports && Object.keys(ports).length > 0 && { ports }),
     };
 };
 
@@ -202,11 +205,11 @@ export const formatNativeDraftJobPayload = (job: NativeDraftJob) => {
 };
 
 export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
-    const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+    const containerType: Service = getContainerOrWorkerType(job.jobType, job.specifications);
     return formatServiceJobPayload(containerType, job.specifications, job.deployment);
 };
 
-export const formatGenericJobVariables = (plugin: Plugin) => {
+const formatGenericJobVariables = (plugin: GenericSecondaryPlugin) => {
     return {
         envVars: formatEnvVars(plugin.envVars),
         dynamicEnvVars: formatDynamicEnvVars(plugin.dynamicEnvVars),
@@ -215,12 +218,29 @@ export const formatGenericJobVariables = (plugin: Plugin) => {
     };
 };
 
+const formatNativeJobPluginSignature = (plugin: NativeSecondaryPlugin) => {
+    return plugin.pluginSignature === PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1]
+        ? plugin.customPluginSignature
+        : plugin.pluginSignature;
+};
+
+const formatNativeJobCustomParams = (pluginConfig: any, plugin: NativeSecondaryPlugin) => {
+    if (!_.isEmpty(plugin.customParams)) {
+        plugin.customParams.forEach((param) => {
+            if (param.key) {
+                pluginConfig[param.key] = parseIfJson(param.value);
+            }
+        });
+    }
+};
+
 export const formatGenericPluginConfigAndSignature = (
     resources: {
         cpu: number;
         memory: string;
+        ports?: Record<string, string>;
     },
-    plugin: Plugin,
+    plugin: GenericSecondaryPlugin,
 ) => {
     const { envVars, dynamicEnvVars, volumes, fileVolumes } = formatGenericJobVariables(plugin);
     let pluginSignature: string;
@@ -283,7 +303,7 @@ export const formatGenericJobPayload = (
     const spareNodes = formatNodes(deployment.spareNodes);
 
     const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
-        formatContainerResources(containerType),
+        formatContainerResources(containerType, deployment.deploymentType.ports),
         deployment,
     );
 
@@ -316,13 +336,6 @@ export const formatNativeJobPayload = (
 ) => {
     const jobTags = formatJobTags(specifications);
 
-    const customParams: Record<string, string> = {};
-    deployment.customParams.forEach((param) => {
-        if (param.key) {
-            customParams[param.key] = param.value;
-        }
-    });
-
     const pipelineParams: Record<string, string> = {};
     deployment.pipelineParams.forEach((param) => {
         if (param.key) {
@@ -330,7 +343,7 @@ export const formatNativeJobPayload = (
         }
     });
 
-    const nodeResources = formatContainerResources(workerType);
+    const nodeResources = formatContainerResources(workerType, undefined);
     const targetNodes = formatNodes(deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, specifications.targetNodesCount);
 
@@ -340,18 +353,14 @@ export const formatNativeJobPayload = (
 
     // Primary plugin configuration
     const primaryPluginConfig: any = {
-        plugin_signature: deployment.pluginSignature,
+        plugin_signature: formatNativeJobPluginSignature(deployment),
         PORT: deployment.port,
         CLOUDFLARE_TOKEN: deployment.tunnelingToken || null,
         TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
         NGROK_USE_API: true,
-        ENV: {},
-        DYNAMIC_ENV: {},
     };
 
-    if (!_.isEmpty(customParams)) {
-        Object.assign(primaryPluginConfig, customParams);
-    }
+    formatNativeJobCustomParams(primaryPluginConfig, deployment);
 
     // Build plugins array starting with the primary plugin
     const plugins = [primaryPluginConfig];
@@ -359,12 +368,39 @@ export const formatNativeJobPayload = (
     // Add secondary plugins if they exist
     if (deployment.secondaryPlugins.length) {
         const secondaryPluginConfigs = deployment.secondaryPlugins.map((plugin) => {
-            const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(nodeResources, plugin);
+            if (plugin.secondaryPluginType === SecondaryPluginType.Generic) {
+                const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
+                    nodeResources,
+                    plugin as GenericSecondaryPlugin,
+                );
 
-            return {
-                plugin_signature: pluginSignature,
-                ...pluginConfig,
-            };
+                return {
+                    plugin_signature: pluginSignature,
+                    ...pluginConfig,
+                };
+            }
+
+            if (plugin.secondaryPluginType === SecondaryPluginType.Native) {
+                const nativePlugin = plugin as NativeSecondaryPlugin;
+
+                const nativePluginConfig: any = {
+                    plugin_signature: formatNativeJobPluginSignature(nativePlugin),
+                    PORT: nativePlugin.port,
+                    CLOUDFLARE_TOKEN: nativePlugin.tunnelingToken || null,
+                    TUNNEL_ENGINE_ENABLED: nativePlugin.enableTunneling === 'True',
+                    NGROK_USE_API: true,
+                };
+
+                if (!_.isEmpty(nativePlugin.customParams)) {
+                    nativePlugin.customParams.forEach((param) => {
+                        if (param.key) {
+                            nativePluginConfig[param.key] = param.value;
+                        }
+                    });
+                }
+
+                return nativePluginConfig;
+            }
         });
 
         plugins.push(...secondaryPluginConfigs);
@@ -389,17 +425,16 @@ export const formatNativeJobPayload = (
 };
 
 export const formatServiceJobPayload = (
-    containerType: ContainerOrWorkerType,
+    containerType: Service,
     specifications: ServiceJobSpecifications,
     deployment: ServiceJobDeployment,
 ) => {
     const jobTags = formatJobTags(specifications);
-    const envVars = formatEnvVars(deployment.envVars);
-    const dynamicEnvVars = formatDynamicEnvVars(deployment.dynamicEnvVars);
-    const volumes = formatVolumes(deployment.volumes);
-    const containerResources = formatContainerResources(containerType);
+    const containerResources = formatContainerResources(containerType, undefined);
     const targetNodes = formatNodes(deployment.targetNodes);
     const spareNodes = formatNodes(deployment.spareNodes);
+
+    const envVars = formatEnvVars(deployment.inputs);
 
     const nonce = generateDeeployNonce();
 
@@ -423,9 +458,7 @@ export const formatServiceJobPayload = (
                 NGROK_EDGE_LABEL: deployment.tunnelingLabel || null,
                 TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
                 NGROK_USE_API: true,
-                VOLUMES: volumes,
                 ENV: envVars,
-                DYNAMIC_ENV: dynamicEnvVars,
                 RESTART_POLICY: 'always',
                 IMAGE_PULL_POLICY: 'always',
             },

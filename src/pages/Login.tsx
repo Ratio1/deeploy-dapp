@@ -1,5 +1,6 @@
 import Logo from '@assets/logo.svg';
 import { PoAIManagerAbi } from '@blockchain/PoAIManager';
+import { ReaderContractAbi } from '@blockchain/ReaderContract';
 import LoginCard from '@components/auth/LoginCard';
 import RestrictedAccess from '@components/auth/RestrictedAccess';
 import { Spinner } from '@heroui/spinner';
@@ -26,7 +27,7 @@ function Login() {
     const { open: modalOpen, openSIWE } = useModal();
 
     const [isLoading, setLoading] = useState(false);
-    const [oraclesCount, setOraclesCount] = useState<number | undefined>();
+    const [hasOracles, setHasOracles] = useState<boolean | undefined>();
 
     const isConnected: boolean = isSignedIn && address !== undefined && publicClient !== undefined;
 
@@ -56,8 +57,8 @@ function Login() {
         setLoading(true);
 
         try {
-            const [oraclesCount, escrowScAddress] = await Promise.all([
-                fetchOraclesCount(),
+            const [hasOracles, escrowScAddress] = await Promise.all([
+                fetchHasOracles(),
                 publicClient.readContract({
                     address: config.poAIManagerContractAddress,
                     abi: PoAIManagerAbi,
@@ -66,7 +67,7 @@ function Login() {
                 }),
             ]);
 
-            setOraclesCount(process.env.NODE_ENV === 'development' ? 1 : oraclesCount);
+            setHasOracles(process.env.NODE_ENV === 'development' ? true : hasOracles);
             setEscrowContractAddress(escrowScAddress as EthAddress);
         } catch (error) {
             console.error('Error checking oracle ownership', error);
@@ -95,7 +96,7 @@ function Login() {
                 args: [address],
             });
 
-            setOraclesCount(1);
+            setHasOracles(true);
             setEscrowContractAddress(escrowScAddress as EthAddress);
         } catch (error) {
             console.error('Error bypassing oracle ownership', error);
@@ -106,35 +107,23 @@ function Login() {
         }
     };
 
-    const fetchOraclesCount = async (): Promise<number> => {
+    const fetchHasOracles = async (): Promise<boolean> => {
         if (!publicClient || !address) {
             throw new Error('No public client or address available.');
         }
 
         console.log('Checking oracle ownership...');
 
-        const linkedLicenses = (await fetchLicenses()).filter((license) => !isZeroAddress(license.nodeAddress));
-        const currentEpoch = getCurrentEpoch();
+        const hasOracleNode = await publicClient.readContract({
+            address: config.readerContractAddress,
+            abi: ReaderContractAbi,
+            functionName: 'hasOracleNode',
+            args: [address],
+        });
 
-        const nodesWithRanges = linkedLicenses.reduce(
-            (acc, license) => {
-                acc[license.nodeAddress] = [currentEpoch - 1, currentEpoch - 1];
-                return acc;
-            },
-            {} as Record<EthAddress, [number, number]>,
-        );
+        console.log(`User ${hasOracleNode ? '' : 'DOES NOT '}own an oracle`);
 
-        if (Object.keys(nodesWithRanges).length === 0) {
-            return 0;
-        }
-
-        const response = await getMultiNodeEpochsRange(nodesWithRanges);
-        const availabilities = linkedLicenses.map((license) => response[license.nodeAddress]);
-        const oracles = availabilities.filter((nodeResponse) => nodeResponse.node_is_oracle);
-
-        console.log(`User owns ${oracles.length} oracle${oracles.length === 1 ? '' : 's'}`);
-
-        return oracles.length;
+        return hasOracleNode;
     };
 
     return (
@@ -156,7 +145,7 @@ function Login() {
                             <div className="font-medium">Authenticating</div>
                         </div>
                     ) : (
-                        <>{!oraclesCount ? <RestrictedAccess /> : <LoginCard oraclesCount={oraclesCount} />}</>
+                        <>{!hasOracles ? <RestrictedAccess /> : <LoginCard hasOracles={hasOracles} />}</>
                     )}
                 </div>
             )}

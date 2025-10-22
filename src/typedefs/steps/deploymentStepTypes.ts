@@ -10,6 +10,7 @@ import { R1Address } from '@typedefs/blockchain';
 type KeyValueEntry = {
     key: string;
     value: string;
+    valueType?: 'text' | 'json';
 };
 
 type DynamicEnvVarsEntry = {
@@ -39,6 +40,7 @@ type ContainerDeploymentType = {
     crVisibility: (typeof CR_VISIBILITY_OPTIONS)[number];
     crUsername?: string;
     crPassword?: string;
+    ports?: Record<string, string>;
 };
 
 type WorkerDeploymentType = {
@@ -49,26 +51,54 @@ type WorkerDeploymentType = {
     username?: string;
     accessToken?: string;
     workerCommands: Array<{ command: string }>;
+    ports?: Record<string, string>;
 };
 
 type DeploymentType = ContainerDeploymentType | WorkerDeploymentType;
 
 // Plugin-related types
-type Plugin = {
+
+export enum SecondaryPluginType {
+    Generic = 'generic',
+    Native = 'native',
+}
+
+type GenericSecondaryPlugin = {
     // Base
     port?: number;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
     tunnelingToken?: string;
+
     // Deployment type
     deploymentType: DeploymentType;
+
     // Variables
     envVars: Array<KeyValueEntry>;
     dynamicEnvVars: Array<DynamicEnvVarsEntry>;
     volumes: Array<VolumesEntry>;
     fileVolumes: Array<FileVolumesEntry>;
+
     // Policies
     restartPolicy: (typeof POLICY_TYPES)[number];
     imagePullPolicy: (typeof POLICY_TYPES)[number];
+};
+
+type NativeSecondaryPlugin = {
+    // Signature
+    pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
+    customPluginSignature?: string;
+
+    // Tunneling
+    port?: number;
+    enableTunneling: (typeof BOOLEAN_TYPES)[number];
+    tunnelingToken?: string;
+
+    // Custom Parameters
+    customParams: Array<KeyValueEntry>;
+};
+
+type SecondaryPlugin = (GenericSecondaryPlugin | NativeSecondaryPlugin) & {
+    secondaryPluginType: SecondaryPluginType;
 };
 
 // Deployment types
@@ -96,19 +126,18 @@ type GenericJobDeployment = BaseJobDeployment & {
 
 type NativeJobDeployment = BaseJobDeployment & {
     pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
+    customPluginSignature?: string;
     port?: number;
     customParams: Array<KeyValueEntry>;
     pipelineParams: Array<KeyValueEntry>;
     pipelineInputType: (typeof PIPELINE_INPUT_TYPES)[number];
     pipelineInputUri?: string;
     chainstoreResponse: (typeof BOOLEAN_TYPES)[number];
-    secondaryPlugins: Plugin[];
+    secondaryPlugins: SecondaryPlugin[];
 };
 
 type ServiceJobDeployment = BaseJobDeployment & {
-    envVars: Array<KeyValueEntry>;
-    dynamicEnvVars: Array<DynamicEnvVarsEntry>;
-    volumes: Array<VolumesEntry>;
+    inputs: Array<KeyValueEntry>;
     serviceReplica?: R1Address;
 };
 
@@ -118,8 +147,10 @@ export type {
     BaseJobDeployment,
     DeploymentType,
     GenericJobDeployment,
+    GenericSecondaryPlugin,
     JobDeployment,
     NativeJobDeployment,
-    Plugin,
+    NativeSecondaryPlugin,
+    SecondaryPlugin,
     ServiceJobDeployment,
 };

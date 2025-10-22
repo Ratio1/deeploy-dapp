@@ -1,7 +1,9 @@
 import { ContainerOrWorkerType, GpuType, gpuTypes, nativeWorkerTypes } from '@data/containerResources';
+import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
 import { NativeDraftJob } from '@typedefs/deeploys';
+import { GenericSecondaryPlugin, SecondaryPlugin, SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
 export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[] }) {
@@ -35,7 +37,13 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[]
                     ...(gpuType ? [{ label: 'GPU Type', value: `${gpuType.name} (${gpuType.gpus.join(', ')})` }] : []),
 
                     // Deployment
-                    { label: 'Plugin Signature', value: nativeJob.deployment.pluginSignature },
+                    {
+                        label: 'Plugin Signature',
+                        value:
+                            nativeJob.deployment.pluginSignature === PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1]
+                                ? nativeJob.deployment.customPluginSignature
+                                : nativeJob.deployment.pluginSignature,
+                    },
                     { label: 'Pipeline Input Type', value: nativeJob.deployment.pipelineInputType },
                     { label: 'Pipeline Input URI', value: nativeJob.deployment.pipelineInputUri ?? 'None' },
                     { label: 'Tunneling', value: nativeJob.deployment.enableTunneling },
@@ -49,9 +57,20 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[]
                     entries.push({
                         label: 'Secondary Plugins',
                         value: nativeJob.deployment.secondaryPlugins
-                            .map((plugin) =>
-                                plugin.deploymentType.type === 'container' ? 'Container App Runner' : 'Worker App Runner',
-                            )
+                            .map((plugin: SecondaryPlugin) => {
+                                switch (plugin.secondaryPluginType) {
+                                    case SecondaryPluginType.Generic:
+                                        return (plugin as GenericSecondaryPlugin).deploymentType.type === 'container'
+                                            ? 'Container App Runner'
+                                            : 'Worker App Runner';
+
+                                    case SecondaryPluginType.Native:
+                                        return 'Native Plugin';
+
+                                    default:
+                                        return '';
+                                }
+                            })
                             .join(', '),
                     });
                 }

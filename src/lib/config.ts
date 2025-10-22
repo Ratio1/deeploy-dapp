@@ -10,6 +10,7 @@ type Config = {
     poAIManagerContractAddress: EthAddress;
     ndContractAddress: EthAddress;
     mndContractAddress: EthAddress;
+    readerContractAddress: EthAddress;
     safeAddress: EthAddress;
     usdcContractAddress: EthAddress;
     explorerUrl: string;
@@ -28,6 +29,7 @@ const configs: {
         poAIManagerContractAddress: '0xa8d7FFCE91a888872A9f5431B4Dd6c0c135055c1',
         ndContractAddress: '0xE658DF6dA3FB5d4FBa562F1D5934bd0F9c6bd423',
         mndContractAddress: '0x0C431e546371C87354714Fcc1a13365391A549E2',
+        readerContractAddress: '0xa2fDD4c7E93790Ff68a01f01AA789D619F12c6AC',
         safeAddress: '0x2265539ae09c7A605A707E11a6ED4aF1d018750e',
         usdcContractAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
         explorerUrl: 'https://basescan.org',
@@ -42,6 +44,7 @@ const configs: {
         poAIManagerContractAddress: '0xCc7C4e0f4f25b57807F34227Fb446E68c8c36ce5',
         ndContractAddress: '0x18E86a5829CA1F02226FA123f30d90dCd7cFd0ED',
         mndContractAddress: '0xa8d7FFCE91a888872A9f5431B4Dd6c0c135055c1',
+        readerContractAddress: '0xd1c7Dca934B37FAA402EB2EC64F6644d6957bE3b',
         safeAddress: '0x5afF90797f717Fe8432A1809b6b53A18863061D6',
         usdcContractAddress: '0xfD9A4a17D76087f7c94950b67c3A5b7638427ECF',
         explorerUrl: 'https://sepolia.basescan.org',
@@ -56,6 +59,7 @@ const configs: {
         poAIManagerContractAddress: '0xCc7C4e0f4f25b57807F34227Fb446E68c8c36ce5',
         ndContractAddress: '0x90025B92240E3070d5CdcB3f44D6411855c55a73',
         mndContractAddress: '0x17B8934dc5833CdBa1eF42D13D65D677C4727748',
+        readerContractAddress: '0xFcF04c9A67330431Af75a546615E4881BD8bdC78',
         safeAddress: '0x20b1ebc9c13A6F4f3dfBdF9bc9299ec40Ac988e3',
         usdcContractAddress: '0xfD9A4a17D76087f7c94950b67c3A5b7638427ECF',
         explorerUrl: 'https://sepolia.basescan.org',

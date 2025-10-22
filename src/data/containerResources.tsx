@@ -1,4 +1,6 @@
 import { JobType } from '@typedefs/deeploys';
+import { DiMysql } from 'react-icons/di';
+import { SiMongodb, SiPostgresql } from 'react-icons/si';
 
 export type ContainerOrWorkerType = {
     id: number;
@@ -13,9 +15,14 @@ export type ContainerOrWorkerType = {
     cores: number;
     ram: number;
     storage?: number;
+};
+
+export type Service = ContainerOrWorkerType & {
     port?: number;
     image?: string;
     dbSystem?: string;
+    icon?: React.ReactNode;
+    inputs?: { key: string; label: string }[];
 };
 
 export type GpuType = {
@@ -39,12 +46,39 @@ export type RunningJobResources = {
     jobType: JobType;
 };
 
+const getPostgresTag = () => (
+    <div className="center-all h-[30px] rounded-md bg-blue-100 px-2">
+        <div className="row gap-1.5 text-blue-600">
+            <SiPostgresql className="text-xl" />
+            <div className="compact">PostgreSQL</div>
+        </div>
+    </div>
+);
+
+const getMySQLTag = () => (
+    <div className="center-all h-[30px] rounded-md bg-orange-100 px-2">
+        <div className="row gap-0.5 text-orange-600">
+            <DiMysql className="text-[28px]" />
+            <div className="compact">MySQL</div>
+        </div>
+    </div>
+);
+
+const getMongoDBTag = () => (
+    <div className="center-all h-[30px] rounded-md bg-green-100 px-2">
+        <div className="row gap-0.5 text-green-600">
+            <SiMongodb className="text-xl" />
+            <div className="compact">MongoDB</div>
+        </div>
+    </div>
+);
+
 export const genericContainerTypes: ContainerOrWorkerType[] = [
     {
         id: 1,
         name: 'ENTRY',
         jobType: 1,
-        description: '1 core 2 GB',
+        description: '1 core 2 GB 8 GB Storage',
         notes: 'No GPU',
         notesColor: 'red',
         monthlyBudgetPerWorker: 11.25,
@@ -57,7 +91,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         id: 2,
         name: 'LOW1',
         jobType: 2,
-        description: '2 core 4 GB',
+        description: '2 core 4 GB 16 GB Storage',
         notes: 'No GPU',
         notesColor: 'red',
         monthlyBudgetPerWorker: 22.5,
@@ -70,7 +104,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         id: 3,
         name: 'LOW2',
         jobType: 3,
-        description: '2 core 8 GB',
+        description: '2 core 8 GB 32 GB Storage',
         notes: 'No GPU',
         notesColor: 'red',
         monthlyBudgetPerWorker: 30,
@@ -83,20 +117,20 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         id: 4,
         name: 'MED1',
         jobType: 4,
-        description: '4 core 12 GB',
+        description: '3 core 12 GB 48 GB Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 57.5,
         pricePerEpoch: 1_916_666n,
         minimalBalancing: 2,
-        cores: 4,
+        cores: 3,
         ram: 12,
     },
     {
         id: 5,
         name: 'MED2',
         jobType: 5,
-        description: '6 core 14 GB',
+        description: '6 core 14 GB 56 GB Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 87.5,
@@ -109,7 +143,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         id: 6,
         name: 'HIGH1',
         jobType: 6,
-        description: '8 core 22 GB',
+        description: '8 core 22 GB 88 GB Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 112.5,
@@ -122,7 +156,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         id: 7,
         name: 'HIGH2',
         jobType: 7,
-        description: '12 core 30 GB',
+        description: '12 core 30 GB 120 GB Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 160,
@@ -135,7 +169,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         id: 8,
         name: 'ULTRA1',
         jobType: 8,
-        description: '16 core 62 GB',
+        description: '16 core 62 GB 248 GB Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 250,
@@ -148,7 +182,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         id: 9,
         name: 'ULTRA2',
         jobType: 9,
-        description: '22 core 124 GB',
+        description: '22 core 124 GB 496 GB Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 375,
@@ -164,20 +198,20 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         id: 1,
         name: 'N-ENTRY',
         jobType: 16,
-        description: '4 core 14 GB',
+        description: '3 core 14 GB Full Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 75,
         pricePerEpoch: 2_500_000n,
         minimalBalancing: 2,
-        cores: 4,
+        cores: 3,
         ram: 14,
     },
     {
         id: 2,
         name: 'N-MED1',
         jobType: 17,
-        description: '8 core 22 GB',
+        description: '8 core 22 GB Full Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 112.5,
@@ -190,7 +224,7 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         id: 3,
         name: 'N-MED2',
         jobType: 18,
-        description: '12 core 30 GB',
+        description: '12 core 30 GB Full Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 180,
@@ -203,7 +237,7 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         id: 4,
         name: 'N-HIGH',
         jobType: 19,
-        description: '16 core 60 GB',
+        description: '16 core 60 GB Full Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 270,
@@ -216,7 +250,7 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         id: 5,
         name: 'N-ULTRA',
         jobType: 20,
-        description: '22 core 124 GB',
+        description: '22 core 124 GB Full Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 400,
@@ -227,7 +261,7 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
     },
 ];
 
-export const serviceContainerTypes: ContainerOrWorkerType[] = [
+export const serviceContainerTypes: Service[] = [
     {
         id: 1,
         name: 'PGSQL-LOW',
@@ -244,6 +278,8 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         port: 5432,
         image: 'postgres:17',
         dbSystem: 'PostgreSQL',
+        icon: getPostgresTag(),
+        inputs: [{ key: 'POSTGRES_PASSWORD', label: 'PostgreSQL Password' }],
     },
     {
         id: 2,
@@ -261,6 +297,8 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         port: 5432,
         image: 'postgres:17',
         dbSystem: 'PostgreSQL',
+        icon: getPostgresTag(),
+        inputs: [{ key: 'POSTGRES_PASSWORD', label: 'PostgreSQL Password' }],
     },
     {
         id: 3,
@@ -278,6 +316,8 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         port: 3306,
         image: 'mysql',
         dbSystem: 'MySQL',
+        icon: getMySQLTag(),
+        inputs: [{ key: 'MYSQL_ROOT_PASSWORD', label: 'MySQL Root Password' }],
     },
     {
         id: 4,
@@ -295,6 +335,8 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         port: 3306,
         image: 'mysql',
         dbSystem: 'MySQL',
+        icon: getMySQLTag(),
+        inputs: [{ key: 'MYSQL_ROOT_PASSWORD', label: 'MySQL Root Password' }],
     },
     {
         id: 5,
@@ -312,6 +354,11 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         port: 27017,
         image: 'mongodb',
         dbSystem: 'MongoDB',
+        icon: getMongoDBTag(),
+        inputs: [
+            { key: 'MONGO_INITDB_ROOT_USERNAME', label: 'MongoDB Root Username' },
+            { key: 'MONGO_INITDB_ROOT_PASSWORD', label: 'MongoDB Root Password' },
+        ],
     },
     {
         id: 6,
@@ -329,6 +376,11 @@ export const serviceContainerTypes: ContainerOrWorkerType[] = [
         port: 27017,
         image: 'mongodb',
         dbSystem: 'MongoDB',
+        icon: getMongoDBTag(),
+        inputs: [
+            { key: 'MONGO_INITDB_ROOT_USERNAME', label: 'MongoDB Root Username' },
+            { key: 'MONGO_INITDB_ROOT_PASSWORD', label: 'MongoDB Root Password' },
+        ],
     },
 ];
 

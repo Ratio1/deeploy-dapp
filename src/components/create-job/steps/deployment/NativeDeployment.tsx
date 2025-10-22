@@ -6,11 +6,12 @@ import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
+import NativeAppIdentitySection from '@shared/jobs/native/NativeAppIdentitySection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import Label from '@shared/Label';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
-import SecondaryPluginsCard from '../../cards/SecondaryPluginsCard';
+import SecondaryPluginsCard from '../../secondary-plugins/SecondaryPluginsCard';
 
 function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
     const { watch } = useFormContext();
@@ -20,14 +21,7 @@ function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
     return (
         <div className="col gap-6">
             <SlateCard title="App Identity">
-                <div className="flex gap-4">
-                    <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="My App" />
-                    <SelectWithLabel
-                        name="deployment.pluginSignature"
-                        label="Plugin Signature"
-                        options={PLUGIN_SIGNATURE_TYPES}
-                    />
-                </div>
+                <NativeAppIdentitySection pluginSignature={pluginSignature} />
             </SlateCard>
 
             <TargetNodesCard isEditingJob={isEditingJob} />
@@ -42,6 +36,7 @@ function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
                     displayLabel="custom parameters"
                     maxEntries={50}
                     predefinedEntries={pluginSignaturesCustomParams[pluginSignature] ?? []}
+                    enableJsonValues={true}
                 />
             </SlateCard>
 

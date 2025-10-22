@@ -8,6 +8,7 @@ export const keyValueEntrySchema = z
     .object({
         key: z.string().optional(),
         value: z.string().optional(),
+        valueType: z.enum(['text', 'json']).optional().default('text'),
     })
     .refine(
         (data) => {
@@ -36,6 +37,24 @@ export const keyValueEntrySchema = z
         },
         {
             message: 'Value is required',
+            path: ['value'],
+        },
+    )
+    .refine(
+        (data) => {
+            // If valueType is 'json', validate JSON syntax
+            if (data.valueType === 'json' && data.value && data.value.trim() !== '') {
+                try {
+                    JSON.parse(data.value);
+                    return true;
+                } catch {
+                    return false;
+                }
+            }
+            return true;
+        },
+        {
+            message: 'Invalid JSON format',
             path: ['value'],
         },
     );
@@ -107,8 +126,8 @@ export const dynamicEnvEntrySchema = z
             if (!data.key) {
                 return true;
             }
-            // Check if any value is missing when key is present
-            const hasEmptyValue = data.values.some((pair) => !pair.value);
+            // Check if any value is missing when key is present (skip host_ip fields)
+            const hasEmptyValue = data.values.some((pair) => pair.type !== 'host_ip' && !pair.value);
             return !hasEmptyValue;
         },
         {
@@ -120,6 +139,7 @@ export const dynamicEnvEntrySchema = z
     .refine(
         (data) => {
             if (!data.key) return true;
+            if (data.values[0]?.type === 'host_ip') return true;
             return data.values[0]?.value || false;
         },
         {
@@ -130,6 +150,7 @@ export const dynamicEnvEntrySchema = z
     .refine(
         (data) => {
             if (!data.key) return true;
+            if (data.values[1]?.type === 'host_ip') return true;
             return data.values[1]?.value || false;
         },
         {
@@ -140,6 +161,7 @@ export const dynamicEnvEntrySchema = z
     .refine(
         (data) => {
             if (!data.key) return true;
+            if (data.values[2]?.type === 'host_ip') return true;
             return data.values[2]?.value || false;
         },
         {

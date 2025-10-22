@@ -85,14 +85,14 @@ export default function WorkerSection({
             <InputWithLabel
                 name={`${baseName}.deploymentType.repositoryUrl`}
                 label="GitHub Repository URL"
-                placeholder="e.g. https://github.com/org/repository"
+                placeholder="e.g., https://github.com/org/repository"
                 onBlur={() => checkRepositoryVisibility()}
                 onPasteValue={(value) => checkRepositoryVisibility(value)}
                 customLabel={
                     repositoryVisibility ? (
                         <div className="row gap-1.5">
                             <Label value="GitHub Repository URL" />
-                            <SmallTag variant={repositoryVisibility === 'public' ? 'emerald' : 'orange'}>
+                            <SmallTag variant={repositoryVisibility === 'public' ? 'emerald' : 'red'}>
                                 <div className="capitalize">{repositoryVisibility}</div>
                             </SmallTag>
                         </div>

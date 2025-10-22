@@ -107,7 +107,7 @@ export default function JobEditFormWrapper({
                       accessToken: config.VCS_DATA.TOKEN || '',
                       workerCommands: config.BUILD_AND_RUN_COMMANDS!.map((command) => ({ command })),
                   },
-            port: config.PORT,
+            port: config.PORT ?? '',
             restartPolicy: titlecase(config.RESTART_POLICY!),
             imagePullPolicy: titlecase(config.IMAGE_PULL_POLICY!),
             envVars: getEnvVars(),
@@ -125,8 +125,8 @@ export default function JobEditFormWrapper({
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            port: config.PORT,
-            pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
+            port: config.PORT ?? '',
+            pluginSignature: PLUGIN_SIGNATURE_TYPES[0], // TODO: Native Job editing flow
             customParams: [{ key: '', value: '' }],
             pipelineParams: [{ key: '', value: '' }],
             pipelineInputType: PIPELINE_INPUT_TYPES[0],

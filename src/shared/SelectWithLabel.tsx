@@ -7,9 +7,10 @@ interface Props {
     name: string;
     label?: string;
     options: readonly string[];
+    onSelect?: (value: string) => void;
 }
 
-export default function SelectWithLabel({ name, label, options }: Props) {
+export default function SelectWithLabel({ name, label, options, onSelect }: Props) {
     const { control } = useFormContext();
 
     return (
@@ -25,6 +26,7 @@ export default function SelectWithLabel({ name, label, options }: Props) {
                         onSelectionChange={(keys) => {
                             const selectedKey = Array.from(keys)[0] as string;
                             field.onChange(selectedKey);
+                            onSelect?.(selectedKey);
                         }}
                         onBlur={field.onBlur}
                         isInvalid={!!fieldState.error}

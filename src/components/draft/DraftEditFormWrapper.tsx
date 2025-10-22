@@ -6,11 +6,11 @@ import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
-import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
+import SubmitButton from '@shared/SubmitButton';
 import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -141,7 +141,8 @@ export default function DraftEditFormWrapper({
                 ...baseDefaults.deployment,
                 jobAlias: deployment.jobAlias,
                 port: deployment.port ?? '',
-                pluginSignature: deployment.pluginSignature ?? PLUGIN_SIGNATURE_TYPES[0],
+                pluginSignature: deployment.pluginSignature,
+                customPluginSignature: deployment.customPluginSignature,
                 customParams: cloneKeyValueEntries(deployment.customParams),
                 pipelineParams: cloneKeyValueEntries(deployment.pipelineParams),
                 pipelineInputType: deployment.pipelineInputType ?? PIPELINE_INPUT_TYPES[0],
@@ -165,9 +166,6 @@ export default function DraftEditFormWrapper({
             deployment: {
                 ...baseDefaults.deployment,
                 jobAlias: deployment.jobAlias,
-                envVars: cloneKeyValueEntries(deployment.envVars),
-                dynamicEnvVars: cloneDynamicEnvEntries(deployment.dynamicEnvVars),
-                volumes: cloneKeyValueEntries(deployment.volumes),
                 serviceReplica: deployment.serviceReplica ?? '',
             },
         } as z.infer<typeof jobSchema>;
@@ -218,7 +216,11 @@ export default function DraftEditFormWrapper({
                             {step === 1 && <CostAndDuration />}
                             {step === 2 && <Deployment />}
 
-                            <JobFormButtons steps={STEPS} cancelLabel="Project" />
+                            <JobFormButtons
+                                steps={STEPS}
+                                cancelLabel="Project"
+                                customSubmitButton={<SubmitButton label="Save" />}
+                            />
                         </div>
                     </div>
                 </div>

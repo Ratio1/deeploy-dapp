@@ -55,7 +55,8 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             targetNodes: [{ address: '' }],
             spareNodes: [{ address: '' }],
             allowReplicationInTheWild: true,
-            enableTunneling: BOOLEAN_TYPES[1], // Default to False to avoid validation issues
+            port: '',
+            enableTunneling: BOOLEAN_TYPES[0],
         },
     });
 
@@ -106,6 +107,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
+            port: serviceContainerTypes[0].port,
             envVars: [],
         },
     });

@@ -81,6 +81,11 @@ export default function Payment({
         if (jobs) {
             const jobsTotalCost = getJobsTotalCost(jobs);
             setTotalCost(jobsTotalCost);
+
+            // Log payloads in development
+            if (process.env.NODE_ENV === 'development') {
+                getJobPayloads(jobs);
+            }
         }
     }, [jobs]);
 
@@ -106,7 +111,7 @@ export default function Payment({
                     break;
             }
 
-            console.log('[Payment] getJobPayloads', payload);
+            console.log('[Payment] Payloads', payload);
 
             return payload;
         });
