@@ -189,6 +189,14 @@ export const formatTargetNodesCount = (targetNodes: string[], specificationsTarg
     return targetNodes.length > 0 ? 0 : specificationsTargetNodesCount;
 };
 
+const formatPort = (port: number | string | undefined) => {
+    if (!port || port === '') {
+        return null;
+    }
+
+    return Number(port);
+};
+
 export const formatJobTags = (specifications: JobSpecifications) => {
     const countries = specifications.nodesCountries.map((country) => `CT:${country}`).join('||');
     return [...specifications.jobTags, countries].filter((tag) => tag !== '');
@@ -247,7 +255,7 @@ export const formatGenericPluginConfigAndSignature = (
 
     const pluginConfig: any = {
         CONTAINER_RESOURCES: resources,
-        PORT: plugin.port,
+        PORT: formatPort(plugin.port),
         // Tunneling
         TUNNEL_ENGINE: 'cloudflare',
         CLOUDFLARE_TOKEN: plugin.tunnelingToken || null,
@@ -354,7 +362,7 @@ export const formatNativeJobPayload = (
     // Primary plugin configuration
     const primaryPluginConfig: any = {
         plugin_signature: formatNativeJobPluginSignature(deployment),
-        PORT: deployment.port,
+        PORT: formatPort(deployment.port),
         CLOUDFLARE_TOKEN: deployment.tunnelingToken || null,
         TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
         NGROK_USE_API: true,
@@ -385,7 +393,7 @@ export const formatNativeJobPayload = (
 
                 const nativePluginConfig: any = {
                     plugin_signature: formatNativeJobPluginSignature(nativePlugin),
-                    PORT: nativePlugin.port,
+                    PORT: formatPort(nativePlugin.port),
                     CLOUDFLARE_TOKEN: nativePlugin.tunnelingToken || null,
                     TUNNEL_ENGINE_ENABLED: nativePlugin.enableTunneling === 'True',
                     NGROK_USE_API: true,
@@ -452,7 +460,7 @@ export const formatServiceJobPayload = (
                 plugin_signature: 'CONTAINER_APP_RUNNER',
                 IMAGE: containerType.image,
                 CONTAINER_RESOURCES: containerResources,
-                PORT: containerType.port,
+                PORT: formatPort(containerType.port),
                 TUNNEL_ENGINE: 'ngrok',
                 NGROK_AUTH_TOKEN: deployment.tunnelingToken || null,
                 NGROK_EDGE_LABEL: deployment.tunnelingLabel || null,

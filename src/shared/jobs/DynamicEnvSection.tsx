@@ -94,6 +94,11 @@ export default function DynamicEnvSection({ baseName = 'deployment' }: { baseNam
                                                             onSelectionChange={async (keys) => {
                                                                 const selectedKey = Array.from(keys)[0] as string;
                                                                 field.onChange(selectedKey);
+
+                                                                // Trigger validation for the corresponding value input
+                                                                await trigger(
+                                                                    `${baseName}.dynamicEnvVars.${index}.values.${k}.value`,
+                                                                );
                                                             }}
                                                             onBlur={field.onBlur}
                                                             isInvalid={!!fieldState.error}

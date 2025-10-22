@@ -175,55 +175,6 @@ export const dynamicEnvEntrySchema = z
             message: 'Key is required when values are provided',
             path: ['key'],
         },
-    )
-    .refine(
-        (data) => {
-            // If key is empty, don't validate values
-            if (!data.key) {
-                return true;
-            }
-            // Check if any value is missing when key is present (skip host_ip fields)
-            const hasEmptyValue = data.values.some((pair) => pair.type !== 'host_ip' && !pair.value);
-            return !hasEmptyValue;
-        },
-        {
-            message: 'All values are required when key is provided',
-            path: ['values'],
-        },
-    )
-    // Individual value refinements for specific error paths
-    .refine(
-        (data) => {
-            if (!data.key) return true;
-            if (data.values[0]?.type === 'host_ip') return true;
-            return data.values[0]?.value || false;
-        },
-        {
-            message: 'Value is required',
-            path: ['values', 0, 'value'],
-        },
-    )
-    .refine(
-        (data) => {
-            if (!data.key) return true;
-            if (data.values[1]?.type === 'host_ip') return true;
-            return data.values[1]?.value || false;
-        },
-        {
-            message: 'Value is required',
-            path: ['values', 1, 'value'],
-        },
-    )
-    .refine(
-        (data) => {
-            if (!data.key) return true;
-            if (data.values[2]?.type === 'host_ip') return true;
-            return data.values[2]?.value || false;
-        },
-        {
-            message: 'Value is required',
-            path: ['values', 2, 'value'],
-        },
     );
 
 export const getStringSchema = (minLength: number, maxLength: number) => {

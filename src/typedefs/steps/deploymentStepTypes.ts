@@ -68,7 +68,7 @@ export enum SecondaryPluginType {
 
 type GenericSecondaryPlugin = {
     // Base
-    port?: number;
+    port?: number | string;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
     tunnelingToken?: string;
 
@@ -92,7 +92,7 @@ type NativeSecondaryPlugin = {
     customPluginSignature?: string;
 
     // Tunneling
-    port?: number;
+    port?: number | string;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
     tunnelingToken?: string;
 
@@ -112,13 +112,13 @@ type BaseJobDeployment = {
     spareNodes: Array<{ address: R1Address }>;
     allowReplicationInTheWild: boolean;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
+    port?: number | string;
     tunnelingLabel?: string;
     tunnelingToken?: string;
 };
 
 type GenericJobDeployment = BaseJobDeployment & {
     deploymentType: DeploymentType;
-    port?: number;
     envVars: Array<KeyValueEntry>;
     dynamicEnvVars: Array<DynamicEnvVarsEntry>;
     volumes: Array<VolumesEntry>;
@@ -130,7 +130,6 @@ type GenericJobDeployment = BaseJobDeployment & {
 type NativeJobDeployment = BaseJobDeployment & {
     pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
     customPluginSignature?: string;
-    port?: number;
     customParams: Array<CustomParameterEntry>;
     pipelineParams: Array<KeyValueEntry>;
     pipelineInputType: (typeof PIPELINE_INPUT_TYPES)[number];
