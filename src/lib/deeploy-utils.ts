@@ -29,7 +29,7 @@ import _ from 'lodash';
 import { FieldValues, UseFieldArrayAppend, UseFieldArrayRemove } from 'react-hook-form';
 import { formatUnits } from 'viem';
 import { environment } from './config';
-import { deepSort } from './utils';
+import { deepSort, parseIfJson } from './utils';
 
 export const GITHUB_REPO_REGEX = new RegExp('^https?://github\\.com/([^\\s/]+)/([^\\s/]+?)(?:\\.git)?(?:/.*)?$', 'i');
 
@@ -123,7 +123,7 @@ export const downloadDataAsJson = (data: any, filename: string) => {
 export const generateDeeployNonce = (): string => {
     const now = new Date();
     const unixTimestamp = now.getTime();
-    console.log({ now, unixTimestamp });
+    // console.log({ now, unixTimestamp });
     return `0x${unixTimestamp.toString(16)}`;
 };
 
@@ -170,10 +170,11 @@ export const formatFileVolumes = (fileVolumes: { name: string; mountingPoint: st
     return formatted;
 };
 
-export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType) => {
+export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType, ports?: Record<string, string>) => {
     return {
         cpu: containerOrWorkerType.cores,
         memory: `${containerOrWorkerType.ram}g`,
+        ...(ports && Object.keys(ports).length > 0 && { ports }),
     };
 };
 
@@ -208,7 +209,7 @@ export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
     return formatServiceJobPayload(containerType, job.specifications, job.deployment);
 };
 
-export const formatGenericJobVariables = (plugin: GenericSecondaryPlugin) => {
+const formatGenericJobVariables = (plugin: GenericSecondaryPlugin) => {
     return {
         envVars: formatEnvVars(plugin.envVars),
         dynamicEnvVars: formatDynamicEnvVars(plugin.dynamicEnvVars),
@@ -217,16 +218,27 @@ export const formatGenericJobVariables = (plugin: GenericSecondaryPlugin) => {
     };
 };
 
-export const formatNativeJobPluginSignature = (plugin: NativeSecondaryPlugin) => {
+const formatNativeJobPluginSignature = (plugin: NativeSecondaryPlugin) => {
     return plugin.pluginSignature === PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1]
         ? plugin.customPluginSignature
         : plugin.pluginSignature;
+};
+
+const formatNativeJobCustomParams = (pluginConfig: any, plugin: NativeSecondaryPlugin) => {
+    if (!_.isEmpty(plugin.customParams)) {
+        plugin.customParams.forEach((param) => {
+            if (param.key) {
+                pluginConfig[param.key] = parseIfJson(param.value);
+            }
+        });
+    }
 };
 
 export const formatGenericPluginConfigAndSignature = (
     resources: {
         cpu: number;
         memory: string;
+        ports?: Record<string, string>;
     },
     plugin: GenericSecondaryPlugin,
 ) => {
@@ -291,7 +303,7 @@ export const formatGenericJobPayload = (
     const spareNodes = formatNodes(deployment.spareNodes);
 
     const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
-        formatContainerResources(containerType),
+        formatContainerResources(containerType, deployment.deploymentType.ports),
         deployment,
     );
 
@@ -331,7 +343,7 @@ export const formatNativeJobPayload = (
         }
     });
 
-    const nodeResources = formatContainerResources(workerType);
+    const nodeResources = formatContainerResources(workerType, undefined);
     const targetNodes = formatNodes(deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, specifications.targetNodesCount);
 
@@ -348,13 +360,7 @@ export const formatNativeJobPayload = (
         NGROK_USE_API: true,
     };
 
-    if (!_.isEmpty(deployment.customParams)) {
-        deployment.customParams.forEach((param) => {
-            if (param.key) {
-                primaryPluginConfig[param.key] = param.value;
-            }
-        });
-    }
+    formatNativeJobCustomParams(primaryPluginConfig, deployment);
 
     // Build plugins array starting with the primary plugin
     const plugins = [primaryPluginConfig];
@@ -424,7 +430,7 @@ export const formatServiceJobPayload = (
     deployment: ServiceJobDeployment,
 ) => {
     const jobTags = formatJobTags(specifications);
-    const containerResources = formatContainerResources(containerType);
+    const containerResources = formatContainerResources(containerType, undefined);
     const targetNodes = formatNodes(deployment.targetNodes);
     const spareNodes = formatNodes(deployment.spareNodes);
 

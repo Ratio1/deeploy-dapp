@@ -14,7 +14,7 @@ export default function ContainerSection({ baseName = 'deployment' }: { baseName
                 <InputWithLabel
                     name={`${baseName}.deploymentType.containerImage`}
                     label="Image"
-                    placeholder="e.g. Ratio1/deeploy-dapp:latest"
+                    placeholder="e.g., Ratio1/deeploy-dapp:latest"
                 />
                 <InputWithLabel
                     name={`${baseName}.deploymentType.containerRegistry`}
