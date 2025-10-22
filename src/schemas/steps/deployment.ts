@@ -40,11 +40,22 @@ const validations = {
         .max(256, 'Value cannot exceed 256 characters')
         .regex(/^https?:\/\/.+/, 'Must be a valid URI'),
 
+    // optionalUri: z
+    //     .string()
+    //     .refine((val) => val === '' || val.length >= 2, 'Value must be at least 2 characters')
+    //     .refine((val) => val === '' || val.length <= 256, 'Value cannot exceed 256 characters')
+    //     .refine((val) => val === '' || /^https?:\/\/.+/.test(val), 'Must be a valid URI'),
+
     optionalUri: z
-        .string()
-        .refine((val) => val === '' || val.length >= 2, 'Value must be at least 2 characters')
-        .refine((val) => val === '' || val.length <= 256, 'Value cannot exceed 256 characters')
-        .refine((val) => val === '' || /^https?:\/\/.+/.test(val), 'Must be a valid URI'),
+        .union([
+            z.literal(''),
+            z
+                .string()
+                .min(2, 'Value must be at least 2 characters')
+                .max(256, 'Value cannot exceed 256 characters')
+                .regex(/^https?:\/\/.+/, 'Must be a valid URI'),
+        ])
+        .optional(),
 
     port: z.union([
         z.literal(''),
@@ -334,7 +345,7 @@ const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend(
     customParams: validations.customParams,
     pipelineParams: validations.pipelineParams,
     pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
-    pipelineInputUri: validations.optionalUri.optional(),
+    pipelineInputUri: validations.optionalUri,
     chainstoreResponse: validations.chainstoreResponse,
     secondaryPlugins: z.array(secondaryPluginSchema).max(5, 'Only 5 secondary plugins allowed').optional(),
 });
