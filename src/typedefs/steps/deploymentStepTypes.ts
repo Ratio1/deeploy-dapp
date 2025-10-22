@@ -10,6 +10,7 @@ import { R1Address } from '@typedefs/blockchain';
 type KeyValueEntry = {
     key: string;
     value: string;
+    valueType?: 'text' | 'json';
 };
 
 type DynamicEnvVarsEntry = {

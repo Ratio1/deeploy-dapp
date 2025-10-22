@@ -36,6 +36,7 @@ function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
                     displayLabel="custom parameters"
                     maxEntries={50}
                     predefinedEntries={pluginSignaturesCustomParams[pluginSignature] ?? []}
+                    enableJsonValues={true}
                 />
             </SlateCard>
 

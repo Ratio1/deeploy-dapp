@@ -8,6 +8,7 @@ export const keyValueEntrySchema = z
     .object({
         key: z.string().optional(),
         value: z.string().optional(),
+        valueType: z.enum(['text', 'json']).optional().default('text'),
     })
     .refine(
         (data) => {
@@ -36,6 +37,24 @@ export const keyValueEntrySchema = z
         },
         {
             message: 'Value is required',
+            path: ['value'],
+        },
+    )
+    .refine(
+        (data) => {
+            // If valueType is 'json', validate JSON syntax
+            if (data.valueType === 'json' && data.value && data.value.trim() !== '') {
+                try {
+                    JSON.parse(data.value);
+                    return true;
+                } catch {
+                    return false;
+                }
+            }
+            return true;
+        },
+        {
+            message: 'Invalid JSON format',
             path: ['value'],
         },
     );
