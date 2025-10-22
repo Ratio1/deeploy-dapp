@@ -60,11 +60,11 @@ function CostAndDuration() {
             },
             {
                 label: 'Monthly Cost',
-                value: `~$${formatUsdc(costPerEpoch * 30n * (environment === 'mainnet' ? 1n : 24n), 1)}`,
+                value: `~$${formatUsdc(costPerEpoch * 30n * (environment === 'devnet' ? 24n : 1n), 1)}`,
             },
             {
                 label: 'End Date',
-                value: addTimeFn(new Date(), duration * 30 * (environment === 'mainnet' ? 1 : 24)).toLocaleDateString('en-US', {
+                value: addTimeFn(new Date(), duration * 30 * (environment === 'devnet' ? 24 : 1)).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric',
