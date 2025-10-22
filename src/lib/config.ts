@@ -41,7 +41,7 @@ const configs: {
         deeployUrl: import.meta.env.VITE_API_URL as string,
         backendUrl: 'https://testnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://testnet-oracle.ratio1.ai',
-        poAIManagerContractAddress: '0xCc7C4e0f4f25b57807F34227Fb446E68c8c36ce5',
+        poAIManagerContractAddress: '0x68f825aA8fD4Af498c2998F4b165F103080574d4',
         ndContractAddress: '0x18E86a5829CA1F02226FA123f30d90dCd7cFd0ED',
         mndContractAddress: '0xa8d7FFCE91a888872A9f5431B4Dd6c0c135055c1',
         readerContractAddress: '0xd1c7Dca934B37FAA402EB2EC64F6644d6957bE3b',
