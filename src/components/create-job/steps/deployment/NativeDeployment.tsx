@@ -1,11 +1,11 @@
 import AppParametersSection from '@components/create-job/sections/AppParametersSection';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { pluginSignaturesCustomParams } from '@data/default-values/customParams';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
+import CustomParametersSection from '@shared/jobs/native/CustomParametersSection';
 import NativeAppIdentitySection from '@shared/jobs/native/NativeAppIdentitySection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import Label from '@shared/Label';
@@ -31,13 +31,15 @@ function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
             </SlateCard>
 
             <SlateCard title="Custom Parameters">
-                <KeyValueEntriesSection
+                {/* TODO: Remove */}
+                {/* <KeyValueEntriesSection
                     name="deployment.customParams"
                     displayLabel="custom parameters"
                     maxEntries={50}
-                    predefinedEntries={pluginSignaturesCustomParams[pluginSignature] ?? []}
                     enableJsonValues={true}
-                />
+                /> */}
+
+                <CustomParametersSection />
             </SlateCard>
 
             <SlateCard title="Pipeline">

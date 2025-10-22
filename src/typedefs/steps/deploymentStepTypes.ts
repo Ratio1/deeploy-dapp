@@ -10,7 +10,10 @@ import { R1Address } from '@typedefs/blockchain';
 type KeyValueEntry = {
     key: string;
     value: string;
-    valueType?: 'text' | 'json';
+};
+
+type CustomParameterEntry = KeyValueEntry & {
+    valueType: 'string' | 'JSON';
 };
 
 type DynamicEnvVarsEntry = {
@@ -94,7 +97,7 @@ type NativeSecondaryPlugin = {
     tunnelingToken?: string;
 
     // Custom Parameters
-    customParams: Array<KeyValueEntry>;
+    customParams: Array<CustomParameterEntry>;
 };
 
 type SecondaryPlugin = (GenericSecondaryPlugin | NativeSecondaryPlugin) & {
@@ -128,7 +131,7 @@ type NativeJobDeployment = BaseJobDeployment & {
     pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
     customPluginSignature?: string;
     port?: number;
-    customParams: Array<KeyValueEntry>;
+    customParams: Array<CustomParameterEntry>;
     pipelineParams: Array<KeyValueEntry>;
     pipelineInputType: (typeof PIPELINE_INPUT_TYPES)[number];
     pipelineInputUri?: string;
@@ -145,6 +148,7 @@ type JobDeployment = BaseJobDeployment & (GenericJobDeployment | NativeJobDeploy
 
 export type {
     BaseJobDeployment,
+    CustomParameterEntry,
     DeploymentType,
     GenericJobDeployment,
     GenericSecondaryPlugin,

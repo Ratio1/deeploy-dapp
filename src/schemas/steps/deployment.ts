@@ -6,6 +6,7 @@ import { POLICY_TYPES } from '@data/policyTypes';
 import {
     dynamicEnvEntrySchema,
     enabledBooleanTypeValue,
+    getCustomParametersArraySchema,
     getFileVolumesArraySchema,
     getKeyValueEntriesArraySchema,
     getNameWithoutSpacesSchema,
@@ -69,7 +70,7 @@ const validations = {
                 message: 'Duplicate keys are not allowed',
             },
         ),
-    customParams: getKeyValueEntriesArraySchema(50),
+    customParams: getCustomParametersArraySchema(),
     pipelineParams: getKeyValueEntriesArraySchema(50),
     volumes: getKeyValueEntriesArraySchema(),
     fileVolumes: getFileVolumesArraySchema(50),

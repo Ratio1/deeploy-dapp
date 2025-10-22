@@ -8,7 +8,43 @@ export const keyValueEntrySchema = z
     .object({
         key: z.string().optional(),
         value: z.string().optional(),
-        valueType: z.enum(['text', 'json']).optional().default('text'),
+    })
+    .refine(
+        (data) => {
+            if (!data.key && !data.value) {
+                return true; // Both empty = valid (empty row, will be ignored)
+            }
+            if (!data.key) {
+                return false; // Key missing
+            }
+            return true; // Key present
+        },
+        {
+            message: 'Key is required',
+            path: ['key'],
+        },
+    )
+    .refine(
+        (data) => {
+            if (!data.key && !data.value) {
+                return true; // Both empty = valid (empty row, will be ignored)
+            }
+            if (!data.value) {
+                return false; // Value missing
+            }
+            return true; // Value present
+        },
+        {
+            message: 'Value is required',
+            path: ['value'],
+        },
+    );
+
+export const customParameterEntrySchema = z
+    .object({
+        key: z.string().optional(),
+        value: z.string().optional(),
+        valueType: z.enum(['string', 'json']).optional().default('string'),
     })
     .refine(
         (data) => {
@@ -62,6 +98,26 @@ export const keyValueEntrySchema = z
 // Schema for array of key-value entries with duplicate key validation
 export const getKeyValueEntriesArraySchema = (maxEntries?: number) => {
     let schema = z.array(keyValueEntrySchema);
+
+    if (maxEntries) {
+        schema = schema.max(maxEntries, `Maximum ${maxEntries} entries allowed`);
+    }
+
+    return schema.refine(
+        (entries) => {
+            const keys = entries.map((entry) => entry.key?.trim()).filter((key) => key && key !== ''); // Only non-empty keys
+
+            const uniqueKeys = new Set(keys);
+            return uniqueKeys.size === keys.length;
+        },
+        {
+            message: 'Duplicate keys are not allowed',
+        },
+    );
+};
+
+export const getCustomParametersArraySchema = (maxEntries: number = 50) => {
+    let schema = z.array(customParameterEntrySchema);
 
     if (maxEntries) {
         schema = schema.max(maxEntries, `Maximum ${maxEntries} entries allowed`);
