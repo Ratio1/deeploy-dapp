@@ -182,6 +182,7 @@ export default function CustomParametersSection() {
                                                                     }}
                                                                     onBlur={() => {
                                                                         field.onBlur();
+                                                                        void trigger(`${name}.${index}.value`);
                                                                     }}
                                                                     errorMessage={errorMessage}
                                                                 />

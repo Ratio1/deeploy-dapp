@@ -20,15 +20,19 @@ export default function JsonEditor({
 }) {
     const [code, setCode] = useState(initialValue);
 
-    const handleChange = useCallback((value: string) => {
-        setCode(value);
-        onChange(value);
-    }, []);
+    const handleChange = useCallback(
+        (value: string) => {
+            setCode(value);
+            onChange(value);
+        },
+        [onChange],
+    );
 
     const handleBlur = useCallback(() => {
         const trimmed = code.trim();
 
         if (!trimmed) {
+            onBlur();
             return;
         }
 
@@ -39,12 +43,13 @@ export default function JsonEditor({
             if (formatted !== code) {
                 setCode(formatted);
             }
-
-            onBlur();
         } catch {
-            // Invalid json
+            onBlur();
+            return;
         }
-    }, [code]);
+
+        onBlur();
+    }, [code, onBlur]);
 
     return (
         <div className="border-default-200 col w-full overflow-hidden rounded-lg border">
