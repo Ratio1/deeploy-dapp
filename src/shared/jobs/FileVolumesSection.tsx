@@ -8,17 +8,24 @@ import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
 
 export default function FileVolumesSection({ baseName = 'deployment' }: { baseName?: string }) {
+    const name = `${baseName}.fileVolumes`;
+
     const { confirm } = useInteractionContext() as InteractionContextType;
 
     const { control, formState, trigger, setValue } = useFormContext();
-
     const { fields, append, remove } = useFieldArray({
         control,
-        name: `${baseName}.fileVolumes`,
+        name,
     });
 
     // Get array-level errors
-    const errors = (formState.errors[baseName] as any)?.fileVolumes;
+    const errors = name.split('.').reduce<unknown>((acc, segment) => {
+        if (!acc || typeof acc !== 'object') {
+            return undefined;
+        }
+
+        return (acc as Record<string, unknown>)[segment];
+    }, formState.errors as unknown) as any;
 
     return (
         <div className="col gap-4">
@@ -83,8 +90,7 @@ export default function FileVolumesSection({ baseName = 'deployment' }: { baseNa
                                                 render={({ field, fieldState }) => {
                                                     // Check for an error on this specific property
                                                     const specificError = entryError?.mountingPoint;
-                                                    const hasError =
-                                                        !!fieldState.error || !!specificError || !!errors?.root?.message;
+                                                    const hasError = !!fieldState.error || !!specificError;
 
                                                     return (
                                                         <StyledInput
@@ -103,13 +109,7 @@ export default function FileVolumesSection({ baseName = 'deployment' }: { baseNa
                                                                 }
                                                             }}
                                                             isInvalid={hasError}
-                                                            errorMessage={
-                                                                fieldState.error?.message ||
-                                                                specificError?.message ||
-                                                                (errors?.root?.message && index === 0
-                                                                    ? errors.root.message
-                                                                    : undefined)
-                                                            }
+                                                            errorMessage={fieldState.error?.message || specificError?.message}
                                                         />
                                                     );
                                                 }}

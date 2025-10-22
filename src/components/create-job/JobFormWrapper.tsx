@@ -90,7 +90,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
-            customParams: [{ key: '', value: '' }],
+            customParams: [{ key: '', value: '', valueType: 'string' }],
             pipelineParams: [{ key: '', value: '' }],
             pipelineInputType: PIPELINE_INPUT_TYPES[0],
             chainstoreResponse: BOOLEAN_TYPES[1],

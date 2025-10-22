@@ -2,7 +2,6 @@ import { InteractionContextType, useInteractionContext } from '@lib/contexts/int
 import { isKeySecret } from '@lib/utils';
 import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
-import StyledTextarea from '@shared/StyledTextarea';
 import { KeyValueEntryWithId } from '@typedefs/deeploys';
 import { useEffect, useState } from 'react';
 import {
@@ -16,7 +15,6 @@ import {
 import { toast } from 'react-hot-toast';
 import { RiAddLine } from 'react-icons/ri';
 import SecretValueToggle from './SecretValueToggle';
-import ValueTypeToggle from './ValueTypeToggle';
 import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
 
@@ -30,7 +28,6 @@ export default function KeyValueEntriesSection({
     disabledKeys,
     placeholders = ['KEY', 'VALUE'],
     enableSecretValues = false,
-    enableJsonValues = false,
     parentMethods,
 }: {
     name: string;
@@ -41,7 +38,6 @@ export default function KeyValueEntriesSection({
     disabledKeys?: string[];
     placeholders?: [string, string];
     enableSecretValues?: boolean;
-    enableJsonValues?: boolean;
     parentMethods?: {
         fields: Record<'id', string>[];
         append: UseFieldArrayAppend<FieldValues, string>;
@@ -49,7 +45,7 @@ export default function KeyValueEntriesSection({
     };
 }) {
     const { confirm } = useInteractionContext() as InteractionContextType;
-    const { control, formState, trigger, setValue } = useFormContext();
+    const { control, formState, trigger } = useFormContext();
 
     const { fields, append, remove } =
         parentMethods ??
@@ -62,7 +58,6 @@ export default function KeyValueEntriesSection({
     const entries = fields as KeyValueEntryWithId[];
 
     const [isFieldSecret, setFieldSecret] = useState<{ [id: string]: boolean }>({});
-    const [fieldValueType, setFieldValueType] = useState<{ [id: string]: 'text' | 'json' }>({});
 
     useEffect(() => {
         entries.forEach((entry) => {
@@ -72,19 +67,17 @@ export default function KeyValueEntriesSection({
                     [entry.id]: isKeySecret(entry.key),
                 }));
             }
-            if (fieldValueType[entry.id] === undefined) {
-                setFieldValueType((previous) => ({
-                    ...previous,
-                    [entry.id]: entry.valueType || 'text',
-                }));
-            }
         });
     }, [entries]);
 
     // Get array-level errors
-    const key = name.split('.')[1];
-    const deploymentErrors = formState.errors.deployment as any;
-    const errors = deploymentErrors?.[key];
+    const errors = name.split('.').reduce<unknown>((acc, segment) => {
+        if (!acc || typeof acc !== 'object') {
+            return undefined;
+        }
+
+        return (acc as Record<string, unknown>)[segment];
+    }, formState.errors as unknown) as any;
 
     return (
         <div className="col gap-4">
@@ -109,6 +102,7 @@ export default function KeyValueEntriesSection({
                                         <StyledInput value={entry.value} isDisabled />
                                     </div>
 
+                                    {/* Displayed for styling purposes */}
                                     <div className="invisible">
                                         <VariableSectionRemove onClick={() => {}} />
                                     </div>
@@ -136,20 +130,6 @@ export default function KeyValueEntriesSection({
                                                     ...previous,
                                                     [entry.id]: !previous[entry.id],
                                                 }));
-                                            }}
-                                        />
-                                    )}
-
-                                    {enableJsonValues && (
-                                        <ValueTypeToggle
-                                            valueType={fieldValueType[entry.id] || 'text'}
-                                            onClick={() => {
-                                                const newType = fieldValueType[entry.id] === 'text' ? 'json' : 'text';
-                                                setFieldValueType((previous) => ({
-                                                    ...previous,
-                                                    [entry.id]: newType,
-                                                }));
-                                                setValue(`${name}.${index}.valueType`, newType, { shouldValidate: true });
                                             }}
                                         />
                                     )}
@@ -202,35 +182,7 @@ export default function KeyValueEntriesSection({
                                                 const specificValueError = entryError?.value;
                                                 const hasError = !!fieldState.error || !!specificValueError;
 
-                                                const currentValueType = fieldValueType[entry.id] || 'text';
-
-                                                return currentValueType === 'json' ? (
-                                                    <StyledTextarea
-                                                        placeholder={placeholders[1]}
-                                                        value={field.value ?? ''}
-                                                        onChange={(e) => {
-                                                            const value = e.target.value;
-                                                            field.onChange(value);
-                                                        }}
-                                                        onBlur={async () => {
-                                                            field.onBlur();
-                                                            // Try to format JSON on blur
-                                                            if (field.value && field.value.trim()) {
-                                                                try {
-                                                                    const parsed = JSON.parse(field.value);
-                                                                    const formatted = JSON.stringify(parsed, null, 2);
-                                                                    field.onChange(formatted);
-                                                                } catch {
-                                                                    // Keep original value if JSON is invalid
-                                                                }
-                                                            }
-                                                        }}
-                                                        isInvalid={hasError}
-                                                        errorMessage={fieldState.error?.message || specificValueError?.message}
-                                                        minRows={3}
-                                                        maxRows={10}
-                                                    />
-                                                ) : (
+                                                return (
                                                     <StyledInput
                                                         placeholder={placeholders[1]}
                                                         value={field.value ?? ''}
@@ -259,11 +211,6 @@ export default function KeyValueEntriesSection({
                                                     delete next[entry.id];
                                                     return next;
                                                 });
-                                                setFieldValueType((previous) => {
-                                                    const next = { ...previous };
-                                                    delete next[entry.id];
-                                                    return next;
-                                                });
                                             }}
                                         />
                                     </div>
@@ -279,7 +226,7 @@ export default function KeyValueEntriesSection({
                     <div
                         className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
                         onClick={() => {
-                            append({ key: '', value: '', valueType: 'text' });
+                            append({ key: '', value: '' });
                         }}
                     >
                         <RiAddLine className="text-lg" /> Add

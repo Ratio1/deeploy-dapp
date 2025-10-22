@@ -130,7 +130,6 @@ export interface KeyValueEntryWithId {
     id: string;
     key: string;
     value: string;
-    valueType?: 'text' | 'json';
 }
 
 export { JobType, ProjectPage };

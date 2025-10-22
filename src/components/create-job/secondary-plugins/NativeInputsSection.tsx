@@ -1,7 +1,6 @@
 import ConfigSectionTitle from '@components/job/config/ConfigSectionTitle';
-import { pluginSignaturesCustomParams } from '@data/default-values/customParams';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
-import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
+import CustomParametersSection from '@shared/jobs/native/CustomParametersSection';
 import NativeAppIdentitySection from '@shared/jobs/native/NativeAppIdentitySection';
 import { useFormContext } from 'react-hook-form';
 import AppParametersSection from '../sections/AppParametersSection';
@@ -21,13 +20,7 @@ export default function NativeInputsSection({ index }: { index: number }) {
             <AppParametersSection baseName={name} />
 
             <ConfigSectionTitle title="Custom Parameters" />
-            <KeyValueEntriesSection
-                name={`${name}.customParams`}
-                displayLabel="custom parameters"
-                maxEntries={50}
-                predefinedEntries={pluginSignaturesCustomParams[pluginSignature] ?? []}
-                enableJsonValues={true}
-            />
+            <CustomParametersSection baseName={name} />
         </div>
     );
 }
