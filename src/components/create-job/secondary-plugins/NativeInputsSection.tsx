@@ -26,6 +26,7 @@ export default function NativeInputsSection({ index }: { index: number }) {
                 displayLabel="custom parameters"
                 maxEntries={50}
                 predefinedEntries={pluginSignaturesCustomParams[pluginSignature] ?? []}
+                enableJsonValues={true}
             />
         </div>
     );

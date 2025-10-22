@@ -10,6 +10,7 @@ import { R1Address } from '@typedefs/blockchain';
 type KeyValueEntry = {
     key: string;
     value: string;
+    valueType?: 'text' | 'json';
 };
 
 type DynamicEnvVarsEntry = {
@@ -39,6 +40,7 @@ type ContainerDeploymentType = {
     crVisibility: (typeof CR_VISIBILITY_OPTIONS)[number];
     crUsername?: string;
     crPassword?: string;
+    ports?: Record<string, string>;
 };
 
 type WorkerDeploymentType = {
@@ -49,6 +51,7 @@ type WorkerDeploymentType = {
     username?: string;
     accessToken?: string;
     workerCommands: Array<{ command: string }>;
+    ports?: Record<string, string>;
 };
 
 type DeploymentType = ContainerDeploymentType | WorkerDeploymentType;
