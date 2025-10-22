@@ -44,7 +44,7 @@ export default function JsonEditor({
     }, [code]);
 
     return (
-        <div className="border-default-200 col overflow-hidden rounded-md border">
+        <div className="border-default-200 col w-full overflow-hidden rounded-lg border">
             <CodeMirror
                 value={code}
                 height={height}

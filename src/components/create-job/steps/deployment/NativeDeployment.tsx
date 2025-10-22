@@ -31,14 +31,6 @@ function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
             </SlateCard>
 
             <SlateCard title="Custom Parameters">
-                {/* TODO: Remove */}
-                {/* <KeyValueEntriesSection
-                    name="deployment.customParams"
-                    displayLabel="custom parameters"
-                    maxEntries={50}
-                    enableJsonValues={true}
-                /> */}
-
                 <CustomParametersSection />
             </SlateCard>
 

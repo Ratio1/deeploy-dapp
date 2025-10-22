@@ -20,16 +20,6 @@ export default function NativeInputsSection({ index }: { index: number }) {
             <AppParametersSection baseName={name} />
 
             <ConfigSectionTitle title="Custom Parameters" />
-
-            {/* TODO: Remove */}
-            {/* <KeyValueEntriesSection
-                name={`${name}.customParams`}
-                displayLabel="custom parameters"
-                maxEntries={50}
-                predefinedEntries={pluginSignaturesCustomParams[pluginSignature] ?? []}
-                enableJsonValues={true}
-            /> */}
-
             <CustomParametersSection />
         </div>
     );

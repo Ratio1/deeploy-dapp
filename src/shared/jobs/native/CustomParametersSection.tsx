@@ -1,4 +1,5 @@
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
+import CustomTabs from '@shared/CustomTabs';
 import JsonEditor from '@shared/JsonEditor';
 import StyledInput from '@shared/StyledInput';
 import { CustomParameterEntry } from '@typedefs/steps/deploymentStepTypes';
@@ -36,6 +37,8 @@ export default function CustomParametersSection() {
     const errors = deploymentErrors?.[key];
 
     useEffect(() => {
+        console.log('entries', entries);
+
         entries.forEach((entry) => {
             if (fieldValueType[entry.id] === undefined) {
                 setFieldValueType((previous) => ({
@@ -58,64 +61,127 @@ export default function CustomParametersSection() {
                             const entryError = errors?.[index];
 
                             return (
-                                <div key={entry.id} className="flex gap-3">
-                                    <VariableSectionIndex index={index} />
+                                <div key={entry.id} className="col gap-1.5">
+                                    <div className="flex gap-3">
+                                        <VariableSectionIndex index={index} />
 
-                                    {/* TODO: Toggle between String and JSON */}
+                                        <div className="flex w-full gap-2">
+                                            <CustomTabs
+                                                tabs={[
+                                                    {
+                                                        key: 'string',
+                                                        title: 'String',
+                                                    },
+                                                    {
+                                                        key: 'JSON',
+                                                        title: 'JSON',
+                                                    },
+                                                ]}
+                                                selectedKey={fieldValueType[entry.id]}
+                                                onSelectionChange={(key) => {
+                                                    console.log('key', key);
+                                                    setValue(`${name}.${index}.valueType`, key, { shouldDirty: true });
+                                                }}
+                                                isCompact
+                                            />
 
-                                    <div className="flex w-full gap-2">
-                                        <Controller
-                                            name={`${name}.${index}.key`}
-                                            control={control}
-                                            render={({ field, fieldState }) => {
-                                                // Check for specific error on this key input or array-level error
-                                                const specificKeyError = entryError?.key;
-                                                const hasError =
-                                                    !!fieldState.error || !!specificKeyError || !!errors?.root?.message;
+                                            <Controller
+                                                name={`${name}.${index}.key`}
+                                                control={control}
+                                                render={({ field, fieldState }) => {
+                                                    // Check for specific error on this key input or array-level error
+                                                    const specificKeyError = entryError?.key;
+                                                    const hasError =
+                                                        !!fieldState.error || !!specificKeyError || !!errors?.root?.message;
 
-                                                return (
-                                                    <StyledInput
-                                                        placeholder={placeholders[0]}
-                                                        value={field.value ?? ''}
-                                                        onChange={async (e) => {
-                                                            const value = e.target.value;
-                                                            field.onChange(value);
-                                                        }}
-                                                        onBlur={async () => {
-                                                            field.onBlur();
+                                                    return (
+                                                        <StyledInput
+                                                            placeholder={placeholders[0]}
+                                                            value={field.value ?? ''}
+                                                            onChange={async (e) => {
+                                                                const value = e.target.value;
+                                                                field.onChange(value);
+                                                            }}
+                                                            onBlur={async () => {
+                                                                field.onBlur();
 
-                                                            // Trigger validation for the entire array to check for duplicate keys
-                                                            if (entries.length > 1) {
-                                                                await trigger(name);
+                                                                // Trigger validation for the entire array to check for duplicate keys
+                                                                if (entries.length > 1) {
+                                                                    await trigger(name);
+                                                                }
+                                                            }}
+                                                            isInvalid={hasError}
+                                                            errorMessage={
+                                                                fieldState.error?.message ||
+                                                                specificKeyError?.message ||
+                                                                (errors?.root?.message && index === 0
+                                                                    ? errors.root.message
+                                                                    : undefined)
                                                             }
-                                                        }}
-                                                        isInvalid={hasError}
-                                                        errorMessage={
-                                                            fieldState.error?.message ||
-                                                            specificKeyError?.message ||
-                                                            (errors?.root?.message && index === 0
-                                                                ? errors.root.message
-                                                                : undefined)
-                                                        }
-                                                    />
-                                                );
-                                            }}
-                                        />
+                                                        />
+                                                    );
+                                                }}
+                                            />
+                                        </div>
 
-                                        {/* TODO: Controller */}
-                                        <JsonEditor
-                                            onChange={(value) => {
-                                                console.log(value);
-                                            }}
-                                        />
-                                    </div>
-
-                                    <div>
                                         <VariableSectionRemove
                                             onClick={() => {
                                                 remove(index);
                                             }}
                                         />
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                        {/* Displayed for styling purposes */}
+                                        <div className="invisible">
+                                            <VariableSectionIndex index={index} />
+                                        </div>
+
+                                        <div className="flex w-full min-w-md">
+                                            {entry.valueType === 'string' ? (
+                                                <Controller
+                                                    name={`${name}.${index}.value`}
+                                                    control={control}
+                                                    render={({ field, fieldState }) => {
+                                                        // Check for specific error on this value input
+                                                        const specificValueError = entryError?.value;
+                                                        const hasError = !!fieldState.error || !!specificValueError;
+
+                                                        return (
+                                                            <StyledInput
+                                                                placeholder={placeholders[1]}
+                                                                value={field.value ?? ''}
+                                                                onChange={(e) => {
+                                                                    const value = e.target.value;
+                                                                    field.onChange(value);
+                                                                }}
+                                                                onBlur={async () => {
+                                                                    field.onBlur();
+                                                                }}
+                                                                isInvalid={hasError}
+                                                                errorMessage={
+                                                                    fieldState.error?.message || specificValueError?.message
+                                                                }
+                                                            />
+                                                        );
+                                                    }}
+                                                />
+                                            ) : (
+                                                <JsonEditor
+                                                    height="150px"
+                                                    onChange={(value) => {
+                                                        console.log(value);
+                                                    }}
+                                                />
+                                            )}
+                                            {/* TODO: Controller */}
+                                            {/* TODO: Display the errors from the refinement */}
+                                        </div>
+
+                                        {/* Displayed for styling purposes */}
+                                        <div className="invisible">
+                                            <VariableSectionRemove onClick={() => {}} />
+                                        </div>
                                     </div>
                                 </div>
                             );
@@ -129,7 +195,7 @@ export default function CustomParametersSection() {
                     <div
                         className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
                         onClick={() => {
-                            append({ key: '', value: '' });
+                            append({ key: '', value: '', valueType: 'string' });
                         }}
                     >
                         <RiAddLine className="text-lg" /> Add
