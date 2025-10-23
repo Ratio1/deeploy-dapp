@@ -106,7 +106,9 @@ export const getContainerOrWorkerType = (jobType: JobType, specifications: JobSp
 };
 
 export const getGpuType = (specifications: GenericJobSpecifications | NativeJobSpecifications): GpuType | undefined => {
-    return specifications.gpuType ? gpuTypes.find((type) => type.name === specifications.gpuType) : undefined;
+    return specifications.gpuType && specifications.gpuType !== ''
+        ? gpuTypes.find((type) => type.name === specifications.gpuType)
+        : undefined;
 };
 
 export const downloadDataAsJson = (data: any, filename: string) => {

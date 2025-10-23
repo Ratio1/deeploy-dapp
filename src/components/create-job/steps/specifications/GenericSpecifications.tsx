@@ -27,11 +27,7 @@ export default function GenericSpecifications({
 
                 <SelectGPU jobType={JobType.Generic} isDisabled={isEditingJob} />
 
-                <ContainerResourcesInfo
-                    jobType={JobType.Generic}
-                    name="specifications.containerType"
-                    options={genericContainerTypes}
-                />
+                <ContainerResourcesInfo name="specifications.containerType" options={genericContainerTypes} />
             </SlateCard>
 
             <SpecsNodesSection

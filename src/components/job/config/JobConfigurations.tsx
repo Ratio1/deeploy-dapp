@@ -7,7 +7,7 @@ import StyledSelect from '@shared/StyledSelect';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import _, { isEmpty } from 'lodash';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import JobDynamicEnvSection from '../JobDynamicEnvSection';
 import JobFileVolumesSection from '../JobFileVolumesSection';
 import JobKeyValueSection from '../JobKeyValueSection';
@@ -40,10 +40,6 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
     const [pluginConfig, setPluginConfig] = useState<PluginConfig>(pluginConfigs[0]!);
 
     const config = pluginConfig.value;
-
-    useEffect(() => {
-        console.log('Config', pluginConfig);
-    }, [pluginConfig]);
 
     return (
         <BorderedCard isLight={false} disableWrapper>

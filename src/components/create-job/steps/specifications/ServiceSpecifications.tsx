@@ -6,7 +6,6 @@ import SelectContainerOrWorkerType from '@shared/jobs/SelectContainerOrWorkerTyp
 import JobTags from '@shared/jobs/target-nodes/JobTags';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
-import { JobType } from '@typedefs/deeploys';
 
 export default function ServiceSpecifications({ isEditingJob }: { isEditingJob?: boolean }) {
     return (
@@ -19,11 +18,7 @@ export default function ServiceSpecifications({ isEditingJob }: { isEditingJob?:
                     isDisabled={isEditingJob}
                 />
 
-                <ContainerResourcesInfo
-                    jobType={JobType.Service}
-                    name="specifications.containerType"
-                    options={serviceContainerTypes}
-                />
+                <ContainerResourcesInfo name="specifications.containerType" options={serviceContainerTypes} />
             </SlateCard>
 
             <SlateCard>

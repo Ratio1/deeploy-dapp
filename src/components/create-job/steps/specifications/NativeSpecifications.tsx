@@ -27,7 +27,7 @@ export default function NativeSpecifications({
 
                 <SelectGPU jobType={JobType.Native} isDisabled={isEditingJob} />
 
-                <ContainerResourcesInfo jobType={JobType.Native} name="specifications.workerType" options={nativeWorkerTypes} />
+                <ContainerResourcesInfo name="specifications.workerType" options={nativeWorkerTypes} />
             </SlateCard>
 
             <SpecsNodesSection

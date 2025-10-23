@@ -66,7 +66,7 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
                         <Checkbox
                             isSelected={allowReplicationInTheWild}
                             onValueChange={(value) => {
-                                setValue('deployment.allowReplicationInTheWild', value);
+                                setValue('deployment.allowReplicationInTheWild', value, { shouldDirty: true });
                             }}
                         >
                             <div className="compact text-slate-600">Allow deployment beyond chosen nodes</div>

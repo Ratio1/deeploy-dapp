@@ -180,8 +180,10 @@ export default function EditJob() {
             }
 
             if (
-                updatePipelineResponse.status === 'success' &&
-                (increasingTargetNodes ? scaleUpWorkersResponse.status === 'success' : true)
+                (updatePipelineResponse.status === 'success' || updatePipelineResponse.status === 'command_delivered') &&
+                (increasingTargetNodes
+                    ? scaleUpWorkersResponse.status === 'success' || scaleUpWorkersResponse.status === 'command_delivered'
+                    : true)
             ) {
                 deeployFlowModalRef.current?.progress('done');
                 setFetchAppsRequired(true);
@@ -225,8 +227,12 @@ export default function EditJob() {
                             text = 'Request timed out';
                         } else if (response.error) {
                             text = response.error;
-                        } else if (response.status && response.status !== 'success') {
-                            text = `Request failed with status ${response.status}`;
+                        } else if (
+                            response.status &&
+                            response.status !== 'success' &&
+                            response.status !== 'command_delivered'
+                        ) {
+                            text = `Request failed with status: ${response.status}`;
                         }
 
                         if (!text) {

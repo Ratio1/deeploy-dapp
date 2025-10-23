@@ -16,12 +16,12 @@ type JobFormValues = z.infer<typeof jobSchema>;
 type StepKey = 'specifications' | 'costAndDuration' | 'deployment';
 
 const hasDirtyFields = (dirtyValue: unknown): boolean => {
-    if (!dirtyValue) {
-        return false;
+    if (typeof dirtyValue === 'boolean') {
+        return dirtyValue;
     }
 
-    if (dirtyValue === true) {
-        return true;
+    if (!dirtyValue) {
+        return false;
     }
 
     if (Array.isArray(dirtyValue)) {

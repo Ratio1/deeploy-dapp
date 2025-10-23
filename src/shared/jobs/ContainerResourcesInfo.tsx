@@ -1,17 +1,15 @@
 import { ContainerOrWorkerType, GpuType, gpuTypes } from '@data/containerResources';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
-import { JobType } from '@typedefs/deeploys';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 interface Props {
-    jobType: JobType;
     name: string;
     options: ContainerOrWorkerType[];
 }
 
-export default function ContainerResourcesInfo({ jobType, name, options }: Props) {
+export default function ContainerResourcesInfo({ name, options }: Props) {
     const { watch } = useFormContext();
 
     const containerOrWorkerTypeName: string = watch(name);
