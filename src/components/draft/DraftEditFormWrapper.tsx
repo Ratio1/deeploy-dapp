@@ -4,7 +4,6 @@ import Deployment from '@components/create-job/steps/Deployment';
 import Specifications from '@components/create-job/steps/Specifications';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
@@ -12,6 +11,7 @@ import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import SubmitButton from '@shared/SubmitButton';
 import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
+import { cloneDeep } from 'lodash';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import z from 'zod';
@@ -36,25 +36,6 @@ export default function DraftEditFormWrapper({
 
     const navigate = useNavigate();
 
-    const cloneKeyValueEntries = (entries?: Array<{ key: string; value: string }>) =>
-        entries ? entries.map((entry) => ({ key: entry.key, value: entry.value })) : [];
-
-    const cloneDynamicEnvEntries = (
-        entries?: Array<{
-            key: string;
-            values: Array<{ type: (typeof DYNAMIC_ENV_TYPES)[number]; value: string }>;
-        }>,
-    ) =>
-        entries
-            ? entries.map((entry) => ({
-                  key: entry.key,
-                  values: entry.values.map((value) => ({ type: value.type, value: value.value })),
-              }))
-            : [];
-
-    const cloneDeploymentNodes = (nodes?: Array<{ address: string }>) =>
-        nodes && nodes.length ? nodes.map((node) => ({ address: node.address })) : [{ address: '' }];
-
     const getBaseSchemaDefaults = () => ({
         jobType: job.jobType,
         specifications: {
@@ -69,8 +50,8 @@ export default function DraftEditFormWrapper({
         },
         deployment: {
             autoAssign: job.deployment.autoAssign ?? true,
-            targetNodes: cloneDeploymentNodes(job.deployment.targetNodes),
-            spareNodes: cloneDeploymentNodes(job.deployment.spareNodes),
+            targetNodes: cloneDeep(job.deployment.targetNodes),
+            spareNodes: cloneDeep(job.deployment.spareNodes),
             allowReplicationInTheWild: job.deployment.allowReplicationInTheWild ?? true,
             enableTunneling: job.deployment.enableTunneling ?? BOOLEAN_TYPES[0],
             tunnelingToken: job.deployment.tunnelingToken,
@@ -108,12 +89,13 @@ export default function DraftEditFormWrapper({
                               username: deployment.deploymentType.username ?? '',
                               accessToken: deployment.deploymentType.accessToken ?? '',
                           },
+                ports: cloneDeep(deployment.ports),
                 port: deployment.port ?? '',
                 restartPolicy: deployment.restartPolicy,
                 imagePullPolicy: deployment.imagePullPolicy,
-                envVars: cloneKeyValueEntries(deployment.envVars),
-                dynamicEnvVars: cloneDynamicEnvEntries(deployment.dynamicEnvVars),
-                volumes: cloneKeyValueEntries(deployment.volumes),
+                envVars: cloneDeep(deployment.envVars),
+                dynamicEnvVars: cloneDeep(deployment.dynamicEnvVars),
+                volumes: cloneDeep(deployment.volumes),
                 fileVolumes: deployment.fileVolumes
                     ? deployment.fileVolumes.map((fileVolume) => ({
                           name: fileVolume.name,
@@ -143,8 +125,8 @@ export default function DraftEditFormWrapper({
                 port: deployment.port ?? '',
                 pluginSignature: deployment.pluginSignature,
                 customPluginSignature: deployment.customPluginSignature,
-                customParams: cloneKeyValueEntries(deployment.customParams), // TODO: Clone with valueType
-                pipelineParams: cloneKeyValueEntries(deployment.pipelineParams),
+                customParams: cloneDeep(deployment.customParams),
+                pipelineParams: cloneDeep(deployment.pipelineParams),
                 pipelineInputType: deployment.pipelineInputType ?? PIPELINE_INPUT_TYPES[0],
                 pipelineInputUri: deployment.pipelineInputUri,
                 chainstoreResponse: deployment.chainstoreResponse ?? BOOLEAN_TYPES[1],
@@ -166,6 +148,7 @@ export default function DraftEditFormWrapper({
             deployment: {
                 ...baseDefaults.deployment,
                 jobAlias: deployment.jobAlias,
+                inputs: cloneDeep(deployment.inputs),
                 serviceReplica: deployment.serviceReplica ?? '',
             },
         } as z.infer<typeof jobSchema>;
