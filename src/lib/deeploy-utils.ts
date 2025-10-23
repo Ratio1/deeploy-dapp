@@ -23,7 +23,12 @@ import {
     ServiceJobDeployment,
     ServiceJobSpecifications,
 } from '@typedefs/deeploys';
-import { GenericSecondaryPlugin, NativeSecondaryPlugin, SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
+import {
+    GenericSecondaryPlugin,
+    NativeSecondaryPlugin,
+    PortMappingEntry,
+    SecondaryPluginType,
+} from '@typedefs/steps/deploymentStepTypes';
 import { addDays, addHours, differenceInDays, differenceInHours } from 'date-fns';
 import _ from 'lodash';
 import { FieldValues, UseFieldArrayAppend, UseFieldArrayRemove } from 'react-hook-form';
@@ -170,12 +175,23 @@ export const formatFileVolumes = (fileVolumes: { name: string; mountingPoint: st
     return formatted;
 };
 
-export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType, ports?: Record<string, string>) => {
-    return {
+export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType, portsArray: Array<PortMappingEntry>) => {
+    const baseResources: { cpu: number; memory: string; ports?: Record<string, number> } = {
         cpu: containerOrWorkerType.cores,
         memory: `${containerOrWorkerType.ram}g`,
-        ...(ports && Object.keys(ports).length > 0 && { ports }),
     };
+
+    if (portsArray.length > 0) {
+        const ports = {};
+
+        portsArray.forEach((port) => {
+            ports[port.hostPort.toString()] = port.containerPort;
+        });
+
+        baseResources.ports = ports;
+    }
+
+    return baseResources;
 };
 
 export const formatNodes = (targetNodes: { address: string }[]): string[] => {
@@ -246,7 +262,7 @@ export const formatGenericPluginConfigAndSignature = (
     resources: {
         cpu: number;
         memory: string;
-        ports?: Record<string, string>;
+        ports?: Record<string, number>;
     },
     plugin: GenericSecondaryPlugin,
 ) => {
@@ -311,7 +327,7 @@ export const formatGenericJobPayload = (
     const spareNodes = formatNodes(deployment.spareNodes);
 
     const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
-        formatContainerResources(containerType, deployment.deploymentType.ports),
+        formatContainerResources(containerType, deployment.ports),
         deployment,
     );
 
@@ -351,7 +367,7 @@ export const formatNativeJobPayload = (
         }
     });
 
-    const nodeResources = formatContainerResources(workerType, undefined);
+    const nodeResources = formatContainerResources(workerType, []);
     const targetNodes = formatNodes(deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, specifications.targetNodesCount);
 
@@ -438,7 +454,7 @@ export const formatServiceJobPayload = (
     deployment: ServiceJobDeployment,
 ) => {
     const jobTags = formatJobTags(specifications);
-    const containerResources = formatContainerResources(containerType, undefined);
+    const containerResources = formatContainerResources(containerType, []);
     const targetNodes = formatNodes(deployment.targetNodes);
     const spareNodes = formatNodes(deployment.spareNodes);
 

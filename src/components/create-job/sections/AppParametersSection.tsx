@@ -1,7 +1,6 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import InputWithLabel from '@shared/InputWithLabel';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
-import PortMappingSection from '@shared/PortMappingSection';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
 
@@ -9,7 +8,6 @@ export default function AppParametersSection({ baseName = 'deployment' }: { base
     const { watch, trigger } = useFormContext();
 
     const enableTunneling: (typeof BOOLEAN_TYPES)[number] = watch(`${baseName}.enableTunneling`);
-    const deploymentType = watch(`${baseName}.deploymentType.type`);
 
     return (
         <div className="col gap-4">
@@ -34,11 +32,6 @@ export default function AppParametersSection({ baseName = 'deployment' }: { base
                 <div className="flex gap-4">
                     <InputWithLabel name={`${baseName}.tunnelingToken`} label="Tunnel Token" placeholder="Starts with 'ey'" />
                 </div>
-            )}
-
-            {/* TODO: Check if deploying generic plugin/job */}
-            {(deploymentType === 'container' || deploymentType === 'worker') && (
-                <PortMappingSection name={`${baseName}.deploymentType.ports`} label="Port Mapping" />
             )}
         </div>
     );

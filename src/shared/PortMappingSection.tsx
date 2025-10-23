@@ -1,121 +1,177 @@
-import ConfigSectionTitle from '@components/job/config/ConfigSectionTitle';
-import StyledInput from '@shared/StyledInput';
-import VariableSectionRemove from '@shared/jobs/VariableSectionRemove';
-import { useState } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
+import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { RiAddLine } from 'react-icons/ri';
 import DeeployWarning from './jobs/DeeployWarning';
+import VariableSectionIndex from './jobs/VariableSectionIndex';
+import VariableSectionRemove from './jobs/VariableSectionRemove';
+import StyledInput from './StyledInput';
 
-interface PortMappingSectionProps {
-    name: string;
-    label?: string;
+interface PortMappingEntryWithId {
+    id: string;
+    hostPort: number;
+    containerPort: number;
 }
 
-export default function PortMappingSection({ name, label = 'Port Mapping' }: PortMappingSectionProps) {
-    const { setValue, watch, formState, trigger } = useFormContext();
-    const ports = watch(name) || {};
-    const [portEntries, setPortEntries] = useState<Array<{ id: string; hostPort: string; containerPort: string }>>(
-        Object.entries(ports).map(([hostPort, containerPort], index) => ({
-            id: `port-${index}`,
-            hostPort,
-            containerPort: String(containerPort),
-        })),
-    );
+export default function PortMappingSection({ baseName = 'deployment' }: { baseName?: string }) {
+    const name = `${baseName}.ports`;
 
-    const updatePorts = (entries: Array<{ id: string; hostPort: string; containerPort: string }>) => {
-        const newPorts: Record<string, string> = {};
-        entries.forEach((entry) => {
-            if (entry.hostPort && entry.containerPort) {
-                newPorts[entry.hostPort] = entry.containerPort;
-            }
-        });
-        setValue(name, newPorts);
-        trigger(name);
-    };
+    const { confirm } = useInteractionContext() as InteractionContextType;
+    const { trigger, control, formState } = useFormContext();
 
-    const addPortMapping = () => {
-        const newEntry = {
-            id: `port-${Date.now()}`,
-            hostPort: '',
-            containerPort: '',
-        };
-        const newEntries = [...portEntries, newEntry];
-        setPortEntries(newEntries);
-    };
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name,
+    });
 
-    const removePortMapping = (id: string) => {
-        const newEntries = portEntries.filter((entry) => entry.id !== id);
-        setPortEntries(newEntries);
-        updatePorts(newEntries);
-    };
+    // Explicitly type the fields to match the expected structure
+    const entries = fields as PortMappingEntryWithId[];
 
-    const updateEntry = (id: string, field: 'hostPort' | 'containerPort', value: string) => {
-        const newEntries = portEntries.map((entry) => (entry.id === id ? { ...entry, [field]: value } : entry));
-        setPortEntries(newEntries);
-        updatePorts(newEntries);
-    };
+    // Get array-level errors
+    const errors = name.split('.').reduce<unknown>((acc, segment) => {
+        if (!acc || typeof acc !== 'object') {
+            return undefined;
+        }
 
-    // Check for duplicate host ports
-    const hostPorts = portEntries.map((entry) => entry.hostPort).filter((port) => port);
-    const duplicateHostPorts = hostPorts.filter((port, index) => hostPorts.indexOf(port) !== index);
-    const hasDuplicateHostPorts = duplicateHostPorts.length > 0;
+        return (acc as Record<string, unknown>)[segment];
+    }, formState.errors as unknown) as any;
 
     return (
         <div className="col gap-3">
-            <ConfigSectionTitle title={label} />
+            {entries.length === 0 ? (
+                <div className="text-sm text-slate-500 italic">No port mappings added yet.</div>
+            ) : (
+                entries.map((entry: PortMappingEntryWithId, index) => {
+                    // Get the error for this specific entry
+                    const entryError = errors?.[index];
 
-            <DeeployWarning
-                title={<div>Port Availability</div>}
-                description={
-                    <div>
-                        The plugin may fail to start if the specified host ports are not available on your target nodes. Ensure
-                        the ports you map are free and accessible.
+                    return (
+                        <div key={entry.id} className="flex gap-3">
+                            <VariableSectionIndex index={index} />
+
+                            <div className="flex w-full gap-2">
+                                <Controller
+                                    name={`${name}.${index}.hostPort`}
+                                    control={control}
+                                    render={({ field, fieldState }) => {
+                                        // Check for specific error on this key input or array-level error
+                                        const specificKeyError = entryError?.key;
+                                        const hasError = !!fieldState.error || !!specificKeyError || !!errors?.root?.message;
+
+                                        return (
+                                            <StyledInput
+                                                type="number"
+                                                placeholder="Host Port (e.g., 8080)"
+                                                value={field.value}
+                                                onChange={async (e) => {
+                                                    const value = e.target.value;
+                                                    field.onChange(value === '' ? undefined : Number(value));
+                                                }}
+                                                onBlur={async () => {
+                                                    field.onBlur();
+
+                                                    // Trigger validation for the entire array to check for duplicate keys
+                                                    if (entries.length > 1) {
+                                                        await trigger(name);
+                                                    }
+                                                }}
+                                                isInvalid={hasError}
+                                                errorMessage={
+                                                    fieldState.error?.message ||
+                                                    specificKeyError?.message ||
+                                                    (errors?.root?.message && index === 0 ? errors.root.message : undefined)
+                                                }
+                                            />
+                                        );
+                                    }}
+                                />
+
+                                <Controller
+                                    name={`${name}.${index}.containerPort`}
+                                    control={control}
+                                    render={({ field, fieldState }) => {
+                                        // Check for specific error on this value input
+                                        const specificValueError = entryError?.value;
+                                        const hasError = !!fieldState.error || !!specificValueError;
+
+                                        return (
+                                            <StyledInput
+                                                type="number"
+                                                placeholder="Container Port (e.g., 8081)"
+                                                value={field.value}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    field.onChange(value === '' ? undefined : Number(value));
+                                                }}
+                                                onBlur={async () => {
+                                                    field.onBlur();
+                                                }}
+                                                isInvalid={hasError}
+                                                errorMessage={fieldState.error?.message || specificValueError?.message}
+                                            />
+                                        );
+                                    }}
+                                />
+                            </div>
+
+                            <VariableSectionRemove
+                                onClick={() => {
+                                    remove(index);
+                                }}
+                            />
+                        </div>
+                    );
+                })
+            )}
+
+            {entries.length < 50 && (
+                <div className="row justify-between">
+                    <div
+                        className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
+                        onClick={() => {
+                            append({ key: '', value: '' });
+                        }}
+                    >
+                        <RiAddLine className="text-lg" /> Add
                     </div>
-                }
-            />
 
-            {portEntries.length === 0 && <div className="text-sm text-gray-500 italic">No port mappings added yet.</div>}
+                    {entries.length > 1 && (
+                        <div
+                            className="compact cursor-pointer text-red-600 hover:opacity-50"
+                            onClick={async () => {
+                                try {
+                                    const confirmed = await confirm(<div>Are you sure you want to remove all entries?</div>);
 
-            {portEntries.map((entry, index) => (
-                <div key={entry.id} className="row items-end gap-3">
-                    <div className="flex-1">
-                        <StyledInput
-                            placeholder="e.g., 8080"
-                            value={entry.hostPort}
-                            onChange={(e) => updateEntry(entry.id, 'hostPort', e.target.value)}
-                            isInvalid={hasDuplicateHostPorts && duplicateHostPorts.includes(entry.hostPort)}
-                            errorMessage={
-                                hasDuplicateHostPorts && duplicateHostPorts.includes(entry.hostPort)
-                                    ? 'Duplicate host port'
-                                    : undefined
-                            }
-                        />
-                    </div>
-                    <div className="flex-1">
-                        <StyledInput
-                            placeholder="e.g., 8081"
-                            value={entry.containerPort}
-                            onChange={(e) => updateEntry(entry.id, 'containerPort', e.target.value)}
-                        />
-                    </div>
-                    <VariableSectionRemove onClick={() => removePortMapping(entry.id)} />
-                </div>
-            ))}
+                                    if (!confirmed) {
+                                        return;
+                                    }
 
-            {portEntries.length > 0 && (
-                <div className="text-sm text-slate-500">
-                    Format: <span className="font-medium uppercase">host_port:container_port</span>
+                                    for (let i = entries.length - 1; i >= 0; i--) {
+                                        remove(i);
+                                    }
+                                } catch (error) {
+                                    console.error('Error removing all entries:', error);
+                                    toast.error('Failed to remove all entries.');
+                                }
+                            }}
+                        >
+                            Remove all
+                        </div>
+                    )}
                 </div>
             )}
 
-            {hasDuplicateHostPorts && (
-                <div className="text-danger-600 text-sm">⚠️ Duplicate host ports detected. Each host port must be unique.</div>
+            {entries.length > 0 && (
+                <DeeployWarning
+                    title={<div>Port Availability</div>}
+                    description={
+                        <div>
+                            The plugin may fail to start if the specified host ports are not available on your target nodes.
+                            Ensure the ports you map are free and accessible.
+                        </div>
+                    }
+                />
             )}
-
-            {/* TODO: Use append */}
-            <div className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50" onClick={addPortMapping}>
-                <RiAddLine className="text-lg" /> Add
-            </div>
         </div>
     );
 }

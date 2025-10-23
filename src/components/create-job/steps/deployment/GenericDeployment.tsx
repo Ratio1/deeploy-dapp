@@ -8,6 +8,7 @@ import EnvVariablesCard from '@shared/jobs/EnvVariablesCard';
 import FileVolumesSection from '@shared/jobs/FileVolumesSection';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
+import PortMappingSection from '@shared/PortMappingSection';
 
 function GenericDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
     return (
@@ -24,6 +25,10 @@ function GenericDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
 
             <SlateCard title="App Parameters">
                 <AppParametersSection />
+            </SlateCard>
+
+            <SlateCard title="Port Mapping">
+                <PortMappingSection />
             </SlateCard>
 
             <EnvVariablesCard />

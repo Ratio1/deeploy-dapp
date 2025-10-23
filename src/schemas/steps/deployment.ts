@@ -40,12 +40,6 @@ const validations = {
         .max(256, 'Value cannot exceed 256 characters')
         .regex(/^https?:\/\/.+/, 'Must be a valid URI'),
 
-    // optionalUri: z
-    //     .string()
-    //     .refine((val) => val === '' || val.length >= 2, 'Value must be at least 2 characters')
-    //     .refine((val) => val === '' || val.length <= 256, 'Value cannot exceed 256 characters')
-    //     .refine((val) => val === '' || /^https?:\/\/.+/.test(val), 'Must be a valid URI'),
-
     optionalUri: z
         .union([
             z.literal(''),
@@ -65,6 +59,32 @@ const validations = {
             .min(1, 'Value must be at least 1')
             .max(65535, 'Value cannot exceed 65535'),
     ]),
+
+    ports: z
+        .array(
+            z.object({
+                hostPort: z
+                    .number()
+                    .int('Value must be a whole number')
+                    .min(1, 'Value must be at least 1')
+                    .max(65535, 'Value cannot exceed 65535'),
+                containerPort: z
+                    .number()
+                    .int('Value must be a whole number')
+                    .min(1, 'Value must be at least 1')
+                    .max(65535, 'Value cannot exceed 65535'),
+            }),
+        )
+        .refine(
+            (entries) => {
+                const hostPorts = entries.map((entry) => entry.hostPort);
+                return hostPorts.length === new Set(hostPorts).size;
+            },
+            {
+                message: 'Duplicate host ports are not allowed',
+            },
+        )
+        .default([]),
 
     envVars: getKeyValueEntriesArraySchema(),
     dynamicEnvVars: z
@@ -197,6 +217,7 @@ export const applyCustomPluginSignatureRefinements = (schema) => {
 };
 
 const baseDeploymentSchema = z.object({
+    // Target Nodes
     autoAssign: z.boolean(),
     targetNodes: z.array(nodeSchema).refine(
         (nodes) => {
@@ -221,9 +242,12 @@ const baseDeploymentSchema = z.object({
         },
     ),
     allowReplicationInTheWild: z.boolean(),
+
+    // Tunneling
     enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
-    tunnelingLabel: getOptionalStringSchema(64),
+    port: validations.port,
     tunnelingToken: getOptionalStringSchema(512),
+    tunnelingLabel: getOptionalStringSchema(64),
 });
 
 const containerDeploymentTypeSchema = z.object({
@@ -233,7 +257,6 @@ const containerDeploymentTypeSchema = z.object({
     crVisibility: z.enum(CR_VISIBILITY_OPTIONS, { required_error: 'Value is required' }),
     crUsername: z.union([getStringSchema(3, 128), z.literal('')]).optional(),
     crPassword: z.union([getStringSchema(3, 256), z.literal('')]).optional(),
-    ports: z.record(z.string(), z.string()).optional(),
 });
 
 const workerDeploymentTypeSchema = z.object({
@@ -266,7 +289,6 @@ const workerDeploymentTypeSchema = z.object({
             message: 'Duplicate commands are not allowed',
         },
     ),
-    ports: z.record(z.string(), z.string()).optional(),
 });
 
 export const deploymentTypeSchema = z.discriminatedUnion('type', [containerDeploymentTypeSchema, workerDeploymentTypeSchema]);
@@ -274,7 +296,7 @@ export const deploymentTypeSchema = z.discriminatedUnion('type', [containerDeplo
 const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,
     deploymentType: deploymentTypeSchema,
-    port: validations.port,
+    ports: validations.ports,
     envVars: validations.envVars,
     dynamicEnvVars: validations.dynamicEnvVars,
     volumes: validations.volumes,
@@ -295,6 +317,9 @@ const baseGenericSecondaryPluginSchema = z.object({
     port: validations.port,
     enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
     tunnelingToken: getOptionalStringSchema(512),
+
+    // Ports
+    ports: validations.ports,
 
     // Deployment type
     deploymentType: deploymentTypeSchema,
@@ -324,6 +349,9 @@ const baseNativeSecondaryPluginSchema = z.object({
     enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
     tunnelingToken: getOptionalStringSchema(512),
 
+    // Ports
+    ports: validations.ports,
+
     // Custom Parameters
     customParams: validations.customParams,
 });
@@ -341,7 +369,6 @@ const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend(
     jobAlias: validations.jobAlias,
     pluginSignature: validations.pluginSignature,
     customPluginSignature: getOptionalStringSchema(128),
-    port: validations.port,
     customParams: validations.customParams,
     pipelineParams: validations.pipelineParams,
     pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
@@ -356,7 +383,6 @@ export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(
 
 const serviceAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,
-    port: validations.port,
     enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
     tunnelingToken: getOptionalStringSchema(512),
     inputs: validations.envVars,

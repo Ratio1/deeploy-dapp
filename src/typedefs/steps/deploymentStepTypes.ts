@@ -35,6 +35,11 @@ type FileVolumesEntry = {
     content: string;
 };
 
+type PortMappingEntry = {
+    hostPort: number;
+    containerPort: number;
+};
+
 // Deployment types
 type ContainerDeploymentType = {
     type: 'container';
@@ -43,7 +48,6 @@ type ContainerDeploymentType = {
     crVisibility: (typeof CR_VISIBILITY_OPTIONS)[number];
     crUsername?: string;
     crPassword?: string;
-    ports?: Record<string, string>;
 };
 
 type WorkerDeploymentType = {
@@ -54,23 +58,24 @@ type WorkerDeploymentType = {
     username?: string;
     accessToken?: string;
     workerCommands: Array<{ command: string }>;
-    ports?: Record<string, string>;
 };
 
 type DeploymentType = ContainerDeploymentType | WorkerDeploymentType;
 
 // Plugin-related types
-
 export enum SecondaryPluginType {
     Generic = 'generic',
     Native = 'native',
 }
 
 type GenericSecondaryPlugin = {
-    // Base
+    // Tunneling
     port?: number | string;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
     tunnelingToken?: string;
+
+    // Ports
+    ports: Array<PortMappingEntry>;
 
     // Deployment type
     deploymentType: DeploymentType;
@@ -113,16 +118,23 @@ type BaseJobDeployment = {
     allowReplicationInTheWild: boolean;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
     port?: number | string;
-    tunnelingLabel?: string;
     tunnelingToken?: string;
+    tunnelingLabel?: string;
 };
 
 type GenericJobDeployment = BaseJobDeployment & {
     deploymentType: DeploymentType;
+
+    // Ports
+    ports: Array<PortMappingEntry>;
+
+    // Variables
     envVars: Array<KeyValueEntry>;
     dynamicEnvVars: Array<DynamicEnvVarsEntry>;
     volumes: Array<VolumesEntry>;
     fileVolumes: Array<FileVolumesEntry>;
+
+    // Policies
     restartPolicy: (typeof POLICY_TYPES)[number];
     imagePullPolicy: (typeof POLICY_TYPES)[number];
 };
@@ -154,6 +166,7 @@ export type {
     JobDeployment,
     NativeJobDeployment,
     NativeSecondaryPlugin,
+    PortMappingEntry,
     SecondaryPlugin,
     ServiceJobDeployment,
 };
