@@ -4,7 +4,13 @@ import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
 
-export default function AppParametersSection({ baseName = 'deployment' }: { baseName?: string }) {
+export default function AppParametersSection({
+    baseName = 'deployment',
+    enableTunnelingLabel = false,
+}: {
+    baseName?: string;
+    enableTunnelingLabel?: boolean;
+}) {
     const { watch, trigger } = useFormContext();
 
     const enableTunneling: (typeof BOOLEAN_TYPES)[number] = watch(`${baseName}.enableTunneling`);
@@ -31,6 +37,15 @@ export default function AppParametersSection({ baseName = 'deployment' }: { base
             {enableTunneling === BOOLEAN_TYPES[0] && (
                 <div className="flex gap-4">
                     <InputWithLabel name={`${baseName}.tunnelingToken`} label="Tunnel Token" placeholder="Starts with 'ey'" />
+
+                    {enableTunnelingLabel && (
+                        <InputWithLabel
+                            name={`${baseName}.tunnelingLabel`}
+                            label="Tunnel Label"
+                            placeholder="my-tunnel"
+                            isOptional
+                        />
+                    )}
                 </div>
             )}
         </div>

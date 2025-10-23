@@ -27,7 +27,7 @@ function ServiceDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
 
     return (
         <div className="col gap-6">
-            <SlateCard title="Service Identity" label={containerOrWorkerType?.icon}>
+            <SlateCard title="Service Identity" label={containerOrWorkerType?.tag}>
                 <div className="flex gap-4">
                     <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="Service" />
                 </div>
@@ -36,7 +36,7 @@ function ServiceDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
             <TargetNodesCard isEditingJob={isEditingJob} />
 
             <SlateCard title="App Parameters">
-                <AppParametersSection />
+                <AppParametersSection enableTunnelingLabel />
             </SlateCard>
 
             {containerOrWorkerType.inputs && (

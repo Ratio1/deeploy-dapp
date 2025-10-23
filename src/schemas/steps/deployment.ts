@@ -247,7 +247,19 @@ const baseDeploymentSchema = z.object({
     enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
     port: validations.port,
     tunnelingToken: getOptionalStringSchema(512),
-    tunnelingLabel: getOptionalStringSchema(64),
+    tunnelingLabel: z
+        .union([
+            z.literal(''),
+            z
+                .string()
+                .min(3, 'Value must be at least 3 characters')
+                .max(64, 'Value cannot exceed 64 characters')
+                .regex(
+                    /^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
+                    'Only letters, numbers and special characters allowed',
+                ),
+        ])
+        .optional(),
 });
 
 const containerDeploymentTypeSchema = z.object({
