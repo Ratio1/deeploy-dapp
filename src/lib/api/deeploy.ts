@@ -3,6 +3,10 @@ import { EthAddress } from '@typedefs/blockchain';
 import { DeeployDefaultResponse, GetAppsResponse } from '@typedefs/deeployApi';
 import axios from 'axios';
 
+if (!config?.deeployUrl && process.env.NODE_ENV === 'development') {
+    console.error('Missing .env file');
+}
+
 export const createPipeline = (request: {
     EE_ETH_SIGN: EthAddress;
     EE_ETH_SENDER: EthAddress;
