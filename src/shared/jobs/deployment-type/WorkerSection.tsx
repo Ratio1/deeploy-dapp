@@ -98,7 +98,7 @@ export default function WorkerSection({
                         </div>
                     ) : null
                 }
-                displayPasteIcon
+                endContent="paste"
             />
 
             <InputWithLabel name={`${baseName}.deploymentType.image`} label="Image" placeholder="node:22" />
@@ -130,7 +130,7 @@ export default function WorkerSection({
                     label="Personal Access Token"
                     placeholder="None"
                     isOptional={repositoryVisibility === 'public'}
-                    displayPasteIcon
+                    endContent="paste"
                 />
             </div>
 

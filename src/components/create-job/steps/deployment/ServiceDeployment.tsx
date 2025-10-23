@@ -56,9 +56,7 @@ function ServiceDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
                 <AppParametersSection enableTunnelingLabel />
             </SlateCard>
 
-            {containerOrWorkerType.inputs && (
-                <ServiceInputsSection inputs={containerOrWorkerType.inputs} isEditingJob={isEditingJob} />
-            )}
+            {containerOrWorkerType.inputs && <ServiceInputsSection inputs={containerOrWorkerType.inputs} />}
 
             {/* <SlateCard title="Other">
                 <InputWithLabel name="deployment.serviceReplica" label="Service Replica" placeholder="0x_ai" isOptional />
