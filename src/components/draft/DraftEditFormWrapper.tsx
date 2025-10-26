@@ -130,6 +130,7 @@ export default function DraftEditFormWrapper({
                 pipelineInputType: deployment.pipelineInputType ?? PIPELINE_INPUT_TYPES[0],
                 pipelineInputUri: deployment.pipelineInputUri,
                 chainstoreResponse: deployment.chainstoreResponse ?? BOOLEAN_TYPES[1],
+                secondaryPlugins: cloneDeep(deployment.secondaryPlugins),
             },
         } as z.infer<typeof jobSchema>;
     };
