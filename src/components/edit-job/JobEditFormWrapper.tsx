@@ -50,7 +50,7 @@ export default function JobEditFormWrapper({
 
     const jobConfig: JobConfig = job.config;
 
-    console.log('[JobEditFormWrapper]', { job, jobConfig });
+    // console.log('[JobEditFormWrapper]', { job, jobConfig });
 
     const [isTargetNodesCountLower, setTargetNodesCountLower] = useState<boolean>(false);
     const [additionalCost, setAdditionalCost] = useState<bigint>(0n);
@@ -154,7 +154,7 @@ export default function JobEditFormWrapper({
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment, // TODO: Use the config of the primary plugin
-            pluginSignature: _(job.instances)
+            pluginSignature: _(job.instances) // TODO: Use the signature of the primary plugin
                 .map((instance) => instance.plugins)
                 .flatten()
                 .map((plugin) => plugin.signature)

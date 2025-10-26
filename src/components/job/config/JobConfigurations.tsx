@@ -172,8 +172,11 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
                         <>
                             <ConfigSectionTitle title="Port Mapping" />
 
-                            {/* TODO: Add port mapping section */}
-                            <div>{JSON.stringify(pluginConfig.value.CONTAINER_RESOURCES.ports)}</div>
+                            <JobKeyValueSection
+                                obj={pluginConfig.value.CONTAINER_RESOURCES.ports}
+                                labels={['HOST', 'CONTAINER']}
+                                displayShortValues={false}
+                            />
                         </>
                     )}
 
@@ -207,7 +210,7 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
                                 value={isEmpty(config.VOLUMES) ? '—' : <JobKeyValueSection obj={config.VOLUMES} />}
                             />
 
-                            {job.resources.jobType === JobType.Generic && (
+                            {(job.resources.jobType === JobType.Generic || isPluginGeneric(pluginConfig.signature)) && (
                                 <ItemWithBoldValue
                                     label="File Volumes"
                                     value={

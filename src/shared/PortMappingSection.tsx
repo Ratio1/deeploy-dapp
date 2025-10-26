@@ -16,8 +16,6 @@ interface PortMappingEntryWithId {
 export default function PortMappingSection({ baseName = 'deployment' }: { baseName?: string }) {
     const name = `${baseName}.ports`;
 
-    console.log('[PortMappingSection]', { name });
-
     const { confirm } = useInteractionContext() as InteractionContextType;
     const { trigger, control, formState } = useFormContext();
 
