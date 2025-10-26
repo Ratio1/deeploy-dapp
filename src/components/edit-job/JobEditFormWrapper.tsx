@@ -13,6 +13,7 @@ import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
+import { SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
 import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
@@ -47,15 +48,64 @@ export default function JobEditFormWrapper({
     const hasModifiedStepsRef = useRef(false);
     const payButtonRef = useRef<{ fetchAllowance: () => Promise<bigint | undefined> }>(null);
 
-    const config: JobConfig = job.config;
+    const jobConfig: JobConfig = job.config;
 
-    console.log('[JobEditFormWrapper]', { job, config });
+    console.log('[JobEditFormWrapper]', { job, jobConfig });
 
-    // Used only when editing a job
     const [isTargetNodesCountLower, setTargetNodesCountLower] = useState<boolean>(false);
     const [additionalCost, setAdditionalCost] = useState<bigint>(0n);
 
-    const getBaseSchemaDefaults = () => ({
+    const getBaseSchemaTunnelingDefaults = (config: JobConfig) => ({
+        enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED),
+        port: config.PORT ?? '',
+        tunnelingToken: config.CLOUDFLARE_TOKEN || config.NGROK_AUTH_TOKEN,
+    });
+
+    const getGenericSpecificDeploymentDefaults = (config: JobConfig) => ({
+        // Ports
+        ports: getPortMappings(config),
+
+        // Deployment type
+        deploymentType: !config.VCS_DATA
+            ? {
+                  type: 'container',
+                  containerImage: config.IMAGE,
+                  containerRegistry: config.CR_DATA?.SERVER || 'docker.io',
+                  crVisibility: CR_VISIBILITY_OPTIONS[!config.CR_DATA?.USERNAME ? 0 : 1],
+                  crUsername: config.CR_DATA?.USERNAME || '',
+                  crPassword: config.CR_DATA?.PASSWORD || '',
+              }
+            : {
+                  type: 'worker',
+                  image: config.IMAGE,
+                  repositoryUrl: config.VCS_DATA.REPO_URL,
+                  repositoryVisibility: 'public',
+                  username: config.VCS_DATA.USERNAME || '',
+                  accessToken: config.VCS_DATA.TOKEN || '',
+                  workerCommands: config.BUILD_AND_RUN_COMMANDS!.map((command) => ({ command })),
+              },
+
+        // Variables
+        envVars: getEnvVars(config),
+        dynamicEnvVars: getDynamicEnvVars(config),
+        volumes: getVolumes(config),
+        fileVolumes: getFileVolumes(config),
+
+        // Policies
+        restartPolicy: titlecase(config.RESTART_POLICY!),
+        imagePullPolicy: titlecase(config.IMAGE_PULL_POLICY!),
+    });
+
+    const getGenericPluginSchemaDefaults = (config: JobConfig) => ({
+        secondaryPluginType: SecondaryPluginType.Generic,
+
+        // Tunneling
+        ...getBaseSchemaTunnelingDefaults(config),
+
+        ...getGenericSpecificDeploymentDefaults(config),
+    });
+
+    const getBaseSchemaDefaults = (config: JobConfig = jobConfig) => ({
         jobType: job.resources.jobType,
         specifications: {
             applicationType: APPLICATION_TYPES[0], // TODO: Get from job after the API update
@@ -78,9 +128,7 @@ export default function JobEditFormWrapper({
             ],
             spareNodes: !job.spareNodes ? [] : job.spareNodes.map((address) => ({ address })),
             allowReplicationInTheWild: job.allowReplicationInTheWild ?? false,
-            enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED),
-            port: config.PORT ?? '',
-            tunnelingToken: config.CLOUDFLARE_TOKEN || config.NGROK_AUTH_TOKEN,
+            ...getBaseSchemaTunnelingDefaults(config),
         },
     });
 
@@ -91,34 +139,10 @@ export default function JobEditFormWrapper({
             containerType: job.resources.containerOrWorkerType.name,
         },
         deployment: {
+            // Identity, Target nodes
             ...getBaseSchemaDefaults().deployment,
-            deploymentType: !config.VCS_DATA
-                ? {
-                      type: 'container',
-                      containerImage: config.IMAGE,
-                      containerRegistry: config.CR_DATA?.SERVER || 'docker.io',
-                      crVisibility: CR_VISIBILITY_OPTIONS[!config.CR_DATA?.USERNAME ? 0 : 1],
-                      crUsername: config.CR_DATA?.USERNAME || '',
-                      crPassword: config.CR_DATA?.PASSWORD || '',
-                  }
-                : {
-                      type: 'worker',
-                      image: config.IMAGE,
-                      repositoryUrl: config.VCS_DATA.REPO_URL,
-                      repositoryVisibility: 'public',
-                      username: config.VCS_DATA.USERNAME || '',
-                      accessToken: config.VCS_DATA.TOKEN || '',
-                      workerCommands: config.BUILD_AND_RUN_COMMANDS!.map((command) => ({ command })),
-                  },
-            ports: getPortMappings(),
-            // Variables
-            envVars: getEnvVars(),
-            dynamicEnvVars: getDynamicEnvVars(),
-            volumes: getVolumes(),
-            fileVolumes: getFileVolumes(),
-            // Policies
-            restartPolicy: titlecase(config.RESTART_POLICY!),
-            imagePullPolicy: titlecase(config.IMAGE_PULL_POLICY!),
+
+            ...getGenericSpecificDeploymentDefaults(jobConfig),
         },
     });
 
@@ -129,7 +153,7 @@ export default function JobEditFormWrapper({
             workerType: job.resources.containerOrWorkerType.name,
         },
         deployment: {
-            ...getBaseSchemaDefaults().deployment,
+            ...getBaseSchemaDefaults().deployment, // TODO: Use the config of the primary plugin
             pluginSignature: _(job.instances)
                 .map((instance) => instance.plugins)
                 .flatten()
@@ -142,7 +166,7 @@ export default function JobEditFormWrapper({
             pipelineInputType: PIPELINE_INPUT_TYPES[0], // TODO: Missing from the API response
             pipelineInputUri: undefined, // TODO: Missing from the API response
             chainstoreResponse: BOOLEAN_TYPES[1], // TODO: Missing from the API response
-            secondaryPlugins: [], // TODO: Implement
+            secondaryPlugins: formatSecondaryPlugins(),
         },
     });
 
@@ -154,12 +178,12 @@ export default function JobEditFormWrapper({
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            tunnelingLabel: config.NGROK_EDGE_LABEL || '',
-            inputs: getEnvVars(),
+            tunnelingLabel: jobConfig.NGROK_EDGE_LABEL || '',
+            inputs: getEnvVars(jobConfig),
         },
     });
 
-    const getPortMappings = () => {
+    const getPortMappings = (config: JobConfig) => {
         return !config.CONTAINER_RESOURCES.ports
             ? []
             : Object.entries(config.CONTAINER_RESOURCES.ports).map(([key, value]) => ({
@@ -168,19 +192,19 @@ export default function JobEditFormWrapper({
               }));
     };
 
-    const getEnvVars = () => {
+    const getEnvVars = (config: JobConfig) => {
         return !config.ENV ? [] : Object.entries(config.ENV).map(([key, value]) => ({ key, value }));
     };
 
-    const getDynamicEnvVars = () => {
+    const getDynamicEnvVars = (config: JobConfig) => {
         return !config.DYNAMIC_ENV ? [] : Object.entries(config.DYNAMIC_ENV).map(([key, values]) => ({ key, values }));
     };
 
-    const getVolumes = () => {
+    const getVolumes = (config: JobConfig) => {
         return !config.VOLUMES ? [] : Object.entries(config.VOLUMES).map(([key, value]) => ({ key, value }));
     };
 
-    const getFileVolumes = () => {
+    const getFileVolumes = (config: JobConfig) => {
         return !config.FILE_VOLUMES
             ? []
             : Object.entries(config.FILE_VOLUMES).map(([key, value]) => ({
@@ -188,6 +212,19 @@ export default function JobEditFormWrapper({
                   mountingPoint: value.mounting_point,
                   content: value.content,
               }));
+    };
+
+    const formatSecondaryPlugins = () => {
+        // Get the instance with the most plugins
+        const instance = _(job.instances)
+            .sortBy((instance) => instance.plugins.length)
+            .last()!;
+
+        const genericPluginConfigs: JobConfig[] = instance.plugins
+            .filter((plugin) => plugin.signature === 'CONTAINER_APP_RUNNER' || plugin.signature === 'WORKER_APP_RUNNER')
+            .map((plugin) => plugin.instance_conf);
+
+        return genericPluginConfigs.map((config) => getGenericPluginSchemaDefaults(config));
     };
 
     const getDefaultSchemaValues = () => {
