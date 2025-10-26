@@ -80,18 +80,38 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
                         {!!config.TUNNEL_ENGINE_ENABLED && (
                             <>
                                 <ItemWithBoldValue label="Tunnel Engine" value={config.TUNNEL_ENGINE ?? '—'} capitalize />
-                                <ItemWithBoldValue
-                                    label="Cloudflare Token"
-                                    value={
-                                        config.CLOUDFLARE_TOKEN ? (
-                                            <CopyableValue value={config.CLOUDFLARE_TOKEN}>
-                                                {getShortAddressOrHash(config.CLOUDFLARE_TOKEN, 4, false)}
-                                            </CopyableValue>
-                                        ) : (
-                                            '—'
-                                        )
-                                    }
-                                />
+
+                                {config.TUNNEL_ENGINE === 'cloudflare' ? (
+                                    <ItemWithBoldValue
+                                        label="Cloudflare Token"
+                                        value={
+                                            config.CLOUDFLARE_TOKEN ? (
+                                                <CopyableValue value={config.CLOUDFLARE_TOKEN}>
+                                                    {getShortAddressOrHash(config.CLOUDFLARE_TOKEN, 4, false)}
+                                                </CopyableValue>
+                                            ) : (
+                                                '—'
+                                            )
+                                        }
+                                    />
+                                ) : (
+                                    <ItemWithBoldValue
+                                        label="NGROK Auth Token"
+                                        value={
+                                            config.NGROK_AUTH_TOKEN ? (
+                                                <CopyableValue value={config.NGROK_AUTH_TOKEN}>
+                                                    {getShortAddressOrHash(config.NGROK_AUTH_TOKEN, 4, false)}
+                                                </CopyableValue>
+                                            ) : (
+                                                '—'
+                                            )
+                                        }
+                                    />
+                                )}
+
+                                {config.NGROK_EDGE_LABEL && (
+                                    <ItemWithBoldValue label="Tunneling Label" value={config.NGROK_EDGE_LABEL} />
+                                )}
                             </>
                         )}
 

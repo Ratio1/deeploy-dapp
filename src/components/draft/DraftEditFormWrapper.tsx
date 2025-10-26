@@ -54,6 +54,7 @@ export default function DraftEditFormWrapper({
             spareNodes: cloneDeep(job.deployment.spareNodes),
             allowReplicationInTheWild: job.deployment.allowReplicationInTheWild ?? true,
             enableTunneling: job.deployment.enableTunneling ?? BOOLEAN_TYPES[0],
+            port: job.deployment.port ?? '',
             tunnelingToken: job.deployment.tunnelingToken,
             tunnelingLabel: job.deployment.tunnelingLabel,
         },
@@ -90,9 +91,7 @@ export default function DraftEditFormWrapper({
                               accessToken: deployment.deploymentType.accessToken ?? '',
                           },
                 ports: cloneDeep(deployment.ports),
-                port: deployment.port ?? '',
-                restartPolicy: deployment.restartPolicy,
-                imagePullPolicy: deployment.imagePullPolicy,
+                // Variables
                 envVars: cloneDeep(deployment.envVars),
                 dynamicEnvVars: cloneDeep(deployment.dynamicEnvVars),
                 volumes: cloneDeep(deployment.volumes),
@@ -103,6 +102,9 @@ export default function DraftEditFormWrapper({
                           content: fileVolume.content,
                       }))
                     : [],
+                // Policies
+                restartPolicy: deployment.restartPolicy,
+                imagePullPolicy: deployment.imagePullPolicy,
             },
         } as z.infer<typeof jobSchema>;
     };
@@ -122,7 +124,6 @@ export default function DraftEditFormWrapper({
             deployment: {
                 ...baseDefaults.deployment,
                 jobAlias: deployment.jobAlias,
-                port: deployment.port ?? '',
                 pluginSignature: deployment.pluginSignature,
                 customPluginSignature: deployment.customPluginSignature,
                 customParams: cloneDeep(deployment.customParams),

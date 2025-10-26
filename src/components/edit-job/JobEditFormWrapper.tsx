@@ -80,7 +80,7 @@ export default function JobEditFormWrapper({
             allowReplicationInTheWild: job.allowReplicationInTheWild ?? false,
             enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED),
             port: config.PORT ?? '',
-            tunnelingToken: !config.CLOUDFLARE_TOKEN ? undefined : config.CLOUDFLARE_TOKEN,
+            tunnelingToken: config.CLOUDFLARE_TOKEN || config.NGROK_AUTH_TOKEN,
         },
     });
 
@@ -110,12 +110,15 @@ export default function JobEditFormWrapper({
                       accessToken: config.VCS_DATA.TOKEN || '',
                       workerCommands: config.BUILD_AND_RUN_COMMANDS!.map((command) => ({ command })),
                   },
-            restartPolicy: titlecase(config.RESTART_POLICY!),
-            imagePullPolicy: titlecase(config.IMAGE_PULL_POLICY!),
+            ports: getPortMappings(),
+            // Variables
             envVars: getEnvVars(),
             dynamicEnvVars: getDynamicEnvVars(),
             volumes: getVolumes(),
             fileVolumes: getFileVolumes(),
+            // Policies
+            restartPolicy: titlecase(config.RESTART_POLICY!),
+            imagePullPolicy: titlecase(config.IMAGE_PULL_POLICY!),
         },
     });
 
@@ -151,9 +154,19 @@ export default function JobEditFormWrapper({
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
+            tunnelingLabel: config.NGROK_EDGE_LABEL || '',
             inputs: getEnvVars(),
         },
     });
+
+    const getPortMappings = () => {
+        return !config.CONTAINER_RESOURCES.ports
+            ? []
+            : Object.entries(config.CONTAINER_RESOURCES.ports).map(([key, value]) => ({
+                  hostPort: Number(key),
+                  containerPort: Number(value),
+              }));
+    };
 
     const getEnvVars = () => {
         return !config.ENV ? [] : Object.entries(config.ENV).map(([key, value]) => ({ key, value }));
