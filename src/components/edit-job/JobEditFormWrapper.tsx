@@ -243,12 +243,12 @@ export default function JobEditFormWrapper({
 
                             {step === 0 && (
                                 <Specifications
-                                    isEditingJob
+                                    isEditingRunningJob
                                     initialTargetNodesCount={defaultValues.specifications.targetNodesCount}
                                     onTargetNodesCountDecrease={setTargetNodesCountLower}
                                 />
                             )}
-                            {step === 1 && <Deployment isEditingJob />}
+                            {step === 1 && <Deployment isEditingRunningJob />}
                             {step === 2 && (
                                 <ReviewAndConfirm
                                     defaultValues={defaultValues}
@@ -278,7 +278,7 @@ export default function JobEditFormWrapper({
                                         />
                                     </div>
                                 }
-                                isEditingJob
+                                isEditingRunningJob
                                 disableNextStep={isTargetNodesCountLower}
                             />
                         </div>

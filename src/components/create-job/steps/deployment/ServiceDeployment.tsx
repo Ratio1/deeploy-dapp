@@ -10,7 +10,7 @@ import clsx from 'clsx';
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-function ServiceDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
+function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     const { watch, setValue } = useFormContext();
 
     const jobType: JobType = watch('jobType');
@@ -20,11 +20,11 @@ function ServiceDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
 
     // Init
     useEffect(() => {
-        if (!isEditingJob && containerOrWorkerType) {
+        if (!isEditingRunningJob && containerOrWorkerType) {
             setValue('deployment.jobAlias', containerOrWorkerType.notes.split(' ')[0]?.toLowerCase());
             setValue('deployment.port', containerOrWorkerType.port);
         }
-    }, [isEditingJob, containerOrWorkerType]);
+    }, [isEditingRunningJob, containerOrWorkerType]);
 
     return (
         <div className="col gap-6">
@@ -50,7 +50,7 @@ function ServiceDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
                 </div>
             </SlateCard>
 
-            <TargetNodesCard isEditingJob={isEditingJob} />
+            <TargetNodesCard isEditingRunningJob={isEditingRunningJob} />
 
             <SlateCard title="App Parameters">
                 <AppParametersSection enableTunnelingLabel />

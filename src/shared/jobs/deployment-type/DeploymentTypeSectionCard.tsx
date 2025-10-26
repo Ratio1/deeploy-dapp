@@ -7,7 +7,7 @@ import { useFormContext } from 'react-hook-form';
 import ContainerSection from './ContainerSection';
 import WorkerSection from './WorkerSection';
 
-function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean }) {
+function DeploymentTypeSectionCard({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     const { setValue, watch } = useFormContext();
     const deploymentType = watch('deployment.deploymentType');
 
@@ -59,7 +59,7 @@ function DeploymentTypeSectionCard({ isEditingJob }: { isEditingJob?: boolean })
                 </div>
             }
         >
-            {type === 'container' ? <ContainerSection /> : <WorkerSection isEditingJob={isEditingJob} />}
+            {type === 'container' ? <ContainerSection /> : <WorkerSection isEditingRunningJob={isEditingRunningJob} />}
         </SlateCard>
     );
 }
