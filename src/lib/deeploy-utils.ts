@@ -602,3 +602,7 @@ export const onDotEnvPaste = async (
         console.error('Failed to read clipboard:', error);
     }
 };
+
+export const isPluginGeneric = (pluginSignature: string) => {
+    return pluginSignature === 'CONTAINER_APP_RUNNER' || pluginSignature === 'WORKER_APP_RUNNER';
+};

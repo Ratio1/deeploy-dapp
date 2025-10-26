@@ -87,6 +87,8 @@ export default function EditJob() {
             return;
         }
 
+        console.log('[EditJob] Submitting data', data);
+
         const additionalNodesRequested: number = data.specifications.targetNodesCount - Number(job.numberOfNodesRequested);
         const increasingTargetNodes: boolean = additionalNodesRequested > 0;
 

@@ -1,4 +1,5 @@
 import { SelectItem } from '@heroui/select';
+import { isPluginGeneric } from '@lib/deeploy-utils';
 import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
@@ -36,6 +37,8 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
         .uniqBy('signature')
         .sortBy('signature')
         .value();
+
+    console.log('[JobConfigurations]', { pluginConfigs });
 
     const [pluginConfig, setPluginConfig] = useState<PluginConfig>(pluginConfigs[0]!);
 
@@ -161,6 +164,16 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
                             <ConfigSectionTitle title="Service" />
 
                             <ItemWithBoldValue label="Image" value={config.IMAGE} />
+                        </>
+                    )}
+
+                    {/* Port Mapping */}
+                    {isPluginGeneric(pluginConfig.signature) && pluginConfig.value.CONTAINER_RESOURCES.ports && (
+                        <>
+                            <ConfigSectionTitle title="Port Mapping" />
+
+                            {/* TODO: Add port mapping section */}
+                            <div>{JSON.stringify(pluginConfig.value.CONTAINER_RESOURCES.ports)}</div>
                         </>
                     )}
 

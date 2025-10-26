@@ -7,7 +7,7 @@ import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { boolToBooleanType, titlecase } from '@lib/deeploy-utils';
+import { boolToBooleanType, isPluginGeneric, titlecase } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
@@ -158,7 +158,7 @@ export default function JobEditFormWrapper({
                 .map((instance) => instance.plugins)
                 .flatten()
                 .map((plugin) => plugin.signature)
-                .filter((signature) => signature !== 'CONTAINER_APP_RUNNER' && signature !== 'WORKER_APP_RUNNER')
+                .filter((signature) => !isPluginGeneric(signature))
                 .uniq()
                 .first(),
             customParams: [], // TODO: (Disabled for now) [{ key: '', value: '', valueType: 'string' }]
@@ -221,7 +221,7 @@ export default function JobEditFormWrapper({
             .last()!;
 
         const genericPluginConfigs: JobConfig[] = instance.plugins
-            .filter((plugin) => plugin.signature === 'CONTAINER_APP_RUNNER' || plugin.signature === 'WORKER_APP_RUNNER')
+            .filter((plugin) => isPluginGeneric(plugin.signature))
             .map((plugin) => plugin.instance_conf);
 
         return genericPluginConfigs.map((config) => getGenericPluginSchemaDefaults(config));
