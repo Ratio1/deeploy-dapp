@@ -5,7 +5,6 @@ import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
-import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { boolToBooleanType, titlecase } from '@lib/deeploy-utils';
@@ -14,6 +13,7 @@ import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
+import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -49,6 +49,8 @@ export default function JobEditFormWrapper({
 
     const config: JobConfig = job.config;
 
+    console.log('[JobEditFormWrapper]', { job, config });
+
     // Used only when editing a job
     const [isTargetNodesCountLower, setTargetNodesCountLower] = useState<boolean>(false);
     const [additionalCost, setAdditionalCost] = useState<bigint>(0n);
@@ -77,6 +79,7 @@ export default function JobEditFormWrapper({
             spareNodes: !job.spareNodes ? [] : job.spareNodes.map((address) => ({ address })),
             allowReplicationInTheWild: job.allowReplicationInTheWild ?? false,
             enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED),
+            port: config.PORT ?? '',
             tunnelingToken: !config.CLOUDFLARE_TOKEN ? undefined : config.CLOUDFLARE_TOKEN,
         },
     });
@@ -107,7 +110,6 @@ export default function JobEditFormWrapper({
                       accessToken: config.VCS_DATA.TOKEN || '',
                       workerCommands: config.BUILD_AND_RUN_COMMANDS!.map((command) => ({ command })),
                   },
-            port: config.PORT ?? '',
             restartPolicy: titlecase(config.RESTART_POLICY!),
             imagePullPolicy: titlecase(config.IMAGE_PULL_POLICY!),
             envVars: getEnvVars(),
@@ -125,12 +127,19 @@ export default function JobEditFormWrapper({
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            port: config.PORT ?? '',
-            pluginSignature: PLUGIN_SIGNATURE_TYPES[0], // TODO: Native Job editing flow
-            customParams: [{ key: '', value: '', valueType: 'string' }], // TODO: Native Job editing flow
-            pipelineParams: [{ key: '', value: '' }],
-            pipelineInputType: PIPELINE_INPUT_TYPES[0],
-            chainstoreResponse: BOOLEAN_TYPES[1],
+            pluginSignature: _(job.instances)
+                .map((instance) => instance.plugins)
+                .flatten()
+                .map((plugin) => plugin.signature)
+                .filter((signature) => signature !== 'CONTAINER_APP_RUNNER' && signature !== 'WORKER_APP_RUNNER')
+                .uniq()
+                .first(),
+            customParams: [], // TODO: (Disabled for now) [{ key: '', value: '', valueType: 'string' }]
+            pipelineParams: [{ key: '', value: '' }], // TODO: Missing from the API response
+            pipelineInputType: PIPELINE_INPUT_TYPES[0], // TODO: Missing from the API response
+            pipelineInputUri: undefined, // TODO: Missing from the API response
+            chainstoreResponse: BOOLEAN_TYPES[1], // TODO: Missing from the API response
+            secondaryPlugins: [], // TODO: Implement
         },
     });
 
@@ -142,9 +151,7 @@ export default function JobEditFormWrapper({
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            envVars: getEnvVars(),
-            dynamicEnvVars: getDynamicEnvVars(),
-            volumes: getVolumes(),
+            inputs: getEnvVars(),
         },
     });
 

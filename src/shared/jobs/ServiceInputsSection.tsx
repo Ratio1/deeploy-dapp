@@ -16,11 +16,11 @@ export default function ServiceInputsSection({ inputs }: { inputs: { key: string
 
     const typedFields = fields as KeyValueEntryWithId[];
 
-    const [attemptedAutoGeneration, setAttemptedAutoGeneration] = useState(false);
+    const [hasGenerated, setGenerated] = useState(false);
 
     useEffect(() => {
         // If a job/job draft is not being edited and we haven't attempted to auto-generate passwords yet
-        if (!fields.length && !attemptedAutoGeneration) {
+        if (!fields.length && !hasGenerated) {
             setValue(
                 'deployment.inputs',
                 inputs.map((input) => {
@@ -34,7 +34,7 @@ export default function ServiceInputsSection({ inputs }: { inputs: { key: string
                 }),
             );
 
-            setAttemptedAutoGeneration(true);
+            setGenerated(true);
         }
     }, [inputs, fields]);
 
@@ -55,10 +55,12 @@ export default function ServiceInputsSection({ inputs }: { inputs: { key: string
                     ))}
                 </div>
 
-                <DeeployInfo
-                    title="Auto-generated Passwords"
-                    description="Secure passwords were automatically generated for the required fields; don't forget to copy and save them."
-                />
+                {hasGenerated && (
+                    <DeeployInfo
+                        title="Auto-generated Passwords"
+                        description="Secure passwords were automatically generated for the required fields; don't forget to copy and save them."
+                    />
+                )}
             </div>
         </SlateCard>
     );
