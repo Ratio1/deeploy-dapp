@@ -278,7 +278,6 @@ export const formatGenericPluginConfigAndSignature = (
         TUNNEL_ENGINE: 'cloudflare',
         CLOUDFLARE_TOKEN: plugin.tunnelingToken || null,
         TUNNEL_ENGINE_ENABLED: plugin.enableTunneling === 'True',
-        NGROK_USE_API: true,
         // Variables
         ENV: envVars,
         DYNAMIC_ENV: dynamicEnvVars,
@@ -383,7 +382,6 @@ export const formatNativeJobPayload = (
         PORT: formatPort(deployment.port),
         CLOUDFLARE_TOKEN: deployment.tunnelingToken || null,
         TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
-        NGROK_USE_API: true,
     };
 
     formatNativeJobCustomParams(primaryPluginConfig, deployment);
@@ -419,7 +417,6 @@ export const formatNativeJobPayload = (
                     PORT: formatPort(nativePlugin.port),
                     CLOUDFLARE_TOKEN: nativePlugin.tunnelingToken || null,
                     TUNNEL_ENGINE_ENABLED: nativePlugin.enableTunneling === 'True',
-                    NGROK_USE_API: true,
                 };
 
                 if (!_.isEmpty(nativePlugin.customParams)) {
@@ -488,7 +485,6 @@ export const formatServiceJobPayload = (
                 NGROK_AUTH_TOKEN: deployment.tunnelingToken ?? null,
                 NGROK_EDGE_LABEL: deployment.tunnelingLabel ?? null,
                 TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
-                NGROK_USE_API: true,
                 ENV: envVars,
                 RESTART_POLICY: 'always',
                 IMAGE_PULL_POLICY: 'always',

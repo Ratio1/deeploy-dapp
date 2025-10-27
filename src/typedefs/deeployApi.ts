@@ -54,7 +54,6 @@ type JobConfig = {
     IMAGE_PULL_POLICY?: string;
     INSTANCE_ID: string;
     NGROK_AUTH_TOKEN?: string;
-    NGROK_USE_API: boolean;
     NGROK_EDGE_LABEL?: string;
     PORT: number;
     RESTART_POLICY?: string;
