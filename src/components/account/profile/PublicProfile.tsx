@@ -6,7 +6,7 @@ import { DetailsCard } from '@shared/cards/DetailsCard';
 import ProfileRow from '@shared/ProfileRow';
 import { useQuery } from '@tanstack/react-query';
 import { EthAddress } from '@typedefs/blockchain';
-import { PublicProfileInfo } from '@typedefs/general';
+import { BRANDING_PLATFORM_NAMES, PublicProfileInfo } from '@typedefs/general';
 import clsx from 'clsx';
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -119,20 +119,20 @@ export default function PublicProfile() {
                     <div className="center-all">
                         <div className="center-all h-[84px] w-[84px]">
                             {!address ? (
-                                <Skeleton className="h-full w-full rounded-full" />
+                                <Skeleton className="h-full w-full rounded-[37.5%]" />
                             ) : imageError ? (
                                 // Placeholder user icon when no image exists
-                                <div className="center-all h-full w-full rounded-full bg-slate-200 text-6xl text-white">
+                                <div className="center-all h-full w-full rounded-[37.5%] bg-slate-200 text-6xl text-white">
                                     <HiUser />
                                 </div>
                             ) : (
-                                <div className="center-all relative h-full w-full overflow-hidden rounded-full">
-                                    <Skeleton className="absolute h-full w-full rounded-full" />
+                                <div className="center-all relative h-full w-full overflow-hidden rounded-[37.5%]">
+                                    <Skeleton className="absolute h-full w-full rounded-[37.5%]" />
 
                                     <img
                                         src={profileImageUrl}
                                         alt="Profile"
-                                        className={clsx('z-10 h-full w-full rounded-full object-cover object-center', {
+                                        className={clsx('z-10 h-full w-full rounded-[37.5%] object-cover object-center', {
                                             'opacity-0': isImageLoading,
                                         })}
                                         onLoad={() => setImageLoading(false)}
@@ -233,7 +233,13 @@ export default function PublicProfile() {
                                                 <div className="text-slate-500">—</div>
                                             );
 
-                                        return <ProfileRow key={platform} label={platform} value={displayValue} />;
+                                        return (
+                                            <ProfileRow
+                                                key={platform}
+                                                label={BRANDING_PLATFORM_NAMES[platform] ?? platform}
+                                                value={displayValue}
+                                            />
+                                        );
                                     })}
                                 </div>
                             </DetailsCard>
