@@ -34,4 +34,10 @@ type InvoiceDraft = {
     cspOwnerName: string;
 };
 
-export type { AuthState, BillingInfo, InvoiceDraft, TunnelingSecrets };
+type PublicProfileInfo = {
+    name: string;
+    description: string;
+    links: Record<string, string>;
+};
+
+export type { AuthState, BillingInfo, InvoiceDraft, PublicProfileInfo, TunnelingSecrets };
