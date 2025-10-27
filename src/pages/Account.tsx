@@ -1,5 +1,5 @@
 import BurnReport from '@components/account/BurnReport';
-import Invoicing from '@components/account/Invoicing';
+import Invoicing from '@components/account/invoicing/Invoicing';
 import Profile from '@components/account/profile/Profile';
 import { routePath } from '@lib/routes/route-paths';
 import CustomTabs from '@shared/CustomTabs';
@@ -9,14 +9,14 @@ import { RiBillLine, RiFireLine } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
 
 function Account() {
-    const [selectedTab, setSelectedTab] = useState<'profile' | 'invoicing' | 'burn-report'>('profile');
+    const [selectedTab, setSelectedTab] = useState<'invoicing' | 'profile' | 'burn-report'>('invoicing');
     const navigate = useNavigate();
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
 
-        if (tab && (tab === 'profile' || tab === 'invoicing' || tab === 'burn-report')) {
+        if (tab && (tab === 'invoicing' || tab === 'profile' || tab === 'burn-report')) {
             setSelectedTab(tab);
         }
     }, [window.location.search]);
@@ -26,14 +26,14 @@ function Account() {
             <CustomTabs
                 tabs={[
                     {
-                        key: 'profile',
-                        title: 'Profile',
-                        icon: <CgProfile />,
-                    },
-                    {
                         key: 'invoicing',
                         title: 'Invoicing',
                         icon: <RiBillLine />,
+                    },
+                    {
+                        key: 'profile',
+                        title: 'Profile',
+                        icon: <CgProfile />,
                     },
                     {
                         key: 'burn-report',
@@ -51,8 +51,8 @@ function Account() {
                 }}
             />
 
-            {selectedTab === 'profile' && <Profile />}
             {selectedTab === 'invoicing' && <Invoicing />}
+            {selectedTab === 'profile' && <Profile />}
             {selectedTab === 'burn-report' && <BurnReport />}
         </div>
     );

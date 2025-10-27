@@ -112,6 +112,10 @@ layer(base);
     @apply text-sm font-medium;
 }
 
+.section-title {
+    @apply flex min-h-[28px] items-center text-[17px] font-semibold;
+}
+
 /* Scrollbar */
 *::-webkit-scrollbar {
     width: 8px;

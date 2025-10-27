@@ -1,5 +1,6 @@
 import ProfileSection from './ProfileSection';
 import PublicProfile from './PublicProfile';
+import WalletInformation from './WalletInformation';
 
 export default function Profile() {
     return (
@@ -8,10 +9,8 @@ export default function Profile() {
                 <PublicProfile />
             </ProfileSection>
 
-            <ProfileSection title="Account">
-                <div>PersonalInformation</div>
-                {/* TODO: USDC Balance */}
-                {/* <PersonalInformation /> */}
+            <ProfileSection title="Wallet">
+                <WalletInformation />
             </ProfileSection>
         </div>
     );
