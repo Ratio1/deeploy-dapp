@@ -10,7 +10,7 @@ import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import PortMappingSection from '@shared/PortMappingSection';
 
-function GenericDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
+function GenericDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     return (
         <div className="col gap-6">
             <SlateCard title="App Identity">
@@ -19,9 +19,9 @@ function GenericDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
                 </div>
             </SlateCard>
 
-            <TargetNodesCard isEditingJob={isEditingJob} />
+            <TargetNodesCard isEditingRunningJob={isEditingRunningJob} />
 
-            <DeploymentTypeSectionCard isEditingJob={isEditingJob} />
+            <DeploymentTypeSectionCard isEditingRunningJob={isEditingRunningJob} />
 
             <SlateCard title="App Parameters">
                 <AppParametersSection />

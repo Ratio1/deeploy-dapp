@@ -10,10 +10,10 @@ import WorkerCommandsSection from './WorkerCommandsSection';
 const REPOS_CACHE: Record<string, 'public' | 'private'> = {};
 
 export default function WorkerSection({
-    isEditingJob,
+    isEditingRunningJob,
     baseName = 'deployment',
 }: {
-    isEditingJob?: boolean;
+    isEditingRunningJob?: boolean;
     baseName?: string;
 }) {
     const { watch, setValue, register } = useFormContext();
@@ -26,10 +26,10 @@ export default function WorkerSection({
     }, [register]);
 
     useEffect(() => {
-        if (isEditingJob && repositoryUrl) {
+        if (isEditingRunningJob && repositoryUrl) {
             checkRepositoryVisibility(repositoryUrl);
         }
-    }, [isEditingJob, repositoryUrl]);
+    }, [isEditingRunningJob, repositoryUrl]);
 
     const checkRepositoryVisibility = async (value?: string) => {
         const url = value ?? repositoryUrl;

@@ -13,7 +13,7 @@ import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
 import SecondaryPluginsCard from '../../secondary-plugins/SecondaryPluginsCard';
 
-function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
+function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     const { watch } = useFormContext();
 
     const pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number] = watch('deployment.pluginSignature');
@@ -24,7 +24,7 @@ function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
                 <NativeAppIdentitySection pluginSignature={pluginSignature} />
             </SlateCard>
 
-            <TargetNodesCard isEditingJob={isEditingJob} />
+            <TargetNodesCard isEditingRunningJob={isEditingRunningJob} />
 
             <SlateCard title="App Parameters">
                 <AppParametersSection />

@@ -7,7 +7,7 @@ import JobTags from '@shared/jobs/target-nodes/JobTags';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 
-export default function ServiceSpecifications({ isEditingJob }: { isEditingJob?: boolean }) {
+export default function ServiceSpecifications({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     return (
         <div className="col gap-6">
             <SlateCard title="Service Resources">
@@ -15,7 +15,7 @@ export default function ServiceSpecifications({ isEditingJob }: { isEditingJob?:
                     name="specifications.containerType"
                     label="Container Type"
                     options={serviceContainerTypes}
-                    isDisabled={isEditingJob}
+                    isDisabled={isEditingRunningJob}
                 />
 
                 <ContainerResourcesInfo name="specifications.containerType" options={serviceContainerTypes} />

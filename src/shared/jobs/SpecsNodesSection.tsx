@@ -12,12 +12,12 @@ import JobTags from './target-nodes/JobTags';
 
 export default function SpecsNodesSection({
     jobType,
-    isEditingJob = false,
+    isEditingRunningJob = false,
     initialTargetNodesCount,
     onTargetNodesCountDecrease,
 }: {
     jobType: JobType;
-    isEditingJob?: boolean;
+    isEditingRunningJob?: boolean;
     initialTargetNodesCount?: number;
     onTargetNodesCountDecrease?: (blocked: boolean) => void;
 }) {
@@ -71,7 +71,7 @@ export default function SpecsNodesSection({
 
     useEffect(() => {
         const initialValue = initialTargetNodesCountRef.current;
-        const isValueLower = isEditingJob && !!initialValue && targetNodesCount < initialValue;
+        const isValueLower = isEditingRunningJob && !!initialValue && targetNodesCount < initialValue;
 
         setShowDecreaseWarning((previous) => {
             if (previous === isValueLower) {
@@ -82,7 +82,7 @@ export default function SpecsNodesSection({
         });
 
         onTargetNodesCountDecrease?.(isValueLower);
-    }, [isEditingJob, onTargetNodesCountDecrease, targetNodesCount]);
+    }, [isEditingRunningJob, onTargetNodesCountDecrease, targetNodesCount]);
 
     const hasMinimalBalancingWarning = !containerOrWorkerType
         ? false

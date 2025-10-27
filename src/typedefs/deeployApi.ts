@@ -53,10 +53,12 @@ type JobConfig = {
     IMAGE: string;
     IMAGE_PULL_POLICY?: string;
     INSTANCE_ID: string;
+    NGROK_AUTH_TOKEN?: string;
     NGROK_USE_API: boolean;
+    NGROK_EDGE_LABEL?: string;
     PORT: number;
     RESTART_POLICY?: string;
-    TUNNEL_ENGINE: string;
+    TUNNEL_ENGINE: 'cloudflare' | 'ngrok';
     TUNNEL_ENGINE_ENABLED: boolean;
     VOLUMES: Record<string, any>;
     FILE_VOLUMES: Record<

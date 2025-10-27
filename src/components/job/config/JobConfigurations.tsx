@@ -1,4 +1,5 @@
 import { SelectItem } from '@heroui/select';
+import { isPluginGeneric } from '@lib/deeploy-utils';
 import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
@@ -36,6 +37,8 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
         .uniqBy('signature')
         .sortBy('signature')
         .value();
+
+    console.log('[JobConfigurations]', { pluginConfigs });
 
     const [pluginConfig, setPluginConfig] = useState<PluginConfig>(pluginConfigs[0]!);
 
@@ -80,18 +83,38 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
                         {!!config.TUNNEL_ENGINE_ENABLED && (
                             <>
                                 <ItemWithBoldValue label="Tunnel Engine" value={config.TUNNEL_ENGINE ?? '—'} capitalize />
-                                <ItemWithBoldValue
-                                    label="Cloudflare Token"
-                                    value={
-                                        config.CLOUDFLARE_TOKEN ? (
-                                            <CopyableValue value={config.CLOUDFLARE_TOKEN}>
-                                                {getShortAddressOrHash(config.CLOUDFLARE_TOKEN, 4, false)}
-                                            </CopyableValue>
-                                        ) : (
-                                            '—'
-                                        )
-                                    }
-                                />
+
+                                {config.TUNNEL_ENGINE === 'cloudflare' ? (
+                                    <ItemWithBoldValue
+                                        label="Cloudflare Token"
+                                        value={
+                                            config.CLOUDFLARE_TOKEN ? (
+                                                <CopyableValue value={config.CLOUDFLARE_TOKEN}>
+                                                    {getShortAddressOrHash(config.CLOUDFLARE_TOKEN, 4, false)}
+                                                </CopyableValue>
+                                            ) : (
+                                                '—'
+                                            )
+                                        }
+                                    />
+                                ) : (
+                                    <ItemWithBoldValue
+                                        label="NGROK Auth Token"
+                                        value={
+                                            config.NGROK_AUTH_TOKEN ? (
+                                                <CopyableValue value={config.NGROK_AUTH_TOKEN}>
+                                                    {getShortAddressOrHash(config.NGROK_AUTH_TOKEN, 4, false)}
+                                                </CopyableValue>
+                                            ) : (
+                                                '—'
+                                            )
+                                        }
+                                    />
+                                )}
+
+                                {config.NGROK_EDGE_LABEL && (
+                                    <ItemWithBoldValue label="Tunneling Label" value={config.NGROK_EDGE_LABEL} />
+                                )}
                             </>
                         )}
 
@@ -144,6 +167,19 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
                         </>
                     )}
 
+                    {/* Port Mapping */}
+                    {isPluginGeneric(pluginConfig.signature) && pluginConfig.value.CONTAINER_RESOURCES.ports && (
+                        <>
+                            <ConfigSectionTitle title="Port Mapping" />
+
+                            <JobKeyValueSection
+                                obj={pluginConfig.value.CONTAINER_RESOURCES.ports}
+                                labels={['HOST', 'CONTAINER']}
+                                displayShortValues={false}
+                            />
+                        </>
+                    )}
+
                     {/* Variables */}
                     <ConfigSectionTitle title="Variables" />
 
@@ -174,7 +210,7 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
                                 value={isEmpty(config.VOLUMES) ? '—' : <JobKeyValueSection obj={config.VOLUMES} />}
                             />
 
-                            {job.resources.jobType === JobType.Generic && (
+                            {(job.resources.jobType === JobType.Generic || isPluginGeneric(pluginConfig.signature)) && (
                                 <ItemWithBoldValue
                                     label="File Volumes"
                                     value={

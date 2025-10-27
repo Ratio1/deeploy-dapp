@@ -369,7 +369,7 @@ export const formatNativeJobPayload = (
         }
     });
 
-    const nodeResources = formatContainerResources(workerType, []);
+    const primaryPluginNodeResources = formatContainerResources(workerType, []);
     const targetNodes = formatNodes(deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, specifications.targetNodesCount);
 
@@ -395,8 +395,13 @@ export const formatNativeJobPayload = (
     if (deployment.secondaryPlugins.length) {
         const secondaryPluginConfigs = deployment.secondaryPlugins.map((plugin) => {
             if (plugin.secondaryPluginType === SecondaryPluginType.Generic) {
+                const secondaryPluginNodeResources = formatContainerResources(
+                    workerType,
+                    (plugin as GenericSecondaryPlugin).ports,
+                );
+
                 const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
-                    nodeResources,
+                    secondaryPluginNodeResources,
                     plugin as GenericSecondaryPlugin,
                 );
 
@@ -440,7 +445,7 @@ export const formatNativeJobPayload = (
         allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
         target_nodes_count: targetNodesCount,
         job_tags: jobTags,
-        node_res_req: nodeResources,
+        node_res_req: primaryPluginNodeResources,
         TUNNEL_ENGINE: 'cloudflare',
         plugins,
         pipeline_input_type: deployment.pipelineInputType,
@@ -601,4 +606,8 @@ export const onDotEnvPaste = async (
     } catch (error) {
         console.error('Failed to read clipboard:', error);
     }
+};
+
+export const isPluginGeneric = (pluginSignature: string) => {
+    return pluginSignature === 'CONTAINER_APP_RUNNER' || pluginSignature === 'WORKER_APP_RUNNER';
 };

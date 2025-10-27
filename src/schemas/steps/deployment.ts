@@ -361,9 +361,6 @@ const baseNativeSecondaryPluginSchema = z.object({
     enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
     tunnelingToken: getOptionalStringSchema(512),
 
-    // Ports
-    ports: validations.ports,
-
     // Custom Parameters
     customParams: validations.customParams,
 });

@@ -55,7 +55,7 @@ export default function ProjectOverview({
             .filter((job) => job !== undefined)
             .value();
 
-        console.log('[ProjectOverview] runningJobsWithResources', runningJobsWithResources);
+        console.log('[ProjectOverview]', { runningJobsWithResources, draftJobs });
 
         setRunningJobsWithResources(runningJobsWithResources);
     }, [runningJobs]);

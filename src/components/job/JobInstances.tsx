@@ -143,45 +143,55 @@ export default function JobInstances({
                                 </div>
 
                                 <div className="col bg-slate-75 rounded-lg p-2 pr-4">
-                                    {instance.plugins.map((plugin, index, array) => {
-                                        return (
-                                            <div key={plugin.signature} className="row gap-1.5">
-                                                {/* Tree Line */}
-                                                <div className="row relative mr-2 ml-2.5">
-                                                    <div className="h-10 w-0.5 bg-slate-300"></div>
-                                                    <div className="h-0.5 w-5 bg-slate-300"></div>
+                                    {instance.plugins
+                                        .sort((a, b) => a.instance.localeCompare(b.instance))
+                                        .map((plugin, index, array) => {
+                                            return (
+                                                <div key={plugin.signature} className="row gap-1.5">
+                                                    {/* Tree Line */}
+                                                    <div className="row relative mr-2 ml-2.5">
+                                                        <div className="h-10 w-0.5 bg-slate-300"></div>
+                                                        <div className="h-0.5 w-5 bg-slate-300"></div>
 
-                                                    {index === array.length - 1 && (
-                                                        <div className="bg-slate-75 absolute bottom-0 left-0 h-[19px] w-0.5"></div>
-                                                    )}
+                                                        {index === array.length - 1 && (
+                                                            <div className="bg-slate-75 absolute bottom-0 left-0 h-[19px] w-0.5"></div>
+                                                        )}
+                                                    </div>
+
+                                                    <SmallTag variant="blue" isLarge>
+                                                        {plugin.instance}
+                                                    </SmallTag>
+
+                                                    <ContextMenuWithTrigger
+                                                        items={[
+                                                            {
+                                                                key: 'restart',
+                                                                label: 'Restart',
+                                                                onPress: () => {
+                                                                    onInstanceCommand(
+                                                                        'RESTART',
+                                                                        plugin.signature,
+                                                                        plugin.instance,
+                                                                    );
+                                                                },
+                                                            },
+                                                            {
+                                                                key: 'stop',
+                                                                label: 'Stop',
+                                                                onPress: () => {
+                                                                    onInstanceCommand(
+                                                                        'STOP',
+                                                                        plugin.signature,
+                                                                        plugin.instance,
+                                                                    );
+                                                                },
+                                                            },
+                                                        ]}
+                                                        isDisabled={isActionOngoing}
+                                                    />
                                                 </div>
-
-                                                <SmallTag variant="blue" isLarge>
-                                                    {plugin.instance}
-                                                </SmallTag>
-
-                                                <ContextMenuWithTrigger
-                                                    items={[
-                                                        {
-                                                            key: 'restart',
-                                                            label: 'Restart',
-                                                            onPress: () => {
-                                                                onInstanceCommand('RESTART', plugin.signature, plugin.instance);
-                                                            },
-                                                        },
-                                                        {
-                                                            key: 'stop',
-                                                            label: 'Stop',
-                                                            onPress: () => {
-                                                                onInstanceCommand('STOP', plugin.signature, plugin.instance);
-                                                            },
-                                                        },
-                                                    ]}
-                                                    isDisabled={isActionOngoing}
-                                                />
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        })}
                                 </div>
                             </div>
                         </div>
