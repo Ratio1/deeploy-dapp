@@ -50,8 +50,8 @@ export default function DraftEditFormWrapper({
         },
         deployment: {
             autoAssign: job.deployment.autoAssign ?? true,
-            targetNodes: cloneDeep(job.deployment.targetNodes),
-            spareNodes: cloneDeep(job.deployment.spareNodes),
+            targetNodes: cloneDeploymentNodes(job.deployment.targetNodes),
+            spareNodes: cloneDeploymentNodes(job.deployment.spareNodes),
             allowReplicationInTheWild: job.deployment.allowReplicationInTheWild ?? true,
             enableTunneling: job.deployment.enableTunneling ?? BOOLEAN_TYPES[0],
             port: job.deployment.port ?? '',
@@ -155,6 +155,9 @@ export default function DraftEditFormWrapper({
             },
         } as z.infer<typeof jobSchema>;
     };
+
+    const cloneDeploymentNodes = (nodes?: Array<{ address: string }>) =>
+        nodes && nodes.length ? nodes.map((node) => ({ address: node.address })) : [{ address: '' }];
 
     const getDefaultSchemaValues = () => {
         switch (job.jobType) {
