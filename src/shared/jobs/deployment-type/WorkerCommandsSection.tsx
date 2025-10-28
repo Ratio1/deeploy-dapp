@@ -1,7 +1,7 @@
 import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
-import { RiAddLine } from 'react-icons/ri';
+import VariableSectionControls from '../VariableSectionControls';
 import VariableSectionIndex from '../VariableSectionIndex';
 import VariableSectionRemove from '../VariableSectionRemove';
 
@@ -28,9 +28,7 @@ export default function WorkerCommandsSection({ baseName }: { baseName: string }
         <div className="col gap-4">
             <Label value="Commands" />
 
-            {!fields.length ? (
-                <div className="text-sm text-slate-500 italic">No commands added yet.</div>
-            ) : (
+            {fields.length > 0 && (
                 <div className="col gap-2">
                     {fields.map((field, index) => {
                         // Get the error for this specific entry
@@ -78,14 +76,14 @@ export default function WorkerCommandsSection({ baseName }: { baseName: string }
                 </div>
             )}
 
-            {fields.length < 50 && (
-                <div
-                    className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
-                    onClick={() => append({ command: '' })}
-                >
-                    <RiAddLine className="text-lg" /> Add Command
-                </div>
-            )}
+            <VariableSectionControls
+                displayLabel="commands"
+                addLabel="Command"
+                onClick={() => append({ command: '' })}
+                fieldsLength={fields.length}
+                maxFields={50}
+                remove={remove}
+            />
         </div>
     );
 }

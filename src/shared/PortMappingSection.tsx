@@ -1,8 +1,7 @@
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
-import toast from 'react-hot-toast';
-import { RiAddLine } from 'react-icons/ri';
 import DeeployWarning from './jobs/DeeployWarning';
+import VariableSectionControls from './jobs/VariableSectionControls';
 import VariableSectionIndex from './jobs/VariableSectionIndex';
 import VariableSectionRemove from './jobs/VariableSectionRemove';
 import StyledInput from './StyledInput';
@@ -38,9 +37,7 @@ export default function PortMappingSection({ baseName = 'deployment' }: { baseNa
 
     return (
         <div className="col gap-3">
-            {entries.length === 0 ? (
-                <div className="text-sm text-slate-500 italic">No port mappings added yet.</div>
-            ) : (
+            {entries.length > 0 &&
                 entries.map((entry: PortMappingEntryWithId, index) => {
                     // Get the error for this specific entry
                     const entryError = errors?.[index];
@@ -121,45 +118,15 @@ export default function PortMappingSection({ baseName = 'deployment' }: { baseNa
                             />
                         </div>
                     );
-                })
-            )}
+                })}
 
-            {entries.length < 50 && (
-                <div className="row justify-between">
-                    <div
-                        className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
-                        onClick={() => {
-                            append({ key: '', value: '' });
-                        }}
-                    >
-                        <RiAddLine className="text-lg" /> Add
-                    </div>
-
-                    {entries.length > 1 && (
-                        <div
-                            className="compact cursor-pointer text-red-600 hover:opacity-50"
-                            onClick={async () => {
-                                try {
-                                    const confirmed = await confirm(<div>Are you sure you want to remove all entries?</div>);
-
-                                    if (!confirmed) {
-                                        return;
-                                    }
-
-                                    for (let i = entries.length - 1; i >= 0; i--) {
-                                        remove(i);
-                                    }
-                                } catch (error) {
-                                    console.error('Error removing all entries:', error);
-                                    toast.error('Failed to remove all entries.');
-                                }
-                            }}
-                        >
-                            Remove all
-                        </div>
-                    )}
-                </div>
-            )}
+            <VariableSectionControls
+                displayLabel="port mappings"
+                onClick={() => append({ key: '', value: '' })}
+                fieldsLength={entries.length}
+                maxFields={50}
+                remove={remove}
+            />
 
             {entries.length > 0 && (
                 <DeeployWarning
