@@ -37,6 +37,21 @@ export default function DraftEditFormWrapper({
 
     const navigate = useNavigate();
 
+    const getBaseSchemaDeploymentDefaults = () => ({
+        jobAlias: job.deployment.jobAlias,
+        autoAssign: job.deployment.autoAssign ?? true,
+        targetNodes: cloneDeploymentNodes(job.deployment.targetNodes),
+        spareNodes: cloneDeploymentNodes(job.deployment.spareNodes),
+        allowReplicationInTheWild: job.deployment.allowReplicationInTheWild ?? true,
+    });
+
+    const getBaseSchemaTunnelingDefaults = () => ({
+        enableTunneling: job.deployment.enableTunneling ?? BOOLEAN_TYPES[0],
+        port: job.deployment.port ?? '',
+        tunnelingToken: job.deployment.tunnelingToken,
+        tunnelingLabel: job.deployment.tunnelingLabel,
+    });
+
     const getBaseSchemaDefaults = () => ({
         jobType: job.jobType,
         specifications: {
@@ -50,14 +65,8 @@ export default function DraftEditFormWrapper({
             paymentMonthsCount: job.costAndDuration.paymentMonthsCount,
         },
         deployment: {
-            autoAssign: job.deployment.autoAssign ?? true,
-            targetNodes: cloneDeploymentNodes(job.deployment.targetNodes),
-            spareNodes: cloneDeploymentNodes(job.deployment.spareNodes),
-            allowReplicationInTheWild: job.deployment.allowReplicationInTheWild ?? true,
-            enableTunneling: job.deployment.enableTunneling ?? BOOLEAN_TYPES[0],
-            port: job.deployment.port ?? '',
-            tunnelingToken: job.deployment.tunnelingToken,
-            tunnelingLabel: job.deployment.tunnelingLabel,
+            ...getBaseSchemaDeploymentDefaults(),
+            ...getBaseSchemaTunnelingDefaults(),
         },
     });
 
@@ -98,7 +107,6 @@ export default function DraftEditFormWrapper({
             },
             deployment: {
                 ...baseDefaults.deployment,
-                jobAlias: deployment.jobAlias,
                 deploymentType,
                 ports: cloneDeep(deployment.ports),
                 // Variables
@@ -132,17 +140,14 @@ export default function DraftEditFormWrapper({
                 gpuType: nativeJob.specifications.gpuType,
             },
             deployment: {
-                ...baseDefaults.deployment,
-                jobAlias: deployment.jobAlias,
-                pluginSignature: deployment.pluginSignature,
-                customPluginSignature: deployment.customPluginSignature,
-                customParams: cloneDeep(deployment.customParams),
+                ...getBaseSchemaDeploymentDefaults(),
+                // Pipeline
                 pipelineParams: cloneDeep(deployment.pipelineParams),
                 pipelineInputType: deployment.pipelineInputType ?? PIPELINE_INPUT_TYPES[0],
                 pipelineInputUri: deployment.pipelineInputUri,
                 chainstoreResponse: deployment.chainstoreResponse ?? BOOLEAN_TYPES[1],
-                plugins: cloneDeep(deployment.plugins),
             },
+            plugins: cloneDeep(deployment.plugins),
         } as z.infer<typeof jobSchema>;
     };
 
@@ -159,7 +164,6 @@ export default function DraftEditFormWrapper({
             },
             deployment: {
                 ...baseDefaults.deployment,
-                jobAlias: deployment.jobAlias,
                 inputs: cloneDeep(deployment.inputs),
                 serviceReplica: deployment.serviceReplica ?? '',
             },

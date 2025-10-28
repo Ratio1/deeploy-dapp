@@ -19,13 +19,14 @@ import { isValidProjectHash } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
 import { DraftJob, JobType } from '@typedefs/deeploys';
 import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { z } from 'zod';
+import Plugins from './steps/Plugins';
 
-const STEPS: {
+const DEFAULT_STEPS: {
     title: string;
     validationName?: string;
 }[] = [
@@ -40,6 +41,20 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
     const { step, jobType, setJobType, setProjectOverviewTab } = useDeploymentContext() as DeploymentContextType;
     const { account } = useAuthenticationContext() as AuthenticationContextType;
 
+    const [steps, setSteps] = useState(DEFAULT_STEPS);
+
+    const getBaseSchemaDeploymentDefaults = () => ({
+        autoAssign: true,
+        targetNodes: [{ address: '' }],
+        spareNodes: [{ address: '' }],
+        allowReplicationInTheWild: true,
+    });
+
+    const getBaseSchemaTunnelingDefaults = () => ({
+        enableTunneling: BOOLEAN_TYPES[0],
+        port: '',
+    });
+
     const getBaseSchemaDefaults = () => ({
         specifications: {
             applicationType: APPLICATION_TYPES[0],
@@ -52,12 +67,8 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             paymentMonthsCount: 1,
         },
         deployment: {
-            autoAssign: true,
-            targetNodes: [{ address: '' }],
-            spareNodes: [{ address: '' }],
-            allowReplicationInTheWild: true,
-            port: '',
-            enableTunneling: BOOLEAN_TYPES[0],
+            ...getBaseSchemaDeploymentDefaults(),
+            ...getBaseSchemaTunnelingDefaults(),
         },
     });
 
@@ -89,20 +100,20 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             workerType: nativeWorkerTypes[0].name,
         },
         deployment: {
-            ...getBaseSchemaDefaults().deployment,
+            ...getBaseSchemaDeploymentDefaults(),
             // Pipeline
-            pipelineParams: [{ key: '', value: '' }],
+            pipelineParams: [],
             pipelineInputType: PIPELINE_INPUT_TYPES[0],
-            plugins: [
-                {
-                    basePluginType: BasePluginType.Native,
-                    pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
-                    enableTunneling: BOOLEAN_TYPES[0],
-                    customParams: [],
-                },
-            ],
             chainstoreResponse: BOOLEAN_TYPES[1],
         },
+        plugins: [
+            {
+                basePluginType: BasePluginType.Native,
+                pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
+                ...getBaseSchemaTunnelingDefaults(),
+                customParams: [],
+            },
+        ],
     });
 
     const getServiceSchemaDefaults = () => ({
@@ -147,14 +158,21 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             const defaults = getDefaultSchemaValues();
             form.reset(defaults);
             form.setValue('jobType', jobType);
+
+            if (form) {
+                setDefaultJobAlias(jobType);
+            }
         }
     }, [jobType, form]);
 
     useEffect(() => {
-        if (jobType && form) {
-            setDefaultJobAlias(jobType);
+        if (jobType === JobType.Native) {
+            setSteps([...DEFAULT_STEPS, { title: 'Plugins' }]);
+            const defaults = getDefaultSchemaValues();
+
+            console.log('[JobFormWrapper] Defaults', defaults);
         }
-    }, [jobType, form]);
+    }, [jobType]);
 
     const setDefaultJobAlias = (jobType: JobType) => {
         if (jobType === JobType.Service) {
@@ -212,13 +230,14 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
                 <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
-                            <JobFormHeader steps={STEPS.map((step) => step.title)} />
+                            <JobFormHeader steps={steps.map((step) => step.title)} />
 
                             {step === 0 && <Specifications />}
                             {step === 1 && <CostAndDuration />}
                             {step === 2 && <Deployment />}
+                            {step === 3 && <Plugins />}
 
-                            <JobFormButtons steps={STEPS} cancelLabel="Project" />
+                            <JobFormButtons steps={steps} cancelLabel="Project" />
                         </div>
                     </div>
                 </div>

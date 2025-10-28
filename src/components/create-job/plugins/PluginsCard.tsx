@@ -59,6 +59,7 @@ const OPTIONS: {
     },
 ];
 
+// TODO: Refactor into plugins Sections with multiple cards
 export default function PluginsCard() {
     const { confirm } = useInteractionContext() as InteractionContextType;
 
@@ -66,7 +67,7 @@ export default function PluginsCard() {
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'deployment.plugins',
+        name: 'plugins',
     });
 
     const plugins = fields as PluginWithId[];

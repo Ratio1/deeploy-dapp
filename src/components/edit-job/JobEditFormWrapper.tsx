@@ -173,7 +173,7 @@ export default function JobEditFormWrapper({
             pipelineParams: [], // TODO: Missing from the API response
             pipelineInputType: job.pipelineData.TYPE,
             pipelineInputUri: job.pipelineData.URL,
-            plugins: formatPlugins(),
+            plugins: formatPlugins(), // TODO: Styling branch
             chainstoreResponse: BOOLEAN_TYPES[1],
         },
     });
