@@ -32,7 +32,7 @@ import {
     ServiceJobDeployment,
     ServiceJobSpecifications,
 } from '@typedefs/deeploys';
-import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
+import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { RiArrowLeftLine } from 'react-icons/ri';
@@ -77,7 +77,7 @@ export default function EditJob() {
 
     useEffect(() => {
         if (job) {
-            setJobTypeOption(jobTypeOptions.find((option) => option.jobType === job.resources.jobType));
+            setJobTypeOption(JOB_TYPE_OPTIONS.find((option) => option.jobType === job.resources.jobType));
         }
     }, [job]);
 

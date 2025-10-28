@@ -3,7 +3,7 @@ import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { SmallTag } from '@shared/SmallTag';
 import { DraftJob, DraftProject } from '@typedefs/deeploys';
-import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
+import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -22,7 +22,7 @@ export default function JobDraftBreadcrumbs({ jobDraft }: { jobDraft: DraftJob }
 
     useEffect(() => {
         if (jobDraft) {
-            setJobTypeOption(jobTypeOptions.find((option) => option.jobType === jobDraft.jobType));
+            setJobTypeOption(JOB_TYPE_OPTIONS.find((option) => option.jobType === jobDraft.jobType));
         }
     }, [jobDraft]);
 

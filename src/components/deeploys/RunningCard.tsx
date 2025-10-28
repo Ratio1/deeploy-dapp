@@ -8,7 +8,7 @@ import Expander from '@shared/Expander';
 import Usage from '@shared/projects/Usage';
 import { SmallTag } from '@shared/SmallTag';
 import { RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
-import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
+import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import { addDays, differenceInDays, formatDistanceStrict } from 'date-fns';
 import _ from 'lodash';
 import { RiCalendarLine } from 'react-icons/ri';
@@ -121,7 +121,7 @@ export default function RunningCard({
 
                         const { jobType } = resources;
 
-                        const jobTypeOption = jobTypeOptions.find(
+                        const jobTypeOption = JOB_TYPE_OPTIONS.find(
                             (option) => option.id === jobType.toLowerCase(),
                         ) as JobTypeOption;
 

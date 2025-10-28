@@ -232,7 +232,7 @@ export default function DraftEditFormWrapper({
                             <JobFormButtons
                                 steps={steps}
                                 cancelLabel="Project"
-                                customSubmitButton={<SubmitButton label="Save" />}
+                                customSubmitButton={<SubmitButton label="Update Draft" />}
                             />
                         </div>
                     </div>

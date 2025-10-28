@@ -16,7 +16,7 @@ import RefreshRequiredAlert from '@shared/jobs/RefreshRequiredAlert';
 import SupportFooter from '@shared/SupportFooter';
 import { Apps } from '@typedefs/deeployApi';
 import { RunningJob, RunningJobWithDetails, RunningJobWithResources } from '@typedefs/deeploys';
-import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
+import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import { uniq } from 'lodash';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -57,7 +57,7 @@ export default function Job() {
 
     useEffect(() => {
         if (job) {
-            setJobTypeOption(jobTypeOptions.find((option) => option.jobType === job.resources.jobType));
+            setJobTypeOption(JOB_TYPE_OPTIONS.find((option) => option.jobType === job.resources.jobType));
         }
     }, [job]);
 

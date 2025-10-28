@@ -3,14 +3,14 @@ import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
-import ActionButton from '@shared/ActionButton';
 import { SlateCard } from '@shared/cards/SlateCard';
+import AddJobCard from '@shared/projects/AddJobCard';
 import { SmallTag } from '@shared/SmallTag';
 import { BasePluginType, GenericPlugin, Plugin, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import clsx from 'clsx';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { RiAddLine, RiBox3Line, RiDeleteBin2Line, RiTerminalBoxLine } from 'react-icons/ri';
+import { RiBox3Line, RiDeleteBin2Line, RiTerminalBoxLine } from 'react-icons/ri';
 import CARInputsSection from './CARInputsSection';
 import NativeInputsSection from './NativeInputsSection';
 import WARInputsSection from './WARInputsSection';
@@ -161,102 +161,76 @@ export default function PluginsCard() {
     };
 
     return (
-        <SlateCard title="Plugins">
-            <div className="col gap-6">
-                {!!rootError && <div className="text-danger text-sm">{rootError}</div>}
+        <div className="col gap-6">
+            {fields.length < 5 && (
+                <AddJobCard type="plugin" options={OPTIONS} customCallback={(option) => onAddPlugin(option.pluginType)} />
+            )}
 
-                {plugins.map((plugin, index) => {
-                    const { title, element } = getPluginAlias(plugin, index);
+            <SlateCard title="Plugins">
+                <div className="col gap-6">
+                    {!!rootError && <div className="text-danger text-sm">{rootError}</div>}
 
-                    return (
-                        <div
-                            key={index}
-                            className={clsx('col gap-4', {
-                                'border-t-2 border-slate-200 pt-6': index !== 0,
-                            })}
-                        >
-                            {/* Plugin Header */}
-                            <div className="row gap-3">
-                                {element}
+                    {plugins.map((plugin, index) => {
+                        const { title, element } = getPluginAlias(plugin, index);
 
-                                <div className="flex-1 border-b-2 border-slate-200"></div>
+                        return (
+                            <div
+                                key={index}
+                                className={clsx('col gap-4', {
+                                    'border-t-2 border-slate-200 pt-6': index !== 0,
+                                })}
+                            >
+                                {/* Plugin Header */}
+                                <div className="row gap-3">
+                                    {element}
 
-                                <div
-                                    className="compact cursor-pointer text-red-600 hover:opacity-50"
-                                    onClick={async () => {
-                                        try {
-                                            const confirmed = await confirm(
-                                                <div className="col gap-1.5">
-                                                    <div>Are you sure you want to remove this plugin?</div>
-                                                    <div className="font-medium">{title}</div>
-                                                </div>,
-                                            );
+                                    <div className="flex-1 border-b-2 border-slate-200"></div>
 
-                                            if (!confirmed) {
-                                                return;
+                                    <div
+                                        className="compact cursor-pointer text-red-600 hover:opacity-50"
+                                        onClick={async () => {
+                                            try {
+                                                const confirmed = await confirm(
+                                                    <div className="col gap-1.5">
+                                                        <div>Are you sure you want to remove this plugin?</div>
+                                                        <div className="font-medium">{title}</div>
+                                                    </div>,
+                                                );
+
+                                                if (!confirmed) {
+                                                    return;
+                                                }
+
+                                                remove(index);
+                                            } catch (error) {
+                                                console.error('Error removing plugin:', error);
+                                                toast.error('Failed to remove plugin.');
                                             }
-
-                                            remove(index);
-                                        } catch (error) {
-                                            console.error('Error removing plugin:', error);
-                                            toast.error('Failed to remove plugin.');
-                                        }
-                                    }}
-                                >
-                                    <div className="row gap-1">
-                                        <RiDeleteBin2Line className="text-lg" />
-                                        <div className="font-medium">Remove plugin</div>
+                                        }}
+                                    >
+                                        <div className="row gap-1">
+                                            <RiDeleteBin2Line className="text-lg" />
+                                            <div className="font-medium">Remove plugin</div>
+                                        </div>
                                     </div>
                                 </div>
+
+                                {plugin.basePluginType === BasePluginType.Generic ? (
+                                    <>
+                                        {(plugin as GenericPlugin).deploymentType.pluginType === PluginType.Container ? (
+                                            <CARInputsSection name={`${name}.${index}`} />
+                                        ) : (
+                                            <WARInputsSection name={`${name}.${index}`} />
+                                        )}
+                                    </>
+                                ) : (
+                                    <NativeInputsSection name={`${name}.${index}`} />
+                                )}
                             </div>
-
-                            {plugin.basePluginType === BasePluginType.Generic ? (
-                                <>
-                                    {(plugin as GenericPlugin).deploymentType.pluginType === PluginType.Container ? (
-                                        <CARInputsSection name={`${name}.${index}`} />
-                                    ) : (
-                                        <WARInputsSection name={`${name}.${index}`} />
-                                    )}
-                                </>
-                            ) : (
-                                <NativeInputsSection name={`${name}.${index}`} />
-                            )}
-                        </div>
-                    );
-                })}
-
-                {/* Add */}
-                {fields.length < 5 && (
-                    <div
-                        className={clsx('col items-center gap-2.5 text-center', {
-                            'border-t-2 border-slate-200 pt-6': fields.length !== 0,
-                        })}
-                    >
-                        <div className="row gap-0.5">
-                            <RiAddLine className="text-xl" />
-                            <div className="font-medium">Add Plugin</div>
-                        </div>
-
-                        <div className="row gap-2">
-                            {OPTIONS.map((option) => (
-                                <ActionButton
-                                    key={option.pluginType}
-                                    className="bg-slate-200 hover:opacity-70!"
-                                    color="default"
-                                    onPress={() => {
-                                        onAddPlugin(option.pluginType);
-                                    }}
-                                >
-                                    <div className="row gap-1.5">
-                                        <div className={`text-xl ${option.textColorClass}`}>{option.icon}</div>
-                                        <div className="text-sm">{option.title}</div>
-                                    </div>
-                                </ActionButton>
-                            ))}
-                        </div>
-                    </div>
-                )}
-            </div>
-        </SlateCard>
+                        );
+                    })}
+                </div>
+            </SlateCard>
+        </div>
     );
 }

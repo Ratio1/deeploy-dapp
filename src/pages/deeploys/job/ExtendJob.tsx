@@ -4,7 +4,7 @@ import ExtendJobPageLoading from '@components/loading/ExtendJobPageLoading';
 import ActionButton from '@shared/ActionButton';
 import SupportFooter from '@shared/SupportFooter';
 import { RunningJobWithResources } from '@typedefs/deeploys';
-import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
+import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import { useEffect, useState } from 'react';
 import { RiArrowLeftLine } from 'react-icons/ri';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -18,7 +18,7 @@ export default function ExtendJob() {
 
     useEffect(() => {
         if (job) {
-            setJobTypeOption(jobTypeOptions.find((option) => option.jobType === job.resources.jobType));
+            setJobTypeOption(JOB_TYPE_OPTIONS.find((option) => option.jobType === job.resources.jobType));
         }
     }, [job]);
 
