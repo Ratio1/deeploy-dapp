@@ -2,6 +2,7 @@ import { getShortAddressOrHash, isKeySecret } from '@lib/utils';
 import { CopyableValue } from '@shared/CopyableValue';
 import SecretValueToggle from '@shared/jobs/SecretValueToggle';
 import { SmallTag } from '@shared/SmallTag';
+import { isEmpty } from 'lodash';
 import { useEffect, useState } from 'react';
 
 export default function JobKeyValueSection({
@@ -25,6 +26,10 @@ export default function JobKeyValueSection({
             }
         });
     }, [obj]);
+
+    if (isEmpty(obj)) {
+        return <>—</>;
+    }
 
     return (
         <div className="col mt-1 gap-1">

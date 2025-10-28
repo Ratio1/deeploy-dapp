@@ -6,23 +6,16 @@ import { InteractionContextType, useInteractionContext } from '@lib/contexts/int
 import ActionButton from '@shared/ActionButton';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
-import { GenericSecondaryPlugin, SecondaryPlugin, SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
+import { BasePluginType, GenericPlugin, Plugin, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import clsx from 'clsx';
-import { useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { RiAddLine, RiBox3Line, RiTerminalBoxLine } from 'react-icons/ri';
+import { RiAddLine, RiBox3Line, RiDeleteBin2Line, RiTerminalBoxLine } from 'react-icons/ri';
 import CARInputsSection from './CARInputsSection';
 import NativeInputsSection from './NativeInputsSection';
 import WARInputsSection from './WARInputsSection';
 
-enum PluginType {
-    Native = 'native',
-    Container = 'container',
-    Worker = 'worker',
-}
-
-type SecondaryPluginWithId = SecondaryPlugin & {
+type PluginWithId = Plugin & {
     id: string;
 };
 
@@ -48,7 +41,7 @@ const OPTIONS: {
         title: 'Native Plugin',
         icon: <RiTerminalBoxLine />,
         textColorClass: 'text-green-600',
-        color: 'green',
+        color: 'emerald',
     },
     {
         pluginType: PluginType.Container,
@@ -66,29 +59,27 @@ const OPTIONS: {
     },
 ];
 
-export default function SecondaryPluginsCard() {
+export default function PluginsCard() {
     const { confirm } = useInteractionContext() as InteractionContextType;
 
-    const { control } = useFormContext();
+    const { control, formState } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'deployment.secondaryPlugins',
+        name: 'deployment.plugins',
     });
 
-    const plugins = fields as SecondaryPluginWithId[];
+    const plugins = fields as PluginWithId[];
 
-    useEffect(() => {
-        console.log({ plugins });
-    }, [plugins]);
+    const rootError: string | undefined = (formState.errors.deployment as any)?.plugins?.root?.message as string | undefined;
 
-    const onAddPlugin = (type: PluginType) => {
-        switch (type) {
+    const onAddPlugin = (pluginType: PluginType) => {
+        switch (pluginType) {
             case PluginType.Container:
                 append({
-                    secondaryPluginType: SecondaryPluginType.Generic,
+                    basePluginType: BasePluginType.Generic,
                     deploymentType: {
-                        type: 'container',
+                        pluginType,
                         containerImage: '',
                         containerRegistry: 'docker.io',
                         crVisibility: CR_VISIBILITY_OPTIONS[0],
@@ -102,9 +93,9 @@ export default function SecondaryPluginsCard() {
 
             case PluginType.Worker:
                 append({
-                    secondaryPluginType: SecondaryPluginType.Generic,
+                    basePluginType: BasePluginType.Generic,
                     deploymentType: {
-                        type: 'worker',
+                        pluginType,
                         image: 'node:22',
                         repositoryUrl: '',
                         username: '',
@@ -122,7 +113,7 @@ export default function SecondaryPluginsCard() {
 
             case PluginType.Native:
                 append({
-                    secondaryPluginType: SecondaryPluginType.Native,
+                    basePluginType: BasePluginType.Native,
                     pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
                     customParams: [{ key: '', value: '', valueType: 'string' }],
                     ...TUNNELING_DEFAULTS,
@@ -130,13 +121,13 @@ export default function SecondaryPluginsCard() {
                 break;
 
             default:
-                console.error('Unknown plugin type:', type);
+                console.error('Unknown plugin type:', pluginType);
         }
     };
 
     // Aliases are used in the form so the user can identify the plugins easier
-    const getSecondaryPluginAlias = (
-        plugin: SecondaryPluginWithId,
+    const getPluginAlias = (
+        plugin: PluginWithId,
         index: number,
     ): {
         title: string;
@@ -144,10 +135,10 @@ export default function SecondaryPluginsCard() {
     } => {
         let option: (typeof OPTIONS)[number];
 
-        if (plugin.secondaryPluginType === SecondaryPluginType.Native) {
+        if (plugin.basePluginType === BasePluginType.Native) {
             option = OPTIONS.find((option) => option.pluginType === PluginType.Native)!;
         } else {
-            const pluginType = (plugin as GenericSecondaryPlugin).deploymentType.type as PluginType;
+            const pluginType: PluginType = (plugin as GenericPlugin).deploymentType.pluginType;
             option = OPTIONS.find((option) => option.pluginType === pluginType)!;
         }
 
@@ -158,7 +149,7 @@ export default function SecondaryPluginsCard() {
             element: (
                 <SmallTag variant={option.color} isLarge>
                     <div className="row gap-1.5">
-                        <div className={`text-xl ${option.textColorClass}`}>{option.icon}</div>
+                        <div className="text-xl">{option.icon}</div>
                         <div>{title}</div>
                     </div>
                 </SmallTag>
@@ -167,10 +158,12 @@ export default function SecondaryPluginsCard() {
     };
 
     return (
-        <SlateCard title="Secondary Plugins">
+        <SlateCard title="Plugins">
             <div className="col gap-6">
+                {!!rootError && <div className="text-danger text-sm">{rootError}</div>}
+
                 {plugins.map((plugin, index) => {
-                    const { title, element } = getSecondaryPluginAlias(plugin, index);
+                    const { title, element } = getPluginAlias(plugin, index);
 
                     return (
                         <div
@@ -180,8 +173,10 @@ export default function SecondaryPluginsCard() {
                             })}
                         >
                             {/* Plugin Header */}
-                            <div className="row justify-between">
+                            <div className="row gap-3">
                                 {element}
+
+                                <div className="flex-1 border-b-2 border-slate-200"></div>
 
                                 <div
                                     className="compact cursor-pointer text-red-600 hover:opacity-50"
@@ -205,13 +200,16 @@ export default function SecondaryPluginsCard() {
                                         }
                                     }}
                                 >
-                                    Remove plugin
+                                    <div className="row gap-1">
+                                        <RiDeleteBin2Line className="text-lg" />
+                                        <div className="font-medium">Remove plugin</div>
+                                    </div>
                                 </div>
                             </div>
 
-                            {plugin.secondaryPluginType === SecondaryPluginType.Generic ? (
+                            {plugin.basePluginType === BasePluginType.Generic ? (
                                 <>
-                                    {(plugin as GenericSecondaryPlugin).deploymentType.type === 'container' ? (
+                                    {(plugin as GenericPlugin).deploymentType.pluginType === PluginType.Container ? (
                                         <CARInputsSection index={index} />
                                     ) : (
                                         <WARInputsSection index={index} />
@@ -237,18 +235,18 @@ export default function SecondaryPluginsCard() {
                         </div>
 
                         <div className="row gap-2">
-                            {OPTIONS.map((plugin) => (
+                            {OPTIONS.map((option) => (
                                 <ActionButton
-                                    key={plugin.pluginType}
+                                    key={option.pluginType}
                                     className="bg-slate-200 hover:opacity-70!"
                                     color="default"
                                     onPress={() => {
-                                        onAddPlugin(plugin.pluginType);
+                                        onAddPlugin(option.pluginType);
                                     }}
                                 >
                                     <div className="row gap-1.5">
-                                        <div className={`text-xl ${plugin.textColorClass}`}>{plugin.icon}</div>
-                                        <div className="text-sm">{plugin.title}</div>
+                                        <div className={`text-xl ${option.textColorClass}`}>{option.icon}</div>
+                                        <div className="text-sm">{option.title}</div>
                                     </div>
                                 </ActionButton>
                             ))}

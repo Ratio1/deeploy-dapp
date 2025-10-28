@@ -69,7 +69,10 @@ function TargetNodesCard({ isEditingRunningJob }: { isEditingRunningJob?: boolea
                                 setValue('deployment.allowReplicationInTheWild', value, { shouldDirty: true });
                             }}
                         >
-                            <div className="compact text-slate-600">Allow deployment beyond chosen nodes</div>
+                            <div className="flex items-start gap-0.5">
+                                <div className="compact text-slate-600">Allow deployment beyond chosen nodes</div>
+                                <RiAsterisk className="text-primary mt-0.5 text-[10px]" />
+                            </div>
                         </Checkbox>
 
                         <div className="flex items-start gap-0.5">

@@ -11,6 +11,7 @@ import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import SubmitButton from '@shared/SubmitButton';
 import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
+import { ContainerDeploymentType, DeploymentType, PluginType, WorkerDeploymentType } from '@typedefs/steps/deploymentStepTypes';
 import { cloneDeep } from 'lodash';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -65,6 +66,29 @@ export default function DraftEditFormWrapper({
         const genericJob = job as GenericDraftJob;
         const deployment = genericJob.deployment;
 
+        let deploymentType: DeploymentType;
+
+        if (deployment.deploymentType.pluginType === PluginType.Container) {
+            const containerDeploymentType: ContainerDeploymentType = deployment.deploymentType as ContainerDeploymentType;
+
+            deploymentType = {
+                ...deployment.deploymentType,
+                crUsername: containerDeploymentType.crUsername ?? '',
+                crPassword: containerDeploymentType.crPassword ?? '',
+            };
+        } else {
+            const workerDeploymentType: WorkerDeploymentType = deployment.deploymentType as WorkerDeploymentType;
+
+            deploymentType = {
+                ...deployment.deploymentType,
+                workerCommands: workerDeploymentType.workerCommands.map((command) => ({
+                    command: command.command,
+                })),
+                username: workerDeploymentType.username ?? '',
+                accessToken: workerDeploymentType.accessToken ?? '',
+            };
+        }
+
         return {
             ...baseDefaults,
             specifications: {
@@ -75,21 +99,7 @@ export default function DraftEditFormWrapper({
             deployment: {
                 ...baseDefaults.deployment,
                 jobAlias: deployment.jobAlias,
-                deploymentType:
-                    deployment.deploymentType.type === 'container'
-                        ? {
-                              ...deployment.deploymentType,
-                              crUsername: deployment.deploymentType.crUsername ?? '',
-                              crPassword: deployment.deploymentType.crPassword ?? '',
-                          }
-                        : {
-                              ...deployment.deploymentType,
-                              workerCommands: deployment.deploymentType.workerCommands.map((command) => ({
-                                  command: command.command,
-                              })),
-                              username: deployment.deploymentType.username ?? '',
-                              accessToken: deployment.deploymentType.accessToken ?? '',
-                          },
+                deploymentType,
                 ports: cloneDeep(deployment.ports),
                 // Variables
                 envVars: cloneDeep(deployment.envVars),
@@ -131,7 +141,7 @@ export default function DraftEditFormWrapper({
                 pipelineInputType: deployment.pipelineInputType ?? PIPELINE_INPUT_TYPES[0],
                 pipelineInputUri: deployment.pipelineInputUri,
                 chainstoreResponse: deployment.chainstoreResponse ?? BOOLEAN_TYPES[1],
-                secondaryPlugins: cloneDeep(deployment.secondaryPlugins),
+                plugins: cloneDeep(deployment.plugins),
             },
         } as z.infer<typeof jobSchema>;
     };

@@ -18,6 +18,7 @@ import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
 import { DraftJob, JobType } from '@typedefs/deeploys';
+import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import { useEffect } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -69,7 +70,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             deploymentType: {
-                type: 'container',
+                pluginType: PluginType.Container,
                 containerImage: '',
                 containerRegistry: 'docker.io',
                 crVisibility: CR_VISIBILITY_OPTIONS[0],
@@ -89,12 +90,18 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
-            customParams: [{ key: '', value: '', valueType: 'string' }],
+            // Pipeline
             pipelineParams: [{ key: '', value: '' }],
             pipelineInputType: PIPELINE_INPUT_TYPES[0],
+            plugins: [
+                {
+                    basePluginType: BasePluginType.Native,
+                    pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
+                    enableTunneling: BOOLEAN_TYPES[0],
+                    customParams: [],
+                },
+            ],
             chainstoreResponse: BOOLEAN_TYPES[1],
-            secondaryPlugins: [],
         },
     });
 

@@ -67,7 +67,7 @@ export default function PublicProfile() {
             try {
                 const response = await getPublicProfileInfo(address as EthAddress);
 
-                if (!response) {
+                if (!response || !response?.brands?.[0] || response?.brands?.[0]?.links === undefined) {
                     console.log('Error fetching public profile info.');
                 }
 
@@ -135,9 +135,12 @@ export default function PublicProfile() {
                                         className={clsx('z-10 h-full w-full rounded-[37.5%] object-cover object-center', {
                                             'opacity-0': isImageLoading,
                                         })}
-                                        onLoad={() => setImageLoading(false)}
+                                        onLoad={() => {
+                                            setImageLoading(false);
+                                            setImageError(false);
+                                        }}
                                         onError={() => {
-                                            console.log('Error loading image', profileImageUrl);
+                                            console.error('Error loading image');
                                             setImageLoading(false);
                                             setImageError(true);
                                         }}
@@ -155,6 +158,7 @@ export default function PublicProfile() {
                                     setImageRefreshToken(Date.now());
                                 }}
                                 setImageLoading={setImageLoading}
+                                setImageError={setImageError}
                             />
 
                             <div className="text-sm text-slate-500">The maximum file size allowed is 500 KB.</div>

@@ -42,7 +42,6 @@ type PortMappingEntry = {
 
 // Deployment types
 type ContainerDeploymentType = {
-    type: 'container';
     containerImage: string;
     containerRegistry: string;
     crVisibility: (typeof CR_VISIBILITY_OPTIONS)[number];
@@ -51,7 +50,6 @@ type ContainerDeploymentType = {
 };
 
 type WorkerDeploymentType = {
-    type: 'worker';
     image: string;
     repositoryUrl: string;
     repositoryVisibility: 'public' | 'private';
@@ -60,15 +58,23 @@ type WorkerDeploymentType = {
     workerCommands: Array<{ command: string }>;
 };
 
-type DeploymentType = ContainerDeploymentType | WorkerDeploymentType;
+type DeploymentType = (ContainerDeploymentType | WorkerDeploymentType) & {
+    pluginType: PluginType;
+};
 
 // Plugin-related types
-export enum SecondaryPluginType {
+export enum BasePluginType {
     Generic = 'generic',
     Native = 'native',
 }
 
-type GenericSecondaryPlugin = {
+export enum PluginType {
+    Native = 'native',
+    Container = 'container',
+    Worker = 'worker',
+}
+
+type GenericPlugin = {
     // Tunneling
     port?: number | string;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
@@ -91,7 +97,7 @@ type GenericSecondaryPlugin = {
     imagePullPolicy: (typeof POLICY_TYPES)[number];
 };
 
-type NativeSecondaryPlugin = {
+type NativePlugin = {
     // Signature
     pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
     customPluginSignature?: string;
@@ -105,8 +111,8 @@ type NativeSecondaryPlugin = {
     customParams: Array<CustomParameterEntry>;
 };
 
-type SecondaryPlugin = (GenericSecondaryPlugin | NativeSecondaryPlugin) & {
-    secondaryPluginType: SecondaryPluginType;
+type Plugin = (GenericPlugin | NativePlugin) & {
+    basePluginType: BasePluginType;
 };
 
 // Deployment types
@@ -147,7 +153,7 @@ type NativeJobDeployment = BaseJobDeployment & {
     pipelineInputType: (typeof PIPELINE_INPUT_TYPES)[number];
     pipelineInputUri?: string;
     chainstoreResponse: (typeof BOOLEAN_TYPES)[number];
-    secondaryPlugins: SecondaryPlugin[];
+    plugins: Plugin[];
 };
 
 type ServiceJobDeployment = BaseJobDeployment & {
@@ -159,14 +165,16 @@ type JobDeployment = BaseJobDeployment & (GenericJobDeployment | NativeJobDeploy
 
 export type {
     BaseJobDeployment,
+    ContainerDeploymentType,
     CustomParameterEntry,
     DeploymentType,
     GenericJobDeployment,
-    GenericSecondaryPlugin,
+    GenericPlugin,
     JobDeployment,
     NativeJobDeployment,
-    NativeSecondaryPlugin,
+    NativePlugin,
+    Plugin,
     PortMappingEntry,
-    SecondaryPlugin,
     ServiceJobDeployment,
+    WorkerDeploymentType,
 };

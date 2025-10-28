@@ -15,7 +15,7 @@ import {
     nodeSchema,
     workerCommandSchema,
 } from '@schemas/common';
-import { SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
+import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import { z } from 'zod';
 
 // Common validation patterns
@@ -164,7 +164,7 @@ export const applyDeploymentTypeRefinements = (schema) => {
         }
 
         // Validate that crUsername and crPassword are provided when crVisibility is 'Private'
-        if (data.deploymentType.type === 'container' && data.deploymentType.crVisibility === 'Private') {
+        if (data.deploymentType.pluginType === PluginType.Container && data.deploymentType.crVisibility === 'Private') {
             if (!data.deploymentType.crUsername) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
@@ -182,7 +182,7 @@ export const applyDeploymentTypeRefinements = (schema) => {
         }
 
         // Validate that username and accessToken are provided when worker repositoryVisibility is 'private'
-        if (data.deploymentType.type === 'worker' && data.deploymentType.repositoryVisibility === 'private') {
+        if (data.deploymentType.pluginType === PluginType.Worker && data.deploymentType.repositoryVisibility === 'private') {
             if (!data.deploymentType.username) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
@@ -216,7 +216,9 @@ export const applyCustomPluginSignatureRefinements = (schema) => {
     );
 };
 
-const baseDeploymentSchema = z.object({
+const mainDeploymentSchema = z.object({
+    jobAlias: validations.jobAlias,
+
     // Target Nodes
     autoAssign: z.boolean(),
     targetNodes: z.array(nodeSchema).refine(
@@ -242,8 +244,9 @@ const baseDeploymentSchema = z.object({
         },
     ),
     allowReplicationInTheWild: z.boolean(),
+});
 
-    // Tunneling
+const tunnelingSchema = z.object({
     enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
     port: validations.port,
     tunnelingToken: getOptionalStringSchema(512),
@@ -262,8 +265,10 @@ const baseDeploymentSchema = z.object({
         .optional(),
 });
 
+const baseDeploymentSchema = mainDeploymentSchema.merge(tunnelingSchema);
+
 const containerDeploymentTypeSchema = z.object({
-    type: z.literal('container'),
+    pluginType: z.literal(PluginType.Container),
     containerImage: validations.containerImage,
     containerRegistry: validations.containerRegistry,
     crVisibility: z.enum(CR_VISIBILITY_OPTIONS, { required_error: 'Value is required' }),
@@ -272,7 +277,7 @@ const containerDeploymentTypeSchema = z.object({
 });
 
 const workerDeploymentTypeSchema = z.object({
-    type: z.literal('worker'),
+    pluginType: z.literal(PluginType.Worker),
     image: getStringSchema(3, 256),
     repositoryUrl: z
         .string({ required_error: 'Value is required' })
@@ -303,10 +308,12 @@ const workerDeploymentTypeSchema = z.object({
     ),
 });
 
-export const deploymentTypeSchema = z.discriminatedUnion('type', [containerDeploymentTypeSchema, workerDeploymentTypeSchema]);
+export const deploymentTypeSchema = z.discriminatedUnion('pluginType', [
+    containerDeploymentTypeSchema,
+    workerDeploymentTypeSchema,
+]);
 
 const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
-    jobAlias: validations.jobAlias,
     deploymentType: deploymentTypeSchema,
     ports: validations.ports,
     envVars: validations.envVars,
@@ -321,9 +328,9 @@ export const genericAppDeploymentSchema = applyDeploymentTypeRefinements(
     applyTunnelingRefinements(genericAppDeploymentSchemaWihtoutRefinements),
 );
 
-// Secondary plugins
-const baseGenericSecondaryPluginSchema = z.object({
-    secondaryPluginType: z.literal(SecondaryPluginType.Generic),
+// Plugins
+const genericPluginSchema = z.object({
+    basePluginType: z.literal(BasePluginType.Generic),
 
     // Tunneling
     port: validations.port,
@@ -347,10 +354,8 @@ const baseGenericSecondaryPluginSchema = z.object({
     imagePullPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
 });
 
-const genericSecondaryPluginSchema = baseGenericSecondaryPluginSchema;
-
-const baseNativeSecondaryPluginSchema = z.object({
-    secondaryPluginType: z.literal(SecondaryPluginType.Native),
+const nativePluginSchema = z.object({
+    basePluginType: z.literal(BasePluginType.Native),
 
     // Signature
     pluginSignature: validations.pluginSignature,
@@ -365,25 +370,18 @@ const baseNativeSecondaryPluginSchema = z.object({
     customParams: validations.customParams,
 });
 
-const secondaryPluginSchemaWithoutRefinements = z.discriminatedUnion('secondaryPluginType', [
-    genericSecondaryPluginSchema,
-    baseNativeSecondaryPluginSchema,
-]);
+const pluginSchemaWithoutRefinements = z.discriminatedUnion('basePluginType', [genericPluginSchema, nativePluginSchema]);
 
-const secondaryPluginSchema = applyCustomPluginSignatureRefinements(
-    applyDeploymentTypeRefinements(applyTunnelingRefinements(secondaryPluginSchemaWithoutRefinements)),
+const pluginSchema = applyCustomPluginSignatureRefinements(
+    applyDeploymentTypeRefinements(applyTunnelingRefinements(pluginSchemaWithoutRefinements)),
 );
 
-const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
-    jobAlias: validations.jobAlias,
-    pluginSignature: validations.pluginSignature,
-    customPluginSignature: getOptionalStringSchema(128),
-    customParams: validations.customParams,
+const nativeAppDeploymentSchemaWihtoutRefinements = mainDeploymentSchema.extend({
     pipelineParams: validations.pipelineParams,
     pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
     pipelineInputUri: validations.optionalUri,
+    plugins: z.array(pluginSchema).min(1, 'At least one plugin is required').max(5, 'Only 5 plugins allowed'),
     chainstoreResponse: validations.chainstoreResponse,
-    secondaryPlugins: z.array(secondaryPluginSchema).max(5, 'Only 5 secondary plugins allowed').optional(),
 });
 
 export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(
@@ -391,7 +389,6 @@ export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(
 );
 
 const serviceAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
-    jobAlias: validations.jobAlias,
     enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
     tunnelingToken: getOptionalStringSchema(512),
     inputs: validations.envVars,

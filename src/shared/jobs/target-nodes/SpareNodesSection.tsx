@@ -1,6 +1,8 @@
+import { Button } from '@heroui/button';
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine, RiClipboardLine } from 'react-icons/ri';
+import DeeployInfoTag from '../DeeployInfoTag';
 import VariableSectionIndex from '../VariableSectionIndex';
 import VariableSectionRemove from '../VariableSectionRemove';
 
@@ -17,13 +19,9 @@ export default function SpareNodesSection() {
 
     return (
         <div className="col gap-4" key={fields.length}>
-            <div className="text-sm text-slate-500">
-                You can specify spare nodes to be used as backup in case the above specified target nodes are not available.
-            </div>
+            <DeeployInfoTag text="You can specify spare nodes to be used as backup in case the above specified target nodes are not available." />
 
-            {!fields.length ? (
-                <div className="text-sm text-slate-500 italic">No spare nodes added yet.</div>
-            ) : (
+            {fields.length > 0 && (
                 <div className="col gap-2">
                     {fields.map((field, index) => {
                         // Get the error for this specific entry
@@ -91,14 +89,26 @@ export default function SpareNodesSection() {
                 </div>
             )}
 
-            {fields.length < 25 && (
-                <div
-                    className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
-                    onClick={() => append({ address: '' })}
-                >
-                    <RiAddLine className="text-lg" /> Add Node
-                </div>
-            )}
+            <div className="row justify-between">
+                <div>{!fields.length && <div className="text-sm text-slate-500 italic">No spare nodes added yet.</div>}</div>
+
+                {fields.length < 25 && (
+                    <div className="flex">
+                        <Button
+                            className="h-[34px] border-2 border-slate-200 bg-white px-2 data-[hover=true]:opacity-65!"
+                            color="primary"
+                            size="sm"
+                            variant="flat"
+                            onPress={() => append({ address: '' })}
+                        >
+                            <div className="row gap-0.5">
+                                <RiAddLine className="text-lg" />
+                                <div className="compact">Add Node</div>
+                            </div>
+                        </Button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

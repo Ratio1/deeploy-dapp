@@ -1,13 +1,13 @@
 import ContainerSection from '@shared/jobs/deployment-type/ContainerSection';
-import GenericSecondaryPluginSections from './GenericSecondaryPluginSections';
+import GenericPluginSections from './GenericPluginSections';
 
 export default function CARInputsSection({ index }: { index: number }) {
-    const name = `deployment.secondaryPlugins.${index}`;
+    const name = `deployment.plugins.${index}`;
 
     return (
         <div className="col gap-4">
             <ContainerSection baseName={name} />
-            <GenericSecondaryPluginSections name={name} />
+            <GenericPluginSections name={name} />
         </div>
     );
 }

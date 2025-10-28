@@ -7,7 +7,7 @@ import { useFormContext } from 'react-hook-form';
 import AppParametersSection from '../sections/AppParametersSection';
 
 export default function NativeInputsSection({ index }: { index: number }) {
-    const name = `deployment.secondaryPlugins.${index}`;
+    const name = `deployment.plugins.${index}`;
 
     const { watch } = useFormContext();
 

@@ -4,16 +4,15 @@ import Specifications from '@components/create-job/steps/Specifications';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
-import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { boolToBooleanType, isPluginGeneric, titlecase } from '@lib/deeploy-utils';
+import { boolToBooleanType, isGenericPlugin, NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS, titlecase } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
-import { JobConfig } from '@typedefs/deeployApi';
+import { AppsPlugin, JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
-import { SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
+import { BasePluginType, CustomParameterEntry, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
@@ -50,10 +49,21 @@ export default function JobEditFormWrapper({
 
     const jobConfig: JobConfig = job.config;
 
-    // console.log('[JobEditFormWrapper]', { job, jobConfig });
+    console.log('[JobEditFormWrapper]', { job, jobConfig });
 
     const [isTargetNodesCountLower, setTargetNodesCountLower] = useState<boolean>(false);
     const [additionalCost, setAdditionalCost] = useState<bigint>(0n);
+
+    const getBaseSchemaDeploymentDefaults = () => ({
+        jobAlias: job.alias,
+        autoAssign: false,
+        targetNodes: [
+            ...job.nodes.map((address) => ({ address })),
+            ...Array.from({ length: Number(job.numberOfNodesRequested) - job.nodes.length }, () => ({ address: '' })),
+        ],
+        spareNodes: !job.spareNodes ? [] : job.spareNodes.map((address) => ({ address })),
+        allowReplicationInTheWild: job.allowReplicationInTheWild ?? false,
+    });
 
     const getBaseSchemaTunnelingDefaults = (config: JobConfig) => ({
         enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED),
@@ -68,7 +78,7 @@ export default function JobEditFormWrapper({
         // Deployment type
         deploymentType: !config.VCS_DATA
             ? {
-                  type: 'container',
+                  pluginType: PluginType.Container,
                   containerImage: config.IMAGE,
                   containerRegistry: config.CR_DATA?.SERVER || 'docker.io',
                   crVisibility: CR_VISIBILITY_OPTIONS[!config.CR_DATA?.USERNAME ? 0 : 1],
@@ -76,7 +86,7 @@ export default function JobEditFormWrapper({
                   crPassword: config.CR_DATA?.PASSWORD || '',
               }
             : {
-                  type: 'worker',
+                  pluginType: PluginType.Worker,
                   image: config.IMAGE,
                   repositoryUrl: config.VCS_DATA.REPO_URL,
                   repositoryVisibility: 'public',
@@ -97,12 +107,25 @@ export default function JobEditFormWrapper({
     });
 
     const getGenericPluginSchemaDefaults = (config: JobConfig) => ({
-        secondaryPluginType: SecondaryPluginType.Generic,
+        basePluginType: BasePluginType.Generic,
 
         // Tunneling
         ...getBaseSchemaTunnelingDefaults(config),
 
         ...getGenericSpecificDeploymentDefaults(config),
+    });
+
+    const getNativePluginSchemaDefaults = (pluginInfo: AppsPlugin & { signature: string }) => ({
+        basePluginType: BasePluginType.Native,
+
+        // Signature
+        pluginSignature: pluginInfo.signature,
+
+        // Tunneling
+        ...getBaseSchemaTunnelingDefaults(pluginInfo.instance_conf),
+
+        // Custom Parameters
+        customParams: formatCustomParams(pluginInfo.instance_conf),
     });
 
     const getBaseSchemaDefaults = (config: JobConfig = jobConfig) => ({
@@ -120,14 +143,7 @@ export default function JobEditFormWrapper({
             paymentMonthsCount: 1,
         },
         deployment: {
-            jobAlias: job.alias,
-            autoAssign: false,
-            targetNodes: [
-                ...job.nodes.map((address) => ({ address })),
-                ...Array.from({ length: Number(job.numberOfNodesRequested) - job.nodes.length }, () => ({ address: '' })),
-            ],
-            spareNodes: !job.spareNodes ? [] : job.spareNodes.map((address) => ({ address })),
-            allowReplicationInTheWild: job.allowReplicationInTheWild ?? false,
+            ...getBaseSchemaDeploymentDefaults(),
             ...getBaseSchemaTunnelingDefaults(config),
         },
     });
@@ -153,20 +169,12 @@ export default function JobEditFormWrapper({
             workerType: job.resources.containerOrWorkerType.name,
         },
         deployment: {
-            ...getBaseSchemaDefaults().deployment, // TODO: Use the config of the primary plugin
-            pluginSignature: _(job.instances) // TODO: Use the signature of the primary plugin
-                .map((instance) => instance.plugins)
-                .flatten()
-                .map((plugin) => plugin.signature)
-                .filter((signature) => !isPluginGeneric(signature))
-                .uniq()
-                .first(),
-            customParams: [], // TODO: (Disabled for now) [{ key: '', value: '', valueType: 'string' }]
-            pipelineParams: [{ key: '', value: '' }], // TODO: Missing from the API response
-            pipelineInputType: PIPELINE_INPUT_TYPES[0], // TODO: Missing from the API response
-            pipelineInputUri: undefined, // TODO: Missing from the API response
-            chainstoreResponse: BOOLEAN_TYPES[1], // TODO: Missing from the API response
-            secondaryPlugins: formatSecondaryPlugins(),
+            ...getBaseSchemaDeploymentDefaults(),
+            pipelineParams: [], // TODO: Missing from the API response
+            pipelineInputType: job.pipelineData.TYPE,
+            pipelineInputUri: job.pipelineData.URL,
+            plugins: formatPlugins(),
+            chainstoreResponse: BOOLEAN_TYPES[1],
         },
     });
 
@@ -214,17 +222,48 @@ export default function JobEditFormWrapper({
               }));
     };
 
-    const formatSecondaryPlugins = () => {
+    const formatPlugins = () => {
         // Get the instance with the most plugins
         const instance = _(job.instances)
             .sortBy((instance) => instance.plugins.length)
             .last()!;
 
         const genericPluginConfigs: JobConfig[] = instance.plugins
-            .filter((plugin) => isPluginGeneric(plugin.signature))
+            .filter((plugin) => isGenericPlugin(plugin.signature))
             .map((plugin) => plugin.instance_conf);
 
-        return genericPluginConfigs.map((config) => getGenericPluginSchemaDefaults(config));
+        const nativePlugins = instance.plugins.filter((plugin) => !isGenericPlugin(plugin.signature));
+
+        return [
+            ...nativePlugins.map((pluginInfo) => getNativePluginSchemaDefaults(pluginInfo)),
+            ...genericPluginConfigs.map((config) => getGenericPluginSchemaDefaults(config)),
+        ];
+    };
+
+    const formatCustomParams = (config: JobConfig) => {
+        const customParams: CustomParameterEntry[] = [];
+
+        Object.entries(config).forEach(([key, value]) => {
+            if (!NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS.includes(key as keyof JobConfig)) {
+                const valueType = typeof value === 'string' ? 'string' : 'json';
+
+                let parsedValue: string = '';
+
+                if (valueType === 'json') {
+                    try {
+                        parsedValue = JSON.stringify(value);
+                    } catch (error) {
+                        console.error('[formatCustomParams()] Unable to parse JSON value', key, value);
+                    }
+                } else {
+                    parsedValue = value as string;
+                }
+
+                customParams.push({ key, value: parsedValue, valueType });
+            }
+        });
+
+        return customParams;
     };
 
     const getDefaultSchemaValues = () => {

@@ -338,7 +338,7 @@ export default function TunnelPage() {
 
                 <CompactCustomCard
                     header={
-                        <div className="col gap-2">
+                        <div className="col gap-1.5">
                             <div className="row gap-1.5">
                                 <RiLinkM className="text-primary-500 text-lg" />
                                 <div className="compact">External Domains</div>
@@ -433,7 +433,7 @@ export default function TunnelPage() {
 
                 <CompactCustomCard
                     header={
-                        <div className="col gap-2">
+                        <div className="col gap-1.5">
                             <div className="row gap-1.5">
                                 <RiPriceTag3Line className="text-primary-500 text-lg" />
                                 <div className="compact">Aliases</div>

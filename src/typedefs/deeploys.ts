@@ -7,7 +7,7 @@ import {
     serviceContainerTypes,
 } from '@data/containerResources';
 import { EthAddress, R1Address } from './blockchain';
-import { AppsPlugin, JobConfig } from './deeployApi';
+import { AppsPlugin, JobConfig, PipelineData } from './deeployApi';
 import { GenericJobDeployment, JobDeployment, NativeJobDeployment, ServiceJobDeployment } from './steps/deploymentStepTypes';
 
 enum JobType {
@@ -120,6 +120,7 @@ type RunningJobWithDetails = RunningJob & {
         plugins: (AppsPlugin & { signature: string })[];
     }[];
     config: JobConfig;
+    pipelineData: PipelineData;
 };
 
 type RunningJobWithResources = RunningJobWithDetails & {
