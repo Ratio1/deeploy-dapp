@@ -1,5 +1,4 @@
 import { ContainerOrWorkerType, GpuType, gpuTypes, nativeWorkerTypes } from '@data/containerResources';
-import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
 import { NativeDraftJob } from '@typedefs/deeploys';
@@ -37,19 +36,8 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[]
                     ...(gpuType ? [{ label: 'GPU Type', value: `${gpuType.name} (${gpuType.gpus.join(', ')})` }] : []),
 
                     // Deployment
-                    {
-                        label: 'Plugin Signature',
-                        value:
-                            nativeJob.deployment.pluginSignature === PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1]
-                                ? nativeJob.deployment.customPluginSignature
-                                : nativeJob.deployment.pluginSignature,
-                    },
                     { label: 'Pipeline Input Type', value: nativeJob.deployment.pipelineInputType },
                     { label: 'Pipeline Input URI', value: nativeJob.deployment.pipelineInputUri ?? 'None' },
-                    { label: 'Tunneling', value: nativeJob.deployment.enableTunneling },
-                    ...(nativeJob.deployment.enableTunneling === 'True' && nativeJob.deployment.tunnelingLabel
-                        ? [{ label: 'Tunneling Label', value: nativeJob.deployment.tunnelingLabel }]
-                        : []),
                     { label: 'Chainstore Response', value: nativeJob.deployment.chainstoreResponse },
                 ];
 

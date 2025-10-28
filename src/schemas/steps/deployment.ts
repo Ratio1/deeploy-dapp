@@ -216,7 +216,9 @@ export const applyCustomPluginSignatureRefinements = (schema) => {
     );
 };
 
-const baseDeploymentSchema = z.object({
+const mainDeploymentSchema = z.object({
+    jobAlias: validations.jobAlias,
+
     // Target Nodes
     autoAssign: z.boolean(),
     targetNodes: z.array(nodeSchema).refine(
@@ -242,8 +244,9 @@ const baseDeploymentSchema = z.object({
         },
     ),
     allowReplicationInTheWild: z.boolean(),
+});
 
-    // Tunneling
+const tunnelingSchema = z.object({
     enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
     port: validations.port,
     tunnelingToken: getOptionalStringSchema(512),
@@ -261,6 +264,8 @@ const baseDeploymentSchema = z.object({
         ])
         .optional(),
 });
+
+const baseDeploymentSchema = mainDeploymentSchema.merge(tunnelingSchema);
 
 const containerDeploymentTypeSchema = z.object({
     pluginType: z.literal(PluginType.Container),
@@ -309,7 +314,6 @@ export const deploymentTypeSchema = z.discriminatedUnion('pluginType', [
 ]);
 
 const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
-    jobAlias: validations.jobAlias,
     deploymentType: deploymentTypeSchema,
     ports: validations.ports,
     envVars: validations.envVars,
@@ -372,8 +376,7 @@ const pluginSchema = applyCustomPluginSignatureRefinements(
     applyDeploymentTypeRefinements(applyTunnelingRefinements(pluginSchemaWithoutRefinements)),
 );
 
-const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
-    jobAlias: validations.jobAlias,
+const nativeAppDeploymentSchemaWihtoutRefinements = mainDeploymentSchema.extend({
     pipelineParams: validations.pipelineParams,
     pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
     pipelineInputUri: validations.optionalUri,
@@ -386,7 +389,6 @@ export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(
 );
 
 const serviceAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
-    jobAlias: validations.jobAlias,
     enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
     tunnelingToken: getOptionalStringSchema(512),
     inputs: validations.envVars,
