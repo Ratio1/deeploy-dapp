@@ -325,7 +325,7 @@ export const genericAppDeploymentSchema = applyDeploymentTypeRefinements(
 );
 
 // Plugins
-const baseGenericPluginSchema = z.object({
+const genericPluginSchema = z.object({
     basePluginType: z.literal(BasePluginType.Generic),
 
     // Tunneling
@@ -350,9 +350,7 @@ const baseGenericPluginSchema = z.object({
     imagePullPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
 });
 
-const genericPluginSchema = baseGenericPluginSchema;
-
-const baseNativePluginSchema = z.object({
+const nativePluginSchema = z.object({
     basePluginType: z.literal(BasePluginType.Native),
 
     // Signature
@@ -368,7 +366,7 @@ const baseNativePluginSchema = z.object({
     customParams: validations.customParams,
 });
 
-const pluginSchemaWithoutRefinements = z.discriminatedUnion('basePluginType', [genericPluginSchema, baseNativePluginSchema]);
+const pluginSchemaWithoutRefinements = z.discriminatedUnion('basePluginType', [genericPluginSchema, nativePluginSchema]);
 
 const pluginSchema = applyCustomPluginSignatureRefinements(
     applyDeploymentTypeRefinements(applyTunnelingRefinements(pluginSchemaWithoutRefinements)),
@@ -376,14 +374,11 @@ const pluginSchema = applyCustomPluginSignatureRefinements(
 
 const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,
-    pluginSignature: validations.pluginSignature,
-    customPluginSignature: getOptionalStringSchema(128),
-    customParams: validations.customParams,
     pipelineParams: validations.pipelineParams,
     pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
     pipelineInputUri: validations.optionalUri,
-    chainstoreResponse: validations.chainstoreResponse,
     plugins: z.array(pluginSchema).max(5, 'Only 5 plugins allowed').optional(),
+    chainstoreResponse: validations.chainstoreResponse,
 });
 
 export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(

@@ -1,13 +1,9 @@
-import AppParametersSection from '@components/create-job/sections/AppParametersSection';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
-import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import DeeployWarning from '@shared/jobs/DeeployWarning';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
-import CustomParametersSection from '@shared/jobs/native/CustomParametersSection';
-import NativeAppIdentitySection from '@shared/jobs/native/NativeAppIdentitySection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import Label from '@shared/Label';
 import SelectWithLabel from '@shared/SelectWithLabel';
@@ -17,24 +13,15 @@ import PluginsCard from '../../plugins/PluginsCard';
 function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     const { watch } = useFormContext();
 
-    const pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number] = watch('deployment.pluginSignature');
     const chainstoreResponse = watch('deployment.chainstoreResponse');
 
     return (
         <div className="col gap-6">
             <SlateCard title="App Identity">
-                <NativeAppIdentitySection pluginSignature={pluginSignature} />
+                <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="My App" />
             </SlateCard>
 
             <TargetNodesCard isEditingRunningJob={isEditingRunningJob} />
-
-            <SlateCard title="App Parameters">
-                <AppParametersSection />
-            </SlateCard>
-
-            <SlateCard title="Custom Parameters">
-                <CustomParametersSection />
-            </SlateCard>
 
             <SlateCard title="Pipeline">
                 <div className="col gap-4">

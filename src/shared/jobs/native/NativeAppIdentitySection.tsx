@@ -9,8 +9,6 @@ export default function NativeAppIdentitySection({
     pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
     baseName?: string;
 }) {
-    const getJobAlias = () => <InputWithLabel name={`${baseName}.jobAlias`} label="Alias" placeholder="My App" />;
-
     const getPluginSignature = () => (
         <SelectWithLabel name={`${baseName}.pluginSignature`} label="Plugin Signature" options={PLUGIN_SIGNATURE_TYPES} />
     );
@@ -23,18 +21,9 @@ export default function NativeAppIdentitySection({
         return <InputWithLabel name={`${baseName}.customPluginSignature`} label="Custom Plugin Signature" placeholder="None" />;
     };
 
-    return baseName !== 'deployment' ? (
+    return (
         <div className="flex gap-4">
             {getPluginSignature()}
-            {getCustomPluginSignature()}
-        </div>
-    ) : (
-        <div className="col gap-4">
-            <div className="flex gap-4">
-                {getJobAlias()}
-                {getPluginSignature()}
-            </div>
-
             {getCustomPluginSignature()}
         </div>
     );

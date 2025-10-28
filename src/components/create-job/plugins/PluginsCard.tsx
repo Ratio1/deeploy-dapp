@@ -8,10 +8,9 @@ import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
 import { BasePluginType, GenericPlugin, Plugin, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import clsx from 'clsx';
-import { useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { RiAddLine, RiBox3Line, RiTerminalBoxLine } from 'react-icons/ri';
+import { RiAddLine, RiBox3Line, RiDeleteBin2Line, RiTerminalBoxLine } from 'react-icons/ri';
 import CARInputsSection from './CARInputsSection';
 import NativeInputsSection from './NativeInputsSection';
 import WARInputsSection from './WARInputsSection';
@@ -42,7 +41,7 @@ const OPTIONS: {
         title: 'Native Plugin',
         icon: <RiTerminalBoxLine />,
         textColorClass: 'text-green-600',
-        color: 'green',
+        color: 'emerald',
     },
     {
         pluginType: PluginType.Container,
@@ -71,10 +70,6 @@ export default function PluginsCard() {
     });
 
     const plugins = fields as PluginWithId[];
-
-    useEffect(() => {
-        console.log({ plugins });
-    }, [plugins]);
 
     const onAddPlugin = (pluginType: PluginType) => {
         switch (pluginType) {
@@ -152,7 +147,7 @@ export default function PluginsCard() {
             element: (
                 <SmallTag variant={option.color} isLarge>
                     <div className="row gap-1.5">
-                        <div className={`text-xl ${option.textColorClass}`}>{option.icon}</div>
+                        <div className="text-xl">{option.icon}</div>
                         <div>{title}</div>
                     </div>
                 </SmallTag>
@@ -174,8 +169,10 @@ export default function PluginsCard() {
                             })}
                         >
                             {/* Plugin Header */}
-                            <div className="row justify-between">
+                            <div className="row gap-3">
                                 {element}
+
+                                <div className="flex-1 border-b-2 border-slate-200"></div>
 
                                 <div
                                     className="compact cursor-pointer text-red-600 hover:opacity-50"
@@ -199,7 +196,10 @@ export default function PluginsCard() {
                                         }
                                     }}
                                 >
-                                    Remove plugin
+                                    <div className="row gap-1">
+                                        <RiDeleteBin2Line className="text-lg" />
+                                        <div className="font-medium">Remove plugin</div>
+                                    </div>
                                 </div>
                             </div>
 
