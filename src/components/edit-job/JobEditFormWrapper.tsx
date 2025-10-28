@@ -7,7 +7,7 @@ import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { boolToBooleanType, isPluginGeneric, titlecase } from '@lib/deeploy-utils';
+import { boolToBooleanType, isGenericPlugin, titlecase } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
@@ -158,7 +158,7 @@ export default function JobEditFormWrapper({
                 .map((instance) => instance.plugins)
                 .flatten()
                 .map((plugin) => plugin.signature)
-                .filter((signature) => !isPluginGeneric(signature))
+                .filter((signature) => !isGenericPlugin(signature))
                 .uniq()
                 .first(),
             customParams: [], // TODO: (Disabled for now) [{ key: '', value: '', valueType: 'string' }]
@@ -221,7 +221,7 @@ export default function JobEditFormWrapper({
             .last()!;
 
         const genericPluginConfigs: JobConfig[] = instance.plugins
-            .filter((plugin) => isPluginGeneric(plugin.signature))
+            .filter((plugin) => isGenericPlugin(plugin.signature))
             .map((plugin) => plugin.instance_conf);
 
         // TODO: Add native plugins

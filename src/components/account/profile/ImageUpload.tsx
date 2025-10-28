@@ -6,15 +6,20 @@ import toast from 'react-hot-toast';
 export default function ImageUpload({
     onUpload,
     setImageLoading,
+    setImageError,
 }: {
     onUpload: () => void;
     setImageLoading: (loading: boolean) => void;
+    setImageError: (error: boolean) => void;
 }) {
     const inputRef = useRef<HTMLInputElement | null>(null);
 
     const handleFileChange = useCallback(
         async (event: React.ChangeEvent<HTMLInputElement>) => {
+            console.log('ImageUpload handleFileChange');
+
             setImageLoading(true);
+            setImageError(false);
 
             const file = event.target.files?.[0];
 

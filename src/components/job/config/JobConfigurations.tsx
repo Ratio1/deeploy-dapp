@@ -1,5 +1,5 @@
 import { SelectItem } from '@heroui/select';
-import { isPluginGeneric } from '@lib/deeploy-utils';
+import { isGenericPlugin, NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS } from '@lib/deeploy-utils';
 import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
@@ -8,7 +8,7 @@ import StyledSelect from '@shared/StyledSelect';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import _, { isEmpty } from 'lodash';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import JobDynamicEnvSection from '../JobDynamicEnvSection';
 import JobFileVolumesSection from '../JobFileVolumesSection';
 import JobKeyValueSection from '../JobKeyValueSection';
@@ -38,9 +38,11 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
         .sortBy('signature')
         .value();
 
-    console.log('[JobConfigurations]', { pluginConfigs });
-
     const [pluginConfig, setPluginConfig] = useState<PluginConfig>(pluginConfigs[0]!);
+
+    useEffect(() => {
+        console.log('JobConfigurations', pluginConfig);
+    }, [pluginConfig]);
 
     const config = pluginConfig.value;
 
@@ -71,14 +73,43 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
                 </div>
 
                 <div className="col gap-4">
-                    <div className="grid grid-cols-2 gap-3">
-                        <ItemWithBoldValue label="Port" value={config.PORT} />
+                    {/* Nodes */}
+                    <ConfigSectionTitle title="Nodes" />
 
+                    <div className="grid grid-cols-2 gap-3">
+                        <ItemWithBoldValue label="Target Nodes" value={Number(job.numberOfNodesRequested)} />
+                        <ItemWithBoldValue
+                            label="Node Tags"
+                            value={!tags.length ? '—' : <JobSimpleTagsSection array={tags} />}
+                        />
+
+                        <ItemWithBoldValue
+                            label="Spare Nodes"
+                            value={
+                                !job.spareNodes || isEmpty(job.spareNodes) ? (
+                                    '—'
+                                ) : (
+                                    <JobSimpleTagsSection
+                                        array={job.spareNodes.map((addr) => getShortAddressOrHash(addr, 8, true) as string)}
+                                        type="col"
+                                        copyable
+                                    />
+                                )
+                            }
+                        />
+                    </div>
+
+                    {/* Tunneling */}
+                    <ConfigSectionTitle title="Tunneling" />
+
+                    <div className="grid grid-cols-2 gap-3">
                         <ItemWithBoldValue
                             label="Tunnel Engine Enabled"
                             value={(!!config.TUNNEL_ENGINE_ENABLED).toString()}
                             capitalize
                         />
+
+                        <ItemWithBoldValue label="Port" value={config.PORT ? config.PORT.toString() : '—'} />
 
                         {!!config.TUNNEL_ENGINE_ENABLED && (
                             <>
@@ -117,36 +148,31 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
                                 )}
                             </>
                         )}
-
-                        <ItemWithBoldValue label="Restart Policy" value={config.RESTART_POLICY} capitalize />
-                        <ItemWithBoldValue label="Image Pull Policy" value={config.IMAGE_PULL_POLICY} capitalize />
                     </div>
 
-                    {/* Nodes */}
-                    <ConfigSectionTitle title="Nodes" />
+                    {/* Native Plugin */}
+                    {!isGenericPlugin(pluginConfig.signature) && (
+                        <>
+                            <ConfigSectionTitle title="Native Plugin" variant="green" />
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <ItemWithBoldValue label="Target Nodes" value={Number(job.numberOfNodesRequested)} />
-                        <ItemWithBoldValue
-                            label="Node Tags"
-                            value={!tags.length ? '—' : <JobSimpleTagsSection array={tags} />}
-                        />
-
-                        <ItemWithBoldValue
-                            label="Spare Nodes"
-                            value={
-                                !job.spareNodes || isEmpty(job.spareNodes) ? (
-                                    '—'
-                                ) : (
-                                    <JobSimpleTagsSection
-                                        array={job.spareNodes.map((addr) => getShortAddressOrHash(addr, 8, true) as string)}
-                                        type="col"
-                                        copyable
+                            <ItemWithBoldValue
+                                label="Custom Parameters"
+                                value={
+                                    <JobKeyValueSection
+                                        obj={Object.fromEntries(
+                                            Object.entries(pluginConfig.value)
+                                                .filter(
+                                                    ([key, _]) =>
+                                                        !NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS.includes(key as keyof JobConfig),
+                                                )
+                                                .map(([key, value]) => [key, JSON.stringify(value)]),
+                                        )}
+                                        displayShortValues={false}
                                     />
-                                )
-                            }
-                        />
-                    </div>
+                                }
+                            />
+                        </>
+                    )}
 
                     {/* Worker App Runner */}
                     {pluginConfig.signature === 'WORKER_APP_RUNNER' && (
@@ -161,14 +187,14 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
                     {/* Service */}
                     {job.resources.jobType === JobType.Service && (
                         <>
-                            <ConfigSectionTitle title="Service" />
+                            <ConfigSectionTitle title="Service" variant="purple" />
 
                             <ItemWithBoldValue label="Image" value={config.IMAGE} />
                         </>
                     )}
 
                     {/* Port Mapping */}
-                    {isPluginGeneric(pluginConfig.signature) && pluginConfig.value.CONTAINER_RESOURCES.ports && (
+                    {isGenericPlugin(pluginConfig.signature) && pluginConfig.value.CONTAINER_RESOURCES.ports && (
                         <>
                             <ConfigSectionTitle title="Port Mapping" />
 
@@ -180,46 +206,62 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
                         </>
                     )}
 
-                    {/* Variables */}
-                    <ConfigSectionTitle title="Variables" />
+                    {isGenericPlugin(pluginConfig.signature) && (
+                        <>
+                            {/* Variables */}
+                            <ConfigSectionTitle title="Variables" />
 
-                    <div className="col gap-3">
-                        <div className="col gap-3">
-                            <ItemWithBoldValue
-                                label="ENV Variables"
-                                value={isEmpty(config.ENV) ? '—' : <JobKeyValueSection obj={config.ENV} />}
-                            />
+                            <div className="col gap-3">
+                                <div className="col gap-3">
+                                    <ItemWithBoldValue
+                                        label="ENV Variables"
+                                        value={isEmpty(config.ENV) ? '—' : <JobKeyValueSection obj={config.ENV} />}
+                                    />
 
-                            {job.resources.jobType !== JobType.Native && (
-                                <ItemWithBoldValue
-                                    label="Dynamic ENV Variables"
-                                    value={
-                                        isEmpty(config.DYNAMIC_ENV) ? (
-                                            '—'
-                                        ) : (
-                                            <JobDynamicEnvSection dynamicEnv={config.DYNAMIC_ENV} />
-                                        )
-                                    }
-                                />
-                            )}
-                        </div>
+                                    {job.resources.jobType !== JobType.Native && (
+                                        <ItemWithBoldValue
+                                            label="Dynamic ENV Variables"
+                                            value={
+                                                isEmpty(config.DYNAMIC_ENV) ? (
+                                                    '—'
+                                                ) : (
+                                                    <JobDynamicEnvSection dynamicEnv={config.DYNAMIC_ENV} />
+                                                )
+                                            }
+                                        />
+                                    )}
+                                </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <ItemWithBoldValue
-                                label="Volumes"
-                                value={isEmpty(config.VOLUMES) ? '—' : <JobKeyValueSection obj={config.VOLUMES} />}
-                            />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <ItemWithBoldValue
+                                        label="Volumes"
+                                        value={isEmpty(config.VOLUMES) ? '—' : <JobKeyValueSection obj={config.VOLUMES} />}
+                                    />
 
-                            {(job.resources.jobType === JobType.Generic || isPluginGeneric(pluginConfig.signature)) && (
-                                <ItemWithBoldValue
-                                    label="File Volumes"
-                                    value={
-                                        isEmpty(config.FILE_VOLUMES) ? '—' : <JobFileVolumesSection obj={config.FILE_VOLUMES} />
-                                    }
-                                />
-                            )}
-                        </div>
-                    </div>
+                                    {(job.resources.jobType === JobType.Generic || isGenericPlugin(pluginConfig.signature)) && (
+                                        <ItemWithBoldValue
+                                            label="File Volumes"
+                                            value={
+                                                isEmpty(config.FILE_VOLUMES) ? (
+                                                    '—'
+                                                ) : (
+                                                    <JobFileVolumesSection obj={config.FILE_VOLUMES} />
+                                                )
+                                            }
+                                        />
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Policies */}
+                            <ConfigSectionTitle title="Policies" />
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <ItemWithBoldValue label="Restart Policy" value={config.RESTART_POLICY} capitalize />
+                                <ItemWithBoldValue label="Image Pull Policy" value={config.IMAGE_PULL_POLICY} capitalize />
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </BorderedCard>

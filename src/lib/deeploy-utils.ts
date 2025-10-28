@@ -8,6 +8,7 @@ import {
     serviceContainerTypes,
 } from '@data/containerResources';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
+import { JobConfig } from '@typedefs/deeployApi';
 import {
     DraftJob,
     GenericDraftJob,
@@ -44,6 +45,14 @@ export const GITHUB_REPO_REGEX = new RegExp('^https?://github\\.com/([^\\s/]+)/(
 export const KYB_TAG = 'IS_KYB';
 export const KYC_TAG = '!IS_KYB';
 export const DC_TAG = 'DC:*';
+
+export const NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS: (keyof JobConfig)[] = [
+    'CHAINSTORE_PEERS',
+    'CLOUDFLARE_TOKEN',
+    'INSTANCE_ID',
+    'PORT',
+    'TUNNEL_ENGINE_ENABLED',
+];
 
 export const getDiscountPercentage = (_paymentMonthsCount: number): number => {
     // Disabled for now
@@ -607,6 +616,6 @@ export const onDotEnvPaste = async (
     }
 };
 
-export const isPluginGeneric = (pluginSignature: string) => {
+export const isGenericPlugin = (pluginSignature: string) => {
     return pluginSignature === 'CONTAINER_APP_RUNNER' || pluginSignature === 'WORKER_APP_RUNNER';
 };
