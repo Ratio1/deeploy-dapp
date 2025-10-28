@@ -86,7 +86,7 @@ const validations = {
         )
         .default([]),
 
-    envVars: getKeyValueEntriesArraySchema(),
+    envVars: getKeyValueEntriesArraySchema(50),
     dynamicEnvVars: z
         .array(dynamicEnvEntrySchema)
         .max(50, 'Maximum 50 dynamic environment variables')
@@ -103,7 +103,7 @@ const validations = {
         ),
     customParams: getCustomParametersArraySchema(),
     pipelineParams: getKeyValueEntriesArraySchema(50),
-    volumes: getKeyValueEntriesArraySchema(),
+    volumes: getKeyValueEntriesArraySchema(50),
     fileVolumes: getFileVolumesArraySchema(50),
 
     // Enum patterns

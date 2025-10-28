@@ -12,9 +12,8 @@ import {
     UseFieldArrayRemove,
     useFormContext,
 } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
-import { RiAddLine } from 'react-icons/ri';
 import SecretValueToggle from './SecretValueToggle';
+import VariableSectionControls from './VariableSectionControls';
 import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
 
@@ -33,7 +32,7 @@ export default function KeyValueEntriesSection({
     name: string;
     displayLabel?: string;
     label?: string;
-    maxEntries?: number;
+    maxEntries: number;
     predefinedEntries?: { key: string; value: string }[];
     disabledKeys?: string[];
     placeholders?: [string, string];
@@ -81,40 +80,40 @@ export default function KeyValueEntriesSection({
 
     return (
         <div className="col gap-4">
-            <div className="col w-full gap-2">
-                {!!label && (
-                    <div className="row">
-                        <Label value={label} />
-                    </div>
-                )}
-
-                <div className="col gap-2">
-                    {!!predefinedEntries && predefinedEntries.length > 0 && (
-                        <>
-                            {predefinedEntries.map((entry, index) => (
-                                <div key={entry.key} className="flex gap-3">
-                                    <VariableSectionIndex index={index} />
-
-                                    {enableSecretValues && <SecretValueToggle isSecret={isKeySecret(entry.key)} isDisabled />}
-
-                                    <div className="flex w-full gap-2">
-                                        <StyledInput value={entry.key} isDisabled />
-                                        <StyledInput value={entry.value} isDisabled />
-                                    </div>
-
-                                    {/* Displayed for styling purposes */}
-                                    <div className="invisible">
-                                        <VariableSectionRemove onClick={() => {}} />
-                                    </div>
-                                </div>
-                            ))}
-                        </>
+            {(entries.length > 0 || (!!predefinedEntries && predefinedEntries.length > 0)) && (
+                <div className="col w-full gap-2">
+                    {!!label && (
+                        <div className="row">
+                            <Label value={label} />
+                        </div>
                     )}
 
-                    {entries.length === 0 ? (
-                        <div className="text-sm text-slate-500 italic">No {displayLabel} added yet.</div>
-                    ) : (
-                        entries.map((entry: KeyValueEntryWithId, index) => {
+                    <div className="col gap-2">
+                        {!!predefinedEntries && predefinedEntries.length > 0 && (
+                            <>
+                                {predefinedEntries.map((entry, index) => (
+                                    <div key={entry.key} className="flex gap-3">
+                                        <VariableSectionIndex index={index} />
+
+                                        {enableSecretValues && (
+                                            <SecretValueToggle isSecret={isKeySecret(entry.key)} isDisabled />
+                                        )}
+
+                                        <div className="flex w-full gap-2">
+                                            <StyledInput value={entry.key} isDisabled />
+                                            <StyledInput value={entry.value} isDisabled />
+                                        </div>
+
+                                        {/* Displayed for styling purposes */}
+                                        <div className="invisible">
+                                            <VariableSectionRemove onClick={() => {}} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </>
+                        )}
+
+                        {entries.map((entry: KeyValueEntryWithId, index) => {
                             // Get the error for this specific entry
                             const entryError = errors?.[index];
 
@@ -216,47 +215,18 @@ export default function KeyValueEntriesSection({
                                     </div>
                                 </div>
                             );
-                        })
-                    )}
-                </div>
-            </div>
-
-            {(maxEntries === undefined || entries.length < maxEntries) && (
-                <div className="row justify-between">
-                    <div
-                        className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
-                        onClick={() => {
-                            append({ key: '', value: '' });
-                        }}
-                    >
-                        <RiAddLine className="text-lg" /> Add
+                        })}
                     </div>
-
-                    {entries.length > 1 && (
-                        <div
-                            className="compact cursor-pointer text-red-600 hover:opacity-50"
-                            onClick={async () => {
-                                try {
-                                    const confirmed = await confirm(<div>Are you sure you want to remove all entries?</div>);
-
-                                    if (!confirmed) {
-                                        return;
-                                    }
-
-                                    for (let i = entries.length - 1; i >= 0; i--) {
-                                        remove(i);
-                                    }
-                                } catch (error) {
-                                    console.error('Error removing all entries:', error);
-                                    toast.error('Failed to remove all entries.');
-                                }
-                            }}
-                        >
-                            Remove all
-                        </div>
-                    )}
                 </div>
             )}
+
+            <VariableSectionControls
+                displayLabel={displayLabel}
+                onClick={() => append({ key: '', value: '' })}
+                fieldsLength={entries.length}
+                maxFields={maxEntries}
+                remove={remove}
+            />
         </div>
     );
 }
