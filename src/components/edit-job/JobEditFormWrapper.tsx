@@ -7,13 +7,13 @@ import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { boolToBooleanType, isGenericPlugin, titlecase } from '@lib/deeploy-utils';
+import { boolToBooleanType, isGenericPlugin, NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS, titlecase } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
-import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes';
+import { BasePluginType, CustomParameterEntry, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
@@ -153,19 +153,19 @@ export default function JobEditFormWrapper({
             workerType: job.resources.containerOrWorkerType.name,
         },
         deployment: {
-            ...getBaseSchemaDefaults().deployment, // TODO: Use the config of the primary plugin
-            pluginSignature: _(job.instances) // TODO: Use the signature of the primary plugin
+            ...getBaseSchemaDefaults().deployment, // TODO: Remove primary plugin
+            pluginSignature: _(job.instances) // TODO: Remove primary plugin
                 .map((instance) => instance.plugins)
                 .flatten()
                 .map((plugin) => plugin.signature)
                 .filter((signature) => !isGenericPlugin(signature))
                 .uniq()
                 .first(),
-            customParams: [], // TODO: (Disabled for now) [{ key: '', value: '', valueType: 'string' }]
+            customParams: formatCustomParams(jobConfig), // TODO: Format for each native plugin in the plugins field
             pipelineParams: [{ key: '', value: '' }], // TODO: Missing from the API response
-            pipelineInputType: PIPELINE_INPUT_TYPES[0], // TODO: Missing from the API response
-            pipelineInputUri: undefined, // TODO: Missing from the API response
-            chainstoreResponse: BOOLEAN_TYPES[1], // TODO: Missing from the API response
+            pipelineInputType: PIPELINE_INPUT_TYPES[0], // TODO: Add
+            pipelineInputUri: undefined, // TODO: Add
+            chainstoreResponse: BOOLEAN_TYPES[1],
             plugins: formatPlugins(),
         },
     });
@@ -227,6 +227,32 @@ export default function JobEditFormWrapper({
         // TODO: Add native plugins
 
         return genericPluginConfigs.map((config) => getGenericPluginSchemaDefaults(config));
+    };
+
+    const formatCustomParams = (config: JobConfig) => {
+        const customParams: CustomParameterEntry[] = [];
+
+        Object.entries(config).forEach(([key, value]) => {
+            if (!NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS.includes(key as keyof JobConfig)) {
+                const valueType = typeof value === 'string' ? 'string' : 'json';
+
+                let parsedValue: string = '';
+
+                if (valueType === 'json') {
+                    try {
+                        parsedValue = JSON.stringify(value);
+                    } catch (error) {
+                        console.error('[formatCustomParams()] Unable to parse JSON value', key, value);
+                    }
+                } else {
+                    parsedValue = value as string;
+                }
+
+                customParams.push({ key, value: parsedValue, valueType });
+            }
+        });
+
+        return customParams;
     };
 
     const getDefaultSchemaValues = () => {
