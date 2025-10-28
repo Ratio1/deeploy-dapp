@@ -4,6 +4,7 @@ import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
+import DeeployWarning from '@shared/jobs/DeeployWarning';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import CustomParametersSection from '@shared/jobs/native/CustomParametersSection';
 import NativeAppIdentitySection from '@shared/jobs/native/NativeAppIdentitySection';
@@ -17,6 +18,7 @@ function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boole
     const { watch } = useFormContext();
 
     const pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number] = watch('deployment.pluginSignature');
+    const chainstoreResponse = watch('deployment.chainstoreResponse');
 
     return (
         <div className="col gap-6">
@@ -66,12 +68,19 @@ function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boole
             <PluginsCard />
 
             <SlateCard title="Other">
-                <SelectWithLabel
-                    name="deployment.chainstoreResponse"
-                    label="Chainstore Response"
-                    options={BOOLEAN_TYPES}
-                    isDisabled
-                />
+                <SelectWithLabel name="deployment.chainstoreResponse" label="Chainstore Response" options={BOOLEAN_TYPES} />
+
+                {chainstoreResponse === BOOLEAN_TYPES[0] && (
+                    <DeeployWarning
+                        title={<div>Custom Response</div>}
+                        description={
+                            <div>
+                                Make sure your app implements the chainstore response mechanism; otherwise, your deployment will
+                                time out.
+                            </div>
+                        }
+                    />
+                )}
             </SlateCard>
         </div>
     );
