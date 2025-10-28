@@ -1,4 +1,5 @@
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
+import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { EthAddress, R1Address } from './blockchain';
 
 type Apps = {
@@ -9,6 +10,7 @@ type Apps = {
             last_config: string; // ISO-like timestamp string
             is_deeployed: boolean;
             deeploy_specs: DeeploySpecs;
+            pipeline_data: PipelineData;
             plugins: {
                 [pluginName: string]: AppsPlugin[];
             };
@@ -27,6 +29,24 @@ type DeeploySpecs = {
     project_id: string; // projectHash
     project_name: string | undefined;
     spare_nodes: R1Address[];
+};
+
+type PipelineData = {
+    APP_ALIAS: string;
+    INITIATOR_ADDR: R1Address;
+    INITIATOR_ID: string;
+    IS_DEEPLOYED: boolean;
+    LAST_UPDATE_TIME: string; // ISO-like timestamp string
+    LIVE_FEED: boolean;
+    MODIFIED_BY_ADDR: R1Address;
+    MODIFIED_BY_ID: string;
+    NAME: string;
+    OWNER: EthAddress;
+    SESSION_ID: string;
+    TIME: string; // ISO-like timestamp string
+    TYPE: (typeof PIPELINE_INPUT_TYPES)[number];
+    URL?: string;
+    VALIDATED: boolean;
 };
 
 type AppsPlugin = {
@@ -121,4 +141,5 @@ export type {
     JobConfig,
     JobConfigCRData,
     JobConfigVCSData,
+    PipelineData,
 };

@@ -4,7 +4,7 @@ import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import { SigningModal } from '@shared/SigningModal';
 import { EthAddress, R1Address } from '@typedefs/blockchain';
-import { Apps, AppsPlugin, DeeploySpecs, JobConfig } from '@typedefs/deeployApi';
+import { Apps, AppsPlugin, DeeploySpecs, JobConfig, PipelineData } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { useRef, useState } from 'react';
@@ -157,6 +157,7 @@ export const DeploymentProvider = ({ children }) => {
             last_config: string;
             is_deeployed: boolean;
             deeploy_specs: DeeploySpecs;
+            pipeline_data: PipelineData;
             alias: string;
             instances: {
                 nodeAddress: R1Address;
@@ -177,6 +178,7 @@ export const DeploymentProvider = ({ children }) => {
                           last_config: string;
                           is_deeployed: boolean;
                           deeploy_specs: DeeploySpecs;
+                          pipeline_data: PipelineData;
                           alias: string;
                       }
                     | undefined;
@@ -226,6 +228,7 @@ export const DeploymentProvider = ({ children }) => {
             .map((appWithInstances) => {
                 const alias: string = appWithInstances.alias;
                 const specs = appWithInstances.deeploy_specs;
+                const pipelineData = appWithInstances.pipeline_data;
                 const jobId = specs.job_id;
 
                 if (!appWithInstances.instances.length) {
@@ -251,6 +254,7 @@ export const DeploymentProvider = ({ children }) => {
                     nodes: appWithInstances.instances.map((instance) => instance.nodeAddress),
                     instances: appWithInstances.instances,
                     config,
+                    pipelineData,
                     ...job,
                 };
             })

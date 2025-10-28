@@ -111,10 +111,7 @@ export default function JobPluginsSection({ job }: { job: RunningJobWithResource
 
                             <div className="col gap-3">
                                 <div className="col gap-3">
-                                    <ItemWithBoldValue
-                                        label="ENV Variables"
-                                        value={isEmpty(config.ENV) ? '—' : <JobKeyValueSection obj={config.ENV} />}
-                                    />
+                                    <ItemWithBoldValue label="ENV Variables" value={<JobKeyValueSection obj={config.ENV} />} />
 
                                     {job.resources.jobType !== JobType.Native && (
                                         <ItemWithBoldValue
@@ -131,10 +128,7 @@ export default function JobPluginsSection({ job }: { job: RunningJobWithResource
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3">
-                                    <ItemWithBoldValue
-                                        label="Volumes"
-                                        value={isEmpty(config.VOLUMES) ? '—' : <JobKeyValueSection obj={config.VOLUMES} />}
-                                    />
+                                    <ItemWithBoldValue label="Volumes" value={<JobKeyValueSection obj={config.VOLUMES} />} />
 
                                     {(job.resources.jobType === JobType.Generic || isGenericPlugin(pluginConfig.signature)) && (
                                         <ItemWithBoldValue

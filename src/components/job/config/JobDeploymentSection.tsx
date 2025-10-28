@@ -2,7 +2,7 @@ import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
 import ItemWithBoldValue from '@shared/jobs/ItemWithBoldValue';
-import { RunningJobWithResources } from '@typedefs/deeploys';
+import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { isEmpty } from 'lodash';
 import JobSimpleTagsSection from '../JobSimpleTagsSection';
 import ConfigSectionTitle from './ConfigSectionTitle';
@@ -11,6 +11,10 @@ export default function JobDeploymentSection({ job }: { job: RunningJobWithResou
     const tags = !job.jobTags ? [] : job.jobTags.filter((tag) => tag !== '');
 
     const config = job.config;
+
+    const pipelineData = job.pipelineData;
+
+    console.log('Pipeline Data', pipelineData);
 
     return (
         <BorderedCard isLight={false} disableWrapper>
@@ -94,6 +98,18 @@ export default function JobDeploymentSection({ job }: { job: RunningJobWithResou
                             </>
                         )}
                     </div>
+
+                    {/* Pipeline */}
+                    {job.resources.jobType === JobType.Native && (
+                        <>
+                            <ConfigSectionTitle title="Pipeline" />
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <ItemWithBoldValue label="Pipeline Input Type" value={pipelineData.TYPE} />
+                                <ItemWithBoldValue label="Pipeline Input URI" value={pipelineData.URL ?? '—'} />
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </BorderedCard>
