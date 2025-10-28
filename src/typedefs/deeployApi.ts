@@ -55,6 +55,7 @@ type JobConfig = {
     INSTANCE_ID: string;
     NGROK_AUTH_TOKEN?: string;
     NGROK_EDGE_LABEL?: string;
+    NGROK_USE_API?: boolean; // Deprecated, used for backwards compatibility
     PORT: number;
     RESTART_POLICY?: string;
     TUNNEL_ENGINE: 'cloudflare' | 'ngrok';

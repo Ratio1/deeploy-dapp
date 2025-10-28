@@ -1,8 +1,6 @@
 import { SelectItem } from '@heroui/select';
-import { isGenericPlugin, NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS } from '@lib/deeploy-utils';
-import { getShortAddressOrHash } from '@lib/utils';
+import { isGenericPlugin } from '@lib/deeploy-utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
-import { CopyableValue } from '@shared/CopyableValue';
 import ItemWithBoldValue from '@shared/jobs/ItemWithBoldValue';
 import StyledSelect from '@shared/StyledSelect';
 import { JobConfig } from '@typedefs/deeployApi';
@@ -12,8 +10,8 @@ import { useEffect, useState } from 'react';
 import JobDynamicEnvSection from '../JobDynamicEnvSection';
 import JobFileVolumesSection from '../JobFileVolumesSection';
 import JobKeyValueSection from '../JobKeyValueSection';
-import JobSimpleTagsSection from '../JobSimpleTagsSection';
 import ConfigCAR from './ConfigCAR';
+import ConfigNative from './ConfigNative';
 import ConfigSectionTitle from './ConfigSectionTitle';
 import ConfigWAR from './ConfigWAR';
 
@@ -22,9 +20,7 @@ type PluginConfig = {
     value: JobConfig;
 };
 
-export default function JobConfigurations({ job }: { job: RunningJobWithResources }) {
-    const tags = !job.jobTags ? [] : job.jobTags.filter((tag) => tag !== '');
-
+export default function JobPluginsSection({ job }: { job: RunningJobWithResources }) {
     const pluginConfigs: PluginConfig[] = _(job.instances)
         .map((instance) => instance.plugins)
         .flatten()
@@ -41,7 +37,7 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
     const [pluginConfig, setPluginConfig] = useState<PluginConfig>(pluginConfigs[0]!);
 
     useEffect(() => {
-        console.log('JobConfigurations', pluginConfig);
+        console.log('Plugin', pluginConfig);
     }, [pluginConfig]);
 
     const config = pluginConfig.value;
@@ -50,7 +46,7 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
         <BorderedCard isLight={false} disableWrapper>
             <div className="col gap-3 p-4">
                 <div className="flex items-start justify-between">
-                    <div className="text-lg font-semibold">Configurations</div>
+                    <div className="text-lg font-semibold">Plugins</div>
 
                     <div className="w-[240px]">
                         <StyledSelect
@@ -73,106 +69,8 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
                 </div>
 
                 <div className="col gap-4">
-                    {/* Nodes */}
-                    <ConfigSectionTitle title="Nodes" />
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <ItemWithBoldValue label="Target Nodes" value={Number(job.numberOfNodesRequested)} />
-                        <ItemWithBoldValue
-                            label="Node Tags"
-                            value={!tags.length ? '—' : <JobSimpleTagsSection array={tags} />}
-                        />
-
-                        <ItemWithBoldValue
-                            label="Spare Nodes"
-                            value={
-                                !job.spareNodes || isEmpty(job.spareNodes) ? (
-                                    '—'
-                                ) : (
-                                    <JobSimpleTagsSection
-                                        array={job.spareNodes.map((addr) => getShortAddressOrHash(addr, 8, true) as string)}
-                                        type="col"
-                                        copyable
-                                    />
-                                )
-                            }
-                        />
-                    </div>
-
-                    {/* Tunneling */}
-                    <ConfigSectionTitle title="Tunneling" />
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <ItemWithBoldValue
-                            label="Tunnel Engine Enabled"
-                            value={(!!config.TUNNEL_ENGINE_ENABLED).toString()}
-                            capitalize
-                        />
-
-                        <ItemWithBoldValue label="Port" value={config.PORT ? config.PORT.toString() : '—'} />
-
-                        {!!config.TUNNEL_ENGINE_ENABLED && (
-                            <>
-                                <ItemWithBoldValue label="Tunnel Engine" value={config.TUNNEL_ENGINE ?? '—'} capitalize />
-
-                                {config.TUNNEL_ENGINE === 'cloudflare' ? (
-                                    <ItemWithBoldValue
-                                        label="Cloudflare Token"
-                                        value={
-                                            config.CLOUDFLARE_TOKEN ? (
-                                                <CopyableValue value={config.CLOUDFLARE_TOKEN}>
-                                                    {getShortAddressOrHash(config.CLOUDFLARE_TOKEN, 4, false)}
-                                                </CopyableValue>
-                                            ) : (
-                                                '—'
-                                            )
-                                        }
-                                    />
-                                ) : (
-                                    <ItemWithBoldValue
-                                        label="NGROK Auth Token"
-                                        value={
-                                            config.NGROK_AUTH_TOKEN ? (
-                                                <CopyableValue value={config.NGROK_AUTH_TOKEN}>
-                                                    {getShortAddressOrHash(config.NGROK_AUTH_TOKEN, 4, false)}
-                                                </CopyableValue>
-                                            ) : (
-                                                '—'
-                                            )
-                                        }
-                                    />
-                                )}
-
-                                {config.NGROK_EDGE_LABEL && (
-                                    <ItemWithBoldValue label="Tunneling Label" value={config.NGROK_EDGE_LABEL} />
-                                )}
-                            </>
-                        )}
-                    </div>
-
                     {/* Native Plugin */}
-                    {!isGenericPlugin(pluginConfig.signature) && (
-                        <>
-                            <ConfigSectionTitle title="Native Plugin" variant="green" />
-
-                            <ItemWithBoldValue
-                                label="Custom Parameters"
-                                value={
-                                    <JobKeyValueSection
-                                        obj={Object.fromEntries(
-                                            Object.entries(pluginConfig.value)
-                                                .filter(
-                                                    ([key, _]) =>
-                                                        !NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS.includes(key as keyof JobConfig),
-                                                )
-                                                .map(([key, value]) => [key, JSON.stringify(value)]),
-                                        )}
-                                        displayShortValues={false}
-                                    />
-                                }
-                            />
-                        </>
-                    )}
+                    {!isGenericPlugin(pluginConfig.signature) && <ConfigNative jobConfig={config} />}
 
                     {/* Worker App Runner */}
                     {pluginConfig.signature === 'WORKER_APP_RUNNER' && (
@@ -206,9 +104,9 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
                         </>
                     )}
 
+                    {/* Variables & Policies */}
                     {isGenericPlugin(pluginConfig.signature) && (
                         <>
-                            {/* Variables */}
                             <ConfigSectionTitle title="Variables" />
 
                             <div className="col gap-3">
@@ -253,7 +151,6 @@ export default function JobConfigurations({ job }: { job: RunningJobWithResource
                                 </div>
                             </div>
 
-                            {/* Policies */}
                             <ConfigSectionTitle title="Policies" />
 
                             <div className="grid grid-cols-2 gap-3">

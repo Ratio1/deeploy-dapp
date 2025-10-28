@@ -52,6 +52,7 @@ export const NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS: (keyof JobConfig)[] = [
     'INSTANCE_ID',
     'PORT',
     'TUNNEL_ENGINE_ENABLED',
+    'NGROK_USE_API',
 ];
 
 export const getDiscountPercentage = (_paymentMonthsCount: number): number => {
