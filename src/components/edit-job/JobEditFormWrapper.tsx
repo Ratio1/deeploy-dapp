@@ -13,7 +13,7 @@ import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
-import { SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
+import { BasePluginType } from '@typedefs/steps/deploymentStepTypes';
 import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
@@ -97,7 +97,7 @@ export default function JobEditFormWrapper({
     });
 
     const getGenericPluginSchemaDefaults = (config: JobConfig) => ({
-        secondaryPluginType: SecondaryPluginType.Generic,
+        basePluginType: BasePluginType.Generic,
 
         // Tunneling
         ...getBaseSchemaTunnelingDefaults(config),
@@ -166,7 +166,7 @@ export default function JobEditFormWrapper({
             pipelineInputType: PIPELINE_INPUT_TYPES[0], // TODO: Missing from the API response
             pipelineInputUri: undefined, // TODO: Missing from the API response
             chainstoreResponse: BOOLEAN_TYPES[1], // TODO: Missing from the API response
-            secondaryPlugins: formatSecondaryPlugins(),
+            plugins: formatPlugins(),
         },
     });
 
@@ -214,7 +214,7 @@ export default function JobEditFormWrapper({
               }));
     };
 
-    const formatSecondaryPlugins = () => {
+    const formatPlugins = () => {
         // Get the instance with the most plugins
         const instance = _(job.instances)
             .sortBy((instance) => instance.plugins.length)
@@ -223,6 +223,8 @@ export default function JobEditFormWrapper({
         const genericPluginConfigs: JobConfig[] = instance.plugins
             .filter((plugin) => isPluginGeneric(plugin.signature))
             .map((plugin) => plugin.instance_conf);
+
+        // TODO: Add native plugins
 
         return genericPluginConfigs.map((config) => getGenericPluginSchemaDefaults(config));
     };

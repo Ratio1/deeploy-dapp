@@ -15,7 +15,7 @@ import {
     nodeSchema,
     workerCommandSchema,
 } from '@schemas/common';
-import { SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
+import { BasePluginType } from '@typedefs/steps/deploymentStepTypes';
 import { z } from 'zod';
 
 // Common validation patterns
@@ -321,9 +321,9 @@ export const genericAppDeploymentSchema = applyDeploymentTypeRefinements(
     applyTunnelingRefinements(genericAppDeploymentSchemaWihtoutRefinements),
 );
 
-// Secondary plugins
-const baseGenericSecondaryPluginSchema = z.object({
-    secondaryPluginType: z.literal(SecondaryPluginType.Generic),
+// Plugins
+const baseGenericPluginSchema = z.object({
+    basePluginType: z.literal(BasePluginType.Generic),
 
     // Tunneling
     port: validations.port,
@@ -347,10 +347,10 @@ const baseGenericSecondaryPluginSchema = z.object({
     imagePullPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
 });
 
-const genericSecondaryPluginSchema = baseGenericSecondaryPluginSchema;
+const genericPluginSchema = baseGenericPluginSchema;
 
-const baseNativeSecondaryPluginSchema = z.object({
-    secondaryPluginType: z.literal(SecondaryPluginType.Native),
+const baseNativePluginSchema = z.object({
+    basePluginType: z.literal(BasePluginType.Native),
 
     // Signature
     pluginSignature: validations.pluginSignature,
@@ -365,13 +365,10 @@ const baseNativeSecondaryPluginSchema = z.object({
     customParams: validations.customParams,
 });
 
-const secondaryPluginSchemaWithoutRefinements = z.discriminatedUnion('secondaryPluginType', [
-    genericSecondaryPluginSchema,
-    baseNativeSecondaryPluginSchema,
-]);
+const pluginSchemaWithoutRefinements = z.discriminatedUnion('basePluginType', [genericPluginSchema, baseNativePluginSchema]);
 
-const secondaryPluginSchema = applyCustomPluginSignatureRefinements(
-    applyDeploymentTypeRefinements(applyTunnelingRefinements(secondaryPluginSchemaWithoutRefinements)),
+const pluginSchema = applyCustomPluginSignatureRefinements(
+    applyDeploymentTypeRefinements(applyTunnelingRefinements(pluginSchemaWithoutRefinements)),
 );
 
 const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
@@ -383,7 +380,7 @@ const nativeAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend(
     pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
     pipelineInputUri: validations.optionalUri,
     chainstoreResponse: validations.chainstoreResponse,
-    secondaryPlugins: z.array(secondaryPluginSchema).max(5, 'Only 5 secondary plugins allowed').optional(),
+    plugins: z.array(pluginSchema).max(5, 'Only 5 plugins allowed').optional(),
 });
 
 export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(

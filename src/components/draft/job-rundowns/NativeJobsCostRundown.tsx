@@ -3,7 +3,7 @@ import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
 import { NativeDraftJob } from '@typedefs/deeploys';
-import { GenericSecondaryPlugin, SecondaryPlugin, SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
+import { BasePluginType, GenericPlugin, Plugin } from '@typedefs/steps/deploymentStepTypes';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
 export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[] }) {
@@ -53,18 +53,18 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[]
                     { label: 'Chainstore Response', value: nativeJob.deployment.chainstoreResponse },
                 ];
 
-                if (nativeJob.deployment.secondaryPlugins.length) {
+                if (nativeJob.deployment.plugins.length) {
                     entries.push({
-                        label: 'Secondary Plugins',
-                        value: nativeJob.deployment.secondaryPlugins
-                            .map((plugin: SecondaryPlugin) => {
-                                switch (plugin.secondaryPluginType) {
-                                    case SecondaryPluginType.Generic:
-                                        return (plugin as GenericSecondaryPlugin).deploymentType.type === 'container'
+                        label: 'Plugins',
+                        value: nativeJob.deployment.plugins
+                            .map((plugin: Plugin) => {
+                                switch (plugin.basePluginType) {
+                                    case BasePluginType.Generic:
+                                        return (plugin as GenericPlugin).deploymentType.type === 'container'
                                             ? 'Container App Runner'
                                             : 'Worker App Runner';
 
-                                    case SecondaryPluginType.Native:
+                                    case BasePluginType.Native:
                                         return 'Native Plugin';
 
                                     default:

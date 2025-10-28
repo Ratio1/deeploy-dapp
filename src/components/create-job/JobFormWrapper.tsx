@@ -94,7 +94,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             pipelineParams: [{ key: '', value: '' }],
             pipelineInputType: PIPELINE_INPUT_TYPES[0],
             chainstoreResponse: BOOLEAN_TYPES[1],
-            secondaryPlugins: [],
+            plugins: [],
         },
     });
 

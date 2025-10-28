@@ -11,7 +11,7 @@ import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import Label from '@shared/Label';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
-import SecondaryPluginsCard from '../../secondary-plugins/SecondaryPluginsCard';
+import PluginsCard from '../../plugins/PluginsCard';
 
 function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     const { watch } = useFormContext();
@@ -63,7 +63,7 @@ function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boole
                 </div>
             </SlateCard>
 
-            <SecondaryPluginsCard />
+            <PluginsCard />
 
             <SlateCard title="Other">
                 <SelectWithLabel name="deployment.chainstoreResponse" label="Chainstore Response" options={BOOLEAN_TYPES} />

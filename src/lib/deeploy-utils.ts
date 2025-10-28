@@ -23,12 +23,7 @@ import {
     ServiceJobDeployment,
     ServiceJobSpecifications,
 } from '@typedefs/deeploys';
-import {
-    GenericSecondaryPlugin,
-    NativeSecondaryPlugin,
-    PortMappingEntry,
-    SecondaryPluginType,
-} from '@typedefs/steps/deploymentStepTypes';
+import { BasePluginType, GenericPlugin, NativePlugin, PortMappingEntry } from '@typedefs/steps/deploymentStepTypes';
 import { addDays, addHours, differenceInDays, differenceInHours } from 'date-fns';
 import _ from 'lodash';
 import { FieldValues, UseFieldArrayAppend, UseFieldArrayRemove } from 'react-hook-form';
@@ -235,7 +230,7 @@ export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
     return formatServiceJobPayload(containerType, job.specifications, job.deployment);
 };
 
-const formatGenericJobVariables = (plugin: GenericSecondaryPlugin) => {
+const formatGenericJobVariables = (plugin: GenericPlugin) => {
     return {
         envVars: formatEnvVars(plugin.envVars),
         dynamicEnvVars: formatDynamicEnvVars(plugin.dynamicEnvVars),
@@ -244,13 +239,13 @@ const formatGenericJobVariables = (plugin: GenericSecondaryPlugin) => {
     };
 };
 
-const formatNativeJobPluginSignature = (plugin: NativeSecondaryPlugin) => {
+const formatNativeJobPluginSignature = (plugin: NativePlugin) => {
     return plugin.pluginSignature === PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1]
         ? plugin.customPluginSignature
         : plugin.pluginSignature;
 };
 
-const formatNativeJobCustomParams = (pluginConfig: any, plugin: NativeSecondaryPlugin) => {
+const formatNativeJobCustomParams = (pluginConfig: any, plugin: NativePlugin) => {
     if (!_.isEmpty(plugin.customParams)) {
         plugin.customParams.forEach((param) => {
             if (param.key) {
@@ -266,7 +261,7 @@ export const formatGenericPluginConfigAndSignature = (
         memory: string;
         ports?: Record<string, number>;
     },
-    plugin: GenericSecondaryPlugin,
+    plugin: GenericPlugin,
 ) => {
     const { envVars, dynamicEnvVars, volumes, fileVolumes } = formatGenericJobVariables(plugin);
     let pluginSignature: string;
@@ -376,7 +371,7 @@ export const formatNativeJobPayload = (
 
     const nonce = generateDeeployNonce();
 
-    // Primary plugin configuration
+    // Primary plugin configuration // TODO: Rename/Refactor so all plugins are formatted in the same way
     const primaryPluginConfig: any = {
         plugin_signature: formatNativeJobPluginSignature(deployment),
         PORT: formatPort(deployment.port),
@@ -389,18 +384,16 @@ export const formatNativeJobPayload = (
     // Build plugins array starting with the primary plugin
     const plugins = [primaryPluginConfig];
 
-    // Add secondary plugins if they exist
-    if (deployment.secondaryPlugins.length) {
-        const secondaryPluginConfigs = deployment.secondaryPlugins.map((plugin) => {
-            if (plugin.secondaryPluginType === SecondaryPluginType.Generic) {
-                const secondaryPluginNodeResources = formatContainerResources(
-                    workerType,
-                    (plugin as GenericSecondaryPlugin).ports,
-                );
+    // Add other plugins if they exist
+    if (deployment.plugins.length) {
+        // TODO: Rename/Refactor so all plugins are formatted in the same way
+        const secondaryPluginConfigs = deployment.plugins.map((plugin) => {
+            if (plugin.basePluginType === BasePluginType.Generic) {
+                const secondaryPluginNodeResources = formatContainerResources(workerType, (plugin as GenericPlugin).ports);
 
                 const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
                     secondaryPluginNodeResources,
-                    plugin as GenericSecondaryPlugin,
+                    plugin as GenericPlugin,
                 );
 
                 return {
@@ -409,8 +402,8 @@ export const formatNativeJobPayload = (
                 };
             }
 
-            if (plugin.secondaryPluginType === SecondaryPluginType.Native) {
-                const nativePlugin = plugin as NativeSecondaryPlugin;
+            if (plugin.basePluginType === BasePluginType.Native) {
+                const nativePlugin = plugin as NativePlugin;
 
                 const nativePluginConfig: any = {
                     plugin_signature: formatNativeJobPluginSignature(nativePlugin),
