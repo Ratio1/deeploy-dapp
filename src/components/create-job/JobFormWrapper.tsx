@@ -168,9 +168,6 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
     useEffect(() => {
         if (jobType === JobType.Native) {
             setSteps([...DEFAULT_STEPS, { title: 'Plugins' }]);
-            const defaults = getDefaultSchemaValues();
-
-            console.log('[JobFormWrapper] Defaults', defaults);
         }
     }, [jobType]);
 

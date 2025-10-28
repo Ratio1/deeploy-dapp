@@ -1,6 +1,7 @@
 import JobFormButtons from '@components/create-job/JobFormButtons';
 import CostAndDuration from '@components/create-job/steps/CostAndDuration';
 import Deployment from '@components/create-job/steps/Deployment';
+import Plugins from '@components/create-job/steps/Plugins';
 import Specifications from '@components/create-job/steps/Specifications';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
@@ -13,11 +14,12 @@ import SubmitButton from '@shared/SubmitButton';
 import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { ContainerDeploymentType, DeploymentType, PluginType, WorkerDeploymentType } from '@typedefs/steps/deploymentStepTypes';
 import { cloneDeep } from 'lodash';
+import { useEffect, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import z from 'zod';
 
-const STEPS: {
+const DEFAULT_STEPS: {
     title: string;
     validationName?: string;
 }[] = [
@@ -36,6 +38,8 @@ export default function DraftEditFormWrapper({
     const { step } = useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
+
+    const [steps, setSteps] = useState(DEFAULT_STEPS);
 
     const getBaseSchemaDeploymentDefaults = () => ({
         jobAlias: job.deployment.jobAlias,
@@ -195,6 +199,12 @@ export default function DraftEditFormWrapper({
         defaultValues: getDefaultSchemaValues(),
     });
 
+    useEffect(() => {
+        if (job.jobType === JobType.Native) {
+            setSteps([...DEFAULT_STEPS, { title: 'Plugins' }]);
+        }
+    }, [job]);
+
     const onError = (errors: FieldErrors<z.infer<typeof jobSchema>>) => {
         console.log(errors);
     };
@@ -206,7 +216,7 @@ export default function DraftEditFormWrapper({
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
                             <JobFormHeaderInterface
-                                steps={STEPS.map((step) => step.title)}
+                                steps={steps.map((step) => step.title)}
                                 onCancel={() => {
                                     navigate(-1);
                                 }}
@@ -217,9 +227,10 @@ export default function DraftEditFormWrapper({
                             {step === 0 && <Specifications />}
                             {step === 1 && <CostAndDuration />}
                             {step === 2 && <Deployment />}
+                            {step === 3 && <Plugins />}
 
                             <JobFormButtons
-                                steps={STEPS}
+                                steps={steps}
                                 cancelLabel="Project"
                                 customSubmitButton={<SubmitButton label="Save" />}
                             />

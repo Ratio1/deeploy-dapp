@@ -41,7 +41,7 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[]
                     { label: 'Chainstore Response', value: nativeJob.deployment.chainstoreResponse },
                 ];
 
-                if (nativeJob.deployment.plugins.length) {
+                if (nativeJob.deployment.plugins?.length) {
                     entries.push({
                         label: 'Plugins',
                         value: nativeJob.deployment.plugins
