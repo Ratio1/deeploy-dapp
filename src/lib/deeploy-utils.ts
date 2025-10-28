@@ -263,14 +263,18 @@ const formatNativeJobPluginSignature = (plugin: NativePlugin) => {
         : plugin.pluginSignature;
 };
 
-const formatNativeJobCustomParams = (pluginConfig: any, plugin: NativePlugin) => {
+const formatNativeJobCustomParams = (plugin: NativePlugin) => {
+    const customParams: Record<string, any> = {};
+
     if (!_.isEmpty(plugin.customParams)) {
         plugin.customParams.forEach((param) => {
             if (param.key) {
-                pluginConfig[param.key] = parseIfJson(param.value);
+                customParams[param.key] = parseIfJson(param.value);
             }
         });
     }
+
+    return customParams;
 };
 
 export const formatGenericPluginConfigAndSignature = (
@@ -332,6 +336,22 @@ export const formatGenericPluginConfigAndSignature = (
     return { pluginConfig, pluginSignature };
 };
 
+const formatNativePlugin = (plugin: NativePlugin) => {
+    const pluginConfig: any = {
+        plugin_signature: formatNativeJobPluginSignature(plugin),
+
+        // Tunneling
+        PORT: formatPort(plugin.port),
+        CLOUDFLARE_TOKEN: plugin.tunnelingToken || null,
+        TUNNEL_ENGINE_ENABLED: plugin.enableTunneling === 'True',
+
+        // Custom Parameters
+        ...formatNativeJobCustomParams(plugin),
+    };
+
+    return pluginConfig;
+};
+
 export const formatGenericJobPayload = (
     containerType: ContainerOrWorkerType,
     specifications: GenericJobSpecifications,
@@ -391,61 +411,28 @@ export const formatNativeJobPayload = (
 
     const nonce = generateDeeployNonce();
 
-    // Primary plugin configuration // TODO: Rename/Refactor so all plugins are formatted in the same way
-    const primaryPluginConfig: any = {
-        plugin_signature: formatNativeJobPluginSignature(deployment),
-        PORT: formatPort(deployment.port),
-        CLOUDFLARE_TOKEN: deployment.tunnelingToken || null,
-        TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
-    };
+    // Build plugins array
+    const plugins = deployment.plugins.map((plugin) => {
+        if (plugin.basePluginType === BasePluginType.Generic) {
+            const secondaryPluginNodeResources = formatContainerResources(workerType, (plugin as GenericPlugin).ports);
 
-    formatNativeJobCustomParams(primaryPluginConfig, deployment);
+            const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
+                secondaryPluginNodeResources,
+                plugin as GenericPlugin,
+            );
 
-    // Build plugins array starting with the primary plugin
-    const plugins = [primaryPluginConfig];
+            return {
+                plugin_signature: pluginSignature,
+                ...pluginConfig,
+            };
+        }
 
-    // Add other plugins if they exist
-    if (deployment.plugins.length) {
-        // TODO: Rename/Refactor so all plugins are formatted in the same way
-        const secondaryPluginConfigs = deployment.plugins.map((plugin) => {
-            if (plugin.basePluginType === BasePluginType.Generic) {
-                const secondaryPluginNodeResources = formatContainerResources(workerType, (plugin as GenericPlugin).ports);
+        if (plugin.basePluginType === BasePluginType.Native) {
+            const nativePlugin = plugin as NativePlugin;
 
-                const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
-                    secondaryPluginNodeResources,
-                    plugin as GenericPlugin,
-                );
-
-                return {
-                    plugin_signature: pluginSignature,
-                    ...pluginConfig,
-                };
-            }
-
-            if (plugin.basePluginType === BasePluginType.Native) {
-                const nativePlugin = plugin as NativePlugin;
-
-                const nativePluginConfig: any = {
-                    plugin_signature: formatNativeJobPluginSignature(nativePlugin),
-                    PORT: formatPort(nativePlugin.port),
-                    CLOUDFLARE_TOKEN: nativePlugin.tunnelingToken || null,
-                    TUNNEL_ENGINE_ENABLED: nativePlugin.enableTunneling === 'True',
-                };
-
-                if (!_.isEmpty(nativePlugin.customParams)) {
-                    nativePlugin.customParams.forEach((param) => {
-                        if (param.key) {
-                            nativePluginConfig[param.key] = param.value;
-                        }
-                    });
-                }
-
-                return nativePluginConfig;
-            }
-        });
-
-        plugins.push(...secondaryPluginConfigs);
-    }
+            return formatNativePlugin(nativePlugin);
+        }
+    });
 
     return {
         app_alias: deployment.jobAlias,

@@ -62,7 +62,7 @@ const OPTIONS: {
 export default function PluginsCard() {
     const { confirm } = useInteractionContext() as InteractionContextType;
 
-    const { control } = useFormContext();
+    const { control, formState } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -70,6 +70,8 @@ export default function PluginsCard() {
     });
 
     const plugins = fields as PluginWithId[];
+
+    const rootError: string | undefined = (formState.errors.deployment as any)?.plugins?.root?.message as string | undefined;
 
     const onAddPlugin = (pluginType: PluginType) => {
         switch (pluginType) {
@@ -158,6 +160,8 @@ export default function PluginsCard() {
     return (
         <SlateCard title="Plugins">
             <div className="col gap-6">
+                {!!rootError && <div className="text-danger text-sm">{rootError}</div>}
+
                 {plugins.map((plugin, index) => {
                     const { title, element } = getPluginAlias(plugin, index);
 

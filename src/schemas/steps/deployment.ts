@@ -380,7 +380,7 @@ const nativeAppDeploymentSchemaWihtoutRefinements = mainDeploymentSchema.extend(
     pipelineParams: validations.pipelineParams,
     pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
     pipelineInputUri: validations.optionalUri,
-    plugins: z.array(pluginSchema).max(5, 'Only 5 plugins allowed').optional(),
+    plugins: z.array(pluginSchema).min(1, 'At least one plugin is required').max(5, 'Only 5 plugins allowed'),
     chainstoreResponse: validations.chainstoreResponse,
 });
 
