@@ -1,26 +1,24 @@
 import { NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS } from '@lib/deeploy-utils';
 import ItemWithBoldValue from '@shared/jobs/ItemWithBoldValue';
 import { JobConfig } from '@typedefs/deeployApi';
+import { isEmpty } from 'lodash';
 import JobKeyValueSection from '../JobKeyValueSection';
 import ConfigSectionTitle from './ConfigSectionTitle';
 
 export default function ConfigNative({ jobConfig }: { jobConfig: JobConfig }) {
+    const obj = Object.fromEntries(
+        Object.entries(jobConfig)
+            .filter(([key, _]) => !NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS.includes(key as keyof JobConfig))
+            .map(([key, value]) => [key, JSON.stringify(value)]),
+    );
+
     return (
         <>
             <ConfigSectionTitle title="Native Plugin" variant="green" />
 
             <ItemWithBoldValue
                 label="Custom Parameters"
-                value={
-                    <JobKeyValueSection
-                        obj={Object.fromEntries(
-                            Object.entries(jobConfig)
-                                .filter(([key, _]) => !NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS.includes(key as keyof JobConfig))
-                                .map(([key, value]) => [key, JSON.stringify(value)]),
-                        )}
-                        displayShortValues={false}
-                    />
-                }
+                value={isEmpty(obj) ? '—' : <JobKeyValueSection obj={obj} displayShortValues={false} />}
             />
         </>
     );
