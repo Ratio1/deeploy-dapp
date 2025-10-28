@@ -185,8 +185,6 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
     };
 
     const onSubmit = async (data: z.infer<typeof jobSchema>) => {
-        console.log('[JobFormWrapper] onSubmit', data);
-
         if (!isValidProjectHash(projectHash)) {
             console.error('[JobFormWrapper] Invalid projectHash');
             toast.error('Unable to find project.');
@@ -204,6 +202,12 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
                     jobAlias: data.deployment.jobAlias.toLowerCase(),
                 },
             };
+
+            if (data.jobType === JobType.Native) {
+                job.deployment.plugins = data.plugins;
+            }
+
+            console.log('[JobFormWrapper] onSubmit', job);
 
             const jobId = await db.jobs.add(job as DraftJob);
 

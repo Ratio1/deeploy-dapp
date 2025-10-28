@@ -1,9 +1,7 @@
 import ContainerSection from '@shared/jobs/deployment-type/ContainerSection';
 import GenericPluginSections from './GenericPluginSections';
 
-export default function CARInputsSection({ index }: { index: number }) {
-    const name = `deployment.plugins.${index}`;
-
+export default function CARInputsSection({ name }: { name: string }) {
     return (
         <div className="col gap-4">
             <ContainerSection baseName={name} />

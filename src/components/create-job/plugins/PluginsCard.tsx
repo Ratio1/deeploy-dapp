@@ -61,13 +61,15 @@ const OPTIONS: {
 
 // TODO: Refactor into plugins Sections with multiple cards
 export default function PluginsCard() {
+    const name = 'plugins';
+
     const { confirm } = useInteractionContext() as InteractionContextType;
 
     const { control, formState } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'plugins',
+        name,
     });
 
     const plugins = fields as PluginWithId[];
@@ -211,13 +213,13 @@ export default function PluginsCard() {
                             {plugin.basePluginType === BasePluginType.Generic ? (
                                 <>
                                     {(plugin as GenericPlugin).deploymentType.pluginType === PluginType.Container ? (
-                                        <CARInputsSection index={index} />
+                                        <CARInputsSection name={`${name}.${index}`} />
                                     ) : (
-                                        <WARInputsSection index={index} />
+                                        <WARInputsSection name={`${name}.${index}`} />
                                     )}
                                 </>
                             ) : (
-                                <NativeInputsSection index={index} />
+                                <NativeInputsSection name={`${name}.${index}`} />
                             )}
                         </div>
                     );

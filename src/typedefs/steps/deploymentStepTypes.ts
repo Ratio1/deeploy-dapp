@@ -146,14 +146,11 @@ type GenericJobDeployment = BaseJobDeployment & {
 };
 
 type NativeJobDeployment = BaseJobDeployment & {
-    pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
-    customPluginSignature?: string;
-    customParams: Array<CustomParameterEntry>;
     pipelineParams: Array<KeyValueEntry>;
     pipelineInputType: (typeof PIPELINE_INPUT_TYPES)[number];
     pipelineInputUri?: string;
-    chainstoreResponse: (typeof BOOLEAN_TYPES)[number];
     plugins: Plugin[];
+    chainstoreResponse: (typeof BOOLEAN_TYPES)[number];
 };
 
 type ServiceJobDeployment = BaseJobDeployment & {
