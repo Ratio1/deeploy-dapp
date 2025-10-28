@@ -2,7 +2,6 @@ import { ContainerOrWorkerType } from '@data/containerResources';
 import { getCurrentEpoch } from '@lib/config';
 import { formatUsdc, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
-import { BorderedCard } from '@shared/cards/BorderedCard';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
 import { UsdcValue } from '@shared/UsdcValue';
@@ -147,7 +146,7 @@ export default function ReviewAndConfirm({
 
     return (
         <div className="col gap-6">
-            <BorderedCard isLight={false}>
+            <SlateCard>
                 <div className="py-2">
                     <div className="row justify-between">
                         <div className="text-sm font-medium text-slate-500">Total Amount Due</div>
@@ -159,7 +158,7 @@ export default function ReviewAndConfirm({
                         </div>
                     </div>
                 </div>
-            </BorderedCard>
+            </SlateCard>
 
             <SlateCard title="Summary of Changes">
                 <div className="col gap-3">
