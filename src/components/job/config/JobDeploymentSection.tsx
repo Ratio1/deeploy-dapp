@@ -14,7 +14,7 @@ export default function JobDeploymentSection({ job }: { job: RunningJobWithResou
 
     const pipelineData = job.pipelineData;
 
-    console.log('Pipeline Data', pipelineData);
+    // console.log('Pipeline Data', pipelineData);
 
     return (
         <BorderedCard isLight={false} disableWrapper>
