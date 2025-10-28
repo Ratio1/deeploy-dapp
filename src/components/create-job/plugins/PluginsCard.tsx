@@ -76,13 +76,13 @@ export default function PluginsCard() {
         console.log({ plugins });
     }, [plugins]);
 
-    const onAddPlugin = (type: PluginType) => {
-        switch (type) {
+    const onAddPlugin = (pluginType: PluginType) => {
+        switch (pluginType) {
             case PluginType.Container:
                 append({
                     basePluginType: BasePluginType.Generic,
                     deploymentType: {
-                        type: 'container',
+                        pluginType,
                         containerImage: '',
                         containerRegistry: 'docker.io',
                         crVisibility: CR_VISIBILITY_OPTIONS[0],
@@ -98,7 +98,7 @@ export default function PluginsCard() {
                 append({
                     basePluginType: BasePluginType.Generic,
                     deploymentType: {
-                        type: 'worker',
+                        pluginType,
                         image: 'node:22',
                         repositoryUrl: '',
                         username: '',
@@ -124,7 +124,7 @@ export default function PluginsCard() {
                 break;
 
             default:
-                console.error('Unknown plugin type:', type);
+                console.error('Unknown plugin type:', pluginType);
         }
     };
 
@@ -141,7 +141,7 @@ export default function PluginsCard() {
         if (plugin.basePluginType === BasePluginType.Native) {
             option = OPTIONS.find((option) => option.pluginType === PluginType.Native)!;
         } else {
-            const pluginType = (plugin as GenericPlugin).deploymentType.type as PluginType;
+            const pluginType: PluginType = (plugin as GenericPlugin).deploymentType.pluginType;
             option = OPTIONS.find((option) => option.pluginType === pluginType)!;
         }
 
@@ -205,7 +205,7 @@ export default function PluginsCard() {
 
                             {plugin.basePluginType === BasePluginType.Generic ? (
                                 <>
-                                    {(plugin as GenericPlugin).deploymentType.type === 'container' ? (
+                                    {(plugin as GenericPlugin).deploymentType.pluginType === PluginType.Container ? (
                                         <CARInputsSection index={index} />
                                     ) : (
                                         <WARInputsSection index={index} />

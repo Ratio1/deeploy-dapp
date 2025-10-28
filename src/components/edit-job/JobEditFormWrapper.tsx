@@ -13,7 +13,7 @@ import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
-import { BasePluginType } from '@typedefs/steps/deploymentStepTypes';
+import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
@@ -68,7 +68,7 @@ export default function JobEditFormWrapper({
         // Deployment type
         deploymentType: !config.VCS_DATA
             ? {
-                  type: 'container',
+                  pluginType: PluginType.Container,
                   containerImage: config.IMAGE,
                   containerRegistry: config.CR_DATA?.SERVER || 'docker.io',
                   crVisibility: CR_VISIBILITY_OPTIONS[!config.CR_DATA?.USERNAME ? 0 : 1],
@@ -76,7 +76,7 @@ export default function JobEditFormWrapper({
                   crPassword: config.CR_DATA?.PASSWORD || '',
               }
             : {
-                  type: 'worker',
+                  pluginType: PluginType.Worker,
                   image: config.IMAGE,
                   repositoryUrl: config.VCS_DATA.REPO_URL,
                   repositoryVisibility: 'public',

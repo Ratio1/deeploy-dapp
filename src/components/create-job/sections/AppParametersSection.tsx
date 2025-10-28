@@ -22,7 +22,7 @@ export default function AppParametersSection({
                     name={`${baseName}.enableTunneling`}
                     label="Enable Tunneling"
                     options={BOOLEAN_TYPES}
-                    onSelect={() => {
+                    onSelectionChanged={() => {
                         trigger(`${baseName}.port`);
                     }}
                 />

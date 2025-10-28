@@ -23,7 +23,15 @@ import {
     ServiceJobDeployment,
     ServiceJobSpecifications,
 } from '@typedefs/deeploys';
-import { BasePluginType, GenericPlugin, NativePlugin, PortMappingEntry } from '@typedefs/steps/deploymentStepTypes';
+import {
+    BasePluginType,
+    ContainerDeploymentType,
+    GenericPlugin,
+    NativePlugin,
+    PluginType,
+    PortMappingEntry,
+    WorkerDeploymentType,
+} from '@typedefs/steps/deploymentStepTypes';
 import { addDays, addHours, differenceInDays, differenceInHours } from 'date-fns';
 import _ from 'lodash';
 import { FieldValues, UseFieldArrayAppend, UseFieldArrayRemove } from 'react-hook-form';
@@ -283,29 +291,31 @@ export const formatGenericPluginConfigAndSignature = (
         IMAGE_PULL_POLICY: plugin.imagePullPolicy.toLowerCase(),
     };
 
-    if (plugin.deploymentType.type === 'container') {
+    if (plugin.deploymentType.pluginType === PluginType.Container) {
         pluginSignature = 'CONTAINER_APP_RUNNER';
+        const containerDeploymentType: ContainerDeploymentType = plugin.deploymentType as ContainerDeploymentType;
 
-        pluginConfig.IMAGE = plugin.deploymentType.containerImage;
+        pluginConfig.IMAGE = containerDeploymentType.containerImage;
 
         pluginConfig.CR_DATA = {
-            SERVER: plugin.deploymentType.containerRegistry,
+            SERVER: containerDeploymentType.containerRegistry,
         };
 
-        if (plugin.deploymentType.crVisibility === 'Private') {
-            pluginConfig.CR_DATA.USERNAME = plugin.deploymentType.crUsername;
-            pluginConfig.CR_DATA.PASSWORD = plugin.deploymentType.crPassword;
+        if (containerDeploymentType.crVisibility === 'Private') {
+            pluginConfig.CR_DATA.USERNAME = containerDeploymentType.crUsername;
+            pluginConfig.CR_DATA.PASSWORD = containerDeploymentType.crPassword;
         }
     } else {
         pluginSignature = 'WORKER_APP_RUNNER';
+        const workerDeploymentType: WorkerDeploymentType = plugin.deploymentType as WorkerDeploymentType;
 
-        pluginConfig.IMAGE = plugin.deploymentType.image;
-        pluginConfig.BUILD_AND_RUN_COMMANDS = plugin.deploymentType.workerCommands.map((entry) => entry.command);
+        pluginConfig.IMAGE = workerDeploymentType.image;
+        pluginConfig.BUILD_AND_RUN_COMMANDS = workerDeploymentType.workerCommands.map((entry) => entry.command);
 
         pluginConfig.VCS_DATA = {
-            REPO_URL: plugin.deploymentType.repositoryUrl,
-            USERNAME: plugin.deploymentType.username || null,
-            TOKEN: plugin.deploymentType.accessToken || null,
+            REPO_URL: workerDeploymentType.repositoryUrl,
+            USERNAME: workerDeploymentType.username || null,
+            TOKEN: workerDeploymentType.accessToken || null,
         };
     }
 

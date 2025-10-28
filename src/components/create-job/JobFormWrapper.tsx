@@ -18,6 +18,7 @@ import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
 import { DraftJob, JobType } from '@typedefs/deeploys';
+import { PluginType } from '@typedefs/steps/deploymentStepTypes';
 import { useEffect } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -69,7 +70,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             deploymentType: {
-                type: 'container',
+                pluginType: PluginType.Container,
                 containerImage: '',
                 containerRegistry: 'docker.io',
                 crVisibility: CR_VISIBILITY_OPTIONS[0],

@@ -15,7 +15,7 @@ import {
     nodeSchema,
     workerCommandSchema,
 } from '@schemas/common';
-import { BasePluginType } from '@typedefs/steps/deploymentStepTypes';
+import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import { z } from 'zod';
 
 // Common validation patterns
@@ -164,7 +164,7 @@ export const applyDeploymentTypeRefinements = (schema) => {
         }
 
         // Validate that crUsername and crPassword are provided when crVisibility is 'Private'
-        if (data.deploymentType.type === 'container' && data.deploymentType.crVisibility === 'Private') {
+        if (data.deploymentType.pluginType === PluginType.Container && data.deploymentType.crVisibility === 'Private') {
             if (!data.deploymentType.crUsername) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
@@ -182,7 +182,7 @@ export const applyDeploymentTypeRefinements = (schema) => {
         }
 
         // Validate that username and accessToken are provided when worker repositoryVisibility is 'private'
-        if (data.deploymentType.type === 'worker' && data.deploymentType.repositoryVisibility === 'private') {
+        if (data.deploymentType.pluginType === PluginType.Worker && data.deploymentType.repositoryVisibility === 'private') {
             if (!data.deploymentType.username) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
@@ -263,7 +263,7 @@ const baseDeploymentSchema = z.object({
 });
 
 const containerDeploymentTypeSchema = z.object({
-    type: z.literal('container'),
+    pluginType: z.literal(PluginType.Container),
     containerImage: validations.containerImage,
     containerRegistry: validations.containerRegistry,
     crVisibility: z.enum(CR_VISIBILITY_OPTIONS, { required_error: 'Value is required' }),
@@ -272,7 +272,7 @@ const containerDeploymentTypeSchema = z.object({
 });
 
 const workerDeploymentTypeSchema = z.object({
-    type: z.literal('worker'),
+    pluginType: z.literal(PluginType.Worker),
     image: getStringSchema(3, 256),
     repositoryUrl: z
         .string({ required_error: 'Value is required' })
@@ -303,7 +303,10 @@ const workerDeploymentTypeSchema = z.object({
     ),
 });
 
-export const deploymentTypeSchema = z.discriminatedUnion('type', [containerDeploymentTypeSchema, workerDeploymentTypeSchema]);
+export const deploymentTypeSchema = z.discriminatedUnion('pluginType', [
+    containerDeploymentTypeSchema,
+    workerDeploymentTypeSchema,
+]);
 
 const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     jobAlias: validations.jobAlias,

@@ -8,9 +8,10 @@ interface Props {
     label?: string;
     options: readonly string[];
     onSelect?: (value: string) => void;
+    isDisabled?: boolean;
 }
 
-export default function SelectWithLabel({ name, label, options, onSelect }: Props) {
+export default function SelectWithLabel({ name, label, options, onSelect, isDisabled = false }: Props) {
     const { control } = useFormContext();
 
     return (
@@ -32,6 +33,7 @@ export default function SelectWithLabel({ name, label, options, onSelect }: Prop
                         isInvalid={!!fieldState.error}
                         errorMessage={fieldState.error?.message}
                         placeholder="Select an option"
+                        isDisabled={isDisabled}
                     >
                         {options.map((option) => (
                             <SelectItem key={option} textValue={option}>

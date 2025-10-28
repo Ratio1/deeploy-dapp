@@ -42,7 +42,6 @@ type PortMappingEntry = {
 
 // Deployment types
 type ContainerDeploymentType = {
-    type: 'container';
     containerImage: string;
     containerRegistry: string;
     crVisibility: (typeof CR_VISIBILITY_OPTIONS)[number];
@@ -51,7 +50,6 @@ type ContainerDeploymentType = {
 };
 
 type WorkerDeploymentType = {
-    type: 'worker';
     image: string;
     repositoryUrl: string;
     repositoryVisibility: 'public' | 'private';
@@ -60,7 +58,9 @@ type WorkerDeploymentType = {
     workerCommands: Array<{ command: string }>;
 };
 
-type DeploymentType = ContainerDeploymentType | WorkerDeploymentType;
+type DeploymentType = (ContainerDeploymentType | WorkerDeploymentType) & {
+    pluginType: PluginType;
+};
 
 // Plugin-related types
 export enum BasePluginType {
@@ -165,6 +165,7 @@ type JobDeployment = BaseJobDeployment & (GenericJobDeployment | NativeJobDeploy
 
 export type {
     BaseJobDeployment,
+    ContainerDeploymentType,
     CustomParameterEntry,
     DeploymentType,
     GenericJobDeployment,
@@ -175,4 +176,5 @@ export type {
     Plugin,
     PortMappingEntry,
     ServiceJobDeployment,
+    WorkerDeploymentType,
 };

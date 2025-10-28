@@ -66,7 +66,12 @@ function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boole
             <PluginsCard />
 
             <SlateCard title="Other">
-                <SelectWithLabel name="deployment.chainstoreResponse" label="Chainstore Response" options={BOOLEAN_TYPES} />
+                <SelectWithLabel
+                    name="deployment.chainstoreResponse"
+                    label="Chainstore Response"
+                    options={BOOLEAN_TYPES}
+                    isDisabled
+                />
             </SlateCard>
         </div>
     );

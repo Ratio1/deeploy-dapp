@@ -3,7 +3,7 @@ import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
 import { NativeDraftJob } from '@typedefs/deeploys';
-import { BasePluginType, GenericPlugin, Plugin } from '@typedefs/steps/deploymentStepTypes';
+import { BasePluginType, GenericPlugin, Plugin, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
 export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[] }) {
@@ -60,7 +60,7 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[]
                             .map((plugin: Plugin) => {
                                 switch (plugin.basePluginType) {
                                     case BasePluginType.Generic:
-                                        return (plugin as GenericPlugin).deploymentType.type === 'container'
+                                        return (plugin as GenericPlugin).deploymentType.pluginType === PluginType.Container
                                             ? 'Container App Runner'
                                             : 'Worker App Runner';
 
