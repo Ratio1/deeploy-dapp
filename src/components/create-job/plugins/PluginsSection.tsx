@@ -4,10 +4,10 @@ import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { SlateCard } from '@shared/cards/SlateCard';
+import DeeployErrorAlert from '@shared/jobs/DeeployErrorAlert';
 import AddJobCard from '@shared/projects/AddJobCard';
 import { SmallTag } from '@shared/SmallTag';
 import { BasePluginType, GenericPlugin, Plugin, PluginType } from '@typedefs/steps/deploymentStepTypes';
-import clsx from 'clsx';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { RiBox3Line, RiDeleteBin2Line, RiTerminalBoxLine } from 'react-icons/ri';
@@ -59,8 +59,7 @@ const OPTIONS: {
     },
 ];
 
-// TODO: Refactor into plugins Sections with multiple cards
-export default function PluginsCard() {
+export default function PluginsSection() {
     const name = 'plugins';
 
     const { confirm } = useInteractionContext() as InteractionContextType;
@@ -151,8 +150,8 @@ export default function PluginsCard() {
             title,
             element: (
                 <SmallTag variant={option.color} isLarge>
-                    <div className="row gap-1.5">
-                        <div className="text-xl">{option.icon}</div>
+                    <div className="row gap-1.5 py-0.5">
+                        <div className="text-lg">{option.icon}</div>
                         <div>{title}</div>
                     </div>
                 </SmallTag>
@@ -166,55 +165,49 @@ export default function PluginsCard() {
                 <AddJobCard type="plugin" options={OPTIONS} customCallback={(option) => onAddPlugin(option.pluginType)} />
             )}
 
-            <SlateCard title="Plugins">
-                <div className="col gap-6">
-                    {!!rootError && <div className="text-danger text-sm">{rootError}</div>}
+            {!!rootError && (
+                <DeeployErrorAlert title="Plugin Required" description="At least one plugin is required for deployment." />
+            )}
 
-                    {plugins.map((plugin, index) => {
-                        const { title, element } = getPluginAlias(plugin, index);
+            <div className="col gap-6">
+                {plugins.map((plugin, index) => {
+                    const { title, element } = getPluginAlias(plugin, index);
 
-                        return (
-                            <div
-                                key={index}
-                                className={clsx('col gap-4', {
-                                    'border-t-2 border-slate-200 pt-6': index !== 0,
-                                })}
-                            >
-                                {/* Plugin Header */}
-                                <div className="row gap-3">
-                                    {element}
+                    return (
+                        <SlateCard
+                            key={index}
+                            titleElement={element}
+                            label={
+                                <div
+                                    className="compact cursor-pointer text-red-600 hover:opacity-50"
+                                    onClick={async () => {
+                                        try {
+                                            const confirmed = await confirm(
+                                                <div className="col gap-1.5">
+                                                    <div>Are you sure you want to remove this plugin?</div>
+                                                    <div className="font-medium">{title}</div>
+                                                </div>,
+                                            );
 
-                                    <div className="flex-1 border-b-2 border-slate-200"></div>
-
-                                    <div
-                                        className="compact cursor-pointer text-red-600 hover:opacity-50"
-                                        onClick={async () => {
-                                            try {
-                                                const confirmed = await confirm(
-                                                    <div className="col gap-1.5">
-                                                        <div>Are you sure you want to remove this plugin?</div>
-                                                        <div className="font-medium">{title}</div>
-                                                    </div>,
-                                                );
-
-                                                if (!confirmed) {
-                                                    return;
-                                                }
-
-                                                remove(index);
-                                            } catch (error) {
-                                                console.error('Error removing plugin:', error);
-                                                toast.error('Failed to remove plugin.');
+                                            if (!confirmed) {
+                                                return;
                                             }
-                                        }}
-                                    >
-                                        <div className="row gap-1">
-                                            <RiDeleteBin2Line className="text-lg" />
-                                            <div className="font-medium">Remove plugin</div>
-                                        </div>
+
+                                            remove(index);
+                                        } catch (error) {
+                                            console.error('Error removing plugin:', error);
+                                            toast.error('Failed to remove plugin.');
+                                        }
+                                    }}
+                                >
+                                    <div className="row gap-1">
+                                        <RiDeleteBin2Line className="text-lg" />
+                                        <div className="font-medium">Remove plugin</div>
                                     </div>
                                 </div>
-
+                            }
+                        >
+                            <>
                                 {plugin.basePluginType === BasePluginType.Generic ? (
                                     <>
                                         {(plugin as GenericPlugin).deploymentType.pluginType === PluginType.Container ? (
@@ -226,11 +219,11 @@ export default function PluginsCard() {
                                 ) : (
                                     <NativeInputsSection name={`${name}.${index}`} />
                                 )}
-                            </div>
-                        );
-                    })}
-                </div>
-            </SlateCard>
+                            </>
+                        </SlateCard>
+                    );
+                })}
+            </div>
         </div>
     );
 }

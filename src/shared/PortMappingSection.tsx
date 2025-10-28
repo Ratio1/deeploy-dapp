@@ -1,5 +1,5 @@
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
-import DeeployWarning from './jobs/DeeployWarning';
+import DeeployWarningAlert from './jobs/DeeployWarningAlert';
 import VariableSectionControls from './jobs/VariableSectionControls';
 import VariableSectionIndex from './jobs/VariableSectionIndex';
 import VariableSectionRemove from './jobs/VariableSectionRemove';
@@ -127,7 +127,7 @@ export default function PortMappingSection({ baseName = 'deployment' }: { baseNa
             />
 
             {entries.length > 0 && (
-                <DeeployWarning
+                <DeeployWarningAlert
                     title={<div>Port Availability</div>}
                     description={
                         <div>

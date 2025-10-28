@@ -2,7 +2,7 @@ import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
-import DeeployWarning from '@shared/jobs/DeeployWarning';
+import DeeployWarningAlert from '@shared/jobs/DeeployWarningAlert';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import Label from '@shared/Label';
@@ -57,7 +57,7 @@ function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boole
                 <SelectWithLabel name="deployment.chainstoreResponse" label="Chainstore Response" options={BOOLEAN_TYPES} />
 
                 {chainstoreResponse === BOOLEAN_TYPES[0] && (
-                    <DeeployWarning
+                    <DeeployWarningAlert
                         title={<div>Custom Response</div>}
                         description={
                             <div>

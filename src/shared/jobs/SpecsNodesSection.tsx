@@ -7,7 +7,7 @@ import { JobType } from '@typedefs/deeploys';
 import { useEffect, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { RiErrorWarningLine } from 'react-icons/ri';
-import DeeployWarning from './DeeployWarning';
+import DeeployWarningAlert from './DeeployWarningAlert';
 import JobTags from './target-nodes/JobTags';
 
 export default function SpecsNodesSection({
@@ -132,7 +132,7 @@ export default function SpecsNodesSection({
                         )}
 
                         {hasMinimalBalancingWarning && (
-                            <DeeployWarning
+                            <DeeployWarningAlert
                                 title={
                                     <div>
                                         The minimal recommended balancing is{' '}

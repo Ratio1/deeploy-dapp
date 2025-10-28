@@ -1,5 +1,5 @@
-import PluginsCard from '../plugins/PluginsCard';
+import PluginsSection from '../plugins/PluginsSection';
 
 export default function Plugins() {
-    return <PluginsCard />;
+    return <PluginsSection />;
 }
