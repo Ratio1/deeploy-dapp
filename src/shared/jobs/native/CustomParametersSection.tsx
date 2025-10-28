@@ -1,4 +1,3 @@
-import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import CustomTabs from '@shared/CustomTabs';
 import JsonEditor from '@shared/JsonEditor';
 import StyledInput from '@shared/StyledInput';
@@ -15,7 +14,6 @@ type CustomParameterEntryWithId = CustomParameterEntry & {
 const PLACEHOLDERS = ['KEY', 'VALUE'];
 
 export default function CustomParametersSection({ baseName = 'deployment' }: { baseName?: string }) {
-    const { confirm } = useInteractionContext() as InteractionContextType;
     const { control, formState, trigger } = useFormContext();
 
     const name = `${baseName}.customParams`;

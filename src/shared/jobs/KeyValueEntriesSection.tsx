@@ -1,4 +1,3 @@
-import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { isKeySecret } from '@lib/utils';
 import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
@@ -43,7 +42,6 @@ export default function KeyValueEntriesSection({
         remove: UseFieldArrayRemove;
     };
 }) {
-    const { confirm } = useInteractionContext() as InteractionContextType;
     const { control, formState, trigger } = useFormContext();
 
     const { fields, append, remove } =

@@ -1,4 +1,3 @@
-import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import TextFileUpload from './TextFileUpload';
@@ -8,8 +7,6 @@ import VariableSectionRemove from './VariableSectionRemove';
 
 export default function FileVolumesSection({ baseName = 'deployment' }: { baseName?: string }) {
     const name = `${baseName}.fileVolumes`;
-
-    const { confirm } = useInteractionContext() as InteractionContextType;
 
     const { control, formState, trigger, setValue } = useFormContext();
     const { fields, append, remove } = useFieldArray({

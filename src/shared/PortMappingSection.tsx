@@ -1,4 +1,3 @@
-import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import DeeployWarning from './jobs/DeeployWarning';
 import VariableSectionControls from './jobs/VariableSectionControls';
@@ -15,7 +14,6 @@ interface PortMappingEntryWithId {
 export default function PortMappingSection({ baseName = 'deployment' }: { baseName?: string }) {
     const name = `${baseName}.ports`;
 
-    const { confirm } = useInteractionContext() as InteractionContextType;
     const { trigger, control, formState } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
