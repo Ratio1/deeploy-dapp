@@ -4,7 +4,7 @@ import InputWithLabel from '@shared/InputWithLabel';
 import { KeyValueEntryWithId } from '@typedefs/deeploys';
 import { useEffect, useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import DeeployInfo from './DeeployInfo';
+import DeeployInfoAlert from './DeeployInfoAlert';
 
 export default function ServiceInputsSection({ inputs }: { inputs: { key: string; label: string }[] }) {
     const { control, setValue } = useFormContext();
@@ -56,7 +56,7 @@ export default function ServiceInputsSection({ inputs }: { inputs: { key: string
                 </div>
 
                 {hasGenerated && (
-                    <DeeployInfo
+                    <DeeployInfoAlert
                         title="Auto-generated Passwords"
                         description="Secure passwords were automatically generated for the required fields; don't forget to copy and save them."
                     />
