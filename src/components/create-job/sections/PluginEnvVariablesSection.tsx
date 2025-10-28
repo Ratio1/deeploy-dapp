@@ -1,6 +1,7 @@
 import ConfigSectionTitle from '@components/job/config/ConfigSectionTitle';
 import { Button } from '@heroui/button';
 import { onDotEnvPaste } from '@lib/deeploy-utils';
+import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { RiClipboardLine } from 'react-icons/ri';
@@ -18,18 +19,17 @@ export default function PluginEnvVariablesSection({ baseName }) {
             <ConfigSectionTitle title="ENV Variables" />
 
             <div className="row justify-between gap-1.5">
-                <div className="text-sm text-slate-500">
-                    You can copy & paste the contents of your <span className="font-medium">.env</span> file using this button:
-                </div>
+                <DeeployInfoTag text="You can copy & paste the contents of your .env file using the button." />
 
                 <Button
-                    className="h-[34px] bg-slate-200 hover:opacity-70!"
-                    color="default"
+                    className="h-[34px] border-2 border-slate-200 bg-white px-2.5 data-[hover=true]:opacity-65!"
+                    color="primary"
                     size="sm"
+                    variant="flat"
                     onPress={() => onDotEnvPaste(append, remove, fields)}
                 >
-                    <div className="row text-default-700 gap-1">
-                        <RiClipboardLine className="text-[17px]" />
+                    <div className="row gap-1">
+                        <RiClipboardLine className="text-base" />
                         <div className="compact">Paste</div>
                     </div>
                 </Button>
@@ -38,6 +38,7 @@ export default function PluginEnvVariablesSection({ baseName }) {
             <KeyValueEntriesSection
                 name={`${baseName}.envVars`}
                 displayLabel="environment variables"
+                maxEntries={50}
                 parentMethods={{ append, remove, fields }}
                 enableSecretValues
             />
