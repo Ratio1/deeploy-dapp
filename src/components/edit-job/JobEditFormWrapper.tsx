@@ -4,7 +4,6 @@ import Specifications from '@components/create-job/steps/Specifications';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
-import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { boolToBooleanType, isGenericPlugin, NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS, titlecase } from '@lib/deeploy-utils';
@@ -50,7 +49,7 @@ export default function JobEditFormWrapper({
 
     const jobConfig: JobConfig = job.config;
 
-    // console.log('[JobEditFormWrapper]', { job, jobConfig });
+    console.log('[JobEditFormWrapper]', { job, jobConfig });
 
     const [isTargetNodesCountLower, setTargetNodesCountLower] = useState<boolean>(false);
     const [additionalCost, setAdditionalCost] = useState<bigint>(0n);
@@ -163,8 +162,8 @@ export default function JobEditFormWrapper({
                 .first(),
             customParams: formatCustomParams(jobConfig), // TODO: Format for each native plugin in the plugins field
             pipelineParams: [{ key: '', value: '' }], // TODO: Missing from the API response
-            pipelineInputType: PIPELINE_INPUT_TYPES[0], // TODO: Add
-            pipelineInputUri: undefined, // TODO: Add
+            pipelineInputType: job.pipelineData.TYPE,
+            pipelineInputUri: job.pipelineData.URL,
             chainstoreResponse: BOOLEAN_TYPES[1],
             plugins: formatPlugins(),
         },
