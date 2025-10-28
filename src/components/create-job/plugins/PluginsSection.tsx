@@ -54,7 +54,7 @@ const OPTIONS: {
         pluginType: PluginType.Worker,
         title: 'Worker App Runner',
         icon: <RiBox3Line />,
-        textColorClass: 'text-yellow-400',
+        textColorClass: 'text-yellow-500',
         color: 'yellow',
     },
 ];
@@ -64,7 +64,7 @@ export default function PluginsSection() {
 
     const { confirm } = useInteractionContext() as InteractionContextType;
 
-    const { control, formState } = useFormContext();
+    const { control, formState, clearErrors } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -73,9 +73,11 @@ export default function PluginsSection() {
 
     const plugins = fields as PluginWithId[];
 
-    const rootError: string | undefined = (formState.errors.deployment as any)?.plugins?.root?.message as string | undefined;
+    const rootError: string | undefined = (formState.errors.plugins as any)?.root?.message as string | undefined;
 
     const onAddPlugin = (pluginType: PluginType) => {
+        clearErrors(`${name}.root`);
+
         switch (pluginType) {
             case PluginType.Container:
                 append({
