@@ -105,9 +105,9 @@ export const initSumsubSession = (type: 'individual' | 'company') => _doPost<str
 export const getPublicProfileInfo = async (address: types.EthAddress) =>
     _doPost<any>('/branding/get-brands', { brandAddresses: [address] });
 
-export const uploadProfileImage = async (logo: File) => {
+export const uploadProfileImage = async (file: File) => {
     const formData = new FormData();
-    formData.append('logo', logo);
+    formData.append('logo', file);
 
     return _doPost<any>('/branding/edit-logo', formData, {
         'Content-Type': 'multipart/form-data',

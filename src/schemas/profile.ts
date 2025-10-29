@@ -1,5 +1,5 @@
 import z from 'zod';
-import { getOptionalStringWithSpacesSchema, getStringSchema } from './common';
+import { getOptionalStringWithSpacesSchema } from './common';
 
 export const buildPublicProfileSchema = (brandingPlatforms: string[]) => {
     const shape: Record<string, z.ZodType> = {};
@@ -9,7 +9,7 @@ export const buildPublicProfileSchema = (brandingPlatforms: string[]) => {
     }
 
     return z.object({
-        name: getStringSchema(3, 32),
+        name: getOptionalStringWithSpacesSchema(3, 32),
         description: getOptionalStringWithSpacesSchema(0, 80),
         links: z.object(shape),
     });
