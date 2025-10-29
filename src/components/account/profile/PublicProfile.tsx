@@ -131,33 +131,18 @@ export default function PublicProfile() {
                         />
                     </div>
 
-                    {isEditing ? (
-                        <div className="col items-center gap-2">
-                            <ImageUpload
-                                onSuccessfulUpload={() => {
-                                    // Bust cached image and re-attempt load
-                                    setImageError(false);
-                                    setImageRefreshToken(Date.now());
-                                }}
-                                setImageLoading={setImageLoading}
-                            />
+                    <div className="col items-center gap-2">
+                        <ImageUpload
+                            onSuccessfulUpload={() => {
+                                // Bust cached image and re-attempt load
+                                setImageError(false);
+                                setImageRefreshToken(Date.now());
+                            }}
+                            setImageLoading={setImageLoading}
+                        />
 
-                            <div className="text-sm text-slate-500">The maximum file size allowed is 500 KB.</div>
-                        </div>
-                    ) : (
-                        <div>
-                            <Button
-                                className="h-9 border-2 border-slate-200 bg-white data-[hover=true]:opacity-65!"
-                                color="default"
-                                size="sm"
-                                variant="solid"
-                                onPress={() => setEditing(true)}
-                                isDisabled={isLoading}
-                            >
-                                <div className="text-sm">Edit profile</div>
-                            </Button>
-                        </div>
-                    )}
+                        <div className="text-sm text-slate-500">Only .jpg, .jpeg, and .png images are allowed.</div>
+                    </div>
                 </div>
 
                 {/* Details */}
@@ -229,6 +214,19 @@ export default function PublicProfile() {
                                 </div>
                             </DetailsCard>
                         )}
+
+                        <div className="center-all mt-2">
+                            <Button
+                                className="h-9 border-2 border-slate-200 bg-white data-[hover=true]:opacity-65!"
+                                color="default"
+                                size="sm"
+                                variant="solid"
+                                onPress={() => setEditing(true)}
+                                isDisabled={isLoading}
+                            >
+                                <div className="text-sm">Edit profile</div>
+                            </Button>
+                        </div>
                     </>
                 )}
             </div>

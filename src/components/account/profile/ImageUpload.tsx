@@ -4,6 +4,8 @@ import { resizeImage } from '@lib/utils';
 import { useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 
+const ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png'];
+
 export default function ImageUpload({
     onSuccessfulUpload,
     setImageLoading,
@@ -20,6 +22,17 @@ export default function ImageUpload({
             let file: File | undefined = event.target.files?.[0];
 
             if (!file) {
+                return;
+            }
+
+            // Check if file extension is allowed
+            const fileName = file.name.toLowerCase();
+            const fileExtension = fileName.substring(fileName.lastIndexOf('.'));
+
+            if (!ALLOWED_IMAGE_EXTENSIONS.includes(fileExtension)) {
+                toast.error('Only .jpg, .jpeg, and .png images are allowed.');
+                setImageLoading(false);
+                event.target.value = '';
                 return;
             }
 
@@ -59,7 +72,7 @@ export default function ImageUpload({
                 ref={inputRef}
                 id="image-input"
                 type="file"
-                accept="image/*"
+                accept=".jpg,.jpeg,.png"
                 onChange={handleFileChange}
                 className="hidden"
             />
