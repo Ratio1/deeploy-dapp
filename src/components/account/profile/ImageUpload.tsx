@@ -59,7 +59,7 @@ export default function ImageUpload({
                 event.target.value = '';
             }
         },
-        [onSuccessfulUpload],
+        [onSuccessfulUpload, setImageLoading],
     );
 
     const handleButtonClick = useCallback(() => {
