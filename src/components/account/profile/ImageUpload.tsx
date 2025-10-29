@@ -4,22 +4,17 @@ import { useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 
 export default function ImageUpload({
-    onUpload,
+    onSuccessfulUpload,
     setImageLoading,
-    setImageError,
 }: {
-    onUpload: () => void;
+    onSuccessfulUpload: () => void;
     setImageLoading: (loading: boolean) => void;
-    setImageError: (error: boolean) => void;
 }) {
     const inputRef = useRef<HTMLInputElement | null>(null);
 
     const handleFileChange = useCallback(
         async (event: React.ChangeEvent<HTMLInputElement>) => {
-            console.log('ImageUpload handleFileChange');
-
             setImageLoading(true);
-            setImageError(false);
 
             const file = event.target.files?.[0];
 
@@ -36,12 +31,12 @@ export default function ImageUpload({
 
             try {
                 await uploadProfileImage(file);
+                onSuccessfulUpload();
 
+                // Takes into account the response time of the image request
                 setTimeout(() => {
-                    // Takes into account the response time of the image request
                     toast.success('Profile image updated successfully.');
                 }, 500);
-                onUpload();
             } catch (err) {
                 console.error('Profile image upload failed:', err);
                 toast.error('Failed to upload profile image.');
@@ -51,7 +46,7 @@ export default function ImageUpload({
                 event.target.value = '';
             }
         },
-        [onUpload],
+        [onSuccessfulUpload],
     );
 
     const handleButtonClick = useCallback(() => {
