@@ -1,4 +1,3 @@
-import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
@@ -53,20 +52,18 @@ function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boole
 
             {/* <PluginsCard /> */}
 
-            <SlateCard title="Other">
-                <SelectWithLabel name="deployment.chainstoreResponse" label="Chainstore Response" options={BOOLEAN_TYPES} />
+            <SlateCard title="Chainstore Response">
+                {/* <SelectWithLabel name="deployment.chainstoreResponse" label="Chainstore Response" options={BOOLEAN_TYPES} /> */}
 
-                {chainstoreResponse === BOOLEAN_TYPES[0] && (
-                    <DeeployWarningAlert
-                        title={<div>Custom Response</div>}
-                        description={
-                            <div>
-                                Make sure your app implements the chainstore response mechanism; otherwise, your deployment will
-                                time out.
-                            </div>
-                        }
-                    />
-                )}
+                <DeeployWarningAlert
+                    title={<div>Implementation Required</div>}
+                    description={
+                        <div>
+                            Make sure your app complies with the chainstore response mechanism; otherwise, your deployment will
+                            time out.
+                        </div>
+                    }
+                />
             </SlateCard>
         </div>
     );

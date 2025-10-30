@@ -448,7 +448,7 @@ export const formatNativeJobPayload = (
         pipeline_input_type: deployment.pipelineInputType,
         pipeline_input_uri: deployment.pipelineInputUri || null,
         pipeline_params: !_.isEmpty(pipelineParams) ? pipelineParams : {},
-        chainstore_response: deployment.chainstoreResponse === 'True',
+        chainstore_response: true, // Enforced to true
     };
 };
 

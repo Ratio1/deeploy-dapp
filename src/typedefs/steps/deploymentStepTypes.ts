@@ -150,7 +150,7 @@ type NativeJobDeployment = BaseJobDeployment & {
     pipelineInputType: (typeof PIPELINE_INPUT_TYPES)[number];
     pipelineInputUri?: string;
     plugins: Plugin[];
-    chainstoreResponse: (typeof BOOLEAN_TYPES)[number];
+    chainstoreResponse: (typeof BOOLEAN_TYPES)[number]; // Enforced to true
 };
 
 type ServiceJobDeployment = BaseJobDeployment & {
