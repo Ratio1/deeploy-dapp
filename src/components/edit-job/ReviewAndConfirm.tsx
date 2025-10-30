@@ -12,7 +12,7 @@ import { useFormContext, useWatch } from 'react-hook-form';
 import z from 'zod';
 
 type JobFormValues = z.infer<typeof jobSchema>;
-type StepKey = 'specifications' | 'costAndDuration' | 'deployment';
+type StepKey = 'specifications' | 'costAndDuration' | 'deployment' | 'plugins';
 
 const hasDirtyFields = (dirtyValue: unknown): boolean => {
     if (typeof dirtyValue === 'boolean') {
@@ -53,6 +53,7 @@ export default function ReviewAndConfirm({
     const specifications = useWatch({ control, name: 'specifications' });
     const costAndDuration = useWatch({ control, name: 'costAndDuration' });
     const deployment = useWatch({ control, name: 'deployment' });
+
     const { lastExecutionEpoch } = job;
 
     const currentTargetNodesCount = specifications?.targetNodesCount ?? defaultValues.specifications.targetNodesCount;
@@ -74,10 +75,6 @@ export default function ReviewAndConfirm({
 
         const containerOrWorkerType: ContainerOrWorkerType = job.resources.containerOrWorkerType;
         const costPerEpoch = getResourcesCostPerEpoch(containerOrWorkerType, job.resources.gpuType);
-
-        // console.log(
-        //     `[ReviewAndConfirm] Additional cost: ${fBI(BigInt(increasedNodesCount) * costPerEpoch * remainingEpochs, 6, 2)} $USDC`,
-        // );
 
         return BigInt(increasedNodesCount) * costPerEpoch * remainingEpochs;
     }, [

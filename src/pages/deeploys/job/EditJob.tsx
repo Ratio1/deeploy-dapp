@@ -87,7 +87,7 @@ export default function EditJob() {
             return;
         }
 
-        console.log('[EditJob] Submitting data', data);
+        console.log('[EditJob] onSubmit', data);
 
         const additionalNodesRequested: number = data.specifications.targetNodesCount - Number(job.numberOfNodesRequested);
         const increasingTargetNodes: boolean = additionalNodesRequested > 0;
@@ -137,7 +137,7 @@ export default function EditJob() {
                     payload = formatNativeJobPayload(
                         job!.resources.containerOrWorkerType,
                         data.specifications as NativeJobSpecifications,
-                        data.deployment as NativeJobDeployment,
+                        { ...data.deployment, plugins: data.plugins } as NativeJobDeployment,
                     );
                     break;
 
