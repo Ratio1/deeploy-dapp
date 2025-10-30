@@ -23,6 +23,9 @@ type DeeploySpecs = {
     date_created: number;
     date_updated: number;
     initial_target_nodes: R1Address[];
+    job_config?: {
+        pipeline_params?: Record<string, string>;
+    };
     job_id: number;
     job_tags: string[];
     nr_target_nodes: number;

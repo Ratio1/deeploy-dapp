@@ -245,7 +245,7 @@ export const DeploymentProvider = ({ children }) => {
                     return null;
                 }
 
-                return {
+                const jobWithDetails: RunningJobWithDetails = {
                     alias,
                     projectName: specs.project_name,
                     allowReplicationInTheWild: specs.allow_replication_in_the_wild,
@@ -257,6 +257,12 @@ export const DeploymentProvider = ({ children }) => {
                     pipelineData,
                     ...job,
                 };
+
+                if (specs.job_config?.pipeline_params) {
+                    jobWithDetails.pipelineParams = specs.job_config.pipeline_params;
+                }
+
+                return jobWithDetails;
             })
             .filter((job) => job !== null)
             .value();

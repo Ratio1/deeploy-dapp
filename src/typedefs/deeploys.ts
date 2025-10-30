@@ -23,7 +23,7 @@ enum ProjectPage {
 
 // Specifications
 type BaseJobSpecifications = {
-    applicationType: (typeof APPLICATION_TYPES)[number];
+    applicationType: (typeof APPLICATION_TYPES)[number]; // Disabled for now
     targetNodesCount: number;
     jobTags: string[];
     nodesCountries: string[];
@@ -106,6 +106,7 @@ type RunningJob = {
     balance: bigint;
     lastAllocatedEpoch: bigint;
     activeNodes: readonly EthAddress[];
+    pipelineParams?: Record<string, string>;
 };
 
 type RunningJobWithDetails = RunningJob & {

@@ -134,7 +134,7 @@ export default function JobEditFormWrapper({
     const getBaseSchemaDefaults = (config: JobConfig = jobConfig) => ({
         jobType: job.resources.jobType,
         specifications: {
-            applicationType: APPLICATION_TYPES[0], // TODO: Get from job after the API update
+            applicationType: APPLICATION_TYPES[0], // Disabled for now
             targetNodesCount: Number(job.numberOfNodesRequested),
             jobTags: !job.jobTags ? [] : job.jobTags.filter((tag) => !tag.startsWith('CT:')),
             nodesCountries: !job.jobTags
@@ -173,7 +173,7 @@ export default function JobEditFormWrapper({
         },
         deployment: {
             ...getBaseSchemaDeploymentDefaults(),
-            pipelineParams: [], // TODO: Missing from the API response
+            pipelineParams: getPipelineParams(),
             pipelineInputType: job.pipelineData.TYPE,
             pipelineInputUri: job.pipelineData.URL,
             chainstoreResponse: BOOLEAN_TYPES[1],
@@ -193,6 +193,10 @@ export default function JobEditFormWrapper({
             inputs: getEnvVars(jobConfig),
         },
     });
+
+    const getPipelineParams = () => {
+        return !job.pipelineParams ? [] : Object.entries(job.pipelineParams).map(([key, value]) => ({ key, value }));
+    };
 
     const getPortMappings = (config: JobConfig) => {
         return !config.CONTAINER_RESOURCES.ports

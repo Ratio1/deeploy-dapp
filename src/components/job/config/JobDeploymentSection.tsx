@@ -4,6 +4,7 @@ import { CopyableValue } from '@shared/CopyableValue';
 import ItemWithBoldValue from '@shared/jobs/ItemWithBoldValue';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { isEmpty } from 'lodash';
+import JobKeyValueSection from '../JobKeyValueSection';
 import JobSimpleTagsSection from '../JobSimpleTagsSection';
 import ConfigSectionTitle from './ConfigSectionTitle';
 
@@ -13,8 +14,6 @@ export default function JobDeploymentSection({ job }: { job: RunningJobWithResou
     const config = job.config;
 
     const pipelineData = job.pipelineData;
-
-    // console.log('Pipeline Data', pipelineData);
 
     return (
         <BorderedCard isLight={false} disableWrapper>
@@ -107,6 +106,17 @@ export default function JobDeploymentSection({ job }: { job: RunningJobWithResou
                             <div className="grid grid-cols-2 gap-3">
                                 <ItemWithBoldValue label="Pipeline Input Type" value={pipelineData.TYPE} />
                                 <ItemWithBoldValue label="Pipeline Input URI" value={pipelineData.URL ?? '—'} />
+
+                                <ItemWithBoldValue
+                                    label="Pipeline Parameters"
+                                    value={
+                                        isEmpty(job.pipelineParams) ? (
+                                            '—'
+                                        ) : (
+                                            <JobKeyValueSection obj={job.pipelineParams} displayShortValues={false} />
+                                        )
+                                    }
+                                />
                             </div>
                         </>
                     )}
