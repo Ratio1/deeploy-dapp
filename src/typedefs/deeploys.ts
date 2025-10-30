@@ -23,7 +23,7 @@ enum ProjectPage {
 
 // Specifications
 type BaseJobSpecifications = {
-    applicationType: (typeof APPLICATION_TYPES)[number];
+    applicationType: (typeof APPLICATION_TYPES)[number]; // Disabled for now
     targetNodesCount: number;
     jobTags: string[];
     nodesCountries: string[];

@@ -1,8 +1,6 @@
-import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { ContainerOrWorkerType, genericContainerTypes, nativeWorkerTypes } from '@data/containerResources';
 import { SlateCard } from '@shared/cards/SlateCard';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
-import SelectWithLabel from '@shared/SelectWithLabel';
 import { JobType } from '@typedefs/deeploys';
 import { useEffect, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -105,11 +103,11 @@ export default function SpecsNodesSection({
                             hasWarning={hasWarning}
                         />
 
-                        <SelectWithLabel
+                        {/* <SelectWithLabel
                             name="specifications.applicationType"
                             label="Application Type"
                             options={APPLICATION_TYPES}
-                        />
+                        /> */}
                     </div>
 
                     <div className="col gap-2">
