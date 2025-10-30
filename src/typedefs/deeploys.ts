@@ -106,6 +106,7 @@ type RunningJob = {
     balance: bigint;
     lastAllocatedEpoch: bigint;
     activeNodes: readonly EthAddress[];
+    pipelineParams?: Record<string, string>;
 };
 
 type RunningJobWithDetails = RunningJob & {

@@ -173,7 +173,7 @@ export default function JobEditFormWrapper({
         },
         deployment: {
             ...getBaseSchemaDeploymentDefaults(),
-            pipelineParams: [], // TODO: Missing from the API response
+            pipelineParams: getPipelineParams(),
             pipelineInputType: job.pipelineData.TYPE,
             pipelineInputUri: job.pipelineData.URL,
             chainstoreResponse: BOOLEAN_TYPES[1],
@@ -193,6 +193,10 @@ export default function JobEditFormWrapper({
             inputs: getEnvVars(jobConfig),
         },
     });
+
+    const getPipelineParams = () => {
+        return !job.pipelineParams ? [] : Object.entries(job.pipelineParams).map(([key, value]) => ({ key, value }));
+    };
 
     const getPortMappings = (config: JobConfig) => {
         return !config.CONTAINER_RESOURCES.ports
