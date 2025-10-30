@@ -7,11 +7,11 @@ import SpecsNodesSection from '@shared/jobs/SpecsNodesSection';
 import { JobType } from '@typedefs/deeploys';
 
 export default function GenericSpecifications({
-    isEditingJob,
+    isEditingRunningJob,
     initialTargetNodesCount,
     onTargetNodesCountDecrease,
 }: {
-    isEditingJob?: boolean;
+    isEditingRunningJob?: boolean;
     initialTargetNodesCount?: number;
     onTargetNodesCountDecrease?: (blocked: boolean) => void;
 }) {
@@ -22,21 +22,17 @@ export default function GenericSpecifications({
                     name="specifications.containerType"
                     label="Container Type"
                     options={genericContainerTypes}
-                    isDisabled={isEditingJob}
+                    isDisabled={isEditingRunningJob}
                 />
 
-                <SelectGPU jobType={JobType.Generic} isDisabled={isEditingJob} />
+                <SelectGPU jobType={JobType.Generic} isDisabled={isEditingRunningJob} />
 
-                <ContainerResourcesInfo
-                    jobType={JobType.Generic}
-                    name="specifications.containerType"
-                    options={genericContainerTypes}
-                />
+                <ContainerResourcesInfo name="specifications.containerType" options={genericContainerTypes} />
             </SlateCard>
 
             <SpecsNodesSection
                 jobType={JobType.Generic}
-                isEditingJob={isEditingJob}
+                isEditingRunningJob={isEditingRunningJob}
                 initialTargetNodesCount={initialTargetNodesCount}
                 onTargetNodesCountDecrease={onTargetNodesCountDecrease}
             />

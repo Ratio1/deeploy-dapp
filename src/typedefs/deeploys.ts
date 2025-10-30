@@ -7,7 +7,7 @@ import {
     serviceContainerTypes,
 } from '@data/containerResources';
 import { EthAddress, R1Address } from './blockchain';
-import { AppsPlugin, JobConfig } from './deeployApi';
+import { AppsPlugin, JobConfig, PipelineData } from './deeployApi';
 import { GenericJobDeployment, JobDeployment, NativeJobDeployment, ServiceJobDeployment } from './steps/deploymentStepTypes';
 
 enum JobType {
@@ -23,7 +23,7 @@ enum ProjectPage {
 
 // Specifications
 type BaseJobSpecifications = {
-    applicationType: (typeof APPLICATION_TYPES)[number];
+    applicationType: (typeof APPLICATION_TYPES)[number]; // Disabled for now
     targetNodesCount: number;
     jobTags: string[];
     nodesCountries: string[];
@@ -106,6 +106,7 @@ type RunningJob = {
     balance: bigint;
     lastAllocatedEpoch: bigint;
     activeNodes: readonly EthAddress[];
+    pipelineParams?: Record<string, string>;
 };
 
 type RunningJobWithDetails = RunningJob & {
@@ -120,6 +121,7 @@ type RunningJobWithDetails = RunningJob & {
         plugins: (AppsPlugin & { signature: string })[];
     }[];
     config: JobConfig;
+    pipelineData: PipelineData;
 };
 
 type RunningJobWithResources = RunningJobWithDetails & {
@@ -130,7 +132,6 @@ export interface KeyValueEntryWithId {
     id: string;
     key: string;
     value: string;
-    valueType?: 'text' | 'json';
 }
 
 export { JobType, ProjectPage };

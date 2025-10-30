@@ -8,7 +8,43 @@ export const keyValueEntrySchema = z
     .object({
         key: z.string().optional(),
         value: z.string().optional(),
-        valueType: z.enum(['text', 'json']).optional().default('text'),
+    })
+    .refine(
+        (data) => {
+            if (!data.key && !data.value) {
+                return true; // Both empty = valid (empty row, will be ignored)
+            }
+            if (!data.key) {
+                return false; // Key missing
+            }
+            return true; // Key present
+        },
+        {
+            message: 'Key is required',
+            path: ['key'],
+        },
+    )
+    .refine(
+        (data) => {
+            if (!data.key && !data.value) {
+                return true; // Both empty = valid (empty row, will be ignored)
+            }
+            if (!data.value) {
+                return false; // Value missing
+            }
+            return true; // Value present
+        },
+        {
+            message: 'Value is required',
+            path: ['value'],
+        },
+    );
+
+export const customParameterEntrySchema = z
+    .object({
+        key: z.string().optional(),
+        value: z.string().optional(),
+        valueType: z.enum(['string', 'json']).optional().default('string'),
     })
     .refine(
         (data) => {
@@ -80,6 +116,26 @@ export const getKeyValueEntriesArraySchema = (maxEntries?: number) => {
     );
 };
 
+export const getCustomParametersArraySchema = (maxEntries: number = 50) => {
+    let schema = z.array(customParameterEntrySchema);
+
+    if (maxEntries) {
+        schema = schema.max(maxEntries, `Maximum ${maxEntries} entries allowed`);
+    }
+
+    return schema.refine(
+        (entries) => {
+            const keys = entries.map((entry) => entry.key?.trim()).filter((key) => key && key !== ''); // Only non-empty keys
+
+            const uniqueKeys = new Set(keys);
+            return uniqueKeys.size === keys.length;
+        },
+        {
+            message: 'Duplicate keys are not allowed',
+        },
+    );
+};
+
 export const nodeSchema = z.object({
     address: z
         .string()
@@ -119,55 +175,6 @@ export const dynamicEnvEntrySchema = z
             message: 'Key is required when values are provided',
             path: ['key'],
         },
-    )
-    .refine(
-        (data) => {
-            // If key is empty, don't validate values
-            if (!data.key) {
-                return true;
-            }
-            // Check if any value is missing when key is present (skip host_ip fields)
-            const hasEmptyValue = data.values.some((pair) => pair.type !== 'host_ip' && !pair.value);
-            return !hasEmptyValue;
-        },
-        {
-            message: 'All values are required when key is provided',
-            path: ['values'],
-        },
-    )
-    // Individual value refinements for specific error paths
-    .refine(
-        (data) => {
-            if (!data.key) return true;
-            if (data.values[0]?.type === 'host_ip') return true;
-            return data.values[0]?.value || false;
-        },
-        {
-            message: 'Value is required',
-            path: ['values', 0, 'value'],
-        },
-    )
-    .refine(
-        (data) => {
-            if (!data.key) return true;
-            if (data.values[1]?.type === 'host_ip') return true;
-            return data.values[1]?.value || false;
-        },
-        {
-            message: 'Value is required',
-            path: ['values', 1, 'value'],
-        },
-    )
-    .refine(
-        (data) => {
-            if (!data.key) return true;
-            if (data.values[2]?.type === 'host_ip') return true;
-            return data.values[2]?.value || false;
-        },
-        {
-            message: 'Value is required',
-            path: ['values', 2, 'value'],
-        },
     );
 
 export const getStringSchema = (minLength: number, maxLength: number) => {
@@ -199,6 +206,20 @@ export const getOptionalStringSchema = (maxLength: number) => {
         .max(maxLength, `Value cannot exceed ${maxLength} characters`)
         .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
         .optional();
+};
+
+export const getOptionalStringWithSpacesSchema = (minLength: number, maxLength: number) => {
+    return z.union([
+        z.literal(''),
+        z
+            .string()
+            .min(minLength, `Value must be at least ${minLength} characters`)
+            .max(maxLength, `Value cannot exceed ${maxLength} characters`)
+            .regex(
+                /^[a-zA-Z0-9\s!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
+                'Only letters, numbers, spaces and special characters allowed',
+            ),
+    ]);
 };
 
 export const getNameWithoutSpacesSchema = (minLength: number, maxLength: number) => {

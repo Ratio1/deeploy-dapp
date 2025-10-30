@@ -1,19 +1,20 @@
 import JobFormButtons from '@components/create-job/JobFormButtons';
 import Deployment from '@components/create-job/steps/Deployment';
+import Plugins from '@components/create-job/steps/Plugins';
 import Specifications from '@components/create-job/steps/Specifications';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
-import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
-import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { boolToBooleanType, titlecase } from '@lib/deeploy-utils';
+import { boolToBooleanType, isGenericPlugin, NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS, titlecase } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
-import { JobConfig } from '@typedefs/deeployApi';
+import { AppsPlugin, JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
+import { BasePluginType, CustomParameterEntry, PluginType } from '@typedefs/steps/deploymentStepTypes';
+import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -21,7 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import z from 'zod';
 import ReviewAndConfirm from './ReviewAndConfirm';
 
-const STEPS: {
+const DEFAULT_STEPS: {
     title: string;
     validationName?: string;
 }[] = [
@@ -47,16 +48,93 @@ export default function JobEditFormWrapper({
     const hasModifiedStepsRef = useRef(false);
     const payButtonRef = useRef<{ fetchAllowance: () => Promise<bigint | undefined> }>(null);
 
-    const config: JobConfig = job.config;
+    const jobConfig: JobConfig = job.config;
 
-    // Used only when editing a job
+    // console.log('[JobEditFormWrapper]', { job, jobConfig });
+
     const [isTargetNodesCountLower, setTargetNodesCountLower] = useState<boolean>(false);
     const [additionalCost, setAdditionalCost] = useState<bigint>(0n);
 
-    const getBaseSchemaDefaults = () => ({
+    const [steps, setSteps] = useState(DEFAULT_STEPS);
+
+    const getBaseSchemaDeploymentDefaults = () => ({
+        jobAlias: job.alias,
+        autoAssign: false,
+        targetNodes: [
+            ...job.nodes.map((address) => ({ address })),
+            ...Array.from({ length: Number(job.numberOfNodesRequested) - job.nodes.length }, () => ({ address: '' })),
+        ],
+        spareNodes: !job.spareNodes ? [] : job.spareNodes.map((address) => ({ address })),
+        allowReplicationInTheWild: job.allowReplicationInTheWild ?? false,
+    });
+
+    const getBaseSchemaTunnelingDefaults = (config: JobConfig) => ({
+        enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED),
+        port: config.PORT ?? '',
+        tunnelingToken: config.CLOUDFLARE_TOKEN || config.NGROK_AUTH_TOKEN,
+    });
+
+    const getGenericSpecificDeploymentDefaults = (config: JobConfig) => ({
+        // Ports
+        ports: getPortMappings(config),
+
+        // Deployment type
+        deploymentType: !config.VCS_DATA
+            ? {
+                  pluginType: PluginType.Container,
+                  containerImage: config.IMAGE,
+                  containerRegistry: config.CR_DATA?.SERVER || 'docker.io',
+                  crVisibility: CR_VISIBILITY_OPTIONS[!config.CR_DATA?.USERNAME ? 0 : 1],
+                  crUsername: config.CR_DATA?.USERNAME || '',
+                  crPassword: config.CR_DATA?.PASSWORD || '',
+              }
+            : {
+                  pluginType: PluginType.Worker,
+                  image: config.IMAGE,
+                  repositoryUrl: config.VCS_DATA.REPO_URL,
+                  repositoryVisibility: 'public',
+                  username: config.VCS_DATA.USERNAME || '',
+                  accessToken: config.VCS_DATA.TOKEN || '',
+                  workerCommands: config.BUILD_AND_RUN_COMMANDS!.map((command) => ({ command })),
+              },
+
+        // Variables
+        envVars: getEnvVars(config),
+        dynamicEnvVars: getDynamicEnvVars(config),
+        volumes: getVolumes(config),
+        fileVolumes: getFileVolumes(config),
+
+        // Policies
+        restartPolicy: titlecase(config.RESTART_POLICY!),
+        imagePullPolicy: titlecase(config.IMAGE_PULL_POLICY!),
+    });
+
+    const getGenericPluginSchemaDefaults = (config: JobConfig) => ({
+        basePluginType: BasePluginType.Generic,
+
+        // Tunneling
+        ...getBaseSchemaTunnelingDefaults(config),
+
+        ...getGenericSpecificDeploymentDefaults(config),
+    });
+
+    const getNativePluginSchemaDefaults = (pluginInfo: AppsPlugin & { signature: string }) => ({
+        basePluginType: BasePluginType.Native,
+
+        // Signature
+        pluginSignature: pluginInfo.signature,
+
+        // Tunneling
+        ...getBaseSchemaTunnelingDefaults(pluginInfo.instance_conf),
+
+        // Custom Parameters
+        customParams: formatCustomParams(pluginInfo.instance_conf),
+    });
+
+    const getBaseSchemaDefaults = (config: JobConfig = jobConfig) => ({
         jobType: job.resources.jobType,
         specifications: {
-            applicationType: APPLICATION_TYPES[0], // TODO: Get from job after the API update
+            applicationType: APPLICATION_TYPES[0], // Disabled for now
             targetNodesCount: Number(job.numberOfNodesRequested),
             jobTags: !job.jobTags ? [] : job.jobTags.filter((tag) => !tag.startsWith('CT:')),
             nodesCountries: !job.jobTags
@@ -68,16 +146,8 @@ export default function JobEditFormWrapper({
             paymentMonthsCount: 1,
         },
         deployment: {
-            jobAlias: job.alias,
-            autoAssign: false,
-            targetNodes: [
-                ...job.nodes.map((address) => ({ address })),
-                ...Array.from({ length: Number(job.numberOfNodesRequested) - job.nodes.length }, () => ({ address: '' })),
-            ],
-            spareNodes: !job.spareNodes ? [] : job.spareNodes.map((address) => ({ address })),
-            allowReplicationInTheWild: job.allowReplicationInTheWild ?? false,
-            enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED),
-            tunnelingToken: !config.CLOUDFLARE_TOKEN ? undefined : config.CLOUDFLARE_TOKEN,
+            ...getBaseSchemaDeploymentDefaults(),
+            ...getBaseSchemaTunnelingDefaults(config),
         },
     });
 
@@ -88,32 +158,10 @@ export default function JobEditFormWrapper({
             containerType: job.resources.containerOrWorkerType.name,
         },
         deployment: {
+            // Identity, Target nodes
             ...getBaseSchemaDefaults().deployment,
-            deploymentType: !config.VCS_DATA
-                ? {
-                      type: 'container',
-                      containerImage: config.IMAGE,
-                      containerRegistry: config.CR_DATA?.SERVER || 'docker.io',
-                      crVisibility: CR_VISIBILITY_OPTIONS[!config.CR_DATA?.USERNAME ? 0 : 1],
-                      crUsername: config.CR_DATA?.USERNAME || '',
-                      crPassword: config.CR_DATA?.PASSWORD || '',
-                  }
-                : {
-                      type: 'worker',
-                      image: config.IMAGE,
-                      repositoryUrl: config.VCS_DATA.REPO_URL,
-                      repositoryVisibility: 'public',
-                      username: config.VCS_DATA.USERNAME || '',
-                      accessToken: config.VCS_DATA.TOKEN || '',
-                      workerCommands: config.BUILD_AND_RUN_COMMANDS!.map((command) => ({ command })),
-                  },
-            port: config.PORT ?? '',
-            restartPolicy: titlecase(config.RESTART_POLICY!),
-            imagePullPolicy: titlecase(config.IMAGE_PULL_POLICY!),
-            envVars: getEnvVars(),
-            dynamicEnvVars: getDynamicEnvVars(),
-            volumes: getVolumes(),
-            fileVolumes: getFileVolumes(),
+
+            ...getGenericSpecificDeploymentDefaults(jobConfig),
         },
     });
 
@@ -124,14 +172,13 @@ export default function JobEditFormWrapper({
             workerType: job.resources.containerOrWorkerType.name,
         },
         deployment: {
-            ...getBaseSchemaDefaults().deployment,
-            port: config.PORT ?? '',
-            pluginSignature: PLUGIN_SIGNATURE_TYPES[0], // TODO: Native Job editing flow
-            customParams: [{ key: '', value: '' }],
-            pipelineParams: [{ key: '', value: '' }],
-            pipelineInputType: PIPELINE_INPUT_TYPES[0],
+            ...getBaseSchemaDeploymentDefaults(),
+            pipelineParams: getPipelineParams(),
+            pipelineInputType: job.pipelineData.TYPE,
+            pipelineInputUri: job.pipelineData.URL,
             chainstoreResponse: BOOLEAN_TYPES[1],
         },
+        plugins: formatPlugins(),
     });
 
     const getServiceSchemaDefaults = () => ({
@@ -142,25 +189,37 @@ export default function JobEditFormWrapper({
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            envVars: getEnvVars(),
-            dynamicEnvVars: getDynamicEnvVars(),
-            volumes: getVolumes(),
+            tunnelingLabel: jobConfig.NGROK_EDGE_LABEL || '',
+            inputs: getEnvVars(jobConfig),
         },
     });
 
-    const getEnvVars = () => {
+    const getPipelineParams = () => {
+        return !job.pipelineParams ? [] : Object.entries(job.pipelineParams).map(([key, value]) => ({ key, value }));
+    };
+
+    const getPortMappings = (config: JobConfig) => {
+        return !config.CONTAINER_RESOURCES.ports
+            ? []
+            : Object.entries(config.CONTAINER_RESOURCES.ports).map(([key, value]) => ({
+                  hostPort: Number(key),
+                  containerPort: Number(value),
+              }));
+    };
+
+    const getEnvVars = (config: JobConfig) => {
         return !config.ENV ? [] : Object.entries(config.ENV).map(([key, value]) => ({ key, value }));
     };
 
-    const getDynamicEnvVars = () => {
+    const getDynamicEnvVars = (config: JobConfig) => {
         return !config.DYNAMIC_ENV ? [] : Object.entries(config.DYNAMIC_ENV).map(([key, values]) => ({ key, values }));
     };
 
-    const getVolumes = () => {
+    const getVolumes = (config: JobConfig) => {
         return !config.VOLUMES ? [] : Object.entries(config.VOLUMES).map(([key, value]) => ({ key, value }));
     };
 
-    const getFileVolumes = () => {
+    const getFileVolumes = (config: JobConfig) => {
         return !config.FILE_VOLUMES
             ? []
             : Object.entries(config.FILE_VOLUMES).map(([key, value]) => ({
@@ -168,6 +227,50 @@ export default function JobEditFormWrapper({
                   mountingPoint: value.mounting_point,
                   content: value.content,
               }));
+    };
+
+    const formatPlugins = () => {
+        // Get the instance with the most plugins
+        const instance = _(job.instances)
+            .sortBy((instance) => instance.plugins.length)
+            .last()!;
+
+        const genericPluginConfigs: JobConfig[] = instance.plugins
+            .filter((plugin) => isGenericPlugin(plugin.signature))
+            .map((plugin) => plugin.instance_conf);
+
+        const nativePlugins = instance.plugins.filter((plugin) => !isGenericPlugin(plugin.signature));
+
+        return [
+            ...nativePlugins.map((pluginInfo) => getNativePluginSchemaDefaults(pluginInfo)),
+            ...genericPluginConfigs.map((config) => getGenericPluginSchemaDefaults(config)),
+        ];
+    };
+
+    const formatCustomParams = (config: JobConfig) => {
+        const customParams: CustomParameterEntry[] = [];
+
+        Object.entries(config).forEach(([key, value]) => {
+            if (!NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS.includes(key as keyof JobConfig)) {
+                const valueType = typeof value === 'string' ? 'string' : 'json';
+
+                let parsedValue: string = '';
+
+                if (valueType === 'json') {
+                    try {
+                        parsedValue = JSON.stringify(value, null, 2);
+                    } catch (error) {
+                        console.error('[formatCustomParams()] Unable to parse JSON value', key, value);
+                    }
+                } else {
+                    parsedValue = value as string;
+                }
+
+                customParams.push({ key, value: parsedValue, valueType });
+            }
+        });
+
+        return customParams;
     };
 
     const getDefaultSchemaValues = () => {
@@ -203,6 +306,14 @@ export default function JobEditFormWrapper({
         form.reset(defaults);
         setTargetNodesCountLower(false);
         setAdditionalCost(0n);
+
+        if (job.resources.jobType === JobType.Native) {
+            setSteps([
+                ...DEFAULT_STEPS.slice(0, DEFAULT_STEPS.length - 1),
+                { title: 'Plugins', validationName: 'plugins' },
+                DEFAULT_STEPS[DEFAULT_STEPS.length - 1],
+            ]);
+        }
     }, [job, form]);
 
     useEffect(() => {
@@ -233,7 +344,7 @@ export default function JobEditFormWrapper({
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
                             <JobFormHeaderInterface
-                                steps={STEPS.map((step) => step.title)}
+                                steps={steps.map((step) => step.title)}
                                 onCancel={() => {
                                     navigate(-1);
                                 }}
@@ -243,13 +354,14 @@ export default function JobEditFormWrapper({
 
                             {step === 0 && (
                                 <Specifications
-                                    isEditingJob
+                                    isEditingRunningJob
                                     initialTargetNodesCount={defaultValues.specifications.targetNodesCount}
                                     onTargetNodesCountDecrease={setTargetNodesCountLower}
                                 />
                             )}
-                            {step === 1 && <Deployment isEditingJob />}
-                            {step === 2 && (
+                            {step === 1 && <Deployment isEditingRunningJob />}
+                            {step === 2 && <Plugins />}
+                            {step === 3 && (
                                 <ReviewAndConfirm
                                     defaultValues={defaultValues}
                                     job={job}
@@ -261,7 +373,7 @@ export default function JobEditFormWrapper({
                             )}
 
                             <JobFormButtons
-                                steps={STEPS}
+                                steps={steps}
                                 cancelLabel="Job"
                                 onCancel={() => {
                                     navigate(-1);
@@ -278,7 +390,7 @@ export default function JobEditFormWrapper({
                                         />
                                     </div>
                                 }
-                                isEditingJob
+                                isEditingRunningJob
                                 disableNextStep={isTargetNodesCountLower}
                             />
                         </div>

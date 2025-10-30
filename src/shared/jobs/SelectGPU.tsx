@@ -35,7 +35,7 @@ export default function SelectGPU({ jobType, isDisabled }: Props) {
             setSupportedGpuTypes(supportedGpuTypes);
 
             if (!supportedGpuTypes.length) {
-                setValue('specifications.gpuType', '');
+                setValue('specifications.gpuType', undefined);
             }
         }
     }, [containerOrWorkerTypeValue]);

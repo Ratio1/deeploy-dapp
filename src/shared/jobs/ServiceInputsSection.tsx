@@ -1,16 +1,12 @@
+import { generateSecurePassword, isKeySecret } from '@lib/utils';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
 import { KeyValueEntryWithId } from '@typedefs/deeploys';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
+import DeeployInfoAlert from './DeeployInfoAlert';
 
-export default function ServiceInputsSection({
-    inputs,
-    isEditingJob,
-}: {
-    inputs: { key: string; label: string }[];
-    isEditingJob?: boolean;
-}) {
+export default function ServiceInputsSection({ inputs }: { inputs: { key: string; label: string }[] }) {
     const { control, setValue } = useFormContext();
 
     const { fields } = useFieldArray({
@@ -20,21 +16,27 @@ export default function ServiceInputsSection({
 
     const typedFields = fields as KeyValueEntryWithId[];
 
+    const [hasGenerated, setGenerated] = useState(false);
+
     useEffect(() => {
-        setValue(
-            'deployment.inputs',
-            inputs.map((input) => {
-                // let value = '';
+        // If a job/job draft is not being edited and we haven't attempted to auto-generate passwords yet
+        if (!fields.length && !hasGenerated) {
+            setValue(
+                'deployment.inputs',
+                inputs.map((input) => {
+                    let value = '';
 
-                if (!isEditingJob && input.key.toLowerCase().includes('password')) {
-                    // TODO: Only generate it if no default value (editing flow) exists
-                    // value = generateSecurePassword();
-                }
+                    if (isKeySecret(input.key)) {
+                        value = generateSecurePassword();
+                    }
 
-                return { key: input.key, value: '' };
-            }),
-        );
-    }, [inputs]);
+                    return { key: input.key, value };
+                }),
+            );
+
+            setGenerated(true);
+        }
+    }, [inputs, fields]);
 
     return (
         <SlateCard title="Service Inputs">
@@ -46,14 +48,18 @@ export default function ServiceInputsSection({
                                 name={`deployment.inputs.${index}.value`}
                                 label={inputs[index].label}
                                 placeholder="Required"
+                                endContent={isKeySecret(field.key) ? 'copy' : undefined}
+                                hasSecretValue={isKeySecret(field.key)}
                             />
                         </div>
                     ))}
                 </div>
 
-                {/* TODO: Display after the input becomes dirty */}
-                {inputs.some((input) => input.key.toLowerCase().includes('password')) && (
-                    <div className="text-sm text-slate-500">Don't forget to save your auto-generated password.</div>
+                {hasGenerated && (
+                    <DeeployInfoAlert
+                        title="Auto-generated Passwords"
+                        description="Secure passwords were automatically generated for the required fields; don't forget to copy and save them."
+                    />
                 )}
             </div>
         </SlateCard>

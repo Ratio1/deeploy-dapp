@@ -10,11 +10,18 @@ interface Props {
     cancelLabel: string;
     onCancel?: () => void;
     customSubmitButton?: React.ReactNode;
-    isEditingJob?: boolean;
+    isEditingRunningJob?: boolean;
     disableNextStep?: boolean;
 }
 
-function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEditingJob, disableNextStep = false }: Props) {
+function JobFormButtons({
+    steps,
+    cancelLabel,
+    onCancel,
+    customSubmitButton,
+    isEditingRunningJob,
+    disableNextStep = false,
+}: Props) {
     const { step, setStep, setJobType } = useDeploymentContext() as DeploymentContextType;
 
     const { trigger, getValues, formState } = useFormContext();
@@ -71,7 +78,7 @@ function JobFormButtons({ steps, cancelLabel, onCancel, customSubmitButton, isEd
                     <div>Go back: {step === 0 ? cancelLabel : steps[step - 1].title}</div>
                 </Button>
 
-                {step === steps.length - 1 && !isEditingJob && (
+                {step === steps.length - 1 && !isEditingRunningJob && (
                     <>
                         <Button
                             className="border-slate-200 hover:opacity-70!"

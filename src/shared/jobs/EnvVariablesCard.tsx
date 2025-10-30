@@ -3,6 +3,7 @@ import { onDotEnvPaste } from '@lib/deeploy-utils';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { RiClipboardLine } from 'react-icons/ri';
+import DeeployInfoTag from './DeeployInfoTag';
 import KeyValueEntriesSection from './KeyValueEntriesSection';
 
 export default function EnvVariablesCard({
@@ -24,27 +25,26 @@ export default function EnvVariablesCard({
             title="ENV Variables"
             label={
                 <Button
-                    className="h-[36px] bg-slate-200 hover:opacity-70!"
-                    color="default"
+                    className="h-[34px] border-2 border-slate-200 bg-white px-2.5 data-[hover=true]:opacity-65!"
+                    color="primary"
                     size="sm"
+                    variant="flat"
                     onPress={() => onDotEnvPaste(append, remove, fields)}
                 >
-                    <div className="row text-default-700 gap-1">
-                        <RiClipboardLine className="text-[17px]" />
+                    <div className="row gap-1">
+                        <RiClipboardLine className="text-base" />
                         <div className="compact">Paste</div>
                     </div>
                 </Button>
             }
         >
             <div className="col gap-4">
-                <div className="text-sm text-slate-500">
-                    You can copy & paste the contents of your <span className="font-medium">.env</span> file using the button
-                    above.
-                </div>
+                <DeeployInfoTag text="You can copy & paste the contents of your .env file using the button above." />
 
                 <KeyValueEntriesSection
                     name={`${baseName}.envVars`}
                     displayLabel="environment variables"
+                    maxEntries={50}
                     disabledKeys={disabledKeys}
                     parentMethods={{ append, remove, fields }}
                     enableSecretValues

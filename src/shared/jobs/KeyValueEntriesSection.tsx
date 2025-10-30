@@ -1,8 +1,6 @@
-import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { isKeySecret } from '@lib/utils';
 import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
-import StyledTextarea from '@shared/StyledTextarea';
 import { KeyValueEntryWithId } from '@typedefs/deeploys';
 import { useEffect, useState } from 'react';
 import {
@@ -13,10 +11,8 @@ import {
     UseFieldArrayRemove,
     useFormContext,
 } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
-import { RiAddLine } from 'react-icons/ri';
 import SecretValueToggle from './SecretValueToggle';
-import ValueTypeToggle from './ValueTypeToggle';
+import VariableSectionControls from './VariableSectionControls';
 import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
 
@@ -25,12 +21,11 @@ export default function KeyValueEntriesSection({
     name,
     displayLabel = 'entries',
     label,
-    maxEntries,
+    maxEntries = 50,
     predefinedEntries,
     disabledKeys,
     placeholders = ['KEY', 'VALUE'],
     enableSecretValues = false,
-    enableJsonValues = false,
     parentMethods,
 }: {
     name: string;
@@ -41,15 +36,13 @@ export default function KeyValueEntriesSection({
     disabledKeys?: string[];
     placeholders?: [string, string];
     enableSecretValues?: boolean;
-    enableJsonValues?: boolean;
     parentMethods?: {
         fields: Record<'id', string>[];
         append: UseFieldArrayAppend<FieldValues, string>;
         remove: UseFieldArrayRemove;
     };
 }) {
-    const { confirm } = useInteractionContext() as InteractionContextType;
-    const { control, formState, trigger, setValue } = useFormContext();
+    const { control, formState, trigger } = useFormContext();
 
     const { fields, append, remove } =
         parentMethods ??
@@ -62,7 +55,6 @@ export default function KeyValueEntriesSection({
     const entries = fields as KeyValueEntryWithId[];
 
     const [isFieldSecret, setFieldSecret] = useState<{ [id: string]: boolean }>({});
-    const [fieldValueType, setFieldValueType] = useState<{ [id: string]: 'text' | 'json' }>({});
 
     useEffect(() => {
         entries.forEach((entry) => {
@@ -72,55 +64,54 @@ export default function KeyValueEntriesSection({
                     [entry.id]: isKeySecret(entry.key),
                 }));
             }
-            if (fieldValueType[entry.id] === undefined) {
-                setFieldValueType((previous) => ({
-                    ...previous,
-                    [entry.id]: entry.valueType || 'text',
-                }));
-            }
         });
     }, [entries]);
 
     // Get array-level errors
-    const key = name.split('.')[1];
-    const deploymentErrors = formState.errors.deployment as any;
-    const errors = deploymentErrors?.[key];
+    const errors = name.split('.').reduce<unknown>((acc, segment) => {
+        if (!acc || typeof acc !== 'object') {
+            return undefined;
+        }
+
+        return (acc as Record<string, unknown>)[segment];
+    }, formState.errors as unknown) as any;
 
     return (
         <div className="col gap-4">
-            <div className="col w-full gap-2">
-                {!!label && (
-                    <div className="row">
-                        <Label value={label} />
-                    </div>
-                )}
-
-                <div className="col gap-2">
-                    {!!predefinedEntries && predefinedEntries.length > 0 && (
-                        <>
-                            {predefinedEntries.map((entry, index) => (
-                                <div key={entry.key} className="flex gap-3">
-                                    <VariableSectionIndex index={index} />
-
-                                    {enableSecretValues && <SecretValueToggle isSecret={isKeySecret(entry.key)} isDisabled />}
-
-                                    <div className="flex w-full gap-2">
-                                        <StyledInput value={entry.key} isDisabled />
-                                        <StyledInput value={entry.value} isDisabled />
-                                    </div>
-
-                                    <div className="invisible">
-                                        <VariableSectionRemove onClick={() => {}} />
-                                    </div>
-                                </div>
-                            ))}
-                        </>
+            {(entries.length > 0 || (!!predefinedEntries && predefinedEntries.length > 0)) && (
+                <div className="col w-full gap-2">
+                    {!!label && (
+                        <div className="row">
+                            <Label value={label} />
+                        </div>
                     )}
 
-                    {entries.length === 0 ? (
-                        <div className="text-sm text-slate-500 italic">No {displayLabel} added yet.</div>
-                    ) : (
-                        entries.map((entry: KeyValueEntryWithId, index) => {
+                    <div className="col gap-2">
+                        {!!predefinedEntries && predefinedEntries.length > 0 && (
+                            <>
+                                {predefinedEntries.map((entry, index) => (
+                                    <div key={entry.key} className="flex gap-3">
+                                        <VariableSectionIndex index={index} />
+
+                                        {enableSecretValues && (
+                                            <SecretValueToggle isSecret={isKeySecret(entry.key)} isDisabled />
+                                        )}
+
+                                        <div className="flex w-full gap-2">
+                                            <StyledInput value={entry.key} isDisabled />
+                                            <StyledInput value={entry.value} isDisabled />
+                                        </div>
+
+                                        {/* Displayed for styling purposes */}
+                                        <div className="invisible">
+                                            <VariableSectionRemove onClick={() => {}} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </>
+                        )}
+
+                        {entries.map((entry: KeyValueEntryWithId, index) => {
                             // Get the error for this specific entry
                             const entryError = errors?.[index];
 
@@ -136,20 +127,6 @@ export default function KeyValueEntriesSection({
                                                     ...previous,
                                                     [entry.id]: !previous[entry.id],
                                                 }));
-                                            }}
-                                        />
-                                    )}
-
-                                    {enableJsonValues && (
-                                        <ValueTypeToggle
-                                            valueType={fieldValueType[entry.id] || 'text'}
-                                            onClick={() => {
-                                                const newType = fieldValueType[entry.id] === 'text' ? 'json' : 'text';
-                                                setFieldValueType((previous) => ({
-                                                    ...previous,
-                                                    [entry.id]: newType,
-                                                }));
-                                                setValue(`${name}.${index}.valueType`, newType, { shouldValidate: true });
                                             }}
                                         />
                                     )}
@@ -202,35 +179,7 @@ export default function KeyValueEntriesSection({
                                                 const specificValueError = entryError?.value;
                                                 const hasError = !!fieldState.error || !!specificValueError;
 
-                                                const currentValueType = fieldValueType[entry.id] || 'text';
-
-                                                return currentValueType === 'json' ? (
-                                                    <StyledTextarea
-                                                        placeholder={placeholders[1]}
-                                                        value={field.value ?? ''}
-                                                        onChange={(e) => {
-                                                            const value = e.target.value;
-                                                            field.onChange(value);
-                                                        }}
-                                                        onBlur={async () => {
-                                                            field.onBlur();
-                                                            // Try to format JSON on blur
-                                                            if (field.value && field.value.trim()) {
-                                                                try {
-                                                                    const parsed = JSON.parse(field.value);
-                                                                    const formatted = JSON.stringify(parsed, null, 2);
-                                                                    field.onChange(formatted);
-                                                                } catch {
-                                                                    // Keep original value if JSON is invalid
-                                                                }
-                                                            }
-                                                        }}
-                                                        isInvalid={hasError}
-                                                        errorMessage={fieldState.error?.message || specificValueError?.message}
-                                                        minRows={3}
-                                                        maxRows={10}
-                                                    />
-                                                ) : (
+                                                return (
                                                     <StyledInput
                                                         placeholder={placeholders[1]}
                                                         value={field.value ?? ''}
@@ -259,57 +208,23 @@ export default function KeyValueEntriesSection({
                                                     delete next[entry.id];
                                                     return next;
                                                 });
-                                                setFieldValueType((previous) => {
-                                                    const next = { ...previous };
-                                                    delete next[entry.id];
-                                                    return next;
-                                                });
                                             }}
                                         />
                                     </div>
                                 </div>
                             );
-                        })
-                    )}
-                </div>
-            </div>
-
-            {(maxEntries === undefined || entries.length < maxEntries) && (
-                <div className="row justify-between">
-                    <div
-                        className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
-                        onClick={() => {
-                            append({ key: '', value: '', valueType: 'text' });
-                        }}
-                    >
-                        <RiAddLine className="text-lg" /> Add
+                        })}
                     </div>
-
-                    {entries.length > 1 && (
-                        <div
-                            className="compact cursor-pointer text-red-600 hover:opacity-50"
-                            onClick={async () => {
-                                try {
-                                    const confirmed = await confirm(<div>Are you sure you want to remove all entries?</div>);
-
-                                    if (!confirmed) {
-                                        return;
-                                    }
-
-                                    for (let i = entries.length - 1; i >= 0; i--) {
-                                        remove(i);
-                                    }
-                                } catch (error) {
-                                    console.error('Error removing all entries:', error);
-                                    toast.error('Failed to remove all entries.');
-                                }
-                            }}
-                        >
-                            Remove all
-                        </div>
-                    )}
                 </div>
             )}
+
+            <VariableSectionControls
+                displayLabel={displayLabel}
+                onClick={() => append({ key: '', value: '' })}
+                fieldsLength={entries.length}
+                maxFields={maxEntries}
+                remove={remove}
+            />
         </div>
     );
 }

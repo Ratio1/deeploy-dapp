@@ -10,10 +10,10 @@ import WorkerCommandsSection from './WorkerCommandsSection';
 const REPOS_CACHE: Record<string, 'public' | 'private'> = {};
 
 export default function WorkerSection({
-    isEditingJob,
+    isEditingRunningJob,
     baseName = 'deployment',
 }: {
-    isEditingJob?: boolean;
+    isEditingRunningJob?: boolean;
     baseName?: string;
 }) {
     const { watch, setValue, register } = useFormContext();
@@ -26,10 +26,10 @@ export default function WorkerSection({
     }, [register]);
 
     useEffect(() => {
-        if (isEditingJob && repositoryUrl) {
+        if (isEditingRunningJob && repositoryUrl) {
             checkRepositoryVisibility(repositoryUrl);
         }
-    }, [isEditingJob, repositoryUrl]);
+    }, [isEditingRunningJob, repositoryUrl]);
 
     const checkRepositoryVisibility = async (value?: string) => {
         const url = value ?? repositoryUrl;
@@ -98,7 +98,7 @@ export default function WorkerSection({
                         </div>
                     ) : null
                 }
-                displayPasteIcon
+                endContent="paste"
             />
 
             <InputWithLabel name={`${baseName}.deploymentType.image`} label="Image" placeholder="node:22" />
@@ -130,7 +130,7 @@ export default function WorkerSection({
                     label="Personal Access Token"
                     placeholder="None"
                     isOptional={repositoryVisibility === 'public'}
-                    displayPasteIcon
+                    endContent="paste"
                 />
             </div>
 

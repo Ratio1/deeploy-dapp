@@ -2,6 +2,7 @@ import { TARGET_NODES_REQUIRED_ERROR } from '@schemas/index';
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine, RiClipboardLine } from 'react-icons/ri';
+import DeeployInfoTag from '../DeeployInfoTag';
 import VariableSectionIndex from '../VariableSectionIndex';
 
 // This component assumes it's being used in the deployment step
@@ -19,17 +20,19 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
 
     return (
         <div className="col gap-4" key={fields.length}>
-            <div className="text-sm text-slate-500">
-                {autoAssign ? (
-                    <>
-                        Your app will be deployed to{' '}
-                        <span className="text-primary font-medium">{targetNodesCount > 1 ? targetNodesCount : 'one'}</span>{' '}
-                        arbitrary available node{targetNodesCount > 1 ? 's' : ''}.
-                    </>
-                ) : (
-                    <>Your app will be deployed to the nodes you specify below.</>
-                )}
-            </div>
+            <DeeployInfoTag
+                text={
+                    autoAssign ? (
+                        <>
+                            Your app will be deployed to{' '}
+                            <span className="text-primary font-medium">{targetNodesCount > 1 ? targetNodesCount : 'one'}</span>{' '}
+                            arbitrary available node{targetNodesCount > 1 ? 's' : ''}.
+                        </>
+                    ) : (
+                        <>Your app will be deployed to the nodes you specify below.</>
+                    )
+                }
+            />
 
             {!autoAssign && (
                 <>

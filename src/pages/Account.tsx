@@ -1,21 +1,22 @@
 import BurnReport from '@components/account/BurnReport';
-import Invoicing from '@components/account/Invoicing';
-import Overview from '@components/account/Overview';
+import Invoicing from '@components/account/invoicing/Invoicing';
+import Profile from '@components/account/profile/Profile';
 import { routePath } from '@lib/routes/route-paths';
 import CustomTabs from '@shared/CustomTabs';
 import { useEffect, useState } from 'react';
-import { RiApps2Line, RiBillLine, RiFireLine } from 'react-icons/ri';
+import { CgProfile } from 'react-icons/cg';
+import { RiBillLine, RiFireLine } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
 
 function Account() {
-    const [selectedTab, setSelectedTab] = useState<'overview' | 'invoicing' | 'burn-report'>('overview');
+    const [selectedTab, setSelectedTab] = useState<'invoicing' | 'profile' | 'burn-report'>('invoicing');
     const navigate = useNavigate();
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
 
-        if (tab && (tab === 'overview' || tab === 'invoicing' || tab === 'burn-report')) {
+        if (tab && (tab === 'invoicing' || tab === 'profile' || tab === 'burn-report')) {
             setSelectedTab(tab);
         }
     }, [window.location.search]);
@@ -25,14 +26,14 @@ function Account() {
             <CustomTabs
                 tabs={[
                     {
-                        key: 'overview',
-                        title: 'Overview',
-                        icon: <RiApps2Line />,
-                    },
-                    {
                         key: 'invoicing',
                         title: 'Invoicing',
                         icon: <RiBillLine />,
+                    },
+                    {
+                        key: 'profile',
+                        title: 'Profile',
+                        icon: <CgProfile />,
                     },
                     {
                         key: 'burn-report',
@@ -50,8 +51,8 @@ function Account() {
                 }}
             />
 
-            {selectedTab === 'overview' && <Overview />}
             {selectedTab === 'invoicing' && <Invoicing />}
+            {selectedTab === 'profile' && <Profile />}
             {selectedTab === 'burn-report' && <BurnReport />}
         </div>
     );

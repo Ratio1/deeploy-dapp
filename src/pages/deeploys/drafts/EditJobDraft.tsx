@@ -5,7 +5,7 @@ import db from '@lib/storage/db';
 import { jobSchema } from '@schemas/index';
 import ActionButton from '@shared/ActionButton';
 import SupportFooter from '@shared/SupportFooter';
-import { DraftJob } from '@typedefs/deeploys';
+import { DraftJob, JobType } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
@@ -35,8 +35,6 @@ export default function EditJobDraft() {
             return;
         }
 
-        console.log(data);
-
         try {
             const updatedJob = {
                 ...draftJob,
@@ -47,6 +45,12 @@ export default function EditJobDraft() {
                     jobAlias: data.deployment.jobAlias.toLowerCase(),
                 },
             };
+
+            if (data.jobType === JobType.Native) {
+                updatedJob.deployment.plugins = data.plugins;
+            }
+
+            console.log('[EditJobDraft] onSubmit', updatedJob);
 
             const jobId = await db.jobs.update(draftJob.id, updatedJob as DraftJob);
 

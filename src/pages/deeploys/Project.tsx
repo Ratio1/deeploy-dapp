@@ -76,8 +76,6 @@ export default function Project() {
             const jobs: RunningJobWithDetails[] = await fetchRunningJobsWithDetails(appsOverride);
             const projectJobs = jobs.filter((job) => job.projectHash === projectHash);
 
-            console.log('[Project] Project jobs', projectJobs);
-
             setRunningJobsWithDetails(projectJobs);
         } catch (error) {
             toast.error('Failed to fetch running jobs.');

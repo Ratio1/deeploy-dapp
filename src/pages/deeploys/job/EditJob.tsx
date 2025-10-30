@@ -32,7 +32,7 @@ import {
     ServiceJobDeployment,
     ServiceJobSpecifications,
 } from '@typedefs/deeploys';
-import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
+import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { RiArrowLeftLine } from 'react-icons/ri';
@@ -77,7 +77,7 @@ export default function EditJob() {
 
     useEffect(() => {
         if (job) {
-            setJobTypeOption(jobTypeOptions.find((option) => option.jobType === job.resources.jobType));
+            setJobTypeOption(JOB_TYPE_OPTIONS.find((option) => option.jobType === job.resources.jobType));
         }
     }, [job]);
 
@@ -86,6 +86,8 @@ export default function EditJob() {
             toast.error('Unexpected error, please refresh this page.');
             return;
         }
+
+        console.log('[EditJob] onSubmit', data);
 
         const additionalNodesRequested: number = data.specifications.targetNodesCount - Number(job.numberOfNodesRequested);
         const increasingTargetNodes: boolean = additionalNodesRequested > 0;
@@ -135,7 +137,7 @@ export default function EditJob() {
                     payload = formatNativeJobPayload(
                         job!.resources.containerOrWorkerType,
                         data.specifications as NativeJobSpecifications,
-                        data.deployment as NativeJobDeployment,
+                        { ...data.deployment, plugins: data.plugins } as NativeJobDeployment,
                     );
                     break;
 
@@ -180,8 +182,10 @@ export default function EditJob() {
             }
 
             if (
-                updatePipelineResponse.status === 'success' &&
-                (increasingTargetNodes ? scaleUpWorkersResponse.status === 'success' : true)
+                (updatePipelineResponse.status === 'success' || updatePipelineResponse.status === 'command_delivered') &&
+                (increasingTargetNodes
+                    ? scaleUpWorkersResponse.status === 'success' || scaleUpWorkersResponse.status === 'command_delivered'
+                    : true)
             ) {
                 deeployFlowModalRef.current?.progress('done');
                 setFetchAppsRequired(true);
@@ -225,8 +229,12 @@ export default function EditJob() {
                             text = 'Request timed out';
                         } else if (response.error) {
                             text = response.error;
-                        } else if (response.status && response.status !== 'success') {
-                            text = `Request failed with status ${response.status}`;
+                        } else if (
+                            response.status &&
+                            response.status !== 'success' &&
+                            response.status !== 'command_delivered'
+                        ) {
+                            text = `Request failed with status: ${response.status}`;
                         }
 
                         if (!text) {
@@ -280,7 +288,7 @@ export default function EditJob() {
             target_nodes: targetNodes,
             target_nodes_count: 0,
             app_params: {
-                CONTAINER_RESOURCES: formatContainerResources(containerType, undefined),
+                CONTAINER_RESOURCES: formatContainerResources(containerType, []),
             },
             project_id: job.projectHash,
             chainstore_response: true,

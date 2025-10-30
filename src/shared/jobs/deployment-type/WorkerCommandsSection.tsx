@@ -1,28 +1,34 @@
 import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
-import { RiAddLine } from 'react-icons/ri';
+import VariableSectionControls from '../VariableSectionControls';
 import VariableSectionIndex from '../VariableSectionIndex';
 import VariableSectionRemove from '../VariableSectionRemove';
 
 // This component assumes it's being used in the deployment step
 export default function WorkerCommandsSection({ baseName }: { baseName: string }) {
+    const name = `${baseName}.deploymentType.workerCommands`;
+
     const { control, formState, trigger } = useFormContext();
     const { fields, append, remove } = useFieldArray({
         control,
-        name: `${baseName}.deploymentType.workerCommands`,
+        name,
     });
 
     // Get array-level errors
-    const errors = (formState.errors[baseName] as any)?.deploymentType?.workerCommands;
+    const errors = name.split('.').reduce<unknown>((acc, segment) => {
+        if (!acc || typeof acc !== 'object') {
+            return undefined;
+        }
+
+        return (acc as Record<string, unknown>)[segment];
+    }, formState.errors as unknown) as any;
 
     return (
         <div className="col gap-4">
             <Label value="Commands" />
 
-            {!fields.length ? (
-                <div className="text-sm text-slate-500 italic">No commands added yet.</div>
-            ) : (
+            {fields.length > 0 && (
                 <div className="col gap-2">
                     {fields.map((field, index) => {
                         // Get the error for this specific entry
@@ -70,14 +76,14 @@ export default function WorkerCommandsSection({ baseName }: { baseName: string }
                 </div>
             )}
 
-            {fields.length < 50 && (
-                <div
-                    className="row compact text-primary cursor-pointer gap-0.5 hover:opacity-50"
-                    onClick={() => append({ command: '' })}
-                >
-                    <RiAddLine className="text-lg" /> Add Command
-                </div>
-            )}
+            <VariableSectionControls
+                displayLabel="commands"
+                addLabel="Command"
+                onClick={() => append({ command: '' })}
+                fieldsLength={fields.length}
+                maxFields={50}
+                remove={remove}
+            />
         </div>
     );
 }

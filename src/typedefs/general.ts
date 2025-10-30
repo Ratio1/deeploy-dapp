@@ -1,5 +1,9 @@
 import { EthAddress } from './blockchain';
 
+export const BRANDING_PLATFORM_NAMES = {
+    Linkedin: 'LinkedIn',
+};
+
 type BillingInfo = {
     companyName: string;
     billingEmail: string;
@@ -34,4 +38,10 @@ type InvoiceDraft = {
     cspOwnerName: string;
 };
 
-export type { AuthState, BillingInfo, InvoiceDraft, TunnelingSecrets };
+type PublicProfileInfo = {
+    name: string;
+    description: string;
+    links: Record<string, string>;
+};
+
+export type { AuthState, BillingInfo, InvoiceDraft, PublicProfileInfo, TunnelingSecrets };

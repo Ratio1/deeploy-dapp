@@ -141,3 +141,44 @@ export function parseIfJson<T = any>(input: string): T | string {
         return input;
     }
 }
+
+export function resizeImage(file: File, maxWidth = 512, maxHeight = 512, quality = 0.9): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            let { width, height } = img;
+
+            // Maintain aspect ratio
+            if (width > height) {
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+            } else {
+                if (height > maxHeight) {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return reject(new Error('No canvas context'));
+
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(
+                (blob) => {
+                    if (!blob) return reject(new Error('Canvas toBlob failed'));
+                    resolve(blob);
+                },
+                'image/jpeg',
+                quality, // Between 0 and 1
+            );
+        };
+        img.onerror = reject;
+        img.src = URL.createObjectURL(file);
+    });
+}

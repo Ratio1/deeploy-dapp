@@ -8,7 +8,7 @@ import { useFormContext } from 'react-hook-form';
 import { RiAsterisk } from 'react-icons/ri';
 import SpareNodesSection from './SpareNodesSection';
 
-function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
+function TargetNodesCard({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     const { watch } = useFormContext();
 
     const { setValue } = useFormContext();
@@ -20,7 +20,7 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
     const allowReplicationInTheWild: boolean = watch('deployment.allowReplicationInTheWild');
 
     useEffect(() => {
-        if (isEditingJob) {
+        if (isEditingRunningJob) {
             setValue('deployment.targetNodes', [
                 ...targetNodes,
                 ...Array.from({ length: targetNodesCount - targetNodes.length }, () => ({ address: '' })),
@@ -41,7 +41,7 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
         <SlateCard
             title="Target Nodes"
             label={
-                !isEditingJob ? (
+                !isEditingRunningJob ? (
                     <Switch
                         isSelected={autoAssign}
                         onValueChange={(value) => {
@@ -66,10 +66,13 @@ function TargetNodesCard({ isEditingJob }: { isEditingJob?: boolean }) {
                         <Checkbox
                             isSelected={allowReplicationInTheWild}
                             onValueChange={(value) => {
-                                setValue('deployment.allowReplicationInTheWild', value);
+                                setValue('deployment.allowReplicationInTheWild', value, { shouldDirty: true });
                             }}
                         >
-                            <div className="compact text-slate-600">Allow deployment beyond chosen nodes</div>
+                            <div className="flex items-start gap-0.5">
+                                <div className="compact text-slate-600">Allow deployment beyond chosen nodes</div>
+                                <RiAsterisk className="text-primary mt-0.5 text-[10px]" />
+                            </div>
                         </Checkbox>
 
                         <div className="flex items-start gap-0.5">

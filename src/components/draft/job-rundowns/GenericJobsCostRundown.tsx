@@ -2,6 +2,7 @@ import { ContainerOrWorkerType, genericContainerTypes, GpuType, gpuTypes } from 
 import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
 import { GenericDraftJob } from '@typedefs/deeploys';
+import { ContainerDeploymentType, DeploymentType, PluginType, WorkerDeploymentType } from '@typedefs/steps/deploymentStepTypes';
 import { RiBox3Line } from 'react-icons/ri';
 
 export default function GenericJobsCostRundown({ jobs }: { jobs: GenericDraftJob[] }) {
@@ -24,6 +25,8 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericDraftJob
                     ? gpuTypes.find((type) => type.name === genericJob.specifications.gpuType)
                     : undefined;
 
+                const deploymentType: DeploymentType = genericJob.deployment.deploymentType;
+
                 const entries = [
                     // Alias
                     { label: 'Alias', value: genericJob.deployment.jobAlias },
@@ -37,28 +40,37 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericDraftJob
                     },
                     ...(gpuType ? [{ label: 'GPU Type', value: `${gpuType.name} (${gpuType.gpus.join(', ')})` }] : []),
 
-                    // Deployment
-                    {
-                        label: genericJob.deployment.deploymentType.type === 'container' ? 'Container Image' : 'Repository URL',
-                        value:
-                            genericJob.deployment.deploymentType.type === 'container'
-                                ? genericJob.deployment.deploymentType.containerImage
-                                : genericJob.deployment.deploymentType.repositoryUrl,
-                    },
-                    ...(genericJob.deployment.deploymentType.type === 'container'
-                        ? [{ label: 'Registry Visibility', value: genericJob.deployment.deploymentType.crVisibility }]
-                        : []),
-                    ...(genericJob.deployment.deploymentType.type === 'worker'
-                        ? [{ label: 'Image', value: genericJob.deployment.deploymentType.image }]
-                        : []),
+                    // Tunneling
                     { label: 'Port', value: genericJob.deployment.port ?? '—' },
                     { label: 'Tunneling', value: genericJob.deployment.enableTunneling },
                     ...(genericJob.deployment.enableTunneling === 'True' && genericJob.deployment.tunnelingLabel
                         ? [{ label: 'Tunneling Label', value: genericJob.deployment.tunnelingLabel }]
                         : []),
+
+                    // Policies
                     { label: 'Restart Policy', value: genericJob.deployment.restartPolicy },
                     { label: 'Image Pull Policy', value: genericJob.deployment.imagePullPolicy },
                 ];
+
+                if (deploymentType.pluginType === PluginType.Container) {
+                    const containerDeploymentType: ContainerDeploymentType = deploymentType as ContainerDeploymentType;
+
+                    entries.push(
+                        ...[
+                            { label: 'Container Image', value: containerDeploymentType.containerImage },
+                            { label: 'Registry Visibility', value: containerDeploymentType.crVisibility },
+                        ],
+                    );
+                } else {
+                    const workerDeploymentType: WorkerDeploymentType = deploymentType as WorkerDeploymentType;
+
+                    entries.push(
+                        ...[
+                            { label: 'Repository URL', value: workerDeploymentType.repositoryUrl },
+                            { label: 'Image', value: workerDeploymentType.image },
+                        ],
+                    );
+                }
 
                 return (
                     <div>

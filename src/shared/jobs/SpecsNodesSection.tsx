@@ -1,23 +1,21 @@
-import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { ContainerOrWorkerType, genericContainerTypes, nativeWorkerTypes } from '@data/containerResources';
 import { SlateCard } from '@shared/cards/SlateCard';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
-import SelectWithLabel from '@shared/SelectWithLabel';
 import { JobType } from '@typedefs/deeploys';
 import { useEffect, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { RiErrorWarningLine } from 'react-icons/ri';
-import DeeployWarning from './DeeployWarning';
+import DeeployWarningAlert from './DeeployWarningAlert';
 import JobTags from './target-nodes/JobTags';
 
 export default function SpecsNodesSection({
     jobType,
-    isEditingJob = false,
+    isEditingRunningJob = false,
     initialTargetNodesCount,
     onTargetNodesCountDecrease,
 }: {
     jobType: JobType;
-    isEditingJob?: boolean;
+    isEditingRunningJob?: boolean;
     initialTargetNodesCount?: number;
     onTargetNodesCountDecrease?: (blocked: boolean) => void;
 }) {
@@ -71,7 +69,7 @@ export default function SpecsNodesSection({
 
     useEffect(() => {
         const initialValue = initialTargetNodesCountRef.current;
-        const isValueLower = isEditingJob && !!initialValue && targetNodesCount < initialValue;
+        const isValueLower = isEditingRunningJob && !!initialValue && targetNodesCount < initialValue;
 
         setShowDecreaseWarning((previous) => {
             if (previous === isValueLower) {
@@ -82,7 +80,7 @@ export default function SpecsNodesSection({
         });
 
         onTargetNodesCountDecrease?.(isValueLower);
-    }, [isEditingJob, onTargetNodesCountDecrease, targetNodesCount]);
+    }, [isEditingRunningJob, onTargetNodesCountDecrease, targetNodesCount]);
 
     const hasMinimalBalancingWarning = !containerOrWorkerType
         ? false
@@ -105,11 +103,11 @@ export default function SpecsNodesSection({
                             hasWarning={hasWarning}
                         />
 
-                        <SelectWithLabel
+                        {/* <SelectWithLabel
                             name="specifications.applicationType"
                             label="Application Type"
                             options={APPLICATION_TYPES}
-                        />
+                        /> */}
                     </div>
 
                     <div className="col gap-2">
@@ -132,7 +130,7 @@ export default function SpecsNodesSection({
                         )}
 
                         {hasMinimalBalancingWarning && (
-                            <DeeployWarning
+                            <DeeployWarningAlert
                                 title={
                                     <div>
                                         The minimal recommended balancing is{' '}

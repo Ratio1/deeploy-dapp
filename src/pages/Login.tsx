@@ -4,12 +4,10 @@ import { ReaderContractAbi } from '@blockchain/ReaderContract';
 import LoginCard from '@components/auth/LoginCard';
 import RestrictedAccess from '@components/auth/RestrictedAccess';
 import { Spinner } from '@heroui/spinner';
-import { getMultiNodeEpochsRange } from '@lib/api/oracles';
-import { config, environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
+import { config, environment, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { isZeroAddress } from '@lib/utils';
 import { EthAddress } from '@typedefs/blockchain';
 import { ConnectKitButton, useModal } from 'connectkit';
 import { useEffect, useState } from 'react';
@@ -121,7 +119,7 @@ function Login() {
             args: [address],
         });
 
-        console.log(`User ${hasOracleNode ? '' : 'DOES NOT '}own an oracle`);
+        console.log('User owns oracle', hasOracleNode);
 
         return hasOracleNode;
     };

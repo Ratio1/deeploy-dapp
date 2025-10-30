@@ -1,10 +1,18 @@
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import ActionButton from '@shared/ActionButton';
 import { BorderedCard } from '@shared/cards/BorderedCard';
-import { jobTypeOptions } from '@typedefs/jobType';
+import { JOB_TYPE_OPTIONS } from '@typedefs/jobType';
 import { RiAddLine } from 'react-icons/ri';
 
-export default function AddJobCard() {
+export default function AddJobCard({
+    type = 'job',
+    options = JOB_TYPE_OPTIONS,
+    customCallback,
+}: {
+    type?: 'job' | 'plugin';
+    options?: any[];
+    customCallback?: (option) => void;
+}) {
     const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
@@ -12,19 +20,22 @@ export default function AddJobCard() {
             <div className="col items-center gap-2.5 text-center">
                 <div className="row gap-0.5">
                     <RiAddLine className="text-xl" />
-                    <div className="font-medium">Add Job</div>
+                    <div className="font-medium capitalize">Add {type}</div>
                 </div>
 
                 <div className="row gap-2">
-                    {jobTypeOptions.map((option) => (
+                    {options.map((option: any, index) => (
                         <ActionButton
-                            key={option.id}
+                            key={index}
                             className="slate-button"
                             color="default"
                             onPress={() => {
-                                // Job type selection is considered to be the 1st step
-                                setStep(0);
-                                setJobType(option.jobType);
+                                if (customCallback) {
+                                    customCallback(option);
+                                } else {
+                                    setStep(0);
+                                    setJobType(option.jobType);
+                                }
                             }}
                         >
                             <div className="row gap-1.5">

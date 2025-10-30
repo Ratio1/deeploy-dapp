@@ -8,8 +8,9 @@ import EnvVariablesCard from '@shared/jobs/EnvVariablesCard';
 import FileVolumesSection from '@shared/jobs/FileVolumesSection';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
+import PortMappingSection from '@shared/PortMappingSection';
 
-function GenericDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
+function GenericDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     return (
         <div className="col gap-6">
             <SlateCard title="App Identity">
@@ -18,12 +19,16 @@ function GenericDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
                 </div>
             </SlateCard>
 
-            <TargetNodesCard isEditingJob={isEditingJob} />
+            <TargetNodesCard isEditingRunningJob={isEditingRunningJob} />
 
-            <DeploymentTypeSectionCard isEditingJob={isEditingJob} />
+            <DeploymentTypeSectionCard isEditingRunningJob={isEditingRunningJob} />
 
             <SlateCard title="App Parameters">
                 <AppParametersSection />
+            </SlateCard>
+
+            <SlateCard title="Port Mapping">
+                <PortMappingSection />
             </SlateCard>
 
             <EnvVariablesCard />
@@ -33,7 +38,12 @@ function GenericDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
             </SlateCard>
 
             <SlateCard title="Volumes">
-                <KeyValueEntriesSection name="deployment.volumes" displayLabel="volumes" placeholders={['VOLUME', 'PATH']} />
+                <KeyValueEntriesSection
+                    name="deployment.volumes"
+                    displayLabel="volumes"
+                    maxEntries={50}
+                    placeholders={['VOLUME', 'PATH']}
+                />
             </SlateCard>
 
             <SlateCard title="File Volumes">

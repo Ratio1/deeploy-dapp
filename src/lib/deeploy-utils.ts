@@ -8,6 +8,7 @@ import {
     serviceContainerTypes,
 } from '@data/containerResources';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
+import { JobConfig } from '@typedefs/deeployApi';
 import {
     DraftJob,
     GenericDraftJob,
@@ -23,7 +24,15 @@ import {
     ServiceJobDeployment,
     ServiceJobSpecifications,
 } from '@typedefs/deeploys';
-import { GenericSecondaryPlugin, NativeSecondaryPlugin, SecondaryPluginType } from '@typedefs/steps/deploymentStepTypes';
+import {
+    BasePluginType,
+    ContainerDeploymentType,
+    GenericPlugin,
+    NativePlugin,
+    PluginType,
+    PortMappingEntry,
+    WorkerDeploymentType,
+} from '@typedefs/steps/deploymentStepTypes';
 import { addDays, addHours, differenceInDays, differenceInHours } from 'date-fns';
 import _ from 'lodash';
 import { FieldValues, UseFieldArrayAppend, UseFieldArrayRemove } from 'react-hook-form';
@@ -36,6 +45,15 @@ export const GITHUB_REPO_REGEX = new RegExp('^https?://github\\.com/([^\\s/]+)/(
 export const KYB_TAG = 'IS_KYB';
 export const KYC_TAG = '!IS_KYB';
 export const DC_TAG = 'DC:*';
+
+export const NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS: (keyof JobConfig)[] = [
+    'CHAINSTORE_PEERS',
+    'CLOUDFLARE_TOKEN',
+    'INSTANCE_ID',
+    'PORT',
+    'TUNNEL_ENGINE_ENABLED',
+    'NGROK_USE_API',
+];
 
 export const getDiscountPercentage = (_paymentMonthsCount: number): number => {
     // Disabled for now
@@ -101,7 +119,9 @@ export const getContainerOrWorkerType = (jobType: JobType, specifications: JobSp
 };
 
 export const getGpuType = (specifications: GenericJobSpecifications | NativeJobSpecifications): GpuType | undefined => {
-    return specifications.gpuType ? gpuTypes.find((type) => type.name === specifications.gpuType) : undefined;
+    return specifications.gpuType && specifications.gpuType !== ''
+        ? gpuTypes.find((type) => type.name === specifications.gpuType)
+        : undefined;
 };
 
 export const downloadDataAsJson = (data: any, filename: string) => {
@@ -170,12 +190,23 @@ export const formatFileVolumes = (fileVolumes: { name: string; mountingPoint: st
     return formatted;
 };
 
-export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType, ports?: Record<string, string>) => {
-    return {
+export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType, portsArray: Array<PortMappingEntry>) => {
+    const baseResources: { cpu: number; memory: string; ports?: Record<string, number> } = {
         cpu: containerOrWorkerType.cores,
         memory: `${containerOrWorkerType.ram}g`,
-        ...(ports && Object.keys(ports).length > 0 && { ports }),
     };
+
+    if (portsArray.length > 0) {
+        const ports = {};
+
+        portsArray.forEach((port) => {
+            ports[port.hostPort.toString()] = port.containerPort;
+        });
+
+        baseResources.ports = ports;
+    }
+
+    return baseResources;
 };
 
 export const formatNodes = (targetNodes: { address: string }[]): string[] => {
@@ -187,6 +218,14 @@ export const formatNodes = (targetNodes: { address: string }[]): string[] => {
 
 export const formatTargetNodesCount = (targetNodes: string[], specificationsTargetNodesCount: number) => {
     return targetNodes.length > 0 ? 0 : specificationsTargetNodesCount;
+};
+
+const formatPort = (port: number | string | undefined) => {
+    if (!port || port === '') {
+        return null;
+    }
+
+    return Number(port);
 };
 
 export const formatJobTags = (specifications: JobSpecifications) => {
@@ -209,7 +248,7 @@ export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
     return formatServiceJobPayload(containerType, job.specifications, job.deployment);
 };
 
-const formatGenericJobVariables = (plugin: GenericSecondaryPlugin) => {
+const formatGenericJobVariables = (plugin: GenericPlugin) => {
     return {
         envVars: formatEnvVars(plugin.envVars),
         dynamicEnvVars: formatDynamicEnvVars(plugin.dynamicEnvVars),
@@ -218,41 +257,44 @@ const formatGenericJobVariables = (plugin: GenericSecondaryPlugin) => {
     };
 };
 
-const formatNativeJobPluginSignature = (plugin: NativeSecondaryPlugin) => {
+const formatNativeJobPluginSignature = (plugin: NativePlugin) => {
     return plugin.pluginSignature === PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1]
         ? plugin.customPluginSignature
         : plugin.pluginSignature;
 };
 
-const formatNativeJobCustomParams = (pluginConfig: any, plugin: NativeSecondaryPlugin) => {
+const formatNativeJobCustomParams = (plugin: NativePlugin) => {
+    const customParams: Record<string, any> = {};
+
     if (!_.isEmpty(plugin.customParams)) {
         plugin.customParams.forEach((param) => {
             if (param.key) {
-                pluginConfig[param.key] = parseIfJson(param.value);
+                customParams[param.key] = parseIfJson(param.value);
             }
         });
     }
+
+    return customParams;
 };
 
 export const formatGenericPluginConfigAndSignature = (
     resources: {
         cpu: number;
         memory: string;
-        ports?: Record<string, string>;
+        ports?: Record<string, number>;
     },
-    plugin: GenericSecondaryPlugin,
+    plugin: GenericPlugin,
 ) => {
     const { envVars, dynamicEnvVars, volumes, fileVolumes } = formatGenericJobVariables(plugin);
     let pluginSignature: string;
 
     const pluginConfig: any = {
         CONTAINER_RESOURCES: resources,
-        PORT: plugin.port,
+        PORT: formatPort(plugin.port),
         // Tunneling
         TUNNEL_ENGINE: 'cloudflare',
         CLOUDFLARE_TOKEN: plugin.tunnelingToken || null,
         TUNNEL_ENGINE_ENABLED: plugin.enableTunneling === 'True',
-        NGROK_USE_API: true,
         // Variables
         ENV: envVars,
         DYNAMIC_ENV: dynamicEnvVars,
@@ -263,33 +305,51 @@ export const formatGenericPluginConfigAndSignature = (
         IMAGE_PULL_POLICY: plugin.imagePullPolicy.toLowerCase(),
     };
 
-    if (plugin.deploymentType.type === 'container') {
+    if (plugin.deploymentType.pluginType === PluginType.Container) {
         pluginSignature = 'CONTAINER_APP_RUNNER';
+        const containerDeploymentType: ContainerDeploymentType = plugin.deploymentType as ContainerDeploymentType;
 
-        pluginConfig.IMAGE = plugin.deploymentType.containerImage;
+        pluginConfig.IMAGE = containerDeploymentType.containerImage;
 
         pluginConfig.CR_DATA = {
-            SERVER: plugin.deploymentType.containerRegistry,
+            SERVER: containerDeploymentType.containerRegistry,
         };
 
-        if (plugin.deploymentType.crVisibility === 'Private') {
-            pluginConfig.CR_DATA.USERNAME = plugin.deploymentType.crUsername;
-            pluginConfig.CR_DATA.PASSWORD = plugin.deploymentType.crPassword;
+        if (containerDeploymentType.crVisibility === 'Private') {
+            pluginConfig.CR_DATA.USERNAME = containerDeploymentType.crUsername;
+            pluginConfig.CR_DATA.PASSWORD = containerDeploymentType.crPassword;
         }
     } else {
         pluginSignature = 'WORKER_APP_RUNNER';
+        const workerDeploymentType: WorkerDeploymentType = plugin.deploymentType as WorkerDeploymentType;
 
-        pluginConfig.IMAGE = plugin.deploymentType.image;
-        pluginConfig.BUILD_AND_RUN_COMMANDS = plugin.deploymentType.workerCommands.map((entry) => entry.command);
+        pluginConfig.IMAGE = workerDeploymentType.image;
+        pluginConfig.BUILD_AND_RUN_COMMANDS = workerDeploymentType.workerCommands.map((entry) => entry.command);
 
         pluginConfig.VCS_DATA = {
-            REPO_URL: plugin.deploymentType.repositoryUrl,
-            USERNAME: plugin.deploymentType.username || null,
-            TOKEN: plugin.deploymentType.accessToken || null,
+            REPO_URL: workerDeploymentType.repositoryUrl,
+            USERNAME: workerDeploymentType.username || null,
+            TOKEN: workerDeploymentType.accessToken || null,
         };
     }
 
     return { pluginConfig, pluginSignature };
+};
+
+const formatNativePlugin = (plugin: NativePlugin) => {
+    const pluginConfig: any = {
+        plugin_signature: formatNativeJobPluginSignature(plugin),
+
+        // Tunneling
+        PORT: formatPort(plugin.port),
+        CLOUDFLARE_TOKEN: plugin.tunnelingToken || null,
+        TUNNEL_ENGINE_ENABLED: plugin.enableTunneling === 'True',
+
+        // Custom Parameters
+        ...formatNativeJobCustomParams(plugin),
+    };
+
+    return pluginConfig;
 };
 
 export const formatGenericJobPayload = (
@@ -303,7 +363,7 @@ export const formatGenericJobPayload = (
     const spareNodes = formatNodes(deployment.spareNodes);
 
     const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
-        formatContainerResources(containerType, deployment.deploymentType.ports),
+        formatContainerResources(containerType, deployment.ports),
         deployment,
     );
 
@@ -343,7 +403,7 @@ export const formatNativeJobPayload = (
         }
     });
 
-    const nodeResources = formatContainerResources(workerType, undefined);
+    const nodeResources = formatContainerResources(workerType, []);
     const targetNodes = formatNodes(deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, specifications.targetNodesCount);
 
@@ -351,60 +411,28 @@ export const formatNativeJobPayload = (
 
     const nonce = generateDeeployNonce();
 
-    // Primary plugin configuration
-    const primaryPluginConfig: any = {
-        plugin_signature: formatNativeJobPluginSignature(deployment),
-        PORT: deployment.port,
-        CLOUDFLARE_TOKEN: deployment.tunnelingToken || null,
-        TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
-        NGROK_USE_API: true,
-    };
+    // Build plugins array
+    const plugins = deployment.plugins.map((plugin) => {
+        if (plugin.basePluginType === BasePluginType.Generic) {
+            const secondaryPluginNodeResources = formatContainerResources(workerType, (plugin as GenericPlugin).ports);
 
-    formatNativeJobCustomParams(primaryPluginConfig, deployment);
+            const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
+                secondaryPluginNodeResources,
+                plugin as GenericPlugin,
+            );
 
-    // Build plugins array starting with the primary plugin
-    const plugins = [primaryPluginConfig];
+            return {
+                plugin_signature: pluginSignature,
+                ...pluginConfig,
+            };
+        }
 
-    // Add secondary plugins if they exist
-    if (deployment.secondaryPlugins.length) {
-        const secondaryPluginConfigs = deployment.secondaryPlugins.map((plugin) => {
-            if (plugin.secondaryPluginType === SecondaryPluginType.Generic) {
-                const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
-                    nodeResources,
-                    plugin as GenericSecondaryPlugin,
-                );
+        if (plugin.basePluginType === BasePluginType.Native) {
+            const nativePlugin = plugin as NativePlugin;
 
-                return {
-                    plugin_signature: pluginSignature,
-                    ...pluginConfig,
-                };
-            }
-
-            if (plugin.secondaryPluginType === SecondaryPluginType.Native) {
-                const nativePlugin = plugin as NativeSecondaryPlugin;
-
-                const nativePluginConfig: any = {
-                    plugin_signature: formatNativeJobPluginSignature(nativePlugin),
-                    PORT: nativePlugin.port,
-                    CLOUDFLARE_TOKEN: nativePlugin.tunnelingToken || null,
-                    TUNNEL_ENGINE_ENABLED: nativePlugin.enableTunneling === 'True',
-                    NGROK_USE_API: true,
-                };
-
-                if (!_.isEmpty(nativePlugin.customParams)) {
-                    nativePlugin.customParams.forEach((param) => {
-                        if (param.key) {
-                            nativePluginConfig[param.key] = param.value;
-                        }
-                    });
-                }
-
-                return nativePluginConfig;
-            }
-        });
-
-        plugins.push(...secondaryPluginConfigs);
-    }
+            return formatNativePlugin(nativePlugin);
+        }
+    });
 
     return {
         app_alias: deployment.jobAlias,
@@ -420,7 +448,7 @@ export const formatNativeJobPayload = (
         pipeline_input_type: deployment.pipelineInputType,
         pipeline_input_uri: deployment.pipelineInputUri || null,
         pipeline_params: !_.isEmpty(pipelineParams) ? pipelineParams : {},
-        chainstore_response: false,
+        chainstore_response: true, // Enforced to true
     };
 };
 
@@ -430,7 +458,7 @@ export const formatServiceJobPayload = (
     deployment: ServiceJobDeployment,
 ) => {
     const jobTags = formatJobTags(specifications);
-    const containerResources = formatContainerResources(containerType, undefined);
+    const containerResources = formatContainerResources(containerType, []);
     const targetNodes = formatNodes(deployment.targetNodes);
     const spareNodes = formatNodes(deployment.spareNodes);
 
@@ -452,12 +480,11 @@ export const formatServiceJobPayload = (
                 plugin_signature: 'CONTAINER_APP_RUNNER',
                 IMAGE: containerType.image,
                 CONTAINER_RESOURCES: containerResources,
-                PORT: containerType.port,
+                PORT: formatPort(containerType.port),
                 TUNNEL_ENGINE: 'ngrok',
-                NGROK_AUTH_TOKEN: deployment.tunnelingToken || null,
-                NGROK_EDGE_LABEL: deployment.tunnelingLabel || null,
+                NGROK_AUTH_TOKEN: deployment.tunnelingToken ?? null,
+                NGROK_EDGE_LABEL: deployment.tunnelingLabel ?? null,
                 TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
-                NGROK_USE_API: true,
                 ENV: envVars,
                 RESTART_POLICY: 'always',
                 IMAGE_PULL_POLICY: 'always',
@@ -575,4 +602,8 @@ export const onDotEnvPaste = async (
     } catch (error) {
         console.error('Failed to read clipboard:', error);
     }
+};
+
+export const isGenericPlugin = (pluginSignature: string) => {
+    return pluginSignature === 'CONTAINER_APP_RUNNER' || pluginSignature === 'WORKER_APP_RUNNER';
 };

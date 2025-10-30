@@ -1,44 +1,20 @@
-import AppParametersSection from '@components/create-job/sections/AppParametersSection';
-import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { pluginSignaturesCustomParams } from '@data/default-values/customParams';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
-import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
+import DeeployWarningAlert from '@shared/jobs/DeeployWarningAlert';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
-import NativeAppIdentitySection from '@shared/jobs/native/NativeAppIdentitySection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import Label from '@shared/Label';
 import SelectWithLabel from '@shared/SelectWithLabel';
-import { useFormContext } from 'react-hook-form';
-import SecondaryPluginsCard from '../../secondary-plugins/SecondaryPluginsCard';
 
-function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
-    const { watch } = useFormContext();
-
-    const pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number] = watch('deployment.pluginSignature');
-
+function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     return (
         <div className="col gap-6">
             <SlateCard title="App Identity">
-                <NativeAppIdentitySection pluginSignature={pluginSignature} />
+                <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="My App" />
             </SlateCard>
 
-            <TargetNodesCard isEditingJob={isEditingJob} />
-
-            <SlateCard title="App Parameters">
-                <AppParametersSection />
-            </SlateCard>
-
-            <SlateCard title="Custom Parameters">
-                <KeyValueEntriesSection
-                    name="deployment.customParams"
-                    displayLabel="custom parameters"
-                    maxEntries={50}
-                    predefinedEntries={pluginSignaturesCustomParams[pluginSignature] ?? []}
-                    enableJsonValues={true}
-                />
-            </SlateCard>
+            <TargetNodesCard isEditingRunningJob={isEditingRunningJob} />
 
             <SlateCard title="Pipeline">
                 <div className="col gap-4">
@@ -69,10 +45,16 @@ function NativeDeployment({ isEditingJob }: { isEditingJob?: boolean }) {
                 </div>
             </SlateCard>
 
-            <SecondaryPluginsCard />
-
-            <SlateCard title="Other">
-                <SelectWithLabel name="deployment.chainstoreResponse" label="Chainstore Response" options={BOOLEAN_TYPES} />
+            <SlateCard title="Chainstore Response">
+                <DeeployWarningAlert
+                    title={<div>Implementation Required</div>}
+                    description={
+                        <div>
+                            Make sure your app complies with the chainstore response mechanism; otherwise, your deployment will
+                            time out.
+                        </div>
+                    }
+                />
             </SlateCard>
         </div>
     );

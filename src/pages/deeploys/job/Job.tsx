@@ -1,5 +1,6 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
-import JobConfigurations from '@components/job/config/JobConfigurations';
+import JobDeploymentSection from '@components/job/config/JobDeploymentSection';
+import JobPluginsSection from '@components/job/config/JobPluginsSection';
 import JobBreadcrumbs from '@components/job/JobBreadcrumbs';
 import JobFullUsage from '@components/job/JobFullUsage';
 import JobInstances from '@components/job/JobInstances';
@@ -15,7 +16,7 @@ import RefreshRequiredAlert from '@shared/jobs/RefreshRequiredAlert';
 import SupportFooter from '@shared/SupportFooter';
 import { Apps } from '@typedefs/deeployApi';
 import { RunningJob, RunningJobWithDetails, RunningJobWithResources } from '@typedefs/deeploys';
-import { JobTypeOption, jobTypeOptions } from '@typedefs/jobType';
+import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import { uniq } from 'lodash';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -40,10 +41,10 @@ export default function Job() {
     // The aliases of the servers which responded to the successful job update
     const serverAliases: string[] | undefined = (location.state as { serverAliases?: string[] })?.serverAliases;
 
-    const [updatingServerAliases, setUpdatingServerAliases] = useState<string[]>([]);
+    const [updatingServerAliases, setUpdatingServerAliases] = useState<string[] | undefined>();
 
     useEffect(() => {
-        if (serverAliases) {
+        if (serverAliases && updatingServerAliases === undefined) {
             setUpdatingServerAliases(serverAliases);
         }
     }, [serverAliases]);
@@ -56,7 +57,7 @@ export default function Job() {
 
     useEffect(() => {
         if (job) {
-            setJobTypeOption(jobTypeOptions.find((option) => option.jobType === job.resources.jobType));
+            setJobTypeOption(JOB_TYPE_OPTIONS.find((option) => option.jobType === job.resources.jobType));
         }
     }, [job]);
 
@@ -138,7 +139,7 @@ export default function Job() {
                     </div>
                 </div>
 
-                {!!updatingServerAliases.length && (
+                {!!updatingServerAliases && updatingServerAliases.length > 0 && (
                     <div className="relative rounded-lg border-2 border-green-100 bg-green-100 px-4 py-3 text-sm text-green-800">
                         <div
                             className="absolute top-1.5 right-1 cursor-pointer rounded-full p-1 hover:bg-black/5"
@@ -172,8 +173,11 @@ export default function Job() {
                 {/* Resources */}
                 <JobSpecifications resources={job.resources} />
 
-                {/* Configuration */}
-                <JobConfigurations job={job} />
+                {/* Deployment */}
+                <JobDeploymentSection job={job} />
+
+                {/* Plugins */}
+                <JobPluginsSection job={job} />
 
                 {/* Instances */}
                 <JobInstances

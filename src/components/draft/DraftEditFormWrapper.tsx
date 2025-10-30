@@ -1,10 +1,10 @@
 import JobFormButtons from '@components/create-job/JobFormButtons';
 import CostAndDuration from '@components/create-job/steps/CostAndDuration';
 import Deployment from '@components/create-job/steps/Deployment';
+import Plugins from '@components/create-job/steps/Plugins';
 import Specifications from '@components/create-job/steps/Specifications';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
@@ -12,11 +12,14 @@ import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import SubmitButton from '@shared/SubmitButton';
 import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
+import { ContainerDeploymentType, DeploymentType, PluginType, WorkerDeploymentType } from '@typedefs/steps/deploymentStepTypes';
+import { cloneDeep } from 'lodash';
+import { useEffect, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import z from 'zod';
 
-const STEPS: {
+const DEFAULT_STEPS: {
     title: string;
     validationName?: string;
 }[] = [
@@ -36,24 +39,22 @@ export default function DraftEditFormWrapper({
 
     const navigate = useNavigate();
 
-    const cloneKeyValueEntries = (entries?: Array<{ key: string; value: string }>) =>
-        entries ? entries.map((entry) => ({ key: entry.key, value: entry.value })) : [];
+    const [steps, setSteps] = useState(DEFAULT_STEPS);
 
-    const cloneDynamicEnvEntries = (
-        entries?: Array<{
-            key: string;
-            values: Array<{ type: (typeof DYNAMIC_ENV_TYPES)[number]; value: string }>;
-        }>,
-    ) =>
-        entries
-            ? entries.map((entry) => ({
-                  key: entry.key,
-                  values: entry.values.map((value) => ({ type: value.type, value: value.value })),
-              }))
-            : [];
+    const getBaseSchemaDeploymentDefaults = () => ({
+        jobAlias: job.deployment.jobAlias,
+        autoAssign: job.deployment.autoAssign ?? true,
+        targetNodes: cloneDeploymentNodes(job.deployment.targetNodes),
+        spareNodes: cloneDeploymentNodes(job.deployment.spareNodes),
+        allowReplicationInTheWild: job.deployment.allowReplicationInTheWild ?? true,
+    });
 
-    const cloneDeploymentNodes = (nodes?: Array<{ address: string }>) =>
-        nodes && nodes.length ? nodes.map((node) => ({ address: node.address })) : [{ address: '' }];
+    const getBaseSchemaTunnelingDefaults = () => ({
+        enableTunneling: job.deployment.enableTunneling ?? BOOLEAN_TYPES[0],
+        port: job.deployment.port ?? '',
+        tunnelingToken: job.deployment.tunnelingToken,
+        tunnelingLabel: job.deployment.tunnelingLabel,
+    });
 
     const getBaseSchemaDefaults = () => ({
         jobType: job.jobType,
@@ -68,13 +69,8 @@ export default function DraftEditFormWrapper({
             paymentMonthsCount: job.costAndDuration.paymentMonthsCount,
         },
         deployment: {
-            autoAssign: job.deployment.autoAssign ?? true,
-            targetNodes: cloneDeploymentNodes(job.deployment.targetNodes),
-            spareNodes: cloneDeploymentNodes(job.deployment.spareNodes),
-            allowReplicationInTheWild: job.deployment.allowReplicationInTheWild ?? true,
-            enableTunneling: job.deployment.enableTunneling ?? BOOLEAN_TYPES[0],
-            tunnelingToken: job.deployment.tunnelingToken,
-            tunnelingLabel: job.deployment.tunnelingLabel,
+            ...getBaseSchemaDeploymentDefaults(),
+            ...getBaseSchemaTunnelingDefaults(),
         },
     });
 
@@ -82,6 +78,29 @@ export default function DraftEditFormWrapper({
         const baseDefaults = getBaseSchemaDefaults();
         const genericJob = job as GenericDraftJob;
         const deployment = genericJob.deployment;
+
+        let deploymentType: DeploymentType;
+
+        if (deployment.deploymentType.pluginType === PluginType.Container) {
+            const containerDeploymentType: ContainerDeploymentType = deployment.deploymentType as ContainerDeploymentType;
+
+            deploymentType = {
+                ...deployment.deploymentType,
+                crUsername: containerDeploymentType.crUsername ?? '',
+                crPassword: containerDeploymentType.crPassword ?? '',
+            };
+        } else {
+            const workerDeploymentType: WorkerDeploymentType = deployment.deploymentType as WorkerDeploymentType;
+
+            deploymentType = {
+                ...deployment.deploymentType,
+                workerCommands: workerDeploymentType.workerCommands.map((command) => ({
+                    command: command.command,
+                })),
+                username: workerDeploymentType.username ?? '',
+                accessToken: workerDeploymentType.accessToken ?? '',
+            };
+        }
 
         return {
             ...baseDefaults,
@@ -92,28 +111,12 @@ export default function DraftEditFormWrapper({
             },
             deployment: {
                 ...baseDefaults.deployment,
-                jobAlias: deployment.jobAlias,
-                deploymentType:
-                    deployment.deploymentType.type === 'container'
-                        ? {
-                              ...deployment.deploymentType,
-                              crUsername: deployment.deploymentType.crUsername ?? '',
-                              crPassword: deployment.deploymentType.crPassword ?? '',
-                          }
-                        : {
-                              ...deployment.deploymentType,
-                              workerCommands: deployment.deploymentType.workerCommands.map((command) => ({
-                                  command: command.command,
-                              })),
-                              username: deployment.deploymentType.username ?? '',
-                              accessToken: deployment.deploymentType.accessToken ?? '',
-                          },
-                port: deployment.port ?? '',
-                restartPolicy: deployment.restartPolicy,
-                imagePullPolicy: deployment.imagePullPolicy,
-                envVars: cloneKeyValueEntries(deployment.envVars),
-                dynamicEnvVars: cloneDynamicEnvEntries(deployment.dynamicEnvVars),
-                volumes: cloneKeyValueEntries(deployment.volumes),
+                deploymentType,
+                ports: cloneDeep(deployment.ports),
+                // Variables
+                envVars: cloneDeep(deployment.envVars),
+                dynamicEnvVars: cloneDeep(deployment.dynamicEnvVars),
+                volumes: cloneDeep(deployment.volumes),
                 fileVolumes: deployment.fileVolumes
                     ? deployment.fileVolumes.map((fileVolume) => ({
                           name: fileVolume.name,
@@ -121,6 +124,9 @@ export default function DraftEditFormWrapper({
                           content: fileVolume.content,
                       }))
                     : [],
+                // Policies
+                restartPolicy: deployment.restartPolicy,
+                imagePullPolicy: deployment.imagePullPolicy,
             },
         } as z.infer<typeof jobSchema>;
     };
@@ -138,17 +144,14 @@ export default function DraftEditFormWrapper({
                 gpuType: nativeJob.specifications.gpuType,
             },
             deployment: {
-                ...baseDefaults.deployment,
-                jobAlias: deployment.jobAlias,
-                port: deployment.port ?? '',
-                pluginSignature: deployment.pluginSignature,
-                customPluginSignature: deployment.customPluginSignature,
-                customParams: cloneKeyValueEntries(deployment.customParams),
-                pipelineParams: cloneKeyValueEntries(deployment.pipelineParams),
+                ...getBaseSchemaDeploymentDefaults(),
+                // Pipeline
+                pipelineParams: cloneDeep(deployment.pipelineParams),
                 pipelineInputType: deployment.pipelineInputType ?? PIPELINE_INPUT_TYPES[0],
                 pipelineInputUri: deployment.pipelineInputUri,
                 chainstoreResponse: deployment.chainstoreResponse ?? BOOLEAN_TYPES[1],
             },
+            plugins: cloneDeep(deployment.plugins),
         } as z.infer<typeof jobSchema>;
     };
 
@@ -165,11 +168,14 @@ export default function DraftEditFormWrapper({
             },
             deployment: {
                 ...baseDefaults.deployment,
-                jobAlias: deployment.jobAlias,
+                inputs: cloneDeep(deployment.inputs),
                 serviceReplica: deployment.serviceReplica ?? '',
             },
         } as z.infer<typeof jobSchema>;
     };
+
+    const cloneDeploymentNodes = (nodes?: Array<{ address: string }>) =>
+        nodes && nodes.length ? nodes.map((node) => ({ address: node.address })) : [{ address: '' }];
 
     const getDefaultSchemaValues = () => {
         switch (job.jobType) {
@@ -193,6 +199,12 @@ export default function DraftEditFormWrapper({
         defaultValues: getDefaultSchemaValues(),
     });
 
+    useEffect(() => {
+        if (job.jobType === JobType.Native) {
+            setSteps([...DEFAULT_STEPS, { title: 'Plugins' }]);
+        }
+    }, [job]);
+
     const onError = (errors: FieldErrors<z.infer<typeof jobSchema>>) => {
         console.log(errors);
     };
@@ -204,7 +216,7 @@ export default function DraftEditFormWrapper({
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
                             <JobFormHeaderInterface
-                                steps={STEPS.map((step) => step.title)}
+                                steps={steps.map((step) => step.title)}
                                 onCancel={() => {
                                     navigate(-1);
                                 }}
@@ -215,11 +227,12 @@ export default function DraftEditFormWrapper({
                             {step === 0 && <Specifications />}
                             {step === 1 && <CostAndDuration />}
                             {step === 2 && <Deployment />}
+                            {step === 3 && <Plugins />}
 
                             <JobFormButtons
-                                steps={STEPS}
+                                steps={steps}
                                 cancelLabel="Project"
-                                customSubmitButton={<SubmitButton label="Save" />}
+                                customSubmitButton={<SubmitButton label="Update Draft" />}
                             />
                         </div>
                     </div>

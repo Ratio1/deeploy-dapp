@@ -10,7 +10,10 @@ import { R1Address } from '@typedefs/blockchain';
 type KeyValueEntry = {
     key: string;
     value: string;
-    valueType?: 'text' | 'json';
+};
+
+type CustomParameterEntry = KeyValueEntry & {
+    valueType: 'string' | 'json';
 };
 
 type DynamicEnvVarsEntry = {
@@ -32,42 +35,53 @@ type FileVolumesEntry = {
     content: string;
 };
 
+type PortMappingEntry = {
+    hostPort: number;
+    containerPort: number;
+};
+
 // Deployment types
 type ContainerDeploymentType = {
-    type: 'container';
     containerImage: string;
     containerRegistry: string;
     crVisibility: (typeof CR_VISIBILITY_OPTIONS)[number];
     crUsername?: string;
     crPassword?: string;
-    ports?: Record<string, string>;
 };
 
 type WorkerDeploymentType = {
-    type: 'worker';
     image: string;
     repositoryUrl: string;
     repositoryVisibility: 'public' | 'private';
     username?: string;
     accessToken?: string;
     workerCommands: Array<{ command: string }>;
-    ports?: Record<string, string>;
 };
 
-type DeploymentType = ContainerDeploymentType | WorkerDeploymentType;
+type DeploymentType = (ContainerDeploymentType | WorkerDeploymentType) & {
+    pluginType: PluginType;
+};
 
 // Plugin-related types
-
-export enum SecondaryPluginType {
+export enum BasePluginType {
     Generic = 'generic',
     Native = 'native',
 }
 
-type GenericSecondaryPlugin = {
-    // Base
-    port?: number;
+export enum PluginType {
+    Native = 'native',
+    Container = 'container',
+    Worker = 'worker',
+}
+
+type GenericPlugin = {
+    // Tunneling
+    port?: number | string;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
     tunnelingToken?: string;
+
+    // Ports
+    ports: Array<PortMappingEntry>;
 
     // Deployment type
     deploymentType: DeploymentType;
@@ -83,22 +97,22 @@ type GenericSecondaryPlugin = {
     imagePullPolicy: (typeof POLICY_TYPES)[number];
 };
 
-type NativeSecondaryPlugin = {
+type NativePlugin = {
     // Signature
     pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
     customPluginSignature?: string;
 
     // Tunneling
-    port?: number;
+    port?: number | string;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
     tunnelingToken?: string;
 
     // Custom Parameters
-    customParams: Array<KeyValueEntry>;
+    customParams: Array<CustomParameterEntry>;
 };
 
-type SecondaryPlugin = (GenericSecondaryPlugin | NativeSecondaryPlugin) & {
-    secondaryPluginType: SecondaryPluginType;
+type Plugin = (GenericPlugin | NativePlugin) & {
+    basePluginType: BasePluginType;
 };
 
 // Deployment types
@@ -109,31 +123,34 @@ type BaseJobDeployment = {
     spareNodes: Array<{ address: R1Address }>;
     allowReplicationInTheWild: boolean;
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
-    tunnelingLabel?: string;
+    port?: number | string;
     tunnelingToken?: string;
+    tunnelingLabel?: string;
 };
 
 type GenericJobDeployment = BaseJobDeployment & {
     deploymentType: DeploymentType;
-    port?: number;
+
+    // Ports
+    ports: Array<PortMappingEntry>;
+
+    // Variables
     envVars: Array<KeyValueEntry>;
     dynamicEnvVars: Array<DynamicEnvVarsEntry>;
     volumes: Array<VolumesEntry>;
     fileVolumes: Array<FileVolumesEntry>;
+
+    // Policies
     restartPolicy: (typeof POLICY_TYPES)[number];
     imagePullPolicy: (typeof POLICY_TYPES)[number];
 };
 
 type NativeJobDeployment = BaseJobDeployment & {
-    pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
-    customPluginSignature?: string;
-    port?: number;
-    customParams: Array<KeyValueEntry>;
     pipelineParams: Array<KeyValueEntry>;
     pipelineInputType: (typeof PIPELINE_INPUT_TYPES)[number];
     pipelineInputUri?: string;
-    chainstoreResponse: (typeof BOOLEAN_TYPES)[number];
-    secondaryPlugins: SecondaryPlugin[];
+    plugins: Plugin[];
+    chainstoreResponse: (typeof BOOLEAN_TYPES)[number]; // Enforced to true
 };
 
 type ServiceJobDeployment = BaseJobDeployment & {
@@ -145,12 +162,16 @@ type JobDeployment = BaseJobDeployment & (GenericJobDeployment | NativeJobDeploy
 
 export type {
     BaseJobDeployment,
+    ContainerDeploymentType,
+    CustomParameterEntry,
     DeploymentType,
     GenericJobDeployment,
-    GenericSecondaryPlugin,
+    GenericPlugin,
     JobDeployment,
     NativeJobDeployment,
-    NativeSecondaryPlugin,
-    SecondaryPlugin,
+    NativePlugin,
+    Plugin,
+    PortMappingEntry,
     ServiceJobDeployment,
+    WorkerDeploymentType,
 };

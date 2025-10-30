@@ -1,5 +1,5 @@
 import { config } from '@lib/config';
-import { InvoiceDraft } from '@typedefs/general';
+import { InvoiceDraft, PublicProfileInfo } from '@typedefs/general';
 import axios from 'axios';
 import * as types from 'typedefs/blockchain';
 
@@ -84,6 +84,11 @@ export const downloadBurnReport = async (start: string, end: string) => {
     setTimeout(() => URL.revokeObjectURL(urlObj), 0);
 };
 
+export const getBrandingPlatforms = async () => _doGet<string[]>('/branding/get-platforms');
+
+export const getProfilePicture = async (address: types.EthAddress) =>
+    _doGet<any>(`/branding/get-brand-logo?address=${address}`);
+
 // *****
 // POST
 // *****
@@ -96,6 +101,20 @@ export const accessAuth = (params: { message: string; signature: string }) =>
     }>('/auth/access', params);
 
 export const initSumsubSession = (type: 'individual' | 'company') => _doPost<string>('/sumsub/init/Kyc', { type });
+
+export const getPublicProfileInfo = async (address: types.EthAddress) =>
+    _doPost<any>('/branding/get-brands', { brandAddresses: [address] });
+
+export const uploadProfileImage = async (file: File) => {
+    const formData = new FormData();
+    formData.append('logo', file);
+
+    return _doPost<any>('/branding/edit-logo', formData, {
+        'Content-Type': 'multipart/form-data',
+    });
+};
+
+export const updatePublicProfileInfo = async (info: PublicProfileInfo) => _doPost<any>('/branding/edit', info);
 
 // *****
 // INTERNAL HELPERS
@@ -112,11 +131,11 @@ async function _doGet<T>(endpoint: string) {
     return data.data;
 }
 
-async function _doPost<T>(endpoint: string, body: any) {
+async function _doPost<T>(endpoint: string, body: any, headers?: Record<string, string>) {
     const { data } = await axiosDapp.post<{
         data: T;
         error: string;
-    }>(endpoint, body);
+    }>(endpoint, body, { headers });
     if (data.error) {
         throw new Error(data.error);
     }

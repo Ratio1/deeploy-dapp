@@ -1,27 +1,33 @@
 import { JobType } from '@typedefs/deeploys';
+import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import GenericSpecifications from './specifications/GenericSpecifications';
 import NativeSpecifications from './specifications/NativeSpecifications';
 import ServiceSpecifications from './specifications/ServiceSpecifications';
 
 function Specifications({
-    isEditingJob,
+    isEditingRunningJob,
     initialTargetNodesCount,
     onTargetNodesCountDecrease,
 }: {
-    isEditingJob?: boolean;
+    isEditingRunningJob?: boolean;
     initialTargetNodesCount?: number;
     onTargetNodesCountDecrease?: (blocked: boolean) => void;
 }) {
     const { watch } = useFormContext();
     const jobType = watch('jobType');
 
+    // Init
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []);
+
     const getComponent = () => {
         switch (jobType) {
             case JobType.Generic:
                 return (
                     <GenericSpecifications
-                        isEditingJob={isEditingJob}
+                        isEditingRunningJob={isEditingRunningJob}
                         initialTargetNodesCount={initialTargetNodesCount}
                         onTargetNodesCountDecrease={onTargetNodesCountDecrease}
                     />
@@ -30,14 +36,14 @@ function Specifications({
             case JobType.Native:
                 return (
                     <NativeSpecifications
-                        isEditingJob={isEditingJob}
+                        isEditingRunningJob={isEditingRunningJob}
                         initialTargetNodesCount={initialTargetNodesCount}
                         onTargetNodesCountDecrease={onTargetNodesCountDecrease}
                     />
                 );
 
             case JobType.Service:
-                return <ServiceSpecifications isEditingJob={isEditingJob} />;
+                return <ServiceSpecifications isEditingRunningJob={isEditingRunningJob} />;
 
             default:
                 return <div>Error: Unknown specifications type</div>;

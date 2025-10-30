@@ -1,4 +1,5 @@
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
+import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { EthAddress, R1Address } from './blockchain';
 
 type Apps = {
@@ -9,6 +10,7 @@ type Apps = {
             last_config: string; // ISO-like timestamp string
             is_deeployed: boolean;
             deeploy_specs: DeeploySpecs;
+            pipeline_data: PipelineData;
             plugins: {
                 [pluginName: string]: AppsPlugin[];
             };
@@ -21,12 +23,33 @@ type DeeploySpecs = {
     date_created: number;
     date_updated: number;
     initial_target_nodes: R1Address[];
+    job_config?: {
+        pipeline_params?: Record<string, string>;
+    };
     job_id: number;
     job_tags: string[];
     nr_target_nodes: number;
     project_id: string; // projectHash
     project_name: string | undefined;
     spare_nodes: R1Address[];
+};
+
+type PipelineData = {
+    APP_ALIAS: string;
+    INITIATOR_ADDR: R1Address;
+    INITIATOR_ID: string;
+    IS_DEEPLOYED: boolean;
+    LAST_UPDATE_TIME: string; // ISO-like timestamp string
+    LIVE_FEED: boolean;
+    MODIFIED_BY_ADDR: R1Address;
+    MODIFIED_BY_ID: string;
+    NAME: string;
+    OWNER: EthAddress;
+    SESSION_ID: string;
+    TIME: string; // ISO-like timestamp string
+    TYPE: (typeof PIPELINE_INPUT_TYPES)[number];
+    URL?: string;
+    VALIDATED: boolean;
 };
 
 type AppsPlugin = {
@@ -53,10 +76,12 @@ type JobConfig = {
     IMAGE: string;
     IMAGE_PULL_POLICY?: string;
     INSTANCE_ID: string;
-    NGROK_USE_API: boolean;
+    NGROK_AUTH_TOKEN?: string;
+    NGROK_EDGE_LABEL?: string;
+    NGROK_USE_API?: boolean; // Deprecated, used for backwards compatibility
     PORT: number;
     RESTART_POLICY?: string;
-    TUNNEL_ENGINE: string;
+    TUNNEL_ENGINE: 'cloudflare' | 'ngrok';
     TUNNEL_ENGINE_ENABLED: boolean;
     VOLUMES: Record<string, any>;
     FILE_VOLUMES: Record<
@@ -119,4 +144,5 @@ export type {
     JobConfig,
     JobConfigCRData,
     JobConfigVCSData,
+    PipelineData,
 };
