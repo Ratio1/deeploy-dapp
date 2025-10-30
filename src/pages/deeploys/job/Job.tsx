@@ -41,10 +41,10 @@ export default function Job() {
     // The aliases of the servers which responded to the successful job update
     const serverAliases: string[] | undefined = (location.state as { serverAliases?: string[] })?.serverAliases;
 
-    const [updatingServerAliases, setUpdatingServerAliases] = useState<string[]>([]);
+    const [updatingServerAliases, setUpdatingServerAliases] = useState<string[] | undefined>();
 
     useEffect(() => {
-        if (serverAliases) {
+        if (serverAliases && updatingServerAliases === undefined) {
             setUpdatingServerAliases(serverAliases);
         }
     }, [serverAliases]);
@@ -139,7 +139,7 @@ export default function Job() {
                     </div>
                 </div>
 
-                {!!updatingServerAliases.length && (
+                {!!updatingServerAliases && updatingServerAliases.length > 0 && (
                     <div className="relative rounded-lg border-2 border-green-100 bg-green-100 px-4 py-3 text-sm text-green-800">
                         <div
                             className="absolute top-1.5 right-1 cursor-pointer rounded-full p-1 hover:bg-black/5"
