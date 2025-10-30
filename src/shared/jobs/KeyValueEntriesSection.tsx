@@ -21,7 +21,7 @@ export default function KeyValueEntriesSection({
     name,
     displayLabel = 'entries',
     label,
-    maxEntries,
+    maxEntries = 50,
     predefinedEntries,
     disabledKeys,
     placeholders = ['KEY', 'VALUE'],
@@ -31,7 +31,7 @@ export default function KeyValueEntriesSection({
     name: string;
     displayLabel?: string;
     label?: string;
-    maxEntries: number;
+    maxEntries?: number;
     predefinedEntries?: { key: string; value: string }[];
     disabledKeys?: string[];
     placeholders?: [string, string];

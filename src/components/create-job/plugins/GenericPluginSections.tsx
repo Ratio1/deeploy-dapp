@@ -22,7 +22,12 @@ export default function GenericPluginSections({ name }: { name: string }) {
             <DynamicEnvSection baseName={name} />
 
             <ConfigSectionTitle title="Volumes" />
-            <KeyValueEntriesSection name={`${name}.volumes`} displayLabel="volumes" placeholders={['VOLUME', 'PATH']} />
+            <KeyValueEntriesSection
+                name={`${name}.volumes`}
+                maxEntries={50}
+                displayLabel="volumes"
+                placeholders={['VOLUME', 'PATH']}
+            />
 
             <ConfigSectionTitle title="File Volumes" />
             <FileVolumesSection baseName={name} />
