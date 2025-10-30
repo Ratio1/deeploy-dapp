@@ -120,7 +120,7 @@ export default function PortMappingSection({ baseName = 'deployment' }: { baseNa
 
             <VariableSectionControls
                 displayLabel="port mappings"
-                onClick={() => append({ key: '', value: '' })}
+                onClick={() => append({ hostPort: undefined, containerPort: undefined })}
                 fieldsLength={entries.length}
                 maxFields={50}
                 remove={remove}

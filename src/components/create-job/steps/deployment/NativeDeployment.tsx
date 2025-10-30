@@ -6,13 +6,8 @@ import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import Label from '@shared/Label';
 import SelectWithLabel from '@shared/SelectWithLabel';
-import { useFormContext } from 'react-hook-form';
 
 function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
-    const { watch } = useFormContext();
-
-    const chainstoreResponse = watch('deployment.chainstoreResponse');
-
     return (
         <div className="col gap-6">
             <SlateCard title="App Identity">
@@ -50,11 +45,7 @@ function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boole
                 </div>
             </SlateCard>
 
-            {/* <PluginsCard /> */}
-
             <SlateCard title="Chainstore Response">
-                {/* <SelectWithLabel name="deployment.chainstoreResponse" label="Chainstore Response" options={BOOLEAN_TYPES} /> */}
-
                 <DeeployWarningAlert
                     title={<div>Implementation Required</div>}
                     description={
