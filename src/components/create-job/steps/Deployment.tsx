@@ -1,4 +1,5 @@
 import { JobType } from '@typedefs/deeploys';
+import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import GenericDeployment from './deployment/GenericDeployment';
 import NativeDeployment from './deployment/NativeDeployment';
@@ -7,6 +8,11 @@ import ServiceDeployment from './deployment/ServiceDeployment';
 function Deployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     const { watch } = useFormContext();
     const jobType = watch('jobType');
+
+    // Init
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []);
 
     const getComponent = () => {
         switch (jobType) {

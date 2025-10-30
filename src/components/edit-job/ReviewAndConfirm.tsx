@@ -5,9 +5,10 @@ import { jobSchema } from '@schemas/index';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
 import { UsdcValue } from '@shared/UsdcValue';
-import { RunningJobWithResources } from '@typedefs/deeploys';
+import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import isEqual from 'lodash/isEqual';
 import { useEffect, useMemo } from 'react';
+import type { FieldPath } from 'react-hook-form';
 import { useFormContext, useWatch } from 'react-hook-form';
 import z from 'zod';
 
@@ -53,6 +54,7 @@ export default function ReviewAndConfirm({
     const specifications = useWatch({ control, name: 'specifications' });
     const costAndDuration = useWatch({ control, name: 'costAndDuration' });
     const deployment = useWatch({ control, name: 'deployment' });
+    const plugins = useWatch({ control, name: 'plugins' as FieldPath<JobFormValues> });
 
     const { lastExecutionEpoch } = job;
 
@@ -86,52 +88,95 @@ export default function ReviewAndConfirm({
         specifications,
     ]);
 
-    const stepsStatus = useMemo(
-        () =>
-            [
-                {
-                    key: 'specifications' as StepKey,
-                    label: 'Specifications',
-                    currentValue: specifications ?? defaultValues.specifications,
-                    dirtyValue: (dirtyFields as Record<string, unknown> | undefined)?.specifications,
-                    children:
-                        currentTargetNodesCount > defaultValues.specifications.targetNodesCount
-                            ? [
-                                  {
-                                      label: 'Target Nodes Count',
-                                      previousValue: defaultValues.specifications.targetNodesCount,
-                                      currentValue: currentTargetNodesCount,
-                                  },
-                              ]
-                            : undefined,
-                },
-                {
-                    key: 'costAndDuration' as StepKey,
-                    label: 'Duration',
-                    currentValue: costAndDuration ?? defaultValues.costAndDuration,
-                    dirtyValue: (dirtyFields as Record<string, unknown> | undefined)?.costAndDuration,
-                },
-                {
-                    key: 'deployment' as StepKey,
-                    label: 'Deployment',
-                    currentValue: deployment ?? defaultValues.deployment,
-                    dirtyValue: (dirtyFields as Record<string, unknown> | undefined)?.deployment,
-                },
-            ].map(({ key, label, currentValue, dirtyValue, children }) => {
-                const isDirty = hasDirtyFields(dirtyValue);
-                const hasChanged = !isEqual(currentValue, defaultValues[key]);
+    const stepsStatus = useMemo(() => {
+        const dirtyFieldsRecord = dirtyFields as Record<string, unknown> | undefined;
+        const defaultPlugins = defaultValues.jobType === JobType.Native ? defaultValues.plugins : undefined;
 
-                return {
-                    key,
-                    label,
-                    modified: isDirty && hasChanged,
-                    children: children && isDirty && hasChanged ? children : undefined,
-                };
-            }),
-        [costAndDuration, defaultValues, deployment, dirtyFields, specifications],
-    );
+        const baseSteps: {
+            key: StepKey;
+            label: string;
+            currentValue: unknown;
+            defaultValue: unknown;
+            dirtyValue: unknown;
+            children?:
+                | {
+                      label: string;
+                      previousValue: number;
+                      currentValue: number;
+                  }[]
+                | undefined;
+        }[] = [
+            {
+                key: 'specifications',
+                label: 'Specifications',
+                currentValue: specifications ?? defaultValues.specifications,
+                defaultValue: defaultValues.specifications,
+                dirtyValue: dirtyFieldsRecord?.specifications,
+                children:
+                    currentTargetNodesCount > defaultValues.specifications.targetNodesCount
+                        ? [
+                              {
+                                  label: 'Target Nodes Count',
+                                  previousValue: defaultValues.specifications.targetNodesCount,
+                                  currentValue: currentTargetNodesCount,
+                              },
+                          ]
+                        : undefined,
+            },
+            {
+                key: 'costAndDuration',
+                label: 'Duration',
+                currentValue: costAndDuration ?? defaultValues.costAndDuration,
+                defaultValue: defaultValues.costAndDuration,
+                dirtyValue: dirtyFieldsRecord?.costAndDuration,
+            },
+            {
+                key: 'deployment',
+                label: 'Deployment',
+                currentValue: deployment ?? defaultValues.deployment,
+                defaultValue: defaultValues.deployment,
+                dirtyValue: dirtyFieldsRecord?.deployment,
+            },
+        ];
+
+        if (job.resources.jobType === JobType.Native && defaultPlugins) {
+            baseSteps.push({
+                key: 'plugins',
+                label: 'Plugins',
+                currentValue: plugins ?? defaultPlugins,
+                defaultValue: defaultPlugins,
+                dirtyValue: dirtyFieldsRecord?.plugins,
+            });
+        }
+
+        return baseSteps.map(({ key, label, currentValue, defaultValue, dirtyValue, children }) => {
+            const isDirty = hasDirtyFields(dirtyValue);
+            const hasChanged = !isEqual(currentValue, defaultValue);
+
+            return {
+                key,
+                label,
+                modified: isDirty && hasChanged,
+                children: children && isDirty && hasChanged ? children : undefined,
+            };
+        });
+    }, [
+        costAndDuration,
+        defaultValues,
+        deployment,
+        dirtyFields,
+        job.resources.jobType,
+        plugins,
+        specifications,
+        currentTargetNodesCount,
+    ]);
 
     const hasModifiedSteps = stepsStatus.some((step) => step.modified);
+
+    // Init
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []);
 
     useEffect(() => {
         onHasModifiedStepsChange?.(hasModifiedSteps);
