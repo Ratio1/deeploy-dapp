@@ -8,6 +8,7 @@ import DeeployErrorAlert from '@shared/jobs/DeeployErrorAlert';
 import AddJobCard from '@shared/projects/AddJobCard';
 import { SmallTag } from '@shared/SmallTag';
 import { BasePluginType, GenericPlugin, Plugin, PluginType } from '@typedefs/steps/deploymentStepTypes';
+import { useEffect, useRef } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { RiBox3Line, RiDeleteBin2Line, RiTerminalBoxLine } from 'react-icons/ri';
@@ -72,6 +73,8 @@ export default function PluginsSection() {
     });
 
     const plugins = fields as PluginWithId[];
+
+    const previousPluginsLengthRef = useRef<number>(plugins.length);
 
     const rootError: string | undefined = (formState.errors.plugins as any)?.root?.message as string | undefined;
 
@@ -161,6 +164,31 @@ export default function PluginsSection() {
         };
     };
 
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        if (plugins.length > previousPluginsLengthRef.current) {
+            const newPlugin = plugins[plugins.length - 1];
+            const targetElement = document.getElementById(`plugin-card-${newPlugin.id}`);
+
+            if (targetElement) {
+                // Scroll the target element into view with a small padding on top
+                const elementRect = targetElement.getBoundingClientRect();
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const padding = 16; // px
+
+                window.scrollTo({
+                    top: elementRect.top + scrollTop - padding,
+                    behavior: 'smooth',
+                });
+            }
+        }
+
+        previousPluginsLengthRef.current = plugins.length;
+    }, [plugins]);
+
     return (
         <div className="col gap-6">
             {fields.length < 5 && (
@@ -176,53 +204,54 @@ export default function PluginsSection() {
                     const { title, element } = getPluginAlias(plugin, index);
 
                     return (
-                        <SlateCard
-                            key={index}
-                            titleElement={element}
-                            label={
-                                <div
-                                    className="compact cursor-pointer text-red-600 hover:opacity-50"
-                                    onClick={async () => {
-                                        try {
-                                            const confirmed = await confirm(
-                                                <div className="col gap-1.5">
-                                                    <div>Are you sure you want to remove this plugin?</div>
-                                                    <div className="font-medium">{title}</div>
-                                                </div>,
-                                            );
+                        <div key={plugin.id} id={`plugin-card-${plugin.id}`}>
+                            <SlateCard
+                                titleElement={element}
+                                label={
+                                    <div
+                                        className="compact cursor-pointer text-red-600 hover:opacity-50"
+                                        onClick={async () => {
+                                            try {
+                                                const confirmed = await confirm(
+                                                    <div className="col gap-1.5">
+                                                        <div>Are you sure you want to remove this plugin?</div>
+                                                        <div className="font-medium">{title}</div>
+                                                    </div>,
+                                                );
 
-                                            if (!confirmed) {
-                                                return;
+                                                if (!confirmed) {
+                                                    return;
+                                                }
+
+                                                remove(index);
+                                            } catch (error) {
+                                                console.error('Error removing plugin:', error);
+                                                toast.error('Failed to remove plugin.');
                                             }
-
-                                            remove(index);
-                                        } catch (error) {
-                                            console.error('Error removing plugin:', error);
-                                            toast.error('Failed to remove plugin.');
-                                        }
-                                    }}
-                                >
-                                    <div className="row gap-1">
-                                        <RiDeleteBin2Line className="text-lg" />
-                                        <div className="font-medium">Remove plugin</div>
+                                        }}
+                                    >
+                                        <div className="row gap-1">
+                                            <RiDeleteBin2Line className="text-lg" />
+                                            <div className="font-medium">Remove plugin</div>
+                                        </div>
                                     </div>
-                                </div>
-                            }
-                        >
-                            <>
-                                {plugin.basePluginType === BasePluginType.Generic ? (
-                                    <>
-                                        {(plugin as GenericPlugin).deploymentType.pluginType === PluginType.Container ? (
-                                            <CARInputsSection name={`${name}.${index}`} />
-                                        ) : (
-                                            <WARInputsSection name={`${name}.${index}`} />
-                                        )}
-                                    </>
-                                ) : (
-                                    <NativeInputsSection name={`${name}.${index}`} />
-                                )}
-                            </>
-                        </SlateCard>
+                                }
+                            >
+                                <>
+                                    {plugin.basePluginType === BasePluginType.Generic ? (
+                                        <>
+                                            {(plugin as GenericPlugin).deploymentType.pluginType === PluginType.Container ? (
+                                                <CARInputsSection name={`${name}.${index}`} />
+                                            ) : (
+                                                <WARInputsSection name={`${name}.${index}`} />
+                                            )}
+                                        </>
+                                    ) : (
+                                        <NativeInputsSection name={`${name}.${index}`} />
+                                    )}
+                                </>
+                            </SlateCard>
+                        </div>
                     );
                 })}
             </div>
