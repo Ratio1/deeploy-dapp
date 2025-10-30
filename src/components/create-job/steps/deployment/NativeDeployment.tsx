@@ -2,13 +2,12 @@ import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
-import DeeployWarning from '@shared/jobs/DeeployWarning';
+import DeeployWarningAlert from '@shared/jobs/DeeployWarningAlert';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import Label from '@shared/Label';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
-import PluginsCard from '../../plugins/PluginsCard';
 
 function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     const { watch } = useFormContext();
@@ -52,13 +51,13 @@ function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boole
                 </div>
             </SlateCard>
 
-            <PluginsCard />
+            {/* <PluginsCard /> */}
 
             <SlateCard title="Other">
                 <SelectWithLabel name="deployment.chainstoreResponse" label="Chainstore Response" options={BOOLEAN_TYPES} />
 
                 {chainstoreResponse === BOOLEAN_TYPES[0] && (
-                    <DeeployWarning
+                    <DeeployWarningAlert
                         title={<div>Custom Response</div>}
                         description={
                             <div>

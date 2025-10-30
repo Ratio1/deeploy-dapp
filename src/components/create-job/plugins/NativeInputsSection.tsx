@@ -6,9 +6,7 @@ import PortMappingSection from '@shared/PortMappingSection';
 import { useFormContext } from 'react-hook-form';
 import AppParametersSection from '../sections/AppParametersSection';
 
-export default function NativeInputsSection({ index }: { index: number }) {
-    const name = `deployment.plugins.${index}`;
-
+export default function NativeInputsSection({ name }: { name: string }) {
     const { watch } = useFormContext();
 
     const pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number] = watch(`${name}.pluginSignature`);

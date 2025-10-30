@@ -86,7 +86,7 @@ const validations = {
         )
         .default([]),
 
-    envVars: getKeyValueEntriesArraySchema(),
+    envVars: getKeyValueEntriesArraySchema(50),
     dynamicEnvVars: z
         .array(dynamicEnvEntrySchema)
         .max(50, 'Maximum 50 dynamic environment variables')
@@ -103,7 +103,7 @@ const validations = {
         ),
     customParams: getCustomParametersArraySchema(),
     pipelineParams: getKeyValueEntriesArraySchema(50),
-    volumes: getKeyValueEntriesArraySchema(),
+    volumes: getKeyValueEntriesArraySchema(50),
     fileVolumes: getFileVolumesArraySchema(50),
 
     // Enum patterns
@@ -376,11 +376,15 @@ const pluginSchema = applyCustomPluginSignatureRefinements(
     applyDeploymentTypeRefinements(applyTunnelingRefinements(pluginSchemaWithoutRefinements)),
 );
 
+export const nativeAppPluginsSchema = z
+    .array(pluginSchema)
+    .min(1, 'At least one plugin is required')
+    .max(5, 'Only 5 plugins allowed');
+
 const nativeAppDeploymentSchemaWihtoutRefinements = mainDeploymentSchema.extend({
     pipelineParams: validations.pipelineParams,
     pipelineInputType: z.enum(PIPELINE_INPUT_TYPES, { required_error: 'Value is required' }),
     pipelineInputUri: validations.optionalUri,
-    plugins: z.array(pluginSchema).min(1, 'At least one plugin is required').max(5, 'Only 5 plugins allowed'),
     chainstoreResponse: validations.chainstoreResponse,
 });
 

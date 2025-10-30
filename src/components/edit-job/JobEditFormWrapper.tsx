@@ -1,5 +1,6 @@
 import JobFormButtons from '@components/create-job/JobFormButtons';
 import Deployment from '@components/create-job/steps/Deployment';
+import Plugins from '@components/create-job/steps/Plugins';
 import Specifications from '@components/create-job/steps/Specifications';
 import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
@@ -21,7 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import z from 'zod';
 import ReviewAndConfirm from './ReviewAndConfirm';
 
-const STEPS: {
+const DEFAULT_STEPS: {
     title: string;
     validationName?: string;
 }[] = [
@@ -49,10 +50,12 @@ export default function JobEditFormWrapper({
 
     const jobConfig: JobConfig = job.config;
 
-    console.log('[JobEditFormWrapper]', { job, jobConfig });
+    // console.log('[JobEditFormWrapper]', { job, jobConfig });
 
     const [isTargetNodesCountLower, setTargetNodesCountLower] = useState<boolean>(false);
     const [additionalCost, setAdditionalCost] = useState<bigint>(0n);
+
+    const [steps, setSteps] = useState(DEFAULT_STEPS);
 
     const getBaseSchemaDeploymentDefaults = () => ({
         jobAlias: job.alias,
@@ -173,9 +176,9 @@ export default function JobEditFormWrapper({
             pipelineParams: [], // TODO: Missing from the API response
             pipelineInputType: job.pipelineData.TYPE,
             pipelineInputUri: job.pipelineData.URL,
-            plugins: formatPlugins(),
             chainstoreResponse: BOOLEAN_TYPES[1],
         },
+        plugins: formatPlugins(),
     });
 
     const getServiceSchemaDefaults = () => ({
@@ -251,7 +254,7 @@ export default function JobEditFormWrapper({
 
                 if (valueType === 'json') {
                     try {
-                        parsedValue = JSON.stringify(value);
+                        parsedValue = JSON.stringify(value, null, 2);
                     } catch (error) {
                         console.error('[formatCustomParams()] Unable to parse JSON value', key, value);
                     }
@@ -299,6 +302,14 @@ export default function JobEditFormWrapper({
         form.reset(defaults);
         setTargetNodesCountLower(false);
         setAdditionalCost(0n);
+
+        if (job.resources.jobType === JobType.Native) {
+            setSteps([
+                ...DEFAULT_STEPS.slice(0, DEFAULT_STEPS.length - 1),
+                { title: 'Plugins', validationName: 'plugins' },
+                DEFAULT_STEPS[DEFAULT_STEPS.length - 1],
+            ]);
+        }
     }, [job, form]);
 
     useEffect(() => {
@@ -329,7 +340,7 @@ export default function JobEditFormWrapper({
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
                             <JobFormHeaderInterface
-                                steps={STEPS.map((step) => step.title)}
+                                steps={steps.map((step) => step.title)}
                                 onCancel={() => {
                                     navigate(-1);
                                 }}
@@ -345,7 +356,8 @@ export default function JobEditFormWrapper({
                                 />
                             )}
                             {step === 1 && <Deployment isEditingRunningJob />}
-                            {step === 2 && (
+                            {step === 2 && <Plugins />}
+                            {step === 3 && (
                                 <ReviewAndConfirm
                                     defaultValues={defaultValues}
                                     job={job}
@@ -357,7 +369,7 @@ export default function JobEditFormWrapper({
                             )}
 
                             <JobFormButtons
-                                steps={STEPS}
+                                steps={steps}
                                 cancelLabel="Job"
                                 onCancel={() => {
                                     navigate(-1);

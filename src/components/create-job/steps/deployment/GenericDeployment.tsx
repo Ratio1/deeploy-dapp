@@ -38,7 +38,12 @@ function GenericDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
             </SlateCard>
 
             <SlateCard title="Volumes">
-                <KeyValueEntriesSection name="deployment.volumes" displayLabel="volumes" placeholders={['VOLUME', 'PATH']} />
+                <KeyValueEntriesSection
+                    name="deployment.volumes"
+                    displayLabel="volumes"
+                    maxEntries={50}
+                    placeholders={['VOLUME', 'PATH']}
+                />
             </SlateCard>
 
             <SlateCard title="File Volumes">

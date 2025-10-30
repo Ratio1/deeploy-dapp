@@ -403,7 +403,7 @@ export const formatNativeJobPayload = (
         }
     });
 
-    const primaryPluginNodeResources = formatContainerResources(workerType, []);
+    const nodeResources = formatContainerResources(workerType, []);
     const targetNodes = formatNodes(deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, specifications.targetNodesCount);
 
@@ -442,7 +442,7 @@ export const formatNativeJobPayload = (
         allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
         target_nodes_count: targetNodesCount,
         job_tags: jobTags,
-        node_res_req: primaryPluginNodeResources,
+        node_res_req: nodeResources,
         TUNNEL_ENGINE: 'cloudflare',
         plugins,
         pipeline_input_type: deployment.pipelineInputType,

@@ -1,7 +1,12 @@
 import { z } from 'zod';
 import { JobType } from '../typedefs/deeploys';
 import { costAndDurationSchema } from './steps/costAndDuration';
-import { genericAppDeploymentSchema, nativeAppDeploymentSchema, serviceAppDeploymentSchema } from './steps/deployment';
+import {
+    genericAppDeploymentSchema,
+    nativeAppDeploymentSchema,
+    nativeAppPluginsSchema,
+    serviceAppDeploymentSchema,
+} from './steps/deployment';
 import { genericSpecificationsSchema, nativeSpecificationsSchema, serviceSpecificationsSchema } from './steps/specifications';
 
 export const TARGET_NODES_REQUIRED_ERROR = 'All target nodes must be specified';
@@ -22,6 +27,7 @@ export const jobSchema = z
             jobType: z.literal(JobType.Native),
             specifications: nativeSpecificationsSchema,
             deployment: nativeAppDeploymentSchema,
+            plugins: nativeAppPluginsSchema,
         }),
         jobBaseSchema.extend({
             jobType: z.literal(JobType.Service),

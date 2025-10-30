@@ -1,8 +1,8 @@
-import { Button } from '@heroui/button';
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
-import { RiAddLine, RiClipboardLine } from 'react-icons/ri';
+import { RiClipboardLine } from 'react-icons/ri';
 import DeeployInfoTag from '../DeeployInfoTag';
+import VariableSectionControls from '../VariableSectionControls';
 import VariableSectionIndex from '../VariableSectionIndex';
 import VariableSectionRemove from '../VariableSectionRemove';
 
@@ -89,26 +89,14 @@ export default function SpareNodesSection() {
                 </div>
             )}
 
-            <div className="row justify-between">
-                <div>{!fields.length && <div className="text-sm text-slate-500 italic">No spare nodes added yet.</div>}</div>
-
-                {fields.length < 25 && (
-                    <div className="flex">
-                        <Button
-                            className="h-[34px] border-2 border-slate-200 bg-white px-2 data-[hover=true]:opacity-65!"
-                            color="primary"
-                            size="sm"
-                            variant="flat"
-                            onPress={() => append({ address: '' })}
-                        >
-                            <div className="row gap-0.5">
-                                <RiAddLine className="text-lg" />
-                                <div className="compact">Add Node</div>
-                            </div>
-                        </Button>
-                    </div>
-                )}
-            </div>
+            <VariableSectionControls
+                displayLabel="spare nodes"
+                addLabel="Node"
+                onClick={() => append({ address: '' })}
+                fieldsLength={fields.length}
+                maxFields={25}
+                remove={remove}
+            />
         </div>
     );
 }

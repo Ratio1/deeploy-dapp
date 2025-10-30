@@ -1,4 +1,5 @@
 import { JobType } from '@typedefs/deeploys';
+import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import GenericSpecifications from './specifications/GenericSpecifications';
 import NativeSpecifications from './specifications/NativeSpecifications';
@@ -15,6 +16,11 @@ function Specifications({
 }) {
     const { watch } = useFormContext();
     const jobType = watch('jobType');
+
+    // Init
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []);
 
     const getComponent = () => {
         switch (jobType) {

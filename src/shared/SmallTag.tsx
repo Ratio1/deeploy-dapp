@@ -32,7 +32,7 @@ export const SmallTag: FunctionComponent<
                 'bg-orange-100 text-orange-600': variant === 'orange',
                 'bg-emerald-100 text-emerald-600': variant === 'emerald',
                 'bg-purple-100 text-purple-600': variant === 'purple',
-                'bg-yellow-100 text-yellow-600': variant === 'yellow',
+                'bg-orange-100 text-yellow-600': variant === 'yellow',
                 'bg-blue-100': variant === 'accent',
                 'bg-red-150 text-red-600': variant === 'darkred',
                 'bg-green-150 text-green-600': variant === 'darkgreen',

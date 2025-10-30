@@ -10,7 +10,7 @@ import {
 } from '@lib/deeploy-utils';
 import CostAndDurationInterface from '@shared/jobs/CostAndDurationInterface';
 import { JobCostAndDuration, JobSpecifications, JobType } from '@typedefs/deeploys';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 function CostAndDuration() {
@@ -73,6 +73,11 @@ function CostAndDuration() {
         ],
         [costPerEpoch, duration],
     );
+
+    // Init
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []);
 
     return (
         <CostAndDurationInterface

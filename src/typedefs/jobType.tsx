@@ -10,7 +10,7 @@ export type JobTypeOption = {
     jobType: JobType;
 };
 
-export const jobTypeOptions: JobTypeOption[] = [
+export const JOB_TYPE_OPTIONS: JobTypeOption[] = [
     {
         id: 'generic',
         title: 'Generic App',
