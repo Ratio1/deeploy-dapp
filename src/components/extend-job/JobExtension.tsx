@@ -1,5 +1,6 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { DeeployFlowModal } from '@components/draft/DeeployFlowModal';
+import { formatResourcesSummary } from '@data/containerResources';
 import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
 import { config, environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
@@ -116,7 +117,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
             },
             {
                 label: 'Resources',
-                value: job.resources.containerOrWorkerType.description,
+                value: formatResourcesSummary(job.resources.containerOrWorkerType),
             },
             {
                 label: 'Target Nodes',

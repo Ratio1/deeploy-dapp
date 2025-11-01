@@ -1,10 +1,9 @@
-import { ContainerOrWorkerType } from '@data/containerResources';
+import { ContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
 import { environment } from '@lib/config';
 import {
     addTimeFn,
     formatUsdc,
     getContainerOrWorkerType,
-    getContainerOrWorkerTypeDescription,
     getGpuType,
     getResourcesCostPerEpoch,
 } from '@lib/deeploy-utils';
@@ -52,7 +51,7 @@ function CostAndDuration() {
             },
             {
                 label: 'Resources',
-                value: getContainerOrWorkerTypeDescription(containerOrWorkerType),
+                value: formatResourcesSummary(containerOrWorkerType),
             },
             {
                 label: 'Target Nodes',

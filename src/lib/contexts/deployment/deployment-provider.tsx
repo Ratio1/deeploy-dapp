@@ -245,6 +245,21 @@ export const DeploymentProvider = ({ children }) => {
                     return null;
                 }
 
+                console.log({
+                    job,
+                    appsData: {
+                        alias,
+                        projectName: specs.project_name,
+                        allowReplicationInTheWild: specs.allow_replication_in_the_wild,
+                        spareNodes: specs.spare_nodes,
+                        jobTags: specs.job_tags,
+                        nodes: appWithInstances.instances.map((instance) => instance.nodeAddress),
+                        instances: appWithInstances.instances,
+                        config,
+                        pipelineData,
+                    },
+                });
+
                 const jobWithDetails: RunningJobWithDetails = {
                     alias,
                     projectName: specs.project_name,

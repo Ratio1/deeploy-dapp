@@ -1,6 +1,6 @@
-import { Service } from '@data/containerResources';
+import { Service, formatResourcesSummary } from '@data/containerResources';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
+import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { applyWidthClasses } from '@lib/utils';
 import DraftJobsList from '@shared/jobs/drafts/DraftJobsList';
 import { SmallTag } from '@shared/SmallTag';
@@ -8,10 +8,10 @@ import { JobType, ServiceDraftJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
 
 const widthClasses = [
-    'min-w-[128px]', // alias
+    'min-w-[138px]', // alias
     'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
-    'min-w-[82px]', // database
+    'min-w-[90px]', // type
     'min-w-[310px]', // resources
 ];
 
@@ -27,7 +27,7 @@ export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[]
                 </div>
             }
             tableHeader={
-                <>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Database', 'Container Type'], widthClasses)}</>
+                <>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Type', 'Container Type'], widthClasses)}</>
             }
             jobs={jobs}
             renderJob={(job) => {
@@ -50,11 +50,11 @@ export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[]
                         <div className={widthClasses[2]}>{serviceJob.specifications.targetNodesCount}</div>
 
                         <div className={widthClasses[3]}>
-                            <SmallTag variant={containerOrWorkerType.notesColor}>{containerOrWorkerType.dbSystem}</SmallTag>
+                            <SmallTag variant={containerOrWorkerType.notesColor}>{containerOrWorkerType.serviceName}</SmallTag>
                         </div>
 
                         <div className={widthClasses[4]}>
-                            {containerOrWorkerType.name} ({getContainerOrWorkerTypeDescription(containerOrWorkerType)})
+                            {containerOrWorkerType.name} ({formatResourcesSummary(containerOrWorkerType)})
                         </div>
                     </>
                 );

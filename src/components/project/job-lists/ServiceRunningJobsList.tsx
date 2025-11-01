@@ -1,5 +1,4 @@
-import { Service } from '@data/containerResources';
-import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
+import { Service, formatResourcesSummary } from '@data/containerResources';
 import { applyWidthClasses } from '@lib/utils';
 import RunningJobsList from '@shared/jobs/projects/RunningJobsList';
 import { SmallTag } from '@shared/SmallTag';
@@ -48,12 +47,12 @@ function ServiceRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
                         </div>
 
                         <div className={widthClasses[2]}>
-                            <SmallTag variant={service.notesColor}>{service.dbSystem}</SmallTag>
+                            <SmallTag variant={service.notesColor}>{service.serviceName}</SmallTag>
                         </div>
 
-                        <div className={widthClasses[3]}>
-                            {`${containerOrWorkerType.name} (${getContainerOrWorkerTypeDescription(containerOrWorkerType)})`}
-                        </div>
+                        <div
+                            className={widthClasses[3]}
+                        >{`${containerOrWorkerType.name} (${formatResourcesSummary(containerOrWorkerType)})`}</div>
                     </>
                 );
             }}

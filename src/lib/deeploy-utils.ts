@@ -513,11 +513,6 @@ export const getMinimalBalancing = (type: string, containerOrWorkerType: string 
     return 1;
 };
 
-export const getContainerOrWorkerTypeDescription = (containerOrWorkerType: ContainerOrWorkerType): string => {
-    const storageString = `, ${containerOrWorkerType.storage} GiB storage`;
-    return `${containerOrWorkerType.cores} core${containerOrWorkerType.cores > 1 ? 's' : ''}, ${containerOrWorkerType.ram} GB RAM${containerOrWorkerType.storage ? storageString : ''}`;
-};
-
 export function buildDeeployMessage(data: Record<string, any>, prefix: string = ''): string {
     const cleaned = structuredClone(data);
     delete cleaned.address;
