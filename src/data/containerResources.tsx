@@ -4,7 +4,6 @@ export type ContainerOrWorkerType = {
     id: number;
     name: string;
     jobType: number;
-    description: string;
     notes: string;
     notesColor: 'red' | 'orange' | 'green' | 'blue';
     monthlyBudgetPerWorker: number;
@@ -13,6 +12,21 @@ export type ContainerOrWorkerType = {
     cores: number;
     ram: number;
     storage?: number;
+};
+
+export const formatResourceSummary = (containerOrWorkerType: ContainerOrWorkerType): string => {
+    const coreLabel = `${containerOrWorkerType.cores} ${containerOrWorkerType.cores === 1 ? 'core' : 'cores'}`;
+    const ramLabel = `${containerOrWorkerType.ram} GB`;
+
+    let storageLabel: string | undefined;
+
+    if (containerOrWorkerType.storage === Infinity) {
+        storageLabel = 'Full Storage';
+    } else if (typeof containerOrWorkerType.storage === 'number') {
+        storageLabel = `${containerOrWorkerType.storage} GB Storage`;
+    }
+
+    return [coreLabel, ramLabel, storageLabel].filter(Boolean).join(' ');
 };
 
 export type Service = ContainerOrWorkerType & {
@@ -53,7 +67,6 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         id: 1,
         name: 'ENTRY',
         jobType: 1,
-        description: '1 core 2 GB 8 GB Storage',
         notes: 'No GPU',
         notesColor: 'red',
         monthlyBudgetPerWorker: 11.25,
@@ -61,12 +74,12 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         minimalBalancing: 2,
         cores: 1,
         ram: 2,
+        storage: 8,
     },
     {
         id: 2,
         name: 'LOW1',
         jobType: 2,
-        description: '2 core 4 GB 16 GB Storage',
         notes: 'No GPU',
         notesColor: 'red',
         monthlyBudgetPerWorker: 22.5,
@@ -74,12 +87,12 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         minimalBalancing: 2,
         cores: 2,
         ram: 4,
+        storage: 16,
     },
     {
         id: 3,
         name: 'LOW2',
         jobType: 3,
-        description: '2 core 8 GB 32 GB Storage',
         notes: 'No GPU',
         notesColor: 'red',
         monthlyBudgetPerWorker: 30,
@@ -87,12 +100,12 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         minimalBalancing: 2,
         cores: 2,
         ram: 8,
+        storage: 32,
     },
     {
         id: 4,
         name: 'MED1',
         jobType: 4,
-        description: '3 core 12 GB 48 GB Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 57.5,
@@ -100,12 +113,12 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         minimalBalancing: 2,
         cores: 3,
         ram: 12,
+        storage: 48,
     },
     {
         id: 5,
         name: 'MED2',
         jobType: 5,
-        description: '6 core 14 GB 56 GB Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 87.5,
@@ -113,12 +126,12 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         minimalBalancing: 2,
         cores: 6,
         ram: 14,
+        storage: 56,
     },
     {
         id: 6,
         name: 'HIGH1',
         jobType: 6,
-        description: '8 core 22 GB 88 GB Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 112.5,
@@ -126,12 +139,12 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         minimalBalancing: 2,
         cores: 8,
         ram: 22,
+        storage: 88,
     },
     {
         id: 7,
         name: 'HIGH2',
         jobType: 7,
-        description: '12 core 30 GB 120 GB Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 160,
@@ -139,12 +152,12 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         minimalBalancing: 2,
         cores: 12,
         ram: 30,
+        storage: 120,
     },
     {
         id: 8,
         name: 'ULTRA1',
         jobType: 8,
-        description: '16 core 62 GB 248 GB Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 250,
@@ -152,12 +165,12 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         minimalBalancing: 2,
         cores: 16,
         ram: 62,
+        storage: 248,
     },
     {
         id: 9,
         name: 'ULTRA2',
         jobType: 9,
-        description: '22 core 124 GB 496 GB Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 375,
@@ -165,6 +178,7 @@ export const genericContainerTypes: ContainerOrWorkerType[] = [
         minimalBalancing: 2,
         cores: 22,
         ram: 124,
+        storage: 496,
     },
 ];
 
@@ -173,7 +187,6 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         id: 1,
         name: 'N-ENTRY',
         jobType: 16,
-        description: '3 core 14 GB Full Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 75,
@@ -181,12 +194,12 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         minimalBalancing: 2,
         cores: 3,
         ram: 14,
+        storage: Infinity,
     },
     {
         id: 2,
         name: 'N-MED1',
         jobType: 17,
-        description: '8 core 22 GB Full Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 112.5,
@@ -194,12 +207,12 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         minimalBalancing: 2,
         cores: 8,
         ram: 22,
+        storage: Infinity,
     },
     {
         id: 3,
         name: 'N-MED2',
         jobType: 18,
-        description: '12 core 30 GB Full Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 180,
@@ -207,12 +220,12 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         minimalBalancing: 1,
         cores: 12,
         ram: 30,
+        storage: Infinity,
     },
     {
         id: 4,
         name: 'N-HIGH',
         jobType: 19,
-        description: '16 core 60 GB Full Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 270,
@@ -220,12 +233,12 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         minimalBalancing: 1,
         cores: 16,
         ram: 60,
+        storage: Infinity,
     },
     {
         id: 5,
         name: 'N-ULTRA',
         jobType: 20,
-        description: '22 core 124 GB Full Storage',
         notes: 'GPU Support',
         notesColor: 'green',
         monthlyBudgetPerWorker: 400,
@@ -233,6 +246,7 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
         minimalBalancing: 1,
         cores: 22,
         ram: 124,
+        storage: Infinity,
     },
 ];
 
@@ -241,7 +255,6 @@ export const serviceContainerTypes: Service[] = [
         id: 1,
         name: 'PGSQL-LOW',
         jobType: 10,
-        description: '1 core 2 GB 50 GiB',
         notes: 'PostgreSQL single instance',
         notesColor: 'blue',
         monthlyBudgetPerWorker: 30,
@@ -260,7 +273,6 @@ export const serviceContainerTypes: Service[] = [
         id: 2,
         name: 'PGSQL-MED',
         jobType: 11,
-        description: '2 core 4 GB 200 GiB',
         notes: 'PostgreSQL single instance',
         notesColor: 'blue',
         monthlyBudgetPerWorker: 65,
@@ -279,7 +291,6 @@ export const serviceContainerTypes: Service[] = [
         id: 3,
         name: 'MYSQL-LOW',
         jobType: 12,
-        description: '1 core 2 GB 50 GiB',
         notes: 'MySQL single instance',
         notesColor: 'orange',
         monthlyBudgetPerWorker: 30,
@@ -298,7 +309,6 @@ export const serviceContainerTypes: Service[] = [
         id: 4,
         name: 'MYSQL-MED',
         jobType: 13,
-        description: '2 core 4 GB 200 GiB',
         notes: 'MySQL single instance',
         notesColor: 'orange',
         monthlyBudgetPerWorker: 65,
@@ -317,7 +327,6 @@ export const serviceContainerTypes: Service[] = [
         id: 5,
         name: 'NoSQL-LOW',
         jobType: 14,
-        description: '1 core 2 GB 50 GiB',
         notes: 'MongoDB single instance',
         notesColor: 'green',
         monthlyBudgetPerWorker: 30,
@@ -339,7 +348,6 @@ export const serviceContainerTypes: Service[] = [
         id: 6,
         name: 'NoSQL-MED',
         jobType: 15,
-        description: '2 core 4 GB 200 GiB',
         notes: 'MongoDB single instance',
         notesColor: 'green',
         monthlyBudgetPerWorker: 65,

@@ -32,7 +32,6 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericDraftJob
                     { label: 'Alias', value: genericJob.deployment.jobAlias },
 
                     // Specifications
-                    { label: 'App Type', value: genericJob.specifications.applicationType },
                     { label: 'Target Nodes', value: genericJob.specifications.targetNodesCount },
                     {
                         label: 'Container Type',

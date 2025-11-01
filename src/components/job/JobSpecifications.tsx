@@ -1,4 +1,4 @@
-import { RunningJobResources } from '@data/containerResources';
+import { formatResourceSummary, RunningJobResources } from '@data/containerResources';
 import { environment } from '@lib/config';
 import { getResourcesCostPerEpoch } from '@lib/deeploy-utils';
 import { fBI } from '@lib/utils';
@@ -14,7 +14,7 @@ export default function JobSpecifications({ resources }: { resources: RunningJob
         },
         {
             label: 'Resources',
-            value: resources.containerOrWorkerType.description,
+            value: formatResourceSummary(resources.containerOrWorkerType),
         },
         {
             label: 'GPU Type',

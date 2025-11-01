@@ -30,15 +30,15 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[]
                     { label: 'Alias', value: nativeJob.deployment.jobAlias },
 
                     // Specifications
-                    { label: 'App Type', value: nativeJob.specifications.applicationType },
                     { label: 'Target Nodes', value: nativeJob.specifications.targetNodesCount },
                     { label: 'Worker Type', value: `${workerType.name} (${getContainerOrWorkerTypeDescription(workerType)})` },
                     ...(gpuType ? [{ label: 'GPU Type', value: `${gpuType.name} (${gpuType.gpus.join(', ')})` }] : []),
 
                     // Deployment
                     { label: 'Pipeline Input Type', value: nativeJob.deployment.pipelineInputType },
-                    { label: 'Pipeline Input URI', value: nativeJob.deployment.pipelineInputUri ?? 'None' },
-                    { label: 'Chainstore Response', value: nativeJob.deployment.chainstoreResponse },
+                    ...(nativeJob.deployment.pipelineInputUri
+                        ? [{ label: 'Pipeline Input URI', value: nativeJob.deployment.pipelineInputUri }]
+                        : []),
                 ];
 
                 if (nativeJob.deployment.plugins?.length) {
