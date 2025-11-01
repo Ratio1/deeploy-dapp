@@ -1,5 +1,4 @@
-import { ContainerOrWorkerType, genericContainerTypes, GpuType, gpuTypes } from '@data/containerResources';
-import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
+import { ContainerOrWorkerType, formatResourcesSummary, genericContainerTypes, GpuType, gpuTypes } from '@data/containerResources';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
 import { GenericDraftJob } from '@typedefs/deeploys';
 import { ContainerDeploymentType, DeploymentType, PluginType, WorkerDeploymentType } from '@typedefs/steps/deploymentStepTypes';
@@ -35,7 +34,7 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericDraftJob
                     { label: 'Target Nodes', value: genericJob.specifications.targetNodesCount },
                     {
                         label: 'Container Type',
-                        value: `${containerType.name} (${getContainerOrWorkerTypeDescription(containerType)})`,
+                        value: `${containerType.name} (${formatResourcesSummary(containerType)})`,
                     },
                     ...(gpuType ? [{ label: 'GPU Type', value: `${gpuType.name} (${gpuType.gpus.join(', ')})` }] : []),
 

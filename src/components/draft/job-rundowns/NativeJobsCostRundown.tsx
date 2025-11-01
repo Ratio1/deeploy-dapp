@@ -1,5 +1,4 @@
-import { ContainerOrWorkerType, GpuType, gpuTypes, nativeWorkerTypes } from '@data/containerResources';
-import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
+import { ContainerOrWorkerType, GpuType, formatResourcesSummary, gpuTypes, nativeWorkerTypes } from '@data/containerResources';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
 import { NativeDraftJob } from '@typedefs/deeploys';
 import { BasePluginType, GenericPlugin, Plugin, PluginType } from '@typedefs/steps/deploymentStepTypes';
@@ -31,7 +30,7 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[]
 
                     // Specifications
                     { label: 'Target Nodes', value: nativeJob.specifications.targetNodesCount },
-                    { label: 'Worker Type', value: `${workerType.name} (${getContainerOrWorkerTypeDescription(workerType)})` },
+                    { label: 'Worker Type', value: `${workerType.name} (${formatResourcesSummary(workerType)})` },
                     ...(gpuType ? [{ label: 'GPU Type', value: `${gpuType.name} (${gpuType.gpus.join(', ')})` }] : []),
 
                     // Deployment

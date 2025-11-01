@@ -14,7 +14,7 @@ export type ContainerOrWorkerType = {
     storage?: number;
 };
 
-export const formatResourceSummary = (containerOrWorkerType: ContainerOrWorkerType): string => {
+export const formatResourcesSummary = (containerOrWorkerType: ContainerOrWorkerType): string => {
     const coreLabel = `${containerOrWorkerType.cores} ${containerOrWorkerType.cores === 1 ? 'core' : 'cores'}`;
     const ramLabel = `${containerOrWorkerType.ram} GB`;
 
@@ -32,7 +32,7 @@ export const formatResourceSummary = (containerOrWorkerType: ContainerOrWorkerTy
 export type Service = ContainerOrWorkerType & {
     port?: number;
     image?: string;
-    dbSystem?: string;
+    serviceName?: string;
     tag?: {
         text: string;
         bgClass: string;
@@ -265,7 +265,7 @@ export const serviceContainerTypes: Service[] = [
         storage: 50,
         port: 5432,
         image: 'postgres:17',
-        dbSystem: 'PostgreSQL',
+        serviceName: 'PostgreSQL',
         tag: { text: 'PostgreSQL', bgClass: 'bg-blue-100', textClass: 'text-blue-600' },
         inputs: [{ key: 'POSTGRES_PASSWORD', label: 'PostgreSQL Password' }],
     },
@@ -283,7 +283,7 @@ export const serviceContainerTypes: Service[] = [
         storage: 200,
         port: 5432,
         image: 'postgres:17',
-        dbSystem: 'PostgreSQL',
+        serviceName: 'PostgreSQL',
         tag: { text: 'PostgreSQL', bgClass: 'bg-blue-100', textClass: 'text-blue-600' },
         inputs: [{ key: 'POSTGRES_PASSWORD', label: 'PostgreSQL Password' }],
     },
@@ -301,7 +301,7 @@ export const serviceContainerTypes: Service[] = [
         storage: 50,
         port: 3306,
         image: 'mysql',
-        dbSystem: 'MySQL',
+        serviceName: 'MySQL',
         tag: { text: 'MySQL', bgClass: 'bg-orange-100', textClass: 'text-orange-600' },
         inputs: [{ key: 'MYSQL_ROOT_PASSWORD', label: 'MySQL Root Password' }],
     },
@@ -319,7 +319,7 @@ export const serviceContainerTypes: Service[] = [
         storage: 200,
         port: 3306,
         image: 'mysql',
-        dbSystem: 'MySQL',
+        serviceName: 'MySQL',
         tag: { text: 'MySQL', bgClass: 'bg-orange-100', textClass: 'text-orange-600' },
         inputs: [{ key: 'MYSQL_ROOT_PASSWORD', label: 'MySQL Root Password' }],
     },
@@ -337,7 +337,7 @@ export const serviceContainerTypes: Service[] = [
         storage: 50,
         port: 27017,
         image: 'mongodb',
-        dbSystem: 'MongoDB',
+        serviceName: 'MongoDB',
         tag: { text: 'MongoDB', bgClass: 'bg-green-100', textClass: 'text-green-600' },
         inputs: [
             { key: 'MONGO_INITDB_ROOT_USERNAME', label: 'MongoDB Root Username' },
@@ -358,7 +358,7 @@ export const serviceContainerTypes: Service[] = [
         storage: 200,
         port: 27017,
         image: 'mongodb',
-        dbSystem: 'MongoDB',
+        serviceName: 'MongoDB',
         tag: { text: 'MongoDB', bgClass: 'bg-green-100', textClass: 'text-green-600' },
         inputs: [
             { key: 'MONGO_INITDB_ROOT_USERNAME', label: 'MongoDB Root Username' },
