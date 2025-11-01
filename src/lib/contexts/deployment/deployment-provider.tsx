@@ -128,8 +128,6 @@ export const DeploymentProvider = ({ children }) => {
             functionName: 'getActiveJobs',
         });
 
-        console.log('[DeploymentProvider] getActiveJobs', runningJobs);
-
         const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(runningJobs, appsOverride);
         return runningJobsWithDetails;
     };

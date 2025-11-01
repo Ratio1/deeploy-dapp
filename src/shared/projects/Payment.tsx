@@ -57,10 +57,13 @@ export default function Payment({
     const [totalCost, setTotalCost] = useState<bigint>(0n);
     const [isLoading, setLoading] = useState<boolean>(false);
 
+    const [isPaymentRequired, setPaymentRequired] = useState<boolean>(false);
+
     const [errors, setErrors] = useState<
         {
             text: string;
             serverAlias: string;
+            jobAlias?: string;
         }[]
     >([]);
 
@@ -87,12 +90,15 @@ export default function Payment({
             const jobsTotalCost = getJobsTotalCost(jobs);
             setTotalCost(jobsTotalCost);
 
-            // Log payloads in development TODO: Fix
-            // if (process.env.NODE_ENV === 'development') {
-            //     getJobPayloadsWithIds(jobs);
-            // }
+            setPaymentRequired(jobs.filter((job) => !job.paid).length > 0);
         }
     }, [jobs]);
+
+    useEffect(() => {
+        if (isPaymentRequired) {
+            setDeeployModalActions(['payment', 'signXMessages', 'callDeeployApi']);
+        }
+    }, [isPaymentRequired]);
 
     const getJobPayloadsWithIds = (
         paidJobs: PaidDraftJob[],
@@ -170,12 +176,6 @@ export default function Payment({
             setLoading(true);
 
             const unpaidJobDrafts: DraftJob[] = jobs.filter((job) => !job.paid);
-            const isPaymentRequired = unpaidJobDrafts.length > 0;
-
-            if (isPaymentRequired) {
-                setDeeployModalActions(['payment', 'signXMessages', 'callDeeployApi']);
-            }
-
             deeployFlowModalRef.current?.open(unpaidJobDrafts.length, jobs.length);
 
             if (isPaymentRequired) {
@@ -253,15 +253,23 @@ export default function Payment({
                 toast.error(`${failedJobs.length} job${failedJobs.length > 1 ? 's' : ''} failed to deploy.`);
 
                 setErrors(
-                    failedJobs
-                        .filter((item) => item.response.status === 'fulfilled')
-                        .map((item) => {
+                    failedJobs.map((item) => {
+                        const draftJob = paidJobs.find((job) => job.id === item.draftJobId);
+                        if (item.response.status === 'fulfilled') {
                             const fulfilledResponse = item.response as PromiseFulfilledResult<any>;
                             return {
                                 text: fulfilledResponse.value?.error || 'Request timed out',
-                                serverAlias: fulfilledResponse.value?.server_info.alias,
+                                jobAlias: draftJob?.deployment.jobAlias || 'Unknown',
+                                serverAlias: fulfilledResponse.value?.server_info.alias || 'Unknown',
                             };
-                        }),
+                        } else {
+                            const rejectedResponse = item.response as PromiseRejectedResult;
+                            return {
+                                text: rejectedResponse.reason?.message || 'Request failed',
+                                serverAlias: 'Unknown',
+                            };
+                        }
+                    }),
                 );
             }
 
@@ -402,7 +410,7 @@ export default function Payment({
                             isLoading={isLoading}
                             setLoading={setLoading}
                             callback={onPayAndDeploy}
-                            isButtonDisabled={jobs?.length === 0 || totalCost === 0n}
+                            isButtonDisabled={jobs?.length === 0}
                             label={jobs?.every((job) => job.paid) ? 'Deploy' : 'Pay & Deploy'}
                         />
                     </div>

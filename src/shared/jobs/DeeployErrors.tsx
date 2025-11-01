@@ -5,7 +5,7 @@ export default function DeeployErrors({
     errors,
 }: {
     type: 'deployment' | 'update';
-    errors: { text: string; serverAlias: string }[];
+    errors: { text: string; serverAlias: string; jobAlias?: string }[];
 }) {
     if (!errors.length) {
         return null;

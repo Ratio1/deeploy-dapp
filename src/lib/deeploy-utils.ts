@@ -70,6 +70,10 @@ export const getResourcesCostPerEpoch = (
 };
 
 export const getJobCost = (job: DraftJob): bigint => {
+    if (job.paid) {
+        return 0n;
+    }
+
     const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
     const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
 
