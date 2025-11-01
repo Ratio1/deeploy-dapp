@@ -58,13 +58,20 @@ type JobCostAndDuration = {
 // Draft Job
 type BaseDraftJob = {
     id: number;
-    paid: boolean;
     projectHash: string;
     jobType: JobType;
     specifications: JobSpecifications;
     costAndDuration: JobCostAndDuration;
     deployment: JobDeployment;
-};
+} & (
+    | {
+          paid: false;
+      }
+    | {
+          paid: true;
+          runningJobId: bigint;
+      }
+);
 
 type GenericDraftJob = BaseDraftJob & {
     jobType: JobType.Generic;
@@ -85,6 +92,8 @@ type ServiceDraftJob = BaseDraftJob & {
 };
 
 type DraftJob = GenericDraftJob | NativeDraftJob | ServiceDraftJob;
+
+type PaidDraftJob = Extract<DraftJob, { paid: true }>;
 
 type DraftProject = {
     projectHash: string;
@@ -149,6 +158,7 @@ export type {
     NativeDraftJob,
     NativeJobDeployment,
     NativeJobSpecifications,
+    PaidDraftJob,
     RunningJob,
     RunningJobWithDetails,
     RunningJobWithResources,

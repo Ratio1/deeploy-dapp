@@ -17,7 +17,7 @@ export default function DeeployInfoAlert({
         <div
             className={clsx('col gap-2 rounded-md py-3 text-sm', {
                 'px-3': isCompact,
-                'px-4': !isCompact,
+                'px-4 lg:px-6': !isCompact,
                 'bg-blue-100 text-blue-600': variant === 'blue',
                 'bg-green-100 text-green-600': variant === 'green',
             })}
