@@ -58,6 +58,7 @@ type JobCostAndDuration = {
 // Draft Job
 type BaseDraftJob = {
     id: number;
+    paid: boolean;
     projectHash: string;
     jobType: JobType;
     specifications: JobSpecifications;

@@ -23,6 +23,7 @@ import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import EmptyData from '@shared/EmptyData';
 import DeeployErrors from '@shared/jobs/DeeployErrors';
+import DeeployInfoAlert from '@shared/jobs/DeeployInfoAlert';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import { SmallTag } from '@shared/SmallTag';
@@ -84,12 +85,17 @@ export default function Payment({
 
             // Log payloads in development
             if (process.env.NODE_ENV === 'development') {
-                getJobPayloads(jobs);
+                getJobPayloadsWithIds(jobs);
             }
         }
     }, [jobs]);
 
-    const getJobPayloads = (jobs: DraftJob[]) => {
+    const getJobPayloadsWithIds = (
+        jobs: DraftJob[],
+    ): {
+        id: number;
+        payload: any;
+    }[] => {
         return jobs.map((job) => {
             let payload = {};
 
@@ -113,7 +119,7 @@ export default function Payment({
 
             console.log('[Payment] Payloads', payload);
 
-            return payload;
+            return { id: job.id, payload };
         });
     };
 
@@ -185,6 +191,9 @@ export default function Payment({
             const receipt = await watchTx(txHash, publicClient);
 
             if (receipt.status === 'success') {
+                // Mark all job drafts as paid
+                await db.jobs.where('projectHash').equals(projectHash).modify({ paid: true });
+
                 const jobCreatedLogs = receipt.logs
                     .filter((log) => log.address === escrowContractAddress.toLowerCase())
                     .map((log) => {
@@ -203,14 +212,16 @@ export default function Payment({
                     .filter((log) => log !== null && log.eventName === 'JobCreated');
 
                 const jobIds = jobCreatedLogs.map((log) => log.args.jobId);
-                const payloads = getJobPayloads(jobs);
+                const payloadsWithIds = getJobPayloadsWithIds(jobs);
 
                 deeployFlowModalRef.current?.progress('signXMessages');
 
                 const requests = await Promise.all(
-                    payloads.map((payload, index) => {
-                        const jobId = Number(jobIds[index]);
-                        return signAndBuildRequest(jobId, payload);
+                    payloadsWithIds.map((payloadWithId, index) => {
+                        const runningJobId = Number(jobIds[index]);
+                        const draftJobId = payloadWithId.id;
+
+                        return signAndBuildRequest(runningJobId, payloadWithId.payload);
                     }),
                 );
 
@@ -316,6 +327,7 @@ export default function Payment({
                             setLoading={setLoading}
                             callback={onPayAndDeploy}
                             isButtonDisabled={jobs?.length === 0 || totalCost === 0n}
+                            label={jobs?.every((job) => job.paid) ? 'Deploy' : 'Pay & Deploy'}
                         />
                     </div>
                 </div>
@@ -346,6 +358,32 @@ export default function Payment({
 
                 {/* Errors */}
                 <DeeployErrors type="deployment" errors={errors} />
+
+                {/* Paid Jobs Alert */}
+                {jobs?.some((job) => job.paid) && (
+                    <DeeployInfoAlert
+                        variant="green"
+                        title={
+                            <div>
+                                <span className="font-medium">Already paid</span> job drafts
+                            </div>
+                        }
+                        description={
+                            <div className="col gap-1">
+                                <div>
+                                    This project might contain job drafts that were{' '}
+                                    <span className="font-medium">paid but not yet deployed</span>. You{' '}
+                                    <span className="font-medium">won't be charged again</span> when you deploy them.
+                                </div>
+                                <div>
+                                    If any of these job drafts were already deployed successfully, please delete them to prevent
+                                    further errors.
+                                </div>
+                            </div>
+                        }
+                        isCompact={false}
+                    />
+                )}
 
                 {/* Rundowns */}
                 {!!jobs && !!jobs.length && (
