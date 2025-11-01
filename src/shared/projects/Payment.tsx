@@ -164,10 +164,10 @@ export default function Payment({
             setErrors([]);
             setLoading(true);
 
-            const messagesToSign = jobs.length;
-            deeployFlowModalRef.current?.open(jobs.length, messagesToSign);
+            const unpaidJobDrafts: DraftJob[] = jobs.filter((job) => !job.paid);
+            deeployFlowModalRef.current?.open(unpaidJobDrafts.length, jobs.length);
 
-            const args = jobs.map((job) => {
+            const args = unpaidJobDrafts.map((job) => {
                 const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
                 const expiryDate = addDays(new Date(), job.costAndDuration.duration * 30);
                 const durationInEpochs = diffTimeFn(expiryDate, new Date());
@@ -191,9 +191,6 @@ export default function Payment({
             const receipt = await watchTx(txHash, publicClient);
 
             if (receipt.status === 'success') {
-                // Mark all job drafts as paid
-                await db.jobs.where('projectHash').equals(projectHash).modify({ paid: true });
-
                 const jobCreatedLogs = receipt.logs
                     .filter((log) => log.address === escrowContractAddress.toLowerCase())
                     .map((log) => {
@@ -211,39 +208,55 @@ export default function Payment({
                     })
                     .filter((log) => log !== null && log.eventName === 'JobCreated');
 
-                const jobIds = jobCreatedLogs.map((log) => log.args.jobId);
+                const jobIds: bigint[] = jobCreatedLogs.map((log) => log.args.jobId);
+
+                // Mark job drafts as paid
+                jobIds.forEach(async (jobId, index) => {
+                    const jobDraft = unpaidJobDrafts[index];
+                    await db.jobs.update(jobDraft.id, { ...jobDraft, paid: true, runningJobId: jobId } as DraftJob);
+                    console.log('Marked job draft as paid', { jobDraft, runningJobId: jobId });
+                });
+
                 const payloadsWithIds = getJobPayloadsWithIds(jobs);
 
                 deeployFlowModalRef.current?.progress('signXMessages');
 
-                const requests = await Promise.all(
-                    payloadsWithIds.map((payloadWithId, index) => {
+                const requestsWithDraftIds = await Promise.all(
+                    payloadsWithIds.map(async (payloadWithId, index) => {
                         const runningJobId = Number(jobIds[index]);
                         const draftJobId = payloadWithId.id;
 
-                        return signAndBuildRequest(runningJobId, payloadWithId.payload);
+                        const request = await signAndBuildRequest(runningJobId, payloadWithId.payload);
+                        return { request, draftJobId };
                     }),
                 );
 
                 deeployFlowModalRef.current?.progress('callDeeployApi');
 
                 const responses = await Promise.allSettled(
-                    requests.map((request) => {
+                    requestsWithDraftIds.map(({ request }) => {
                         return createPipeline(request);
                     }),
                 );
 
+                // Map responses back to draft job IDs
+                const responsesWithDraftJobIds = responses.map((response, index) => {
+                    const { draftJobId } = requestsWithDraftIds[index];
+                    return { response, draftJobId };
+                });
+
                 // Check for any failed deployments
-                const failedJobs = responses.filter(
-                    (response) =>
-                        response.status === 'rejected' ||
-                        response.value.status === 'fail' ||
-                        response.value.status === 'timeout',
+                const failedJobs = responsesWithDraftJobIds.filter(
+                    (item) =>
+                        item.response.status === 'rejected' ||
+                        (item.response.status === 'fulfilled' &&
+                            (item.response.value.status === 'fail' || item.response.value.status === 'timeout')),
                 );
-                const successfulJobs = responses.filter(
-                    (response) =>
-                        response.status === 'fulfilled' &&
-                        (response.value.status === 'success' || response.value.status === 'command_delivered'),
+
+                const successfulJobs = responsesWithDraftJobIds.filter(
+                    (item) =>
+                        item.response.status === 'fulfilled' &&
+                        (item.response.value.status === 'success' || item.response.value.status === 'command_delivered'),
                 );
 
                 if (failedJobs.length > 0) {
@@ -252,11 +265,14 @@ export default function Payment({
 
                     setErrors(
                         failedJobs
-                            .filter((job) => job.status === 'fulfilled')
-                            .map((job) => ({
-                                text: job.value?.error || 'Request timed out',
-                                serverAlias: job.value?.server_info.alias,
-                            })),
+                            .filter((item) => item.response.status === 'fulfilled')
+                            .map((item) => {
+                                const fulfilledResponse = item.response as PromiseFulfilledResult<any>;
+                                return {
+                                    text: fulfilledResponse.value?.error || 'Request timed out',
+                                    serverAlias: fulfilledResponse.value?.server_info.alias,
+                                };
+                            }),
                     );
                 }
 
@@ -265,9 +281,14 @@ export default function Payment({
 
                     console.log(
                         'Successfully deployed jobs:',
-                        successfulJobs.map((r) => (r as PromiseFulfilledResult<any>).value),
+                        successfulJobs.map((item) => (item.response as PromiseFulfilledResult<any>).value),
                     );
                     toast.success(`${successfulJobs.length} job${successfulJobs.length > 1 ? 's' : ''} deployed successfully.`);
+
+                    // Delete only successfully deployed job drafts
+                    const successfulDraftJobIds = successfulJobs.map((item) => item.draftJobId);
+                    console.log('Deleting successful draft job IDs:', successfulDraftJobIds);
+                    await Promise.all(successfulDraftJobIds.map((id) => db.jobs.delete(id)));
                 }
 
                 if (successfulJobs.length === jobs.length) {
@@ -278,7 +299,7 @@ export default function Payment({
                         deeployFlowModalRef.current?.close();
 
                         const items = successfulJobs
-                            .map((r) => (r as PromiseFulfilledResult<any>).value)
+                            .map((item) => (item.response as PromiseFulfilledResult<any>).value)
                             .filter((response) => !!response.app_id)
                             .map((response) => ({
                                 text: response.app_id as string,
@@ -287,9 +308,7 @@ export default function Payment({
 
                         callback(items);
 
-                        // Delete all job drafts
-                        db.jobs.where('projectHash').equals(projectHash).delete();
-                        // If at least one job was deployed, delete the projectdraft
+                        // If all jobs were deployed successfully, delete the project draft
                         db.projects.delete(projectHash);
                     }, 1000);
                 } else {
@@ -365,7 +384,7 @@ export default function Payment({
                         variant="green"
                         title={
                             <div>
-                                <span className="font-medium">Already paid</span> job drafts
+                                <span className="font-medium">Paid</span> job drafts
                             </div>
                         }
                         description={
