@@ -179,6 +179,7 @@ export default function Payment({
             deeployFlowModalRef.current?.open(unpaidJobDrafts.length, jobs.length);
 
             if (isPaymentRequired) {
+                console.log('Payment required for the following job drafts', unpaidJobDrafts);
                 await payJobDrafts(unpaidJobDrafts);
             }
 
@@ -199,7 +200,7 @@ export default function Payment({
                 return;
             }
 
-            console.log('Proceeding with the following paid jobs', paidJobs);
+            console.log('Proceeding with the following paid job drafts', paidJobs);
 
             const payloadsWithIds: {
                 draftJobId: number;
@@ -438,11 +439,7 @@ export default function Payment({
                 {jobs?.some((job) => job.paid) && (
                     <DeeployInfoAlert
                         variant="green"
-                        title={
-                            <div>
-                                <span className="font-medium">Paid</span> job drafts
-                            </div>
-                        }
+                        title={<div className="font-medium">Paid job drafts</div>}
                         description={
                             <div className="col gap-1">
                                 <div>
