@@ -11,11 +11,13 @@ import JobTags from './target-nodes/JobTags';
 export default function SpecsNodesSection({
     jobType,
     isEditingRunningJob = false,
+    disablePaymentAffectingControls = false,
     initialTargetNodesCount,
     onTargetNodesCountDecrease,
 }: {
     jobType: JobType;
     isEditingRunningJob?: boolean;
+    disablePaymentAffectingControls?: boolean;
     initialTargetNodesCount?: number;
     onTargetNodesCountDecrease?: (blocked: boolean) => void;
 }) {
@@ -101,13 +103,8 @@ export default function SpecsNodesSection({
                                     : undefined
                             }
                             hasWarning={hasWarning}
+                            isDisabled={disablePaymentAffectingControls}
                         />
-
-                        {/* <SelectWithLabel
-                            name="specifications.applicationType"
-                            label="Application Type"
-                            options={APPLICATION_TYPES}
-                        /> */}
                     </div>
 
                     <div className="col gap-2">

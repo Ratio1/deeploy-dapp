@@ -6,18 +6,19 @@ export default function DeeployInfoAlert({
     variant = 'blue',
     title,
     description,
-    isCompact = true,
+    size = 'md',
 }: {
     variant?: 'blue' | 'green';
     title: ReactNode;
     description: ReactNode;
-    isCompact?: boolean;
+    size?: 'sm' | 'md' | 'lg';
 }) {
     return (
         <div
             className={clsx('col gap-2 rounded-md text-sm', {
-                'px-3 py-3': isCompact,
-                'px-4 py-4 lg:px-6': !isCompact,
+                'p-3': size === 'sm',
+                'px-4 py-3': size === 'md',
+                'px-4 py-4 lg:px-6': size === 'lg',
                 'bg-blue-100 text-blue-600': variant === 'blue',
                 'bg-green-100 text-green-600': variant === 'green',
             })}

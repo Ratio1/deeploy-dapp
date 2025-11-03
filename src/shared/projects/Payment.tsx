@@ -461,7 +461,7 @@ export default function Payment({
                                 </div>
                             </div>
                         }
-                        isCompact={false}
+                        size="lg"
                     />
                 )}
 

@@ -5,7 +5,11 @@ import SelectContainerOrWorkerType from '@shared/jobs/SelectContainerOrWorkerTyp
 import JobTags from '@shared/jobs/target-nodes/JobTags';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 
-export default function ServiceSpecifications({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
+export default function ServiceSpecifications({
+    disablePaymentAffectingControls = false,
+}: {
+    disablePaymentAffectingControls?: boolean;
+}) {
     return (
         <div className="col gap-6">
             <SlateCard title="Service Resources">
@@ -13,7 +17,7 @@ export default function ServiceSpecifications({ isEditingRunningJob }: { isEditi
                     name="specifications.containerType"
                     label="Container Type"
                     options={serviceContainerTypes}
-                    isDisabled={isEditingRunningJob}
+                    isDisabled={disablePaymentAffectingControls}
                 />
 
                 <ContainerResourcesInfo name="specifications.containerType" options={serviceContainerTypes} />
@@ -22,12 +26,6 @@ export default function ServiceSpecifications({ isEditingRunningJob }: { isEditi
             <SlateCard>
                 <div className="flex gap-4">
                     <NumberInputWithLabel name="specifications.targetNodesCount" label="Target Nodes Count" isDisabled />
-
-                    {/* <SelectWithLabel
-                        name="specifications.applicationType"
-                        label="Application Type"
-                        options={APPLICATION_TYPES}
-                    /> */}
                 </div>
 
                 <JobTags />
