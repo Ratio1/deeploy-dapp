@@ -1,42 +1,51 @@
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
 import { Skeleton } from '@heroui/skeleton';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { routePath } from '@lib/routes/route-paths';
+import db from '@lib/storage/db';
 import { fBI } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { SmallTag } from '@shared/SmallTag';
 import { Timer } from '@shared/Timer';
 import { UsdcValue } from '@shared/UsdcValue';
-import { RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
+import { DraftJob, PaidDraftJob, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
+import { useLiveQuery } from 'dexie-react-hooks';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiCalendarLine, RiTimeLine } from 'react-icons/ri';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { usePublicClient } from 'wagmi';
 
+type RunningJobWithDraft = RunningJob & {
+    draftJob: DraftJob;
+};
+
+type MonitoredJob = RunningJob | RunningJobWithDraft | RunningJobWithDetails;
+
 export default function Monitoring() {
-    const { escrowContractAddress, fetchRunningJobsWithDetails } = useDeploymentContext() as DeploymentContextType;
+    const { confirm } = useInteractionContext() as InteractionContextType;
+    const { escrowContractAddress, fetchRunningJobsWithDetails, setProjectOverviewTab } =
+        useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
-    const [jobs, setJobs] = useState<(RunningJob | RunningJobWithDetails)[]>([]);
+    const [jobs, setJobs] = useState<MonitoredJob[]>([]);
 
+    const navigate = useNavigate();
     const publicClient = usePublicClient();
 
+    const draftJobs: DraftJob[] | undefined = useLiveQuery(() => db.jobs.toArray(), []);
+
     useEffect(() => {
-        if (publicClient) {
-            fetchRunningJobs();
+        if (publicClient && draftJobs !== undefined) {
+            getJobs(draftJobs.filter((job) => job.paid));
         }
-    }, [publicClient]);
+    }, [publicClient, draftJobs]);
 
-    // A job is considered finalized if it started and it was paid for more than 1 hour ago
-    const isJobFinalized = (job: RunningJob) => {
-        return job.startTimestamp > 0n && Date.now() / 1000 - Number(job.requestTimestamp) > 3600; // 1 hour
-    };
-
-    const fetchRunningJobs = async () => {
+    const getJobs = async (paidDraftJobs: PaidDraftJob[]) => {
         if (!publicClient || !escrowContractAddress) {
             toast.error('Please connect your wallet.');
             return;
@@ -50,66 +59,25 @@ export default function Monitoring() {
             // The IDs of the jobs that were successfully deployed by the pipeline
             const deployedJobIds: bigint[] = runningJobsWithDetails.map((job) => job.id);
 
-            // TODO: Remove this
-            const debugJob: any = {
-                activeNodes: [],
-                alias: 'postgresql_5cd78f9',
-                allowReplicationInTheWild: true,
-                balance: 720000000n,
-                config: {
-                    CHAINSTORE_PEERS: ['peer1.example.com'],
-                    CHAINSTORE_RESPONSE_KEY: 'CONTAINER_APP_930b5e_6ed2c4ae',
-                    CONTAINER_RESOURCES: {
-                        cpu: 2,
-                        memory: '4GiB',
-                    },
-                    ENV: {
-                        POSTGRES_USER: 'admin',
-                        POSTGRES_PASSWORD: 'password',
-                    },
-                    IMAGE: 'postgres:17',
-                },
-                id: 209n,
-                instances: [
-                    {
-                        id: 'instance_1',
-                        status: 'running',
-                        node: '0xai_AsYkb-LB0BU-BD6LrV1ILW1b67zpFA3usc7STnvqxqLw',
-                    },
-                ],
-                jobTags: [] as string[],
-                jobType: 10n,
-                lastAllocatedEpoch: 0n,
-                lastExecutionEpoch: 3704n,
-                lastNodesChangeTimestamp: 0n,
-                nodes: ['0xai_AsYkb-LB0BU-BD6LrV1ILW1b67zpFA3usc7STnvqxqLw'],
-                numberOfNodesRequested: 1n,
-                pipelineData: {
-                    APP_ALIAS: 'postgresql',
-                    INITIATOR_ADDR: '0xai_A74xZKZJa4LekjvJ6oJz29qxOOs5nLClXAZEhYv59t3Z',
-                    INITIATOR_ID: 'dr1s-db',
-                    IS_DEEPLOYED: true,
-                    LAST_UPDATE_TIME: '2025-11-01 15:58:08.380795',
-                    STATUS: 'active',
-                },
-                pipelineParams: {} as Record<string, string>,
-                pricePerEpoch: 1000000n,
-                projectHash: '0x30db096064c87669601bc752fcf4868bc3af9f536ad0e1f5ba177924f90b7e00',
-                projectName: 'October',
-                requestTimestamp: 1762185896n,
-                spareNodes: [] as string[],
-                startTimestamp: 1762185996n,
-            };
-
-            const jobs: RunningJob[] = _([
+            let jobs: RunningJob[] = _([
                 ...runningJobsWithDetails,
                 ...runningJobs.filter((job) => !deployedJobIds.includes(job.id)),
-                debugJob,
             ])
                 .uniqBy('id')
-                // .filter((job) => !isJobFinalized(job))
                 .orderBy('requestTimestamp', 'desc')
                 .value();
+
+            if (paidDraftJobs.length > 0) {
+                jobs = jobs.map((job) => {
+                    const draftJob = paidDraftJobs.find((draftJob) => draftJob.runningJobId === job.id);
+
+                    if (!draftJob) {
+                        return job;
+                    }
+
+                    return { ...job, draftJob };
+                });
+            }
 
             console.log(jobs);
             setJobs(jobs);
@@ -121,11 +89,29 @@ export default function Monitoring() {
         }
     };
 
-    const onClaimFunds = async (job: RunningJob) => {
-        console.log('Claiming funds for job', job);
+    const onClaimFunds = async (job: MonitoredJob) => {
+        try {
+            if ('draftJob' in job) {
+                const confirmed = await confirm(
+                    <div className="col gap-1.5">
+                        <div>Claiming funds will unlink the payment from the following job draft:</div>
+                        <div className="font-medium">{job.draftJob.deployment.jobAlias}</div>
+                    </div>,
+                );
+
+                if (!confirmed) {
+                    return;
+                }
+            }
+
+            console.log('Claiming funds for job', job);
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to claim funds.');
+        }
     };
 
-    const getOngoingStatus = (job: RunningJob) => {
+    const getOngoingStatus = (job: MonitoredJob) => {
         const hasJobStarted = job.startTimestamp > 0n;
         const variant = hasJobStarted ? 'green' : 'default';
         const label = hasJobStarted ? 'Confirming' : 'Pending';
@@ -174,7 +160,7 @@ export default function Monitoring() {
         );
     };
 
-    if (isLoading) {
+    if (isLoading || draftJobs === undefined) {
         return (
             <Wrapper>
                 {Array.from({ length: 6 }).map((_, index) => (
@@ -220,6 +206,27 @@ export default function Monitoring() {
                                 </div>
 
                                 {'alias' in job && getRunningJobCard(job.id, job.jobType, job.alias)}
+
+                                {'draftJob' in job && (
+                                    <div className="w-[164px]">
+                                        <Link
+                                            to={`${routePath.deeploys}/${routePath.project}/${job.draftJob.projectHash}`}
+                                            className="hover:opacity-60"
+                                            onClick={(event) => {
+                                                event.preventDefault();
+                                                setProjectOverviewTab('draftJobs');
+
+                                                navigate(
+                                                    `${routePath.deeploys}/${routePath.project}/${job.draftJob.projectHash}`,
+                                                );
+                                            }}
+                                        >
+                                            <div className="max-w-[150px] truncate text-[13px]">
+                                                {job.draftJob.deployment.jobAlias}
+                                            </div>
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="row gap-2.5">
@@ -239,7 +246,7 @@ export default function Monitoring() {
                                                 {
                                                     key: 'claim',
                                                     label: 'Claim Funds',
-                                                    description: 'Claim back the funds from the job',
+                                                    description: 'Withdraw the funds from the job',
                                                     onPress: () => onClaimFunds(job),
                                                 },
                                             ]}

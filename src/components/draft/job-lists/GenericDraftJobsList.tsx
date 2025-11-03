@@ -37,7 +37,7 @@ export default function GenericDraftJobsList({ jobs }: { jobs: GenericDraftJob[]
                 return (
                     <>
                         <div className={widthClasses[0]}>
-                            <div className="max-w-[138px] truncate">{genericJob.deployment.jobAlias}</div>
+                            <div className="max-w-[138px] truncate font-medium">{genericJob.deployment.jobAlias}</div>
                         </div>
 
                         <div className={widthClasses[1]}>

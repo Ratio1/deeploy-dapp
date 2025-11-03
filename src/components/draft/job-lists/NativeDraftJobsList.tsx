@@ -37,7 +37,7 @@ export default function NativeDraftJobsList({ jobs }: { jobs: NativeDraftJob[] }
                 return (
                     <>
                         <div className={widthClasses[0]}>
-                            <div className="max-w-[138px] truncate">{nativeJob.deployment.jobAlias}</div>
+                            <div className="max-w-[138px] truncate font-medium">{nativeJob.deployment.jobAlias}</div>
                         </div>
 
                         <div className={widthClasses[1]}>

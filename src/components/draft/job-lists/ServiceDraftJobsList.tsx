@@ -34,7 +34,7 @@ export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[]
                 return (
                     <>
                         <div className={widthClasses[0]}>
-                            <div className="max-w-[128px] truncate">{serviceJob.deployment.jobAlias}</div>
+                            <div className="max-w-[128px] truncate font-medium">{serviceJob.deployment.jobAlias}</div>
                         </div>
 
                         <div className={widthClasses[1]}>
