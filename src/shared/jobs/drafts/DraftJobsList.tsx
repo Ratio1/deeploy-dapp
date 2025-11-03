@@ -5,6 +5,7 @@ import db from '@lib/storage/db';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { SmallTag } from '@shared/SmallTag';
+import { PaidDraftJob } from '@typedefs/deeploys';
 import toast from 'react-hot-toast';
 import { RiAddLine } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
@@ -50,8 +51,41 @@ export default function DraftJobsList({
             await db.jobs.delete(job.id);
             toast.success('Job draft deleted successfully.');
         } catch (error) {
-            console.error('[JobList] Error deleting job:', error);
+            console.error('[DraftJobsList] Error deleting job:', error);
             toast.error('Failed to delete job.');
+        }
+    };
+
+    const onUnlinkPayment = async (job: Job) => {
+        console.log('Unlinking payment for job', job);
+
+        try {
+            const confirmed = await confirm(
+                <div className="col gap-3">
+                    <div className="col gap-1.5">
+                        <div>Are you sure you want to unlink the payment from this job draft?</div>
+                        <div className="font-medium">{job.deployment.jobAlias}</div>
+                    </div>
+
+                    <div>
+                        After unlinking you'll be able to claim back the funds after{' '}
+                        <span className="text-primary font-medium">one hour</span> has passed since the payment was made.
+                    </div>
+                </div>,
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            const { runningJobId, ...other } = job as PaidDraftJob;
+            const updatedjob = { ...other, paid: false };
+
+            await db.jobs.put(updatedjob);
+            toast.success('Payment unlinked successfully.');
+        } catch (error) {
+            console.error('[DraftJobsList] Error unlinking payment:', error);
+            toast.error('Failed to unlink payment.');
         }
     };
 
@@ -108,6 +142,18 @@ export default function DraftJobsList({
                                 description: 'Edit the job draft',
                                 onPress: () => onEditJob(job),
                             },
+                            ...(job.paid
+                                ? [
+                                      {
+                                          key: 'unlink-payment',
+                                          label: 'Unlink Payment',
+                                          description:
+                                              'Disconnect the payment from the job draft in order to enable claiming back the funds',
+                                          isDangerous: true,
+                                          onPress: () => onUnlinkPayment(job),
+                                      },
+                                  ]
+                                : []),
                             {
                                 key: 'delete',
                                 label: 'Delete',

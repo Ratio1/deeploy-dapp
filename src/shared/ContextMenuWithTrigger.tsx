@@ -10,6 +10,7 @@ interface Props {
         label: string;
         description?: string;
         isDisabled?: boolean;
+        isDangerous?: boolean;
         onPress: () => void;
     }[];
     isDisabled?: boolean;
@@ -78,21 +79,21 @@ export default function ContextMenuWithTrigger({ items, isDisabled, onOpenChange
                             {!item.description ? (
                                 <div
                                     className={clsx('font-medium', {
-                                        'text-danger': item.key === 'delete',
+                                        'text-danger': item.key === 'delete' || item?.isDangerous,
                                     })}
                                 >
                                     {item.label}
                                 </div>
                             ) : (
-                                <div className="col gap-1 py-0.5 leading-none">
+                                <div className="col gap-1 py-0.5">
                                     <div
-                                        className={clsx('text-body font-medium', {
-                                            'text-danger!': item.key === 'delete',
+                                        className={clsx('text-body leading-none font-medium', {
+                                            'text-danger!': item.key === 'delete' || item?.isDangerous,
                                         })}
                                     >
                                         {item.label}
                                     </div>
-                                    <div className="text-[13px] text-slate-500">{item.description}</div>
+                                    <div className="max-w-[260px] text-[13px] leading-4 text-slate-500">{item.description}</div>
                                 </div>
                             )}
                         </DropdownItem>
