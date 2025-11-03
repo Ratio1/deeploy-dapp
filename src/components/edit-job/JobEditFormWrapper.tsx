@@ -360,8 +360,8 @@ export default function JobEditFormWrapper({
                                 />
                             )}
                             {step === 1 && <Deployment isEditingRunningJob />}
-                            {step === 2 && <Plugins />}
-                            {step === 3 && (
+                            {step === 2 && steps[step].validationName === 'plugins' && <Plugins />}
+                            {((step === 2 && steps[step].validationName === undefined) || step === 3) && (
                                 <ReviewAndConfirm
                                     defaultValues={defaultValues}
                                     job={job}
