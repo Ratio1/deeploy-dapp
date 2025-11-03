@@ -1,6 +1,4 @@
-import { ContainerOrWorkerType, serviceContainerTypes } from '@data/containerResources';
-import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
-import { getShortAddressOrHash } from '@lib/utils';
+import { ContainerOrWorkerType, formatResourcesSummary, serviceContainerTypes } from '@data/containerResources';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
 import { ServiceDraftJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
@@ -25,11 +23,10 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceDraftJob
                     // Alias
                     { label: 'Alias', value: serviceJob.deployment.jobAlias },
                     // Specifications
-                    { label: 'App Type', value: serviceJob.specifications.applicationType },
                     { label: 'Target Nodes', value: serviceJob.specifications.targetNodesCount },
                     {
                         label: 'Container Type',
-                        value: `${containerType.name} (${getContainerOrWorkerTypeDescription(containerType)})`,
+                        value: `${containerType.name} (${formatResourcesSummary(containerType)})`,
                     },
 
                     // Deployment
@@ -37,12 +34,6 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceDraftJob
                     ...(serviceJob.deployment.enableTunneling === 'True' && serviceJob.deployment.tunnelingLabel
                         ? [{ label: 'Tunneling Label', value: serviceJob.deployment.tunnelingLabel }]
                         : []),
-                    {
-                        label: 'Service Replica',
-                        value: serviceJob.deployment.serviceReplica
-                            ? getShortAddressOrHash(serviceJob.deployment.serviceReplica, 4, true)
-                            : 'None',
-                    },
                 ];
 
                 return (

@@ -1,6 +1,5 @@
-import { ContainerOrWorkerType } from '@data/containerResources';
+import { ContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
 import { SelectItem } from '@heroui/select';
-import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import StyledSelect from '@shared/StyledSelect';
@@ -51,7 +50,7 @@ export default function SelectContainerOrWorkerType({ name, label, options, isDi
                                     <div key={item.key} className="row gap-1">
                                         <SmallTag variant="blue">{(item.data as ContainerOrWorkerType).name}</SmallTag>
                                         <SmallTag>
-                                            {getContainerOrWorkerTypeDescription(item.data as ContainerOrWorkerType)}
+                                            {formatResourcesSummary(item.data as ContainerOrWorkerType)}
                                         </SmallTag>
                                     </div>
                                 ));
@@ -66,7 +65,7 @@ export default function SelectContainerOrWorkerType({ name, label, options, isDi
                                         <div className="row justify-between py-1">
                                             <div className="row gap-1">
                                                 <SmallTag variant="blue">{containerType.name}</SmallTag>
-                                                <SmallTag>{getContainerOrWorkerTypeDescription(containerType)}</SmallTag>
+                                                <SmallTag>{formatResourcesSummary(containerType)}</SmallTag>
                                                 <SmallTag variant={containerType.notesColor}>{containerType.notes}</SmallTag>
 
                                                 {/* Only rendered when not all options are the same */}

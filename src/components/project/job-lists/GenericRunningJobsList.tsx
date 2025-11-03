@@ -1,4 +1,4 @@
-import { getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
+import { formatResourcesSummary } from '@data/containerResources';
 import { applyWidthClasses } from '@lib/utils';
 import RunningJobsList from '@shared/jobs/projects/RunningJobsList';
 import { SmallTag } from '@shared/SmallTag';
@@ -52,9 +52,7 @@ function GenericRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
                             </div>
                         </div>
 
-                        <div className={widthClasses[3]}>
-                            {`${containerOrWorkerType.name} (${getContainerOrWorkerTypeDescription(containerOrWorkerType)})`}
-                        </div>
+                        <div className={widthClasses[3]}>{`${containerOrWorkerType.name} (${formatResourcesSummary(containerOrWorkerType)})`}</div>
                     </>
                 );
             }}

@@ -1,6 +1,6 @@
-import { ContainerOrWorkerType } from '@data/containerResources';
+import { ContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { getContainerOrWorkerType, getContainerOrWorkerTypeDescription } from '@lib/deeploy-utils';
+import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { applyWidthClasses } from '@lib/utils';
 import DraftJobsList from '@shared/jobs/drafts/DraftJobsList';
 import { SmallTag } from '@shared/SmallTag';
@@ -11,7 +11,7 @@ const widthClasses = [
     'min-w-[138px]', // alias
     'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
-    'min-w-[50px]', // type
+    'min-w-[90px]', // type
     'min-w-[310px]', // resources
 ];
 
@@ -59,7 +59,7 @@ export default function GenericDraftJobsList({ jobs }: { jobs: GenericDraftJob[]
                         </div>
 
                         <div className={widthClasses[4]}>
-                            {containerOrWorkerType.name} ({getContainerOrWorkerTypeDescription(containerOrWorkerType)})
+                            {containerOrWorkerType.name} ({formatResourcesSummary(containerOrWorkerType)})
                         </div>
                     </>
                 );
