@@ -11,8 +11,7 @@ const widthClasses = [
     'min-w-[138px]', // alias
     'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
-    'min-w-[90px]', // type
-    'min-w-[310px]', // resources
+    'min-w-[310px]', // container type
 ];
 
 export default function GenericDraftJobsList({ jobs }: { jobs: GenericDraftJob[] }) {
@@ -26,9 +25,7 @@ export default function GenericDraftJobsList({ jobs }: { jobs: GenericDraftJob[]
                     <div className="compact">Generic Apps</div>
                 </div>
             }
-            tableHeader={
-                <>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Type', 'Container Type'], widthClasses)}</>
-            }
+            tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
             renderJob={(job) => {
                 const genericJob = job as GenericDraftJob;
@@ -53,12 +50,6 @@ export default function GenericDraftJobsList({ jobs }: { jobs: GenericDraftJob[]
                         <div className={widthClasses[2]}>{genericJob.specifications.targetNodesCount}</div>
 
                         <div className={widthClasses[3]}>
-                            <SmallTag variant={genericJob.specifications.gpuType ? 'green' : 'blue'}>
-                                {genericJob.specifications.gpuType ? 'GPU' : 'CPU'}
-                            </SmallTag>
-                        </div>
-
-                        <div className={widthClasses[4]}>
                             {containerOrWorkerType.name} ({formatResourcesSummary(containerOrWorkerType)})
                         </div>
                     </>

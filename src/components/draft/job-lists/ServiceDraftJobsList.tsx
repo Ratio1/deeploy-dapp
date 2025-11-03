@@ -11,8 +11,7 @@ const widthClasses = [
     'min-w-[138px]', // alias
     'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
-    'min-w-[90px]', // type
-    'min-w-[310px]', // resources
+    'min-w-[310px]', // container type
 ];
 
 export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[] }) {
@@ -26,9 +25,7 @@ export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[]
                     <div className="compact">Services</div>
                 </div>
             }
-            tableHeader={
-                <>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Type', 'Container Type'], widthClasses)}</>
-            }
+            tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
             renderJob={(job) => {
                 const serviceJob = job as ServiceDraftJob;
@@ -50,10 +47,6 @@ export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[]
                         <div className={widthClasses[2]}>{serviceJob.specifications.targetNodesCount}</div>
 
                         <div className={widthClasses[3]}>
-                            <SmallTag variant={containerOrWorkerType.notesColor}>{containerOrWorkerType.serviceName}</SmallTag>
-                        </div>
-
-                        <div className={widthClasses[4]}>
                             {containerOrWorkerType.name} ({formatResourcesSummary(containerOrWorkerType)})
                         </div>
                     </>

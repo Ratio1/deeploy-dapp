@@ -4,6 +4,7 @@ import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
+import { SmallTag } from '@shared/SmallTag';
 import toast from 'react-hot-toast';
 import { RiAddLine } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
@@ -79,6 +80,8 @@ export default function DraftJobsList({
             <div className="row justify-between gap-2 px-4 py-3 text-[13px] font-medium text-slate-500">
                 {tableHeader}
 
+                <div className="min-w-[60px]">Status</div>
+
                 {/* Accounts for the context menu button */}
                 <div className="min-w-[32px]"></div>
             </div>
@@ -86,6 +89,10 @@ export default function DraftJobsList({
             {jobs.map((job) => (
                 <div key={job.id} className="row justify-between gap-2 border-t-2 border-slate-200/65 px-4 py-3 text-[13px]">
                     {renderJob(job)}
+
+                    <div className="min-w-[60px]">
+                        <SmallTag variant={job.paid ? 'green' : 'default'}>{job.paid ? 'Paid' : 'Unpaid'}</SmallTag>
+                    </div>
 
                     <ContextMenuWithTrigger
                         items={[
