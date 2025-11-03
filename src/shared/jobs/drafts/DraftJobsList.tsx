@@ -67,9 +67,11 @@ export default function DraftJobsList({
                         <div className="font-medium">{job.deployment.jobAlias}</div>
                     </div>
 
+                    <div>After unlinking, all the job's fields will become editable again.</div>
+
                     <div>
-                        After unlinking you'll be able to claim back the funds after{' '}
-                        <span className="text-primary font-medium">one hour</span> has passed since the payment was made.
+                        The job's funds can be claimed back after <span className="text-primary font-medium">one hour</span> has
+                        passed since the payment was made.
                     </div>
                 </div>,
             );
@@ -147,8 +149,7 @@ export default function DraftJobsList({
                                       {
                                           key: 'unlink-payment',
                                           label: 'Unlink Payment',
-                                          description:
-                                              'Disconnect the payment from the job draft in order to enable claiming back the funds',
+                                          description: 'Disconnect the payment from the job draft',
                                           isDangerous: true,
                                           onPress: () => onUnlinkPayment(job),
                                       },

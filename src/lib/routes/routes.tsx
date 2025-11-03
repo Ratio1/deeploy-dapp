@@ -8,6 +8,7 @@ import EditJob from '@pages/deeploys/job/EditJob';
 import ExtendJob from '@pages/deeploys/job/ExtendJob';
 import Job from '@pages/deeploys/job/Job';
 import LegacyRequester from '@pages/deeploys/LegacyRequester';
+import Monitoring from '@pages/deeploys/Monitoring';
 import Project from '@pages/deeploys/Project';
 import Docs from '@pages/Docs';
 import Home from '@pages/Home';
@@ -59,6 +60,10 @@ export const routeInfo = {
     [`${routePath.deeploys}/${routePath.dashboard}`]: {
         title: 'Dashboard',
         description: 'An organized view of your deployed projects',
+    },
+    [`${routePath.deeploys}/${routePath.monitoring}`]: {
+        title: 'Monitoring',
+        description: 'View recent & failed deployments and claim back funds',
     },
     [`${routePath.deeploys}/${routePath.createProject}`]: {
         title: 'Deployment',
@@ -117,6 +122,10 @@ export const routes: AppRoute[] = [
             {
                 path: routePath.dashboard,
                 page: Dashboard,
+            },
+            {
+                path: routePath.monitoring,
+                page: Monitoring,
             },
             {
                 path: routePath.createProject,

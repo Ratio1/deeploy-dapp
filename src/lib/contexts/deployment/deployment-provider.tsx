@@ -116,10 +116,15 @@ export const DeploymentProvider = ({ children }) => {
         }
     };
 
-    const fetchRunningJobsWithDetails = async (appsOverride?: Apps): Promise<RunningJobWithDetails[]> => {
+    const fetchRunningJobsWithDetails = async (
+        appsOverride?: Apps,
+    ): Promise<{
+        runningJobs: readonly RunningJob[];
+        runningJobsWithDetails: RunningJobWithDetails[];
+    }> => {
         if (!publicClient || !escrowContractAddress) {
             toast.error('Please connect your wallet and refresh this page.');
-            return [];
+            throw new Error('Unable to fetch running jobs.');
         }
 
         const runningJobs: readonly RunningJob[] = await publicClient.readContract({
@@ -129,7 +134,7 @@ export const DeploymentProvider = ({ children }) => {
         });
 
         const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(runningJobs, appsOverride);
-        return runningJobsWithDetails;
+        return { runningJobs, runningJobsWithDetails };
     };
 
     const formatRunningJobsWithDetails = (runningJobs: readonly RunningJob[], appsOverride?: Apps): RunningJobWithDetails[] => {
