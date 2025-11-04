@@ -79,6 +79,7 @@ type NativeDraftJob = BaseDraftJob & {
 
 type ServiceDraftJob = BaseDraftJob & {
     jobType: JobType.Service;
+    serviceId: number;
     specifications: ServiceJobSpecifications;
     deployment: ServiceJobDeployment;
 };

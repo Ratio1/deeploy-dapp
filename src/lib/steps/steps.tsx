@@ -41,7 +41,7 @@ export const STEPS: Record<
         component: Deployment,
     },
     [Step.SERVICES]: {
-        title: 'Services',
+        title: 'Select Service',
         validationName: 'services',
         component: Services,
     },

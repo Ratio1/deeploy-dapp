@@ -15,7 +15,7 @@ import { MAIN_STEPS, Step, STEPS } from '@lib/steps/steps';
 import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
-import { DraftJob, JobType } from '@typedefs/deeploys';
+import { DraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import { useEffect, useMemo } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
@@ -189,7 +189,11 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             };
 
             if (data.jobType === JobType.Native) {
-                job.deployment.plugins = data.plugins;
+                (job as NativeDraftJob).deployment.plugins = data.plugins;
+            }
+
+            if (data.jobType === JobType.Service) {
+                (job as ServiceDraftJob).serviceId = data.serviceId;
             }
 
             console.log('[JobFormWrapper] onSubmit', job);
@@ -227,7 +231,11 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
 
                             <ActiveStep />
 
-                            <JobFormButtons steps={steps.map((step) => STEPS[step])} cancelLabel="Project" />
+                            <JobFormButtons
+                                steps={steps.map((step) => STEPS[step])}
+                                cancelLabel="Project"
+                                disableNextStep={jobType === JobType.Service && step === 0 && !form.watch('serviceId')}
+                            />
                         </div>
                     </div>
                 </div>

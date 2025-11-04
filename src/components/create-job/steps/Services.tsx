@@ -3,6 +3,7 @@ import { Skeleton } from '@heroui/skeleton';
 import { loadServiceLogo } from '@lib/assets/serviceLogos';
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 
 function ServiceLogo({ filename, name }: { filename: string; name: string }) {
     const [src, setSrc] = useState<string | null | undefined>(undefined);
@@ -49,7 +50,9 @@ const SelectableCard = ({ children, isSelected, onPress }) => {
 };
 
 export default function Services() {
-    const [selectedIndex, setSelectedIndex] = useState<number | undefined>();
+    const { watch, setValue } = useFormContext();
+
+    const serviceId: number | undefined = watch('serviceId');
 
     // Init
     useEffect(() => {
@@ -58,8 +61,12 @@ export default function Services() {
 
     return (
         <div className="grid grid-cols-2 gap-3">
-            {services.map((service, index) => (
-                <SelectableCard key={index} isSelected={selectedIndex === index} onPress={() => setSelectedIndex(index)}>
+            {services.map((service) => (
+                <SelectableCard
+                    key={service.id}
+                    isSelected={service.id === serviceId}
+                    onPress={() => setValue('serviceId', service.id)}
+                >
                     <div className="row gap-3.5">
                         <ServiceLogo filename={service.logo} name={service.name} />
 

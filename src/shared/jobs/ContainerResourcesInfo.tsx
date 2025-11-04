@@ -32,14 +32,12 @@ export default function ContainerResourcesInfo({ name, options }: Props) {
 
     return (
         <div className="col w-full gap-2.5">
-            <div className="row gap-1.5">
-                <Label value="Min. Recommended Balancing" />
-                <SmallTag>
-                    {containerOrWorkerType.minimalBalancing > 1
-                        ? `${containerOrWorkerType.minimalBalancing} nodes`
-                        : 'No minimal balancing'}
-                </SmallTag>
-            </div>
+            {containerOrWorkerType.minimalBalancing > 1 && (
+                <div className="row gap-1.5">
+                    <Label value="Min. Recommended Balancing" />
+                    <SmallTag>{`${containerOrWorkerType.minimalBalancing} nodes`}</SmallTag>
+                </div>
+            )}
 
             {!!gpuType && (
                 <div className="row gap-1.5">
