@@ -3,7 +3,6 @@ import { SlateCard } from '@shared/cards/SlateCard';
 import ContainerResourcesInfo from '@shared/jobs/ContainerResourcesInfo';
 import SelectContainerOrWorkerType from '@shared/jobs/SelectContainerOrWorkerType';
 import JobTags from '@shared/jobs/target-nodes/JobTags';
-import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 
 export default function ServiceSpecifications({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     return (
@@ -20,15 +19,9 @@ export default function ServiceSpecifications({ isEditingRunningJob }: { isEditi
             </SlateCard>
 
             <SlateCard>
-                <div className="flex gap-4">
+                {/* <div className="flex gap-4">
                     <NumberInputWithLabel name="specifications.targetNodesCount" label="Target Nodes Count" isDisabled />
-
-                    {/* <SelectWithLabel
-                        name="specifications.applicationType"
-                        label="Application Type"
-                        options={APPLICATION_TYPES}
-                    /> */}
-                </div>
+                </div> */}
 
                 <JobTags />
             </SlateCard>
