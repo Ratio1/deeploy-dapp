@@ -42,6 +42,7 @@ export default function BillingMonthSelect({
                 value: 'font-medium text-slate-600!',
                 selectorIcon: 'mt-0.5 mr-0.5',
             }}
+            aria-label="Billing month"
             listboxProps={{
                 itemClasses: {
                     base: [
