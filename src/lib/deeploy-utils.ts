@@ -48,6 +48,7 @@ export const DC_TAG = 'DC:*';
 
 export const NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS: (keyof JobConfig)[] = [
     'CHAINSTORE_PEERS',
+    'CHAINSTORE_RESPONSE_KEY',
     'CLOUDFLARE_TOKEN',
     'INSTANCE_ID',
     'PORT',
