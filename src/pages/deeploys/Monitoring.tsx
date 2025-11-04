@@ -16,7 +16,7 @@ import { DraftJob, PaidDraftJob, RunningJob, RunningJobWithDetails } from '@type
 import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import { useLiveQuery } from 'dexie-react-hooks';
 import _ from 'lodash';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiCalendarLine, RiDraftLine, RiTimeLine } from 'react-icons/ri';
 import { Link, useNavigate } from 'react-router-dom';
@@ -47,56 +47,91 @@ export default function Monitoring() {
     const publicClient = usePublicClient();
 
     const draftJobs: DraftJob[] | undefined = useLiveQuery(() => db.jobs.toArray(), []);
+    const paidDraftJobsRef = useRef<PaidDraftJob[]>([]);
+
+    const getJobs = useCallback(
+        async (paidDraftJobs: PaidDraftJob[]) => {
+            if (!publicClient || !escrowContractAddress) {
+                toast.error('Please connect your wallet.');
+                return;
+            }
+
+            console.log('Fetching running jobs...');
+
+            setLoading(true);
+
+            try {
+                const { runningJobs, runningJobsWithDetails } = await fetchRunningJobsWithDetails();
+
+                // The IDs of the jobs that were successfully deployed by the pipeline
+                const deployedJobIds: bigint[] = runningJobsWithDetails.map((job) => job.id);
+
+                let jobs: RunningJob[] = _([
+                    ...runningJobsWithDetails,
+                    ...runningJobs.filter((job) => !deployedJobIds.includes(job.id)),
+                ])
+                    .uniqBy('id')
+                    .orderBy('requestTimestamp', 'desc')
+                    .value();
+
+                if (paidDraftJobs.length > 0) {
+                    jobs = jobs.map((job) => {
+                        const draftJob = paidDraftJobs.find((draftJob) => draftJob.runningJobId === job.id);
+
+                        if (!draftJob) {
+                            return job;
+                        }
+
+                        return { ...job, draftJob };
+                    });
+                }
+
+                console.log(jobs);
+                setJobs(jobs);
+            } catch (error) {
+                console.error(error);
+                toast.error('Failed to fetch running jobs.');
+            } finally {
+                setLoading(false);
+            }
+        },
+        [publicClient, escrowContractAddress, fetchRunningJobsWithDetails],
+    );
 
     useEffect(() => {
-        if (publicClient && draftJobs !== undefined) {
-            getJobs(draftJobs.filter((job) => job.paid));
-        }
-    }, [publicClient, draftJobs]);
-
-    const getJobs = async (paidDraftJobs: PaidDraftJob[]) => {
-        if (!publicClient || !escrowContractAddress) {
-            toast.error('Please connect your wallet.');
+        if (draftJobs === undefined) {
+            paidDraftJobsRef.current = [];
             return;
         }
 
-        setLoading(true);
+        paidDraftJobsRef.current = draftJobs.filter((job): job is PaidDraftJob => job.paid);
+    }, [draftJobs]);
 
-        try {
-            const { runningJobs, runningJobsWithDetails } = await fetchRunningJobsWithDetails();
-
-            // The IDs of the jobs that were successfully deployed by the pipeline
-            const deployedJobIds: bigint[] = runningJobsWithDetails.map((job) => job.id);
-
-            let jobs: RunningJob[] = _([
-                ...runningJobsWithDetails,
-                ...runningJobs.filter((job) => !deployedJobIds.includes(job.id)),
-            ])
-                .uniqBy('id')
-                .orderBy('requestTimestamp', 'desc')
-                .value();
-
-            if (paidDraftJobs.length > 0) {
-                jobs = jobs.map((job) => {
-                    const draftJob = paidDraftJobs.find((draftJob) => draftJob.runningJobId === job.id);
-
-                    if (!draftJob) {
-                        return job;
-                    }
-
-                    return { ...job, draftJob };
-                });
-            }
-
-            console.log(jobs);
-            setJobs(jobs);
-        } catch (error) {
-            console.error(error);
-            toast.error('Failed to fetch running jobs.');
-        } finally {
-            setLoading(false);
+    useEffect(() => {
+        if (!publicClient || draftJobs === undefined) {
+            return;
         }
-    };
+
+        getJobs(paidDraftJobsRef.current);
+    }, [publicClient, draftJobs, getJobs]);
+
+    const refreshRunningJobs = useMemo(
+        () =>
+            _.throttle(
+                () => {
+                    getJobs(paidDraftJobsRef.current);
+                },
+                1000,
+                { leading: true, trailing: true },
+            ),
+        [getJobs],
+    );
+
+    useEffect(() => {
+        return () => {
+            refreshRunningJobs.cancel();
+        };
+    }, [refreshRunningJobs]);
 
     const onClaimFunds = async (job: MonitoredJob) => {
         try {
@@ -138,7 +173,7 @@ export default function Monitoring() {
                                 variant="compact"
                                 timestamp={new Date(Number(job.requestTimestamp) * 1000 + 3600 * 1000)}
                                 callback={() => {
-                                    // TODO: Refresh with a throttle/debounce so multiple jobs won't refresh at the same time
+                                    refreshRunningJobs();
                                 }}
                             />
                         </div>
