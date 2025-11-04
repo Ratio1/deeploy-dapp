@@ -4,9 +4,11 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
-import { fBI } from '@lib/utils';
+import { applyWidthClasses, fBI } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
+import EmptyData from '@shared/EmptyData';
+import ListHeader from '@shared/ListHeader';
 import { SmallTag } from '@shared/SmallTag';
 import { Timer } from '@shared/Timer';
 import { UsdcValue } from '@shared/UsdcValue';
@@ -16,7 +18,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiCalendarLine, RiTimeLine } from 'react-icons/ri';
+import { RiCalendarLine, RiDraftLine, RiTimeLine } from 'react-icons/ri';
 import { Link, useNavigate } from 'react-router-dom';
 import { usePublicClient } from 'wagmi';
 
@@ -25,6 +27,13 @@ type RunningJobWithDraft = RunningJob & {
 };
 
 type MonitoredJob = RunningJob | RunningJobWithDraft | RunningJobWithDetails;
+
+const widthClasses = [
+    'w-[164px]', // date
+    'w-[104px]', // balance
+    'w-[164px]', // job
+    'w-[164px]', // status + context menu
+];
 
 export default function Monitoring() {
     const { confirm } = useInteractionContext() as InteractionContextType;
@@ -172,6 +181,22 @@ export default function Monitoring() {
 
     return (
         <Wrapper>
+            <ListHeader>
+                <div className="row gap-6">{applyWidthClasses(['Date', 'Balance', 'Job/Draft'], widthClasses)}</div>
+
+                <div className={`${widthClasses[3]} text-right`}>Status</div>
+            </ListHeader>
+
+            {!jobs.length && (
+                <div className="py-8">
+                    <EmptyData
+                        title="No running jobs"
+                        description="Recent running jobs will be displayed here"
+                        icon={<RiDraftLine />}
+                    />
+                </div>
+            )}
+
             {jobs.map((job, index) => {
                 const diffInSeconds = Date.now() / 1000 - Number(job.requestTimestamp);
 
@@ -183,8 +208,8 @@ export default function Monitoring() {
                 return (
                     <BorderedCard key={`${job.id}-${index}`}>
                         <div className="row compact justify-between gap-6">
-                            <div className="row gap-4">
-                                <div className="min-w-[134px]">
+                            <div className="row gap-6">
+                                <div className={widthClasses[0]}>
                                     <SmallTag>
                                         <div className="row gap-1">
                                             <RiCalendarLine className="text-sm" />
@@ -201,14 +226,16 @@ export default function Monitoring() {
                                     </SmallTag>
                                 </div>
 
-                                <div className="min-w-[104px]">
+                                <div className={widthClasses[1]}>
                                     <UsdcValue value={fBI(job.balance, 6, 2)} />
                                 </div>
 
-                                {'alias' in job && getRunningJobCard(job.id, job.jobType, job.alias)}
+                                <div className={widthClasses[2]}>
+                                    {'alias' in job && getRunningJobCard(job.id, job.jobType, job.alias)}
+                                </div>
 
                                 {'draftJob' in job && (
-                                    <div className="w-[164px]">
+                                    <div className={widthClasses[2]}>
                                         <Link
                                             to={`${routePath.deeploys}/${routePath.project}/${job.draftJob.projectHash}`}
                                             className="hover:opacity-60"
@@ -231,7 +258,7 @@ export default function Monitoring() {
 
                             <div className="row gap-2.5">
                                 {/* Status */}
-                                <div className="flex min-w-[200px] justify-end">
+                                <div className={`flex ${widthClasses[3]} justify-end`}>
                                     {diffInSeconds > 3600 ? (
                                         <SmallTag variant="red">Deployment failed</SmallTag>
                                     ) : (
@@ -263,5 +290,9 @@ export default function Monitoring() {
 }
 
 function Wrapper({ children }: { children: React.ReactNode }) {
-    return <div className="col mx-auto w-3xl gap-1.5">{children}</div>;
+    return (
+        <div className="mx-auto w-3xl">
+            <div className="list">{children}</div>
+        </div>
+    );
 }
