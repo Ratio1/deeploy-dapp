@@ -31,8 +31,8 @@ type MonitoredJob = RunningJob | RunningJobWithDraft | RunningJobWithDetails;
 const widthClasses = [
     'w-[164px]', // date
     'w-[104px]', // balance
-    'w-[164px]', // job
-    'w-[164px]', // status + context menu
+    'w-[176px]', // job
+    'w-[176px]', // status + context menu
 ];
 
 export default function Monitoring() {
@@ -146,6 +146,12 @@ export default function Monitoring() {
                 if (!confirmed) {
                     return;
                 }
+
+                const { runningJobId, ...other } = job.draftJob as PaidDraftJob;
+                const updatedjob = { ...other, paid: false };
+
+                await db.jobs.put(updatedjob);
+                toast.success('Payment unlinked successfully.');
             }
 
             console.log('Claiming funds for job', job);
@@ -265,9 +271,9 @@ export default function Monitoring() {
                                     <UsdcValue value={fBI(job.balance, 6, 2)} />
                                 </div>
 
-                                <div className={widthClasses[2]}>
-                                    {'alias' in job && getRunningJobCard(job.id, job.jobType, job.alias)}
-                                </div>
+                                {'alias' in job && (
+                                    <div className={widthClasses[2]}>{getRunningJobCard(job.id, job.jobType, job.alias)}</div>
+                                )}
 
                                 {'draftJob' in job && (
                                     <div className={widthClasses[2]}>
@@ -283,7 +289,7 @@ export default function Monitoring() {
                                                 );
                                             }}
                                         >
-                                            <div className="max-w-[150px] truncate text-[13px]">
+                                            <div className={`${widthClasses[2]} truncate text-[13px]`}>
                                                 {job.draftJob.deployment.jobAlias}
                                             </div>
                                         </Link>
