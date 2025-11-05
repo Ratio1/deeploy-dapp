@@ -1,5 +1,5 @@
 import { genericContainerTypes, gpuTypes, nativeWorkerTypes, RunningJobResources } from '@data/containerResources';
-import { baseServiceContainerTypes } from '@data/services';
+import { serviceContainerTypes } from '@data/services';
 import { EthAddress, R1Address } from './blockchain';
 import { AppsPlugin, JobConfig, PipelineData } from './deeployApi';
 import { GenericJobDeployment, JobDeployment, NativeJobDeployment, ServiceJobDeployment } from './steps/deploymentStepTypes';
@@ -37,7 +37,7 @@ type NativeJobSpecifications = BaseJobSpecifications & {
 
 type ServiceJobSpecifications = BaseJobSpecifications & {
     type: 'Service';
-    serviceContainerType: (typeof baseServiceContainerTypes)[number]['name'];
+    serviceContainerType: (typeof serviceContainerTypes)[number]['name'];
 };
 
 type JobSpecifications = BaseJobSpecifications &

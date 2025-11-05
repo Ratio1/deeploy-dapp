@@ -12,8 +12,7 @@ type Service = {
     color: ColorVariant;
 };
 
-// TODO: Replace the current serviceContainerTypes with this one
-export const baseServiceContainerTypes: BaseContainerOrWorkerType[] = [
+export const serviceContainerTypes: BaseContainerOrWorkerType[] = [
     {
         id: 1,
         name: 'S-LOW',

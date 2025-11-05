@@ -3,8 +3,9 @@ import { DeeployFlowModal } from '@components/draft/DeeployFlowModal';
 import JobEditFormWrapper from '@components/edit-job/JobEditFormWrapper';
 import JobBreadcrumbs from '@components/job/JobBreadcrumbs';
 import EditJobPageLoading from '@components/loading/EditJobPageLoading';
-import { ContainerOrWorkerType } from '@data/containerResources';
+import { BaseContainerOrWorkerType } from '@data/containerResources';
 import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
+import services from '@data/services';
 import { scaleUpJobWorkers, updatePipeline } from '@lib/api/deeploy';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
@@ -144,6 +145,7 @@ export default function EditJob() {
                 case JobType.Service:
                     payload = formatServiceJobPayload(
                         job!.resources.containerOrWorkerType,
+                        services[0], // TODO: Obtain serviceId through getRunningJobResources
                         data.specifications as ServiceJobSpecifications,
                         data.deployment as ServiceJobDeployment,
                     );
@@ -278,7 +280,7 @@ export default function EditJob() {
     const signAndBuildScaleUpWorkersRequest = async (
         job: RunningJobWithResources,
         targetNodes: string[],
-        containerType: ContainerOrWorkerType,
+        containerType: BaseContainerOrWorkerType,
     ) => {
         const nonce = generateDeeployNonce();
 

@@ -4,10 +4,9 @@ import {
     GpuType,
     gpuTypes,
     nativeWorkerTypes,
-    serviceContainerTypes,
 } from '@data/containerResources';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
-import services, { baseServiceContainerTypes, Service } from '@data/services';
+import services, { Service, serviceContainerTypes } from '@data/services';
 import { JobConfig } from '@typedefs/deeployApi';
 import {
     DraftJob,
@@ -115,7 +114,7 @@ export function getContainerOrWorkerType(jobType: JobType, specifications: JobSp
             ? genericContainerTypes.find((type) => type.name === (specifications as GenericJobSpecifications).containerType)
             : jobType === JobType.Native
               ? nativeWorkerTypes.find((type) => type.name === (specifications as NativeJobSpecifications).workerType)
-              : baseServiceContainerTypes.find(
+              : serviceContainerTypes.find(
                     (type) => type.name === (specifications as ServiceJobSpecifications).serviceContainerType,
                 )
     )!;
@@ -504,23 +503,6 @@ export const formatServiceJobPayload = (
         pipeline_input_uri: null,
         chainstore_response: true,
     };
-};
-
-// Helper function to get minimal balancing for a container/worker type
-export const getMinimalBalancing = (type: string, containerOrWorkerType: string | undefined): number => {
-    if (type === 'Generic' && containerOrWorkerType) {
-        const found = genericContainerTypes.find((t) => t.name === containerOrWorkerType);
-        return found?.minimalBalancing || 1;
-    }
-    if (type === 'Native' && containerOrWorkerType) {
-        const found = nativeWorkerTypes.find((t) => t.name === containerOrWorkerType);
-        return found?.minimalBalancing || 1;
-    }
-    if (type === 'Service' && containerOrWorkerType) {
-        const found = serviceContainerTypes.find((t) => t.name === containerOrWorkerType);
-        return found?.minimalBalancing || 1;
-    }
-    return 1;
 };
 
 export function buildDeeployMessage(data: Record<string, any>, prefix: string = ''): string {

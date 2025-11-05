@@ -1,4 +1,4 @@
-import { DeprecatedService, formatResourcesSummary } from '@data/containerResources';
+import { LegacyService, formatResourcesSummary } from '@data/containerResources';
 import { applyWidthClasses } from '@lib/utils';
 import RunningJobsList from '@shared/jobs/projects/RunningJobsList';
 import { SmallTag } from '@shared/SmallTag';
@@ -34,7 +34,7 @@ function ServiceRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
             }}
             renderJob={(job) => {
                 const { containerOrWorkerType } = job.resources;
-                const service: DeprecatedService = containerOrWorkerType as DeprecatedService;
+                const service: LegacyService = containerOrWorkerType as LegacyService;
                 const targetNodes = Number(job.numberOfNodesRequested);
 
                 return (

@@ -1,5 +1,5 @@
 import { genericContainerTypes, gpuTypes, nativeWorkerTypes } from '@data/containerResources';
-import { baseServiceContainerTypes } from '@data/services';
+import { serviceContainerTypes } from '@data/services';
 import { z } from 'zod';
 
 const getRequiredIntegerSchema = (max: number) => {
@@ -37,7 +37,7 @@ export const nativeSpecificationsSchema = baseSpecificationsSchema.extend({
 });
 
 export const serviceSpecificationsSchema = baseSpecificationsSchema.extend({
-    serviceContainerType: z.enum(baseServiceContainerTypes.map((type) => type.name) as [string, ...string[]], {
+    serviceContainerType: z.enum(serviceContainerTypes.map((type) => type.name) as [string, ...string[]], {
         required_error: 'Container type is required',
     }),
 });

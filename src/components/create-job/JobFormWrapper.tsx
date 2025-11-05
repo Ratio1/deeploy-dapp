@@ -6,7 +6,7 @@ import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
-import { baseServiceContainerTypes } from '@data/services';
+import { serviceContainerTypes } from '@data/services';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
@@ -114,7 +114,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         ...getBaseSchemaDefaults(),
         specifications: {
             ...getBaseSchemaDefaults().specifications,
-            serviceContainerType: baseServiceContainerTypes[0].name,
+            serviceContainerType: serviceContainerTypes[0].name,
             targetNodesCount: 1, // Service jobs are always single-node
         },
         deployment: {

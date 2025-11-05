@@ -14,7 +14,6 @@ type BaseContainerOrWorkerType = {
 type ContainerOrWorkerType = BaseContainerOrWorkerType & {
     notes: string;
     notesColor: 'red' | 'orange' | 'green' | 'blue';
-    monthlyBudgetPerWorker: number;
     minimalBalancing: number;
 };
 
@@ -33,16 +32,9 @@ export const formatResourcesSummary = (containerOrWorkerType: BaseContainerOrWor
     return [coreLabel, ramLabel, storageLabel].filter(Boolean).join(' ');
 };
 
-type DeprecatedService = ContainerOrWorkerType & {
-    port?: number;
-    image?: string;
-    serviceName?: string;
-    tag?: {
-        text: string;
-        bgClass: string;
-        textClass: string;
-    };
-    inputs?: { key: string; label: string }[];
+type LegacyService = BaseContainerOrWorkerType & {
+    notesColor: 'red' | 'orange' | 'green' | 'blue';
+    serviceName: string;
 };
 
 type GpuType = {
@@ -61,7 +53,7 @@ type GpuType = {
 };
 
 type RunningJobResources = {
-    containerOrWorkerType: ContainerOrWorkerType;
+    containerOrWorkerType: BaseContainerOrWorkerType | ContainerOrWorkerType;
     gpuType?: GpuType;
     jobType: JobType;
 };
@@ -254,120 +246,79 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
     },
 ];
 
-export const serviceContainerTypes: DeprecatedService[] = [
+// Only used to display legacy running jobs
+const legacyServiceContainerTypes: LegacyService[] = [
     {
         id: 1,
         name: 'PGSQL-LOW',
         jobType: 10,
-        notes: 'PostgreSQL single instance',
         notesColor: 'blue',
         monthlyBudgetPerWorker: 30,
         pricePerEpoch: 1_000_000n,
-        minimalBalancing: 1,
         cores: 1,
         ram: 2,
         storage: 50,
-        port: 5432,
-        image: 'postgres:17',
         serviceName: 'PostgreSQL',
-        tag: { text: 'PostgreSQL', bgClass: 'bg-blue-100', textClass: 'text-blue-600' },
-        inputs: [{ key: 'POSTGRES_PASSWORD', label: 'PostgreSQL Password' }],
     },
     {
         id: 2,
         name: 'PGSQL-MED',
         jobType: 11,
-        notes: 'PostgreSQL single instance',
         notesColor: 'blue',
         monthlyBudgetPerWorker: 65,
         pricePerEpoch: 2_166_666n,
-        minimalBalancing: 1,
         cores: 2,
         ram: 4,
         storage: 200,
-        port: 5432,
-        image: 'postgres:17',
         serviceName: 'PostgreSQL',
-        tag: { text: 'PostgreSQL', bgClass: 'bg-blue-100', textClass: 'text-blue-600' },
-        inputs: [{ key: 'POSTGRES_PASSWORD', label: 'PostgreSQL Password' }],
     },
     {
         id: 3,
         name: 'MYSQL-LOW',
         jobType: 12,
-        notes: 'MySQL single instance',
         notesColor: 'orange',
         monthlyBudgetPerWorker: 30,
         pricePerEpoch: 1_000_000n,
-        minimalBalancing: 1,
         cores: 1,
         ram: 2,
         storage: 50,
-        port: 3306,
-        image: 'mysql',
         serviceName: 'MySQL',
-        tag: { text: 'MySQL', bgClass: 'bg-orange-100', textClass: 'text-orange-600' },
-        inputs: [{ key: 'MYSQL_ROOT_PASSWORD', label: 'MySQL Root Password' }],
     },
     {
         id: 4,
         name: 'MYSQL-MED',
         jobType: 13,
-        notes: 'MySQL single instance',
         notesColor: 'orange',
         monthlyBudgetPerWorker: 65,
         pricePerEpoch: 2_166_666n,
-        minimalBalancing: 1,
         cores: 2,
         ram: 4,
         storage: 200,
-        port: 3306,
-        image: 'mysql',
         serviceName: 'MySQL',
-        tag: { text: 'MySQL', bgClass: 'bg-orange-100', textClass: 'text-orange-600' },
-        inputs: [{ key: 'MYSQL_ROOT_PASSWORD', label: 'MySQL Root Password' }],
     },
     {
         id: 5,
         name: 'NoSQL-LOW',
         jobType: 14,
-        notes: 'MongoDB single instance',
         notesColor: 'green',
         monthlyBudgetPerWorker: 30,
         pricePerEpoch: 1_000_000n,
-        minimalBalancing: 1,
         cores: 1,
         ram: 2,
         storage: 50,
-        port: 27017,
-        image: 'mongodb',
         serviceName: 'MongoDB',
-        tag: { text: 'MongoDB', bgClass: 'bg-green-100', textClass: 'text-green-600' },
-        inputs: [
-            { key: 'MONGO_INITDB_ROOT_USERNAME', label: 'MongoDB Root Username' },
-            { key: 'MONGO_INITDB_ROOT_PASSWORD', label: 'MongoDB Root Password' },
-        ],
     },
     {
         id: 6,
         name: 'NoSQL-MED',
         jobType: 15,
-        notes: 'MongoDB single instance',
         notesColor: 'green',
         monthlyBudgetPerWorker: 65,
         pricePerEpoch: 2_166_666n,
-        minimalBalancing: 1,
         cores: 2,
         ram: 4,
         storage: 200,
-        port: 27017,
-        image: 'mongodb',
         serviceName: 'MongoDB',
-        tag: { text: 'MongoDB', bgClass: 'bg-green-100', textClass: 'text-green-600' },
-        inputs: [
-            { key: 'MONGO_INITDB_ROOT_USERNAME', label: 'MongoDB Root Username' },
-            { key: 'MONGO_INITDB_ROOT_PASSWORD', label: 'MongoDB Root Password' },
-        ],
     },
 ];
 
@@ -473,11 +424,11 @@ export const getRunningJobResources = (jobType: bigint): RunningJobResources | u
         }
     } else if (jobTypeN <= 15) {
         // Service
-        const serviceContainerType = serviceContainerTypes.find((type) => type.jobType === jobTypeN);
+        const legacyServiceContainerType = legacyServiceContainerTypes.find((type) => type.jobType === jobTypeN);
 
-        if (serviceContainerType) {
+        if (legacyServiceContainerType) {
             return {
-                containerOrWorkerType: serviceContainerType,
+                containerOrWorkerType: legacyServiceContainerType,
                 jobType: JobType.Service,
             };
         }
@@ -511,6 +462,7 @@ export const getRunningJobResources = (jobType: bigint): RunningJobResources | u
             }
         }
     }
+    // TODO: Add data from the 'serviceContainerTypes' array
 };
 
-export type { BaseContainerOrWorkerType, ContainerOrWorkerType, DeprecatedService, GpuType, RunningJobResources };
+export type { BaseContainerOrWorkerType, ContainerOrWorkerType, GpuType, LegacyService, RunningJobResources };
