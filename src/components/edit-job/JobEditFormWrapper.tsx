@@ -182,9 +182,10 @@ export default function JobEditFormWrapper({
 
     const getServiceSchemaDefaults = () => ({
         ...getBaseSchemaDefaults(),
+        serviceId: 1, // TODO: Obtain serviceId through getRunningJobResources
         specifications: {
             ...getBaseSchemaDefaults().specifications,
-            containerType: job.resources.containerOrWorkerType.name,
+            serviceContainerType: job.resources.containerOrWorkerType.name, // TODO: Use after refactoring
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
