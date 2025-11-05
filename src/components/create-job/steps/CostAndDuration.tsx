@@ -2,30 +2,27 @@ import { BaseContainerOrWorkerType, formatResourcesSummary } from '@data/contain
 import { environment } from '@lib/config';
 import { addTimeFn, formatUsdc, getContainerOrWorkerType, getGpuType, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
 import CostAndDurationInterface from '@shared/jobs/CostAndDurationInterface';
-import {
-    GenericJobSpecifications,
-    JobCostAndDuration,
-    JobSpecifications,
-    JobType,
-    NativeJobSpecifications,
-} from '@typedefs/deeploys';
+import { JobCostAndDuration, JobSpecifications, JobType } from '@typedefs/deeploys';
 import { useEffect, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 function CostAndDuration() {
     const { watch, setValue } = useFormContext();
 
-    const jobType: JobType = watch('jobType');
-    const serviceId: number | undefined = watch('serviceId');
-    const specifications: JobSpecifications = watch('specifications');
+    const jobType = watch('jobType') as JobType | undefined;
+
+    const specifications = watch('specifications') as JobSpecifications | undefined;
     const costAndDuration: JobCostAndDuration = watch('costAndDuration');
 
-    const targetNodesCount: number = specifications.targetNodesCount;
+    const targetNodesCount: number = specifications?.targetNodesCount ?? 0;
 
-    const containerOrWorkerType: BaseContainerOrWorkerType =
-        jobType === JobType.Service
-            ? getContainerOrWorkerType(JobType.Service, serviceId!)
-            : getContainerOrWorkerType(jobType, specifications as GenericJobSpecifications | NativeJobSpecifications);
+    const containerOrWorkerType = useMemo<BaseContainerOrWorkerType | null>(() => {
+        if (!jobType || !specifications) {
+            return null;
+        }
+
+        return getContainerOrWorkerType(jobType, specifications);
+    }, [jobType, specifications]);
 
     const [duration, setDuration] = useState<number>(costAndDuration.duration); // In months
 
@@ -36,18 +33,30 @@ function CostAndDuration() {
         setValue('costAndDuration.paymentMonthsCount', value);
     };
 
-    const costPerEpoch: bigint =
-        BigInt(specifications.targetNodesCount) *
-        getResourcesCostPerEpoch(
-            containerOrWorkerType,
-            'gpuType' in specifications && specifications.gpuType ? getGpuType(specifications) : undefined,
-        );
+    const costPerEpoch = useMemo<bigint>(() => {
+        if (!containerOrWorkerType || !specifications) {
+            return 0n;
+        }
 
-    const summaryItems: { label: string; value: string | number }[] = useMemo(
-        () => [
+        const hasGpuType = 'gpuType' in specifications && Boolean(specifications.gpuType);
+
+        return (
+            BigInt(specifications.targetNodesCount) *
+            getResourcesCostPerEpoch(containerOrWorkerType, hasGpuType ? getGpuType(specifications) : undefined)
+        );
+    }, [containerOrWorkerType, specifications]);
+
+    const summaryItems = useMemo<{ label: string; value: string | number }[]>(() => {
+        if (!containerOrWorkerType) {
+            return [];
+        }
+
+        const hasGpuType = Boolean(specifications && 'gpuType' in specifications && specifications.gpuType);
+
+        return [
             {
                 label: 'Compute Type',
-                value: `CPU ${'gpuType' in specifications && specifications.gpuType ? ' & GPU' : ''}`,
+                value: `CPU ${hasGpuType ? ' & GPU' : ''}`,
             },
             {
                 label: `${jobType === JobType.Native ? 'Worker' : 'Container'} Type`,
@@ -73,9 +82,8 @@ function CostAndDuration() {
                     day: 'numeric',
                 }),
             },
-        ],
-        [costPerEpoch, duration],
-    );
+        ];
+    }, [containerOrWorkerType, costPerEpoch, duration, jobType, specifications, targetNodesCount]);
 
     // Init
     useEffect(() => {

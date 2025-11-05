@@ -11,7 +11,7 @@ type Service = {
 };
 
 // TODO: Replace the current serviceContainerTypes with this one
-export const updatedServiceContainerTypes: BaseContainerOrWorkerType[] = [
+export const baseServiceContainerTypes: BaseContainerOrWorkerType[] = [
     {
         id: 1,
         name: 'S-LOW',

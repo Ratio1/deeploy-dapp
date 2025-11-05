@@ -1,4 +1,4 @@
-import { updatedServiceContainerTypes } from '@data/services';
+import { baseServiceContainerTypes } from '@data/services';
 import { SlateCard } from '@shared/cards/SlateCard';
 import ContainerResourcesInfo from '@shared/jobs/ContainerResourcesInfo';
 import JobTags from '@shared/jobs/target-nodes/JobTags';
@@ -11,11 +11,11 @@ export default function ServiceSpecifications({ isEditingRunningJob }: { isEditi
                 <SelectServiceContainerType
                     name="specifications.serviceContainerType"
                     label="Container Type"
-                    options={updatedServiceContainerTypes}
+                    options={baseServiceContainerTypes}
                     isDisabled={isEditingRunningJob}
                 />
 
-                <ContainerResourcesInfo name="specifications.serviceContainerType" options={updatedServiceContainerTypes} />
+                <ContainerResourcesInfo name="specifications.serviceContainerType" options={baseServiceContainerTypes} />
             </SlateCard>
 
             <SlateCard>

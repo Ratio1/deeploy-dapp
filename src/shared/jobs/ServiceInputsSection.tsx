@@ -47,7 +47,7 @@ export default function ServiceInputsSection({ inputs }: { inputs: { key: string
                             <InputWithLabel
                                 name={`deployment.inputs.${index}.value`}
                                 label={inputs[index].label}
-                                placeholder="Required"
+                                placeholder="None"
                                 endContent={isKeySecret(field.key) ? 'copy' : undefined}
                                 hasSecretValue={isKeySecret(field.key)}
                             />

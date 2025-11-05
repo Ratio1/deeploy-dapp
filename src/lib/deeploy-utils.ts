@@ -1,6 +1,5 @@
 import {
     BaseContainerOrWorkerType,
-    ContainerOrWorkerType,
     genericContainerTypes,
     GpuType,
     gpuTypes,
@@ -8,7 +7,7 @@ import {
     serviceContainerTypes,
 } from '@data/containerResources';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
-import services, { Service, updatedServiceContainerTypes } from '@data/services';
+import services, { baseServiceContainerTypes, Service } from '@data/services';
 import { JobConfig } from '@typedefs/deeployApi';
 import {
     DraftJob,
@@ -74,7 +73,7 @@ export const getResourcesCostPerEpoch = (
 export const getJobCost = (job: DraftJob): bigint => {
     console.log('getJobCost', job);
 
-    const containerOrWorkerType: BaseContainerOrWorkerType = fetchContainerOrWorkerType(job.jobType, job);
+    const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
     const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
 
     const targetNodesCount: bigint = BigInt(job.specifications.targetNodesCount);
@@ -110,43 +109,18 @@ export const formatUsdc = (amount: bigint, precision: number = 2): number => {
     return parseFloat(decimalValue.toFixed(precision));
 };
 
-export const fetchContainerOrWorkerType = (jobType: JobType, draftJob: DraftJob): BaseContainerOrWorkerType => {
-    if (jobType === JobType.Service) {
-        return getContainerOrWorkerType(jobType, (draftJob as ServiceDraftJob).serviceId);
-    } else {
-        return getContainerOrWorkerType(jobType, (draftJob as GenericDraftJob | NativeDraftJob).specifications);
-    }
-};
+export function getContainerOrWorkerType(jobType: JobType, specifications: JobSpecifications): BaseContainerOrWorkerType {
+    const containerOrWorkerType = (
+        jobType === JobType.Generic
+            ? genericContainerTypes.find((type) => type.name === (specifications as GenericJobSpecifications).containerType)
+            : jobType === JobType.Native
+              ? nativeWorkerTypes.find((type) => type.name === (specifications as NativeJobSpecifications).workerType)
+              : baseServiceContainerTypes.find(
+                    (type) => type.name === (specifications as ServiceJobSpecifications).serviceContainerType,
+                )
+    )!;
 
-// Overload signatures
-export function getContainerOrWorkerType(
-    jobType: JobType.Generic | JobType.Native,
-    specifications: GenericJobSpecifications | NativeJobSpecifications,
-): ContainerOrWorkerType;
-
-export function getContainerOrWorkerType(jobType: JobType.Service, serviceId: number): BaseContainerOrWorkerType;
-
-// Implementation
-export function getContainerOrWorkerType(
-    jobType: JobType,
-    payload: GenericJobSpecifications | NativeJobSpecifications | number,
-): ContainerOrWorkerType | BaseContainerOrWorkerType {
-    if (jobType === JobType.Service) {
-        const baseContainerOrWorkerType: BaseContainerOrWorkerType = updatedServiceContainerTypes.find(
-            (type) => type.id === (payload as number),
-        )!;
-        return baseContainerOrWorkerType;
-    } else {
-        const specifications = payload as GenericJobSpecifications | NativeJobSpecifications;
-
-        const containerOrWorkerType: ContainerOrWorkerType = (
-            jobType === JobType.Generic
-                ? genericContainerTypes.find((type) => type.name === (specifications as GenericJobSpecifications).containerType)
-                : nativeWorkerTypes.find((type) => type.name === (specifications as NativeJobSpecifications).workerType)
-        )!;
-
-        return containerOrWorkerType;
-    }
+    return containerOrWorkerType;
 }
 
 export const getGpuType = (specifications: GenericJobSpecifications | NativeJobSpecifications): GpuType | undefined => {
@@ -268,17 +242,17 @@ export const formatJobTags = (specifications: JobSpecifications) => {
 };
 
 export const formatGenericDraftJobPayload = (job: GenericDraftJob) => {
-    const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+    const containerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
     return formatGenericJobPayload(containerType, job.specifications, job.deployment);
 };
 
 export const formatNativeDraftJobPayload = (job: NativeDraftJob) => {
-    const workerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+    const workerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
     return formatNativeJobPayload(workerType, job.specifications, job.deployment);
 };
 
 export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
-    const serviceContainerType: BaseContainerOrWorkerType = getContainerOrWorkerType(JobType.Service, job.serviceId);
+    const serviceContainerType: BaseContainerOrWorkerType = getContainerOrWorkerType(JobType.Service, job.specifications);
     const service: Service = services.find((service) => service.id === job.serviceId)!;
     return formatServiceJobPayload(serviceContainerType, service, job.specifications, job.deployment);
 };
@@ -388,7 +362,7 @@ const formatNativePlugin = (plugin: NativePlugin) => {
 };
 
 export const formatGenericJobPayload = (
-    containerType: ContainerOrWorkerType,
+    containerType: BaseContainerOrWorkerType,
     specifications: GenericJobSpecifications,
     deployment: GenericJobDeployment,
 ) => {
@@ -425,7 +399,7 @@ export const formatGenericJobPayload = (
 };
 
 export const formatNativeJobPayload = (
-    workerType: ContainerOrWorkerType,
+    workerType: BaseContainerOrWorkerType,
     specifications: NativeJobSpecifications,
     deployment: NativeJobDeployment,
 ) => {
