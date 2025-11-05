@@ -1,4 +1,4 @@
-import { ContainerOrWorkerType } from '@data/containerResources';
+import { BaseContainerOrWorkerType } from '@data/containerResources';
 import { getCurrentEpoch } from '@lib/config';
 import { formatUsdc, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
@@ -75,7 +75,7 @@ export default function ReviewAndConfirm({
             return 0n;
         }
 
-        const containerOrWorkerType: ContainerOrWorkerType = job.resources.containerOrWorkerType;
+        const containerOrWorkerType: BaseContainerOrWorkerType = job.resources.containerOrWorkerType;
         const costPerEpoch = getResourcesCostPerEpoch(containerOrWorkerType, job.resources.gpuType);
 
         return BigInt(increasedNodesCount) * costPerEpoch * remainingEpochs;

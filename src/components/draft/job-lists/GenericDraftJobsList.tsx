@@ -1,4 +1,4 @@
-import { ContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
+import { BaseContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { applyWidthClasses } from '@lib/utils';
@@ -32,7 +32,7 @@ export default function GenericDraftJobsList({ jobs }: { jobs: GenericDraftJob[]
             jobs={jobs}
             renderJob={(job) => {
                 const genericJob = job as GenericDraftJob;
-                const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
+                const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(
                     genericJob.jobType,
                     genericJob.specifications,
                 );

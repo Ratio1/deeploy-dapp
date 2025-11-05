@@ -161,9 +161,10 @@ export default function DraftEditFormWrapper({
 
         return {
             ...baseDefaults,
+            serviceId: serviceJob.serviceId,
             specifications: {
                 ...baseDefaults.specifications,
-                containerType: serviceJob.specifications.containerType,
+                serviceContainerType: serviceJob.specifications.serviceContainerType,
             },
             deployment: {
                 ...baseDefaults.deployment,

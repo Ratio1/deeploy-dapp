@@ -1,4 +1,4 @@
-import { ContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
+import { BaseContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { applyWidthClasses } from '@lib/utils';
@@ -30,7 +30,7 @@ export default function NativeDraftJobsList({ jobs }: { jobs: NativeDraftJob[] }
             jobs={jobs}
             renderJob={(job) => {
                 const nativeJob = job as NativeDraftJob;
-                const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
+                const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(
                     nativeJob.jobType,
                     nativeJob.specifications,
                 );
