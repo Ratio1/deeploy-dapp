@@ -15,13 +15,15 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
 
     const service: Service = services.find((service) => service.id === serviceId)!;
 
-    // Init
     useEffect(() => {
-        if ((!alias || alias === '') && service) {
+        if (!alias || alias === '') {
             setValue('deployment.jobAlias', service.name.toLowerCase());
-            setValue('deployment.port', service.port);
         }
-    }, [alias, service]);
+    }, [alias]);
+
+    useEffect(() => {
+        setValue('deployment.port', service.port);
+    }, [service]);
 
     return (
         <div className="col gap-6">
@@ -34,7 +36,7 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
             <TargetNodesCard isEditingRunningJob={isEditingRunningJob} />
 
             <SlateCard title="App Parameters">
-                <AppParametersSection enableTunnelingLabel />
+                <AppParametersSection enablePort={false} enableTunnelingLabel />
             </SlateCard>
 
             {service.inputs && <ServiceInputsSection inputs={service.inputs} />}

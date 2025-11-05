@@ -6,9 +6,11 @@ import { useFormContext } from 'react-hook-form';
 
 export default function AppParametersSection({
     baseName = 'deployment',
+    enablePort = true,
     enableTunnelingLabel = false,
 }: {
     baseName?: string;
+    enablePort?: boolean;
     enableTunnelingLabel?: boolean;
 }) {
     const { watch, trigger } = useFormContext();
@@ -27,11 +29,13 @@ export default function AppParametersSection({
                     }}
                 />
 
-                <NumberInputWithLabel
-                    name={`${baseName}.port`}
-                    label="Port"
-                    isOptional={enableTunneling === BOOLEAN_TYPES[1]}
-                />
+                {enablePort && (
+                    <NumberInputWithLabel
+                        name={`${baseName}.port`}
+                        label="Port"
+                        isOptional={enableTunneling === BOOLEAN_TYPES[1]}
+                    />
+                )}
             </div>
 
             {enableTunneling === BOOLEAN_TYPES[0] && (
