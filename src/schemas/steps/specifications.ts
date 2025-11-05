@@ -1,5 +1,5 @@
-import { APPLICATION_TYPES } from '@data/applicationTypes';
-import { genericContainerTypes, gpuTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerResources';
+import { genericContainerTypes, gpuTypes, nativeWorkerTypes } from '@data/containerResources';
+import { updatedServiceContainerTypes } from '@data/services';
 import { z } from 'zod';
 
 const getRequiredIntegerSchema = (max: number) => {
@@ -18,7 +18,7 @@ const getRequiredIntegerSchema = (max: number) => {
 
 const baseSpecificationsSchema = z.object({
     gpuType: z.union([z.literal(''), z.enum(gpuTypes.map((type) => type.name) as [string, ...string[]])]).optional(),
-    applicationType: z.enum(APPLICATION_TYPES, { required_error: 'Application type is required' }).optional(), // Disabled for now
+    // applicationType: z.enum(APPLICATION_TYPES, { required_error: 'Application type is required' }).optional(), // Disabled for now
     targetNodesCount: getRequiredIntegerSchema(100),
     jobTags: z.array(z.string()),
     nodesCountries: z.array(z.string()),
@@ -37,7 +37,7 @@ export const nativeSpecificationsSchema = baseSpecificationsSchema.extend({
 });
 
 export const serviceSpecificationsSchema = baseSpecificationsSchema.extend({
-    containerType: z.enum(serviceContainerTypes.map((type) => type.name) as [string, ...string[]], {
+    serviceContainerType: z.enum(updatedServiceContainerTypes.map((type) => type.name) as [string, ...string[]], {
         required_error: 'Container type is required',
     }),
 });

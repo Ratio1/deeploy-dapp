@@ -102,12 +102,6 @@ export default function SpecsNodesSection({
                             }
                             hasWarning={hasWarning}
                         />
-
-                        {/* <SelectWithLabel
-                            name="specifications.applicationType"
-                            label="Application Type"
-                            options={APPLICATION_TYPES}
-                        /> */}
                     </div>
 
                     <div className="col gap-2">

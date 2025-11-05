@@ -1,13 +1,14 @@
 import {
+    BaseContainerOrWorkerType,
     ContainerOrWorkerType,
     genericContainerTypes,
     GpuType,
     gpuTypes,
     nativeWorkerTypes,
-    Service,
     serviceContainerTypes,
 } from '@data/containerResources';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
+import services, { Service, updatedServiceContainerTypes } from '@data/services';
 import { JobConfig } from '@typedefs/deeployApi';
 import {
     DraftJob,
@@ -64,14 +65,16 @@ export const getDiscountPercentage = (_paymentMonthsCount: number): number => {
 const USDC_DECIMALS = 6;
 
 export const getResourcesCostPerEpoch = (
-    containerOrWorkerType: ContainerOrWorkerType,
+    containerOrWorkerType: BaseContainerOrWorkerType,
     gpuType: GpuType | undefined,
 ): bigint => {
     return containerOrWorkerType.pricePerEpoch + (gpuType?.pricePerEpoch ?? 0n);
 };
 
 export const getJobCost = (job: DraftJob): bigint => {
-    const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+    console.log('getJobCost', job);
+
+    const containerOrWorkerType: BaseContainerOrWorkerType = fetchContainerOrWorkerType(job.jobType, job);
     const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
 
     const targetNodesCount: bigint = BigInt(job.specifications.targetNodesCount);
@@ -107,17 +110,44 @@ export const formatUsdc = (amount: bigint, precision: number = 2): number => {
     return parseFloat(decimalValue.toFixed(precision));
 };
 
-export const getContainerOrWorkerType = (jobType: JobType, specifications: JobSpecifications): ContainerOrWorkerType => {
-    const containerOrWorkerType: ContainerOrWorkerType = (
-        jobType === JobType.Generic
-            ? genericContainerTypes.find((type) => type.name === (specifications as GenericJobSpecifications).containerType)
-            : jobType === JobType.Native
-              ? nativeWorkerTypes.find((type) => type.name === (specifications as NativeJobSpecifications).workerType)
-              : serviceContainerTypes.find((type) => type.name === (specifications as ServiceJobSpecifications).containerType)
-    ) as ContainerOrWorkerType;
-
-    return containerOrWorkerType;
+export const fetchContainerOrWorkerType = (jobType: JobType, draftJob: DraftJob): BaseContainerOrWorkerType => {
+    if (jobType === JobType.Service) {
+        return getContainerOrWorkerType(jobType, (draftJob as ServiceDraftJob).serviceId);
+    } else {
+        return getContainerOrWorkerType(jobType, (draftJob as GenericDraftJob | NativeDraftJob).specifications);
+    }
 };
+
+// Overload signatures
+export function getContainerOrWorkerType(
+    jobType: JobType.Generic | JobType.Native,
+    specifications: GenericJobSpecifications | NativeJobSpecifications,
+): ContainerOrWorkerType;
+
+export function getContainerOrWorkerType(jobType: JobType.Service, serviceId: number): BaseContainerOrWorkerType;
+
+// Implementation
+export function getContainerOrWorkerType(
+    jobType: JobType,
+    payload: GenericJobSpecifications | NativeJobSpecifications | number,
+): ContainerOrWorkerType | BaseContainerOrWorkerType {
+    if (jobType === JobType.Service) {
+        const baseContainerOrWorkerType: BaseContainerOrWorkerType = updatedServiceContainerTypes.find(
+            (type) => type.id === (payload as number),
+        )!;
+        return baseContainerOrWorkerType;
+    } else {
+        const specifications = payload as GenericJobSpecifications | NativeJobSpecifications;
+
+        const containerOrWorkerType: ContainerOrWorkerType = (
+            jobType === JobType.Generic
+                ? genericContainerTypes.find((type) => type.name === (specifications as GenericJobSpecifications).containerType)
+                : nativeWorkerTypes.find((type) => type.name === (specifications as NativeJobSpecifications).workerType)
+        )!;
+
+        return containerOrWorkerType;
+    }
+}
 
 export const getGpuType = (specifications: GenericJobSpecifications | NativeJobSpecifications): GpuType | undefined => {
     return specifications.gpuType && specifications.gpuType !== ''
@@ -191,7 +221,10 @@ export const formatFileVolumes = (fileVolumes: { name: string; mountingPoint: st
     return formatted;
 };
 
-export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType, portsArray: Array<PortMappingEntry>) => {
+export const formatContainerResources = (
+    containerOrWorkerType: BaseContainerOrWorkerType,
+    portsArray: Array<PortMappingEntry>,
+) => {
     const baseResources: { cpu: number; memory: string; ports?: Record<string, number> } = {
         cpu: containerOrWorkerType.cores,
         memory: `${containerOrWorkerType.ram}g`,
@@ -245,8 +278,9 @@ export const formatNativeDraftJobPayload = (job: NativeDraftJob) => {
 };
 
 export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
-    const containerType: Service = getContainerOrWorkerType(job.jobType, job.specifications);
-    return formatServiceJobPayload(containerType, job.specifications, job.deployment);
+    const serviceContainerType: BaseContainerOrWorkerType = getContainerOrWorkerType(JobType.Service, job.serviceId);
+    const service: Service = services.find((service) => service.id === job.serviceId)!;
+    return formatServiceJobPayload(serviceContainerType, service, job.specifications, job.deployment);
 };
 
 const formatGenericJobVariables = (plugin: GenericPlugin) => {
@@ -454,12 +488,13 @@ export const formatNativeJobPayload = (
 };
 
 export const formatServiceJobPayload = (
-    containerType: Service,
+    serviceContainerType: BaseContainerOrWorkerType,
+    service: Service,
     specifications: ServiceJobSpecifications,
     deployment: ServiceJobDeployment,
 ) => {
     const jobTags = formatJobTags(specifications);
-    const containerResources = formatContainerResources(containerType, []);
+    const containerResources = formatContainerResources(serviceContainerType, []);
     const targetNodes = formatNodes(deployment.targetNodes);
     const spareNodes = formatNodes(deployment.spareNodes);
 
@@ -479,9 +514,9 @@ export const formatServiceJobPayload = (
         plugins: [
             {
                 plugin_signature: 'CONTAINER_APP_RUNNER',
-                IMAGE: containerType.image,
+                IMAGE: service.image,
                 CONTAINER_RESOURCES: containerResources,
-                PORT: formatPort(containerType.port),
+                PORT: formatPort(service.port),
                 TUNNEL_ENGINE: 'ngrok',
                 NGROK_AUTH_TOKEN: deployment.tunnelingToken ?? null,
                 NGROK_EDGE_LABEL: deployment.tunnelingLabel ?? null,

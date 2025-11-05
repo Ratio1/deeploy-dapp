@@ -2,7 +2,6 @@ import JobFormButtons from '@components/create-job/JobFormButtons';
 import Deployment from '@components/create-job/steps/Deployment';
 import Plugins from '@components/create-job/steps/Plugins';
 import Specifications from '@components/create-job/steps/Specifications';
-import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -134,7 +133,7 @@ export default function JobEditFormWrapper({
     const getBaseSchemaDefaults = (config: JobConfig = jobConfig) => ({
         jobType: job.resources.jobType,
         specifications: {
-            applicationType: APPLICATION_TYPES[0], // Disabled for now
+            // applicationType: APPLICATION_TYPES[0],
             targetNodesCount: Number(job.numberOfNodesRequested),
             jobTags: !job.jobTags ? [] : job.jobTags.filter((tag) => !tag.startsWith('CT:')),
             nodesCountries: !job.jobTags

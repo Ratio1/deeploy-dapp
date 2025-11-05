@@ -3,7 +3,6 @@ import CostAndDuration from '@components/create-job/steps/CostAndDuration';
 import Deployment from '@components/create-job/steps/Deployment';
 import Plugins from '@components/create-job/steps/Plugins';
 import Specifications from '@components/create-job/steps/Specifications';
-import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -59,7 +58,7 @@ export default function DraftEditFormWrapper({
     const getBaseSchemaDefaults = () => ({
         jobType: job.jobType,
         specifications: {
-            applicationType: job.specifications.applicationType ?? APPLICATION_TYPES[0],
+            // applicationType: job.specifications.applicationType ?? APPLICATION_TYPES[0],
             targetNodesCount: job.specifications.targetNodesCount,
             jobTags: [...(job.specifications.jobTags ?? [])],
             nodesCountries: [...(job.specifications.nodesCountries ?? [])],

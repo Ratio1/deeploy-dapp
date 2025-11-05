@@ -1,12 +1,12 @@
 import JobFormButtons from '@components/create-job/JobFormButtons';
 import JobFormHeader from '@components/create-job/JobFormHeader';
-import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerResources';
+import { genericContainerTypes, nativeWorkerTypes } from '@data/containerResources';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
+import { updatedServiceContainerTypes } from '@data/services';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
@@ -51,7 +51,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
 
     const getBaseSchemaDefaults = () => ({
         specifications: {
-            applicationType: APPLICATION_TYPES[0],
+            // applicationType: APPLICATION_TYPES[0],
             targetNodesCount: jobType === JobType.Generic || jobType === JobType.Native ? 2 : 1, // Generic and Native jobs always have a minimal balancing of 2 nodes, Services are locked to 1 node
             jobTags: [...(account?.applicantType === 'company' ? [KYB_TAG] : [])],
             nodesCountries: [],
@@ -114,12 +114,11 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         ...getBaseSchemaDefaults(),
         specifications: {
             ...getBaseSchemaDefaults().specifications,
-            containerType: serviceContainerTypes[0].name,
+            serviceContainerType: updatedServiceContainerTypes[0].name,
             targetNodesCount: 1, // Service jobs are always single-node
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            port: serviceContainerTypes[0].port,
             envVars: [],
         },
     });

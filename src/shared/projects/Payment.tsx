@@ -3,7 +3,7 @@ import { DeeployFlowModal } from '@components/draft/DeeployFlowModal';
 import GenericJobsCostRundown from '@components/draft/job-rundowns/GenericJobsCostRundown';
 import NativeJobsCostRundown from '@components/draft/job-rundowns/NativeJobsCostRundown';
 import ServiceJobsCostRundown from '@components/draft/job-rundowns/ServiceJobsCostRundown';
-import { ContainerOrWorkerType } from '@data/containerResources';
+import { BaseContainerOrWorkerType } from '@data/containerResources';
 import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
 import { createPipeline } from '@lib/api/deeploy';
 import { environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
@@ -12,11 +12,11 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import {
     buildDeeployMessage,
     diffTimeFn,
+    fetchContainerOrWorkerType,
     formatGenericDraftJobPayload,
     formatNativeDraftJobPayload,
     formatServiceDraftJobPayload,
     formatUsdc,
-    getContainerOrWorkerType,
     getJobsTotalCost,
 } from '@lib/deeploy-utils';
 import db from '@lib/storage/db';
@@ -162,7 +162,7 @@ export default function Payment({
             deeployFlowModalRef.current?.open(jobs.length, messagesToSign);
 
             const args = jobs.map((job) => {
-                const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+                const containerType: BaseContainerOrWorkerType = fetchContainerOrWorkerType(job.jobType, job);
                 const expiryDate = addDays(new Date(), job.costAndDuration.duration * 30);
                 const durationInEpochs = diffTimeFn(expiryDate, new Date());
                 const lastExecutionEpoch = BigInt(getCurrentEpoch() + durationInEpochs);

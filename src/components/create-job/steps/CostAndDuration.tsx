@@ -1,14 +1,14 @@
-import { ContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
+import { BaseContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
 import { environment } from '@lib/config';
-import {
-    addTimeFn,
-    formatUsdc,
-    getContainerOrWorkerType,
-    getGpuType,
-    getResourcesCostPerEpoch,
-} from '@lib/deeploy-utils';
+import { addTimeFn, formatUsdc, getContainerOrWorkerType, getGpuType, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
 import CostAndDurationInterface from '@shared/jobs/CostAndDurationInterface';
-import { JobCostAndDuration, JobSpecifications, JobType } from '@typedefs/deeploys';
+import {
+    GenericJobSpecifications,
+    JobCostAndDuration,
+    JobSpecifications,
+    JobType,
+    NativeJobSpecifications,
+} from '@typedefs/deeploys';
 import { useEffect, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
@@ -16,12 +16,16 @@ function CostAndDuration() {
     const { watch, setValue } = useFormContext();
 
     const jobType: JobType = watch('jobType');
+    const serviceId: number | undefined = watch('serviceId');
     const specifications: JobSpecifications = watch('specifications');
     const costAndDuration: JobCostAndDuration = watch('costAndDuration');
 
     const targetNodesCount: number = specifications.targetNodesCount;
 
-    const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(jobType, specifications);
+    const containerOrWorkerType: BaseContainerOrWorkerType =
+        jobType === JobType.Service
+            ? getContainerOrWorkerType(JobType.Service, serviceId!)
+            : getContainerOrWorkerType(jobType, specifications as GenericJobSpecifications | NativeJobSpecifications);
 
     const [duration, setDuration] = useState<number>(costAndDuration.duration); // In months
 

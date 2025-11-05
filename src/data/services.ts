@@ -1,13 +1,38 @@
-export type Service = {
+import { BaseContainerOrWorkerType } from './containerResources';
+
+type Service = {
     id: number;
     name: string;
     description: string;
     image: string;
     port: number;
     inputs: { key: string; label: string }[];
-    envVars: { key: string; value: string }[];
     logo: string;
 };
+
+// TODO: Replace the current serviceContainerTypes with this one
+export const updatedServiceContainerTypes: BaseContainerOrWorkerType[] = [
+    {
+        id: 1,
+        name: 'S-LOW',
+        jobType: 10, // TODO: Update with actual job type
+        monthlyBudgetPerWorker: 30,
+        pricePerEpoch: 1_000_000n,
+        cores: 1,
+        ram: 2,
+        storage: 50,
+    },
+    {
+        id: 2,
+        name: 'S-MED',
+        jobType: 11, // TODO: Update with actual job type
+        monthlyBudgetPerWorker: 65,
+        pricePerEpoch: 2_166_666n,
+        cores: 2,
+        ram: 4,
+        storage: 200,
+    },
+];
 
 export default [
     {
@@ -17,7 +42,6 @@ export default [
         image: 'postgres:17',
         port: 5432,
         inputs: [{ key: 'POSTGRES_PASSWORD', label: 'PostgreSQL Password' }],
-        envVars: [],
         logo: 'postgresql.svg',
     },
     {
@@ -27,7 +51,6 @@ export default [
         image: 'mysql',
         port: 3306,
         inputs: [{ key: 'MYSQL_ROOT_PASSWORD', label: 'MySQL Root Password' }],
-        envVars: [],
         logo: 'mysql.svg',
     },
     {
@@ -40,7 +63,6 @@ export default [
             { key: 'MONGO_INITDB_ROOT_USERNAME', label: 'MongoDB Root Username' },
             { key: 'MONGO_INITDB_ROOT_PASSWORD', label: 'MongoDB Root Password' },
         ],
-        envVars: [],
         logo: 'mongodb.svg',
     },
     {
@@ -53,7 +75,8 @@ export default [
             { key: 'STRAPI_ADMIN_USERNAME', label: 'Strapi Admin Username' },
             { key: 'STRAPI_ADMIN_PASSWORD', label: 'Strapi Admin Password' },
         ],
-        envVars: [],
         logo: 'strapi.svg',
     },
 ];
+
+export type { Service };

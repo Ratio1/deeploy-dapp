@@ -1,20 +1,24 @@
 import { JobType } from '@typedefs/deeploys';
 
-export type ContainerOrWorkerType = {
+type BaseContainerOrWorkerType = {
     id: number;
     name: string;
     jobType: number;
+    monthlyBudgetPerWorker: number;
+    pricePerEpoch: bigint;
+    cores: number;
+    ram: number;
+    storage: number;
+};
+
+type ContainerOrWorkerType = BaseContainerOrWorkerType & {
     notes: string;
     notesColor: 'red' | 'orange' | 'green' | 'blue';
     monthlyBudgetPerWorker: number;
-    pricePerEpoch: bigint;
     minimalBalancing: number;
-    cores: number;
-    ram: number;
-    storage?: number;
 };
 
-export const formatResourcesSummary = (containerOrWorkerType: ContainerOrWorkerType): string => {
+export const formatResourcesSummary = (containerOrWorkerType: BaseContainerOrWorkerType): string => {
     const coreLabel = `${containerOrWorkerType.cores} ${containerOrWorkerType.cores === 1 ? 'core' : 'cores'}`;
     const ramLabel = `${containerOrWorkerType.ram} GB`;
 
@@ -29,7 +33,7 @@ export const formatResourcesSummary = (containerOrWorkerType: ContainerOrWorkerT
     return [coreLabel, ramLabel, storageLabel].filter(Boolean).join(' ');
 };
 
-export type Service = ContainerOrWorkerType & {
+type DeprecatedService = ContainerOrWorkerType & {
     port?: number;
     image?: string;
     serviceName?: string;
@@ -41,7 +45,7 @@ export type Service = ContainerOrWorkerType & {
     inputs?: { key: string; label: string }[];
 };
 
-export type GpuType = {
+type GpuType = {
     id: number;
     name: string;
     gpus: string[];
@@ -56,7 +60,7 @@ export type GpuType = {
     minimalBalancing: number;
 };
 
-export type RunningJobResources = {
+type RunningJobResources = {
     containerOrWorkerType: ContainerOrWorkerType;
     gpuType?: GpuType;
     jobType: JobType;
@@ -250,7 +254,7 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
     },
 ];
 
-export const serviceContainerTypes: Service[] = [
+export const serviceContainerTypes: DeprecatedService[] = [
     {
         id: 1,
         name: 'PGSQL-LOW',
@@ -508,3 +512,5 @@ export const getRunningJobResources = (jobType: bigint): RunningJobResources | u
         }
     }
 };
+
+export type { BaseContainerOrWorkerType, ContainerOrWorkerType, DeprecatedService, GpuType, RunningJobResources };

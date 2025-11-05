@@ -1,4 +1,4 @@
-import { ContainerOrWorkerType, GpuType, gpuTypes } from '@data/containerResources';
+import { BaseContainerOrWorkerType, ContainerOrWorkerType, GpuType, gpuTypes } from '@data/containerResources';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import { useEffect, useState } from 'react';
@@ -6,7 +6,7 @@ import { useFormContext } from 'react-hook-form';
 
 interface Props {
     name: string;
-    options: ContainerOrWorkerType[];
+    options: (BaseContainerOrWorkerType | ContainerOrWorkerType)[];
 }
 
 export default function ContainerResourcesInfo({ name, options }: Props) {
@@ -15,7 +15,7 @@ export default function ContainerResourcesInfo({ name, options }: Props) {
     const containerOrWorkerTypeName: string = watch(name);
     const gpuTypeName: string = watch('specifications.gpuType');
 
-    const [containerOrWorkerType, setContainerOrWorkerType] = useState<ContainerOrWorkerType>();
+    const [containerOrWorkerType, setContainerOrWorkerType] = useState<BaseContainerOrWorkerType | ContainerOrWorkerType>();
     const [gpuType, setGpuType] = useState<GpuType>();
 
     useEffect(() => {
@@ -32,7 +32,7 @@ export default function ContainerResourcesInfo({ name, options }: Props) {
 
     return (
         <div className="col w-full gap-2.5">
-            {containerOrWorkerType.minimalBalancing > 1 && (
+            {'minimalBalancing' in containerOrWorkerType && containerOrWorkerType.minimalBalancing > 1 && (
                 <div className="row gap-1.5">
                     <Label value="Min. Recommended Balancing" />
                     <SmallTag>{`${containerOrWorkerType.minimalBalancing} nodes`}</SmallTag>
