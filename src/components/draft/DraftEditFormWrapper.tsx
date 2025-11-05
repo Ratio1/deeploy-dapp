@@ -1,31 +1,25 @@
 import JobFormButtons from '@components/create-job/JobFormButtons';
-import CostAndDuration from '@components/create-job/steps/CostAndDuration';
-import Deployment from '@components/create-job/steps/Deployment';
-import Plugins from '@components/create-job/steps/Plugins';
-import Specifications from '@components/create-job/steps/Specifications';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { MAIN_STEPS, Step, STEPS } from '@lib/steps/steps';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import SubmitButton from '@shared/SubmitButton';
 import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { ContainerDeploymentType, DeploymentType, PluginType, WorkerDeploymentType } from '@typedefs/steps/deploymentStepTypes';
 import { cloneDeep } from 'lodash';
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import z from 'zod';
 
-const DEFAULT_STEPS: {
-    title: string;
-    validationName?: string;
-}[] = [
-    { title: 'Specifications', validationName: 'specifications' },
-    { title: 'Cost & Duration', validationName: 'costAndDuration' },
-    { title: 'Deployment', validationName: 'deployment' },
-];
+const JOB_TYPE_STEPS: Record<JobType, Step[]> = {
+    [JobType.Generic]: [...MAIN_STEPS],
+    [JobType.Native]: [...MAIN_STEPS, Step.PLUGINS],
+    [JobType.Service]: [Step.SERVICES, ...MAIN_STEPS],
+};
 
 export default function DraftEditFormWrapper({
     job,
@@ -38,7 +32,7 @@ export default function DraftEditFormWrapper({
 
     const navigate = useNavigate();
 
-    const [steps, setSteps] = useState(DEFAULT_STEPS);
+    const steps: Step[] = useMemo(() => (job.jobType ? JOB_TYPE_STEPS[job.jobType] : []), [job.jobType]);
 
     const getBaseSchemaDeploymentDefaults = () => ({
         jobAlias: job.deployment.jobAlias,
@@ -199,15 +193,13 @@ export default function DraftEditFormWrapper({
         defaultValues: getDefaultSchemaValues(),
     });
 
-    useEffect(() => {
-        if (job.jobType === JobType.Native) {
-            setSteps([...DEFAULT_STEPS, { title: 'Plugins' }]);
-        }
-    }, [job]);
-
     const onError = (errors: FieldErrors<z.infer<typeof jobSchema>>) => {
         console.log(errors);
     };
+
+    const ActiveStep = useMemo(() => {
+        return STEPS[steps[step]].component;
+    }, [step, steps]);
 
     return (
         <FormProvider {...form}>
@@ -216,7 +208,7 @@ export default function DraftEditFormWrapper({
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
                             <JobFormHeaderInterface
-                                steps={steps.map((step) => step.title)}
+                                steps={steps.map((step) => STEPS[step].title)}
                                 onCancel={() => {
                                     navigate(-1);
                                 }}
@@ -224,15 +216,12 @@ export default function DraftEditFormWrapper({
                                 <div className="big-title">Edit Job Draft</div>
                             </JobFormHeaderInterface>
 
-                            {step === 0 && <Specifications />}
-                            {step === 1 && <CostAndDuration />}
-                            {step === 2 && <Deployment />}
-                            {step === 3 && <Plugins />}
+                            <ActiveStep />
 
                             <JobFormButtons
-                                steps={steps}
+                                steps={steps.map((step) => STEPS[step])}
                                 cancelLabel="Project"
-                                customSubmitButton={<SubmitButton label="Update Draft" />}
+                                customSubmitButton={<SubmitButton label="Update" />}
                             />
                         </div>
                     </div>
