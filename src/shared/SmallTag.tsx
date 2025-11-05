@@ -1,22 +1,25 @@
 import clsx from 'clsx';
 import { FunctionComponent, PropsWithChildren } from 'react';
 
+export type ColorVariant =
+    | 'default'
+    | 'green'
+    | 'blue'
+    | 'red'
+    | 'orange'
+    | 'emerald'
+    | 'purple'
+    | 'yellow'
+    | 'accent'
+    | 'darkred'
+    | 'darkgreen'
+    | 'pink'
+    | 'violet'
+    | 'soft';
+
 export const SmallTag: FunctionComponent<
     PropsWithChildren<{
-        variant?:
-            | 'default'
-            | 'green'
-            | 'blue'
-            | 'red'
-            | 'orange'
-            | 'emerald'
-            | 'purple'
-            | 'yellow'
-            | 'accent'
-            | 'darkred'
-            | 'darkgreen'
-            | 'pink'
-            | 'soft';
+        variant?: ColorVariant;
         isLarge?: boolean;
     }>
 > = ({ children, variant = 'default', isLarge = false }) => (
@@ -37,6 +40,7 @@ export const SmallTag: FunctionComponent<
                 'bg-red-150 text-red-600': variant === 'darkred',
                 'bg-green-150 text-green-600': variant === 'darkgreen',
                 'bg-pink-100 text-pink-600': variant === 'pink',
+                'bg-violet-100 text-violet-600': variant === 'violet',
                 'bg-[#e7edf6] text-slate-500': variant === 'soft',
             })}
         >

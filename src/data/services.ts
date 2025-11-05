@@ -1,3 +1,4 @@
+import { ColorVariant } from '@shared/SmallTag';
 import { BaseContainerOrWorkerType } from './containerResources';
 
 type Service = {
@@ -8,6 +9,7 @@ type Service = {
     port: number;
     inputs: { key: string; label: string }[];
     logo: string;
+    color: ColorVariant;
 };
 
 // TODO: Replace the current serviceContainerTypes with this one
@@ -43,6 +45,7 @@ export default [
         port: 5432,
         inputs: [{ key: 'POSTGRES_PASSWORD', label: 'PostgreSQL Password' }],
         logo: 'postgresql.svg',
+        color: 'blue',
     },
     {
         id: 2,
@@ -52,6 +55,7 @@ export default [
         port: 3306,
         inputs: [{ key: 'MYSQL_ROOT_PASSWORD', label: 'MySQL Root Password' }],
         logo: 'mysql.svg',
+        color: 'orange',
     },
     {
         id: 3,
@@ -64,6 +68,7 @@ export default [
             { key: 'MONGO_INITDB_ROOT_PASSWORD', label: 'MongoDB Root Password' },
         ],
         logo: 'mongodb.svg',
+        color: 'green',
     },
     {
         id: 4,
@@ -76,7 +81,8 @@ export default [
             { key: 'STRAPI_ADMIN_PASSWORD', label: 'Strapi Admin Password' },
         ],
         logo: 'strapi.svg',
+        color: 'violet',
     },
-];
+] as Service[];
 
 export type { Service };

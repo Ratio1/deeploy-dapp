@@ -1,4 +1,5 @@
-import { DeprecatedService, formatResourcesSummary } from '@data/containerResources';
+import { BaseContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
+import services, { Service } from '@data/services';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { applyWidthClasses } from '@lib/utils';
@@ -32,10 +33,11 @@ export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[]
             jobs={jobs}
             renderJob={(job) => {
                 const serviceJob = job as ServiceDraftJob;
-                const containerOrWorkerType: DeprecatedService = getContainerOrWorkerType(
+                const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(
                     serviceJob.jobType,
                     serviceJob.specifications,
                 );
+                const service: Service = services.find((service) => service.id === serviceJob.serviceId)!;
 
                 return (
                     <>
@@ -53,7 +55,7 @@ export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[]
                         <div className={widthClasses[2]}>{serviceJob.specifications.targetNodesCount}</div>
 
                         <div className={widthClasses[3]}>
-                            <SmallTag variant={containerOrWorkerType.notesColor}>{containerOrWorkerType.serviceName}</SmallTag>
+                            <SmallTag variant={service.color}>{service.name}</SmallTag>
                         </div>
 
                         <div className={widthClasses[4]}>
