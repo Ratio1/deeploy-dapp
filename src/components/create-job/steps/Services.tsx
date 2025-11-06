@@ -25,11 +25,11 @@ function ServiceLogo({ filename, name }: { filename: string; name: string }) {
     return (
         <div className="center-all h-12 w-12 min-w-12 overflow-hidden rounded-xl bg-white p-2 shadow-md">
             {src === undefined ? (
-                <Skeleton className="h-full w-full" />
+                <Skeleton className="h-full w-full rounded-lg" />
             ) : src ? (
                 <img className="max-h-7 w-full max-w-7" src={src} alt={name} />
             ) : (
-                <div className="h-full w-full bg-slate-200" />
+                <div className="h-full w-full rounded-lg bg-slate-200" />
             )}
         </div>
     );

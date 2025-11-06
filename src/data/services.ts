@@ -70,21 +70,9 @@ export default [
         logo: 'mongodb.svg',
         color: 'green',
     },
+
     {
         id: 4,
-        name: 'Strapi',
-        description: 'Next-gen headless content management system',
-        image: 'strapi',
-        port: 1337,
-        inputs: [
-            { key: 'STRAPI_ADMIN_USERNAME', label: 'Strapi Admin Username' },
-            { key: 'STRAPI_ADMIN_PASSWORD', label: 'Strapi Admin Password' },
-        ],
-        logo: 'strapi.svg',
-        color: 'violet',
-    },
-    {
-        id: 5,
         name: 'n8n',
         description: 'Workflow automation platform',
         image: 'n8nio/n8n',

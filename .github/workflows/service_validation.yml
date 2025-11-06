@@ -2,8 +2,7 @@ name: Validate new services
 
 on:
     pull_request:
-        # TODO: Replace with develop branch
-        branches: [extensible-services]
+        branches: [develop]
 
 jobs:
     validate:
