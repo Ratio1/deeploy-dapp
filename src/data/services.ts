@@ -1,4 +1,5 @@
 import { ColorVariant } from '@shared/SmallTag';
+import { DynamicEnvVarsEntry, KeyValueEntry } from '@typedefs/steps/deploymentStepTypes';
 import { BaseContainerOrWorkerType } from './containerResources';
 
 type Service = {
@@ -10,6 +11,13 @@ type Service = {
     inputs: { key: string; label: string }[];
     logo: string;
     color: ColorVariant;
+    pluginSignature: 'CONTAINER_APP_RUNNER' | 'WORKER_APP_RUNNER';
+    tunnelEngine: 'cloudflare' | 'ngrok';
+    envVars?: KeyValueEntry[];
+    dynamicEnvVars?: DynamicEnvVarsEntry[];
+    buildAndRunCommands?: string[];
+    pipelineParams?: any; // JSON format
+    pluginParams?: any; // JSON format
 };
 
 export const serviceContainerTypes: BaseContainerOrWorkerType[] = [
@@ -46,6 +54,8 @@ export default [
         inputs: [{ key: 'POSTGRES_PASSWORD', label: 'PostgreSQL Password' }],
         logo: 'postgresql.svg',
         color: 'blue',
+        pluginSignature: 'CONTAINER_APP_RUNNER',
+        tunnelEngine: 'ngrok',
     },
     {
         id: 2,
@@ -56,6 +66,8 @@ export default [
         inputs: [{ key: 'MYSQL_ROOT_PASSWORD', label: 'MySQL Root Password' }],
         logo: 'mysql.svg',
         color: 'orange',
+        pluginSignature: 'CONTAINER_APP_RUNNER',
+        tunnelEngine: 'ngrok',
     },
     {
         id: 3,
@@ -69,6 +81,8 @@ export default [
         ],
         logo: 'mongodb.svg',
         color: 'green',
+        pluginSignature: 'CONTAINER_APP_RUNNER',
+        tunnelEngine: 'ngrok',
     },
 
     {
@@ -80,6 +94,8 @@ export default [
         inputs: [],
         logo: 'n8n.svg',
         color: 'pink',
+        pluginSignature: 'CONTAINER_APP_RUNNER',
+        tunnelEngine: 'ngrok',
     },
 ] as Service[];
 

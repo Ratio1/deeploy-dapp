@@ -18,10 +18,20 @@ type CustomParameterEntry = KeyValueEntry & {
 
 type DynamicEnvVarsEntry = {
     key: string;
-    values: Array<{
-        type: (typeof DYNAMIC_ENV_TYPES)[number];
-        value: string;
-    }>;
+    values: [
+        {
+            type: (typeof DYNAMIC_ENV_TYPES)[number];
+            value: string;
+        },
+        {
+            type: (typeof DYNAMIC_ENV_TYPES)[number];
+            value: string;
+        },
+        {
+            type: (typeof DYNAMIC_ENV_TYPES)[number];
+            value: string;
+        },
+    ];
 };
 
 type VolumesEntry = {
@@ -165,9 +175,11 @@ export type {
     ContainerDeploymentType,
     CustomParameterEntry,
     DeploymentType,
+    DynamicEnvVarsEntry,
     GenericJobDeployment,
     GenericPlugin,
     JobDeployment,
+    KeyValueEntry,
     NativeJobDeployment,
     NativePlugin,
     Plugin,

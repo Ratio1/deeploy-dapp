@@ -36,7 +36,7 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
             <TargetNodesCard isEditingRunningJob={isEditingRunningJob} />
 
             <SlateCard title="App Parameters">
-                <AppParametersSection enablePort={false} enableTunnelingLabel />
+                <AppParametersSection enablePort={false} enableTunnelingLabel forceTunnelingEnabled />
             </SlateCard>
 
             {service.inputs && <ServiceInputsSection inputs={service.inputs} />}

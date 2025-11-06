@@ -298,8 +298,8 @@ export const formatGenericPluginConfigAndSignature = (
 
     const pluginConfig: any = {
         CONTAINER_RESOURCES: resources,
-        PORT: formatPort(plugin.port),
         // Tunneling
+        PORT: formatPort(plugin.port),
         TUNNEL_ENGINE: 'cloudflare',
         CLOUDFLARE_TOKEN: plugin.tunnelingToken || null,
         TUNNEL_ENGINE_ENABLED: plugin.enableTunneling === 'True',
@@ -443,16 +443,26 @@ export const formatNativeJobPayload = (
     });
 
     return {
-        app_alias: deployment.jobAlias,
         nonce,
+
+        // Deployment
+        app_alias: deployment.jobAlias,
         target_nodes: targetNodes,
         spare_nodes: spareNodes,
         allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
+
+        // Specifications
         target_nodes_count: targetNodesCount,
         job_tags: jobTags,
         node_res_req: nodeResources,
+
+        // Tunneling
         TUNNEL_ENGINE: 'cloudflare',
+
+        // Plugins
         plugins,
+
+        // Pipeline
         pipeline_input_type: deployment.pipelineInputType,
         pipeline_input_uri: deployment.pipelineInputUri || null,
         pipeline_params: !_.isEmpty(pipelineParams) ? pipelineParams : {},
@@ -471,36 +481,61 @@ export const formatServiceJobPayload = (
     const targetNodes = formatNodes(deployment.targetNodes);
     const spareNodes = formatNodes(deployment.spareNodes);
 
-    const envVars = formatEnvVars(deployment.inputs);
+    const envVars = {
+        ...formatEnvVars(deployment.inputs),
+        ...(service.envVars ? formatEnvVars(service.envVars) : {}),
+    };
+
+    const dynamicEnvVars = service.dynamicEnvVars ? formatDynamicEnvVars(service.dynamicEnvVars) : {};
 
     const nonce = generateDeeployNonce();
 
     return {
         nonce,
+
+        // Deployment
         app_alias: deployment.jobAlias,
         target_nodes: targetNodes,
         spare_nodes: spareNodes,
         allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
+        service_replica: deployment.serviceReplica,
+
+        // Specifications
         target_nodes_count: 1, // Service jobs are always single-node
         job_tags: jobTags,
-        service_replica: deployment.serviceReplica,
+
+        // Plugins
         plugins: [
             {
-                plugin_signature: 'CONTAINER_APP_RUNNER',
+                plugin_signature: service.pluginSignature,
                 IMAGE: service.image,
                 CONTAINER_RESOURCES: containerResources,
+
+                // Tunneling
                 PORT: formatPort(service.port),
-                TUNNEL_ENGINE: 'ngrok',
-                NGROK_AUTH_TOKEN: deployment.tunnelingToken ?? null,
+                TUNNEL_ENGINE_ENABLED: true, // Tunneling is always enabled for services
+                TUNNEL_ENGINE: service.tunnelEngine,
+                NGROK_AUTH_TOKEN: deployment.tunnelingToken, // Tunneling is always enabled for services
                 NGROK_EDGE_LABEL: deployment.tunnelingLabel ?? null,
-                TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
+
+                // Variables
                 ENV: envVars,
+                DYNAMIC_ENV: dynamicEnvVars,
+                BUILD_AND_RUN_COMMANDS: service.buildAndRunCommands,
+
+                // Policies
                 RESTART_POLICY: 'always',
                 IMAGE_PULL_POLICY: 'always',
+
+                // Other
+                ...(service.pluginParams ? service.pluginParams : {}),
             },
         ],
+
+        // Pipeline
         pipeline_input_type: 'void',
         pipeline_input_uri: null,
+        pipeline_params: !_.isEmpty(service.pipelineParams) ? service.pipelineParams : {},
         chainstore_response: true,
     };
 };

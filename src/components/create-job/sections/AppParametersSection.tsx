@@ -8,10 +8,12 @@ export default function AppParametersSection({
     baseName = 'deployment',
     enablePort = true,
     enableTunnelingLabel = false,
+    forceTunnelingEnabled = false,
 }: {
     baseName?: string;
     enablePort?: boolean;
     enableTunnelingLabel?: boolean;
+    forceTunnelingEnabled?: boolean;
 }) {
     const { watch, trigger } = useFormContext();
 
@@ -27,6 +29,7 @@ export default function AppParametersSection({
                     onSelect={() => {
                         trigger(`${baseName}.port`);
                     }}
+                    isDisabled={forceTunnelingEnabled}
                 />
 
                 {enablePort && (
