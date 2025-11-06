@@ -4,24 +4,50 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
+type KeyLabelPair = { key: string; label: string };
+
+type EnvVarEntry = { key: string; value: string };
+
+type DynamicEnvVarValue = { type: string; value: string };
+
+type DynamicEnvVarEntry = {
+    key: string;
+    values: [DynamicEnvVarValue, DynamicEnvVarValue, DynamicEnvVarValue];
+};
+
+type PluginSignature = 'CONTAINER_APP_RUNNER' | 'WORKER_APP_RUNNER';
+type TunnelEngine = 'cloudflare' | 'ngrok';
+
 type ServiceInput = {
     id: number;
     name: string;
     description: string;
     image: string;
     port: number;
-    inputs: { key: string; label: string }[];
+    inputs: KeyLabelPair[];
     logo: string;
     color: string;
+    pluginSignature: PluginSignature;
+    tunnelEngine: TunnelEngine;
+    envVars: EnvVarEntry[];
+    dynamicEnvVars: DynamicEnvVarEntry[];
+    buildAndRunCommands: string[];
+    pipelineParams?: unknown;
+    pluginParams?: unknown;
 };
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SERVICES_FILE_PATH = path.resolve(__dirname, '../src/data/services.ts');
 const SMALL_TAG_FILE_PATH = path.resolve(__dirname, '../src/shared/SmallTag.tsx');
+const DYNAMIC_ENV_TYPES_FILE_PATH = path.resolve(__dirname, '../src/data/dynamicEnvTypes.ts');
 
-const SERVICES_ARRAY_REGEX = /export default\s*\[(?<arrayContent>[\s\S]*?)\]\s*as Service\[];/;
+const SERVICES_ARRAY_REGEX = /const services:\s*Service\[\]\s*=\s*\[(?<arrayContent>[\s\S]*?)\];/;
 const COLOR_VARIANTS_REGEX = /export type ColorVariant\s*=\s*(?<variants>[\s\S]*?);/;
+const DYNAMIC_ENV_TYPES_REGEX = /export const DYNAMIC_ENV_TYPES\s*=\s*\[(?<types>[\s\S]*?)\]\s*as const;/;
+
+const PLUGIN_SIGNATURE_CHOICES: PluginSignature[] = ['CONTAINER_APP_RUNNER', 'WORKER_APP_RUNNER'];
+const TUNNEL_ENGINE_CHOICES: TunnelEngine[] = ['cloudflare', 'ngrok'];
 const ALLOWED_LOGO_EXTENSIONS = ['.svg', '.png'];
 
 const INDENT = '    ';
@@ -42,6 +68,81 @@ const formatInputs = (inputs: ServiceInput['inputs']) => {
     return `${indent(2)}inputs: [\n${formatted}\n${indent(2)}],\n`;
 };
 
+const formatEnvVars = (envVars: EnvVarEntry[]) => {
+    if (!envVars.length) {
+        return '';
+    }
+
+    const formatted = envVars
+        .map((entry) => `${indent(3)}{ key: '${sanitizeString(entry.key)}', value: '${sanitizeString(entry.value)}' },`)
+        .join('\n');
+
+    return `${indent(2)}envVars: [\n${formatted}\n${indent(2)}],\n`;
+};
+
+const formatDynamicEnvVars = (dynamicEnvVars: DynamicEnvVarEntry[]) => {
+    if (!dynamicEnvVars.length) {
+        return '';
+    }
+
+    const formatted = dynamicEnvVars
+        .map((entry) => {
+            const values = entry.values
+                .map(
+                    (value) =>
+                        `${indent(5)}{ type: '${sanitizeString(value.type)}', value: '${sanitizeString(value.value)}' },`,
+                )
+                .join('\n');
+
+            return (
+                `${indent(3)}{\n` +
+                `${indent(4)}key: '${sanitizeString(entry.key)}',\n` +
+                `${indent(4)}values: [\n${values}\n${indent(4)}],\n` +
+                `${indent(3)}},`
+            );
+        })
+        .join('\n');
+
+    return `${indent(2)}dynamicEnvVars: [\n${formatted}\n${indent(2)}],\n`;
+};
+
+const formatCommands = (commands: string[]) => {
+    if (!commands.length) {
+        return '';
+    }
+
+    const formatted = commands.map((command) => `${indent(3)}'${sanitizeString(command)}',`).join('\n');
+
+    return `${indent(2)}buildAndRunCommands: [\n${formatted}\n${indent(2)}],\n`;
+};
+
+const formatJsonField = (fieldName: string, value: unknown) => {
+    if (value === undefined) {
+        return '';
+    }
+
+    const json = JSON.stringify(value, null, 4);
+
+    if (!json.includes('\n')) {
+        return `${indent(2)}${fieldName}: ${json},\n`;
+    }
+
+    const lines = json.split('\n');
+    const formattedLines = lines
+        .map((line, index) => {
+            if (index === 0) {
+                return `${indent(2)}${fieldName}: ${line}`;
+            }
+            if (index === lines.length - 1) {
+                return `${indent(2)}${line},`;
+            }
+            return `${indent(3)}${line}`;
+        })
+        .join('\n');
+
+    return `${formattedLines}\n`;
+};
+
 const formatService = (service: ServiceInput) => {
     return (
         `${indent(1)}{\n` +
@@ -53,6 +154,13 @@ const formatService = (service: ServiceInput) => {
         formatInputs(service.inputs) +
         `${indent(2)}logo: '${sanitizeString(service.logo)}',\n` +
         `${indent(2)}color: '${sanitizeString(service.color)}',\n` +
+        `${indent(2)}pluginSignature: '${service.pluginSignature}',\n` +
+        `${indent(2)}tunnelEngine: '${service.tunnelEngine}',\n` +
+        formatEnvVars(service.envVars) +
+        formatDynamicEnvVars(service.dynamicEnvVars) +
+        formatCommands(service.buildAndRunCommands) +
+        formatJsonField('pipelineParams', service.pipelineParams) +
+        formatJsonField('pluginParams', service.pluginParams) +
         `${indent(1)}},\n`
     );
 };
@@ -68,6 +176,20 @@ const extractColorVariants = () => {
     return match.groups.variants
         .split('|')
         .map((variant) => variant.replace(/['"`]/g, '').trim())
+        .filter(Boolean);
+};
+
+const extractDynamicEnvTypes = () => {
+    const contents = readFileSync(DYNAMIC_ENV_TYPES_FILE_PATH, 'utf8');
+    const match = contents.match(DYNAMIC_ENV_TYPES_REGEX);
+
+    if (!match?.groups?.types) {
+        throw new Error('Unable to locate DYNAMIC_ENV_TYPES definitions in src/data/dynamicEnvTypes.ts');
+    }
+
+    return match.groups.types
+        .split(',')
+        .map((type) => type.replace(/['"`]/g, '').trim())
         .filter(Boolean);
 };
 
@@ -88,7 +210,7 @@ const extractNextServiceId = (servicesArray: string) => {
 };
 
 const promptForInputs = async () => {
-    const inputs: { key: string; label: string }[] = [];
+    const inputs: KeyLabelPair[] = [];
 
     const { shouldAddInputs } = await inquirer.prompt<{ shouldAddInputs: boolean }>([
         {
@@ -140,7 +262,240 @@ const promptForInputs = async () => {
     return inputs;
 };
 
-const promptForService = async (nextId: number, colorVariants: string[]): Promise<ServiceInput> => {
+const promptForEnvVars = async (): Promise<EnvVarEntry[]> => {
+    const envVars: EnvVarEntry[] = [];
+
+    const { shouldAddEnvVars } = await inquirer.prompt<{ shouldAddEnvVars: boolean }>([
+        {
+            name: 'shouldAddEnvVars',
+            type: 'confirm',
+            message: 'Add static env vars (key/value pairs)?',
+            default: false,
+        },
+    ]);
+
+    if (!shouldAddEnvVars) {
+        return envVars;
+    }
+
+    let addAnother = true;
+
+    while (addAnother) {
+        const { key, value } = await inquirer.prompt<{ key: string; value: string }>([
+            {
+                name: 'key',
+                type: 'input',
+                message: 'Env var key:',
+                validate: (input: string) => (input.trim() ? true : 'Key cannot be empty.'),
+                filter: (input: string) => input.trim(),
+            },
+            {
+                name: 'value',
+                type: 'input',
+                message: 'Env var value:',
+                validate: (input: string) => (input.trim() ? true : 'Value cannot be empty.'),
+                filter: (input: string) => input.trim(),
+            },
+        ]);
+
+        envVars.push({ key, value });
+
+        const response = await inquirer.prompt<{ continueAdding: boolean }>([
+            {
+                name: 'continueAdding',
+                type: 'confirm',
+                message: 'Add another env var?',
+                default: true,
+            },
+        ]);
+
+        addAnother = response.continueAdding;
+    }
+
+    return envVars;
+};
+
+const promptForDynamicEnvValue = async (index: number, typeOptions: string[]): Promise<DynamicEnvVarValue> => {
+    let typeResponse: { type: string };
+
+    if (typeOptions.length > 0) {
+        typeResponse = await inquirer.prompt<{ type: string }>([
+            {
+                name: 'type',
+                type: 'list',
+                message: `Dynamic value ${index} type:`,
+                choices: typeOptions,
+                default: typeOptions[0],
+            },
+        ]);
+    } else {
+        typeResponse = await inquirer.prompt<{ type: string }>([
+            {
+                name: 'type',
+                type: 'input',
+                message: `Dynamic value ${index} type:`,
+                validate: (input: string) => (input.trim() ? true : 'Type cannot be empty.'),
+                filter: (input: string) => input.trim(),
+            },
+        ]);
+    }
+
+    const { value } = await inquirer.prompt<{ value: string }>([
+        {
+            name: 'value',
+            type: 'input',
+            message: `Dynamic value ${index}:`,
+            validate: (input: string) => (input.trim() ? true : 'Value cannot be empty.'),
+            filter: (input: string) => input.trim(),
+        },
+    ]);
+
+    return { type: typeResponse.type, value };
+};
+
+const promptForDynamicEnvVars = async (typeOptions: string[]): Promise<DynamicEnvVarEntry[]> => {
+    const dynamicEnvVars: DynamicEnvVarEntry[] = [];
+
+    const { shouldAddDynamicEnvVars } = await inquirer.prompt<{ shouldAddDynamicEnvVars: boolean }>([
+        {
+            name: 'shouldAddDynamicEnvVars',
+            type: 'confirm',
+            message: 'Add dynamic env vars (each requires exactly 3 typed values)?',
+            default: false,
+        },
+    ]);
+
+    if (!shouldAddDynamicEnvVars) {
+        return dynamicEnvVars;
+    }
+
+    let addAnother = true;
+
+    while (addAnother) {
+        const { key } = await inquirer.prompt<{ key: string }>([
+            {
+                name: 'key',
+                type: 'input',
+                message: 'Dynamic env var key:',
+                validate: (input: string) => (input.trim() ? true : 'Key cannot be empty.'),
+                filter: (input: string) => input.trim(),
+            },
+        ]);
+
+        const values: DynamicEnvVarEntry['values'] = [
+            await promptForDynamicEnvValue(1, typeOptions),
+            await promptForDynamicEnvValue(2, typeOptions),
+            await promptForDynamicEnvValue(3, typeOptions),
+        ];
+
+        dynamicEnvVars.push({ key, values });
+
+        const response = await inquirer.prompt<{ continueAdding: boolean }>([
+            {
+                name: 'continueAdding',
+                type: 'confirm',
+                message: 'Add another dynamic env var?',
+                default: true,
+            },
+        ]);
+
+        addAnother = response.continueAdding;
+    }
+
+    return dynamicEnvVars;
+};
+
+const promptForCommands = async (): Promise<string[]> => {
+    const commands: string[] = [];
+
+    const { shouldAddCommands } = await inquirer.prompt<{ shouldAddCommands: boolean }>([
+        {
+            name: 'shouldAddCommands',
+            type: 'confirm',
+            message: 'Add build/run commands?',
+            default: false,
+        },
+    ]);
+
+    if (!shouldAddCommands) {
+        return commands;
+    }
+
+    let addAnother = true;
+
+    while (addAnother) {
+        const { command } = await inquirer.prompt<{ command: string }>([
+            {
+                name: 'command',
+                type: 'input',
+                message: 'Command:',
+                validate: (input: string) => (input.trim() ? true : 'Command cannot be empty.'),
+                filter: (input: string) => input.trim(),
+            },
+        ]);
+
+        commands.push(command);
+
+        const response = await inquirer.prompt<{ continueAdding: boolean }>([
+            {
+                name: 'continueAdding',
+                type: 'confirm',
+                message: 'Add another command?',
+                default: true,
+            },
+        ]);
+
+        addAnother = response.continueAdding;
+    }
+
+    return commands;
+};
+
+const promptForJsonField = async (fieldLabel: string): Promise<unknown | undefined> => {
+    const { shouldAdd } = await inquirer.prompt<{ shouldAdd: boolean }>([
+        {
+            name: 'shouldAdd',
+            type: 'confirm',
+            message: `Add ${fieldLabel}?`,
+            default: false,
+        },
+    ]);
+
+    if (!shouldAdd) {
+        return undefined;
+    }
+
+    const { jsonValue } = await inquirer.prompt<{ jsonValue: string }>([
+        {
+            name: 'jsonValue',
+            type: 'input',
+            message: `${fieldLabel} JSON (e.g. {"key":"value"}). Leave empty for {}:`,
+            validate: (input: string) => {
+                const trimmed = input.trim();
+                if (!trimmed) {
+                    return true;
+                }
+
+                try {
+                    JSON.parse(trimmed);
+                    return true;
+                } catch {
+                    return 'Invalid JSON. Please provide a valid JSON object or array.';
+                }
+            },
+        },
+    ]);
+
+    const trimmed = jsonValue.trim();
+
+    if (!trimmed) {
+        return {};
+    }
+
+    return JSON.parse(trimmed);
+};
+
+const promptForService = async (nextId: number, colorVariants: string[], dynamicEnvTypes: string[]): Promise<ServiceInput> => {
     const answers = await inquirer.prompt<{
         name: string;
         description: string;
@@ -148,6 +503,8 @@ const promptForService = async (nextId: number, colorVariants: string[]): Promis
         port: number;
         logo: string;
         color: string;
+        pluginSignature: PluginSignature;
+        tunnelEngine: TunnelEngine;
     }>([
         {
             name: 'name',
@@ -235,9 +592,28 @@ const promptForService = async (nextId: number, colorVariants: string[]): Promis
             },
             filter: (input: string) => input.trim(),
         },
+        {
+            name: 'pluginSignature',
+            type: 'list',
+            message: 'Plugin signature:',
+            choices: PLUGIN_SIGNATURE_CHOICES,
+            default: PLUGIN_SIGNATURE_CHOICES[0],
+        },
+        {
+            name: 'tunnelEngine',
+            type: 'list',
+            message: 'Tunnel engine:',
+            choices: TUNNEL_ENGINE_CHOICES,
+            default: TUNNEL_ENGINE_CHOICES[0],
+        },
     ]);
 
     const inputs = await promptForInputs();
+    const envVars = await promptForEnvVars();
+    const dynamicEnvVars = await promptForDynamicEnvVars(dynamicEnvTypes);
+    const buildAndRunCommands = await promptForCommands();
+    const pipelineParams = await promptForJsonField('pipeline params');
+    const pluginParams = await promptForJsonField('plugin params');
 
     return {
         id: nextId,
@@ -248,6 +624,13 @@ const promptForService = async (nextId: number, colorVariants: string[]): Promis
         inputs,
         logo: answers.logo,
         color: answers.color,
+        pluginSignature: answers.pluginSignature,
+        tunnelEngine: answers.tunnelEngine,
+        envVars,
+        dynamicEnvVars,
+        buildAndRunCommands,
+        pipelineParams,
+        pluginParams,
     };
 };
 
@@ -266,10 +649,10 @@ const readServicesFile = () => {
     }
 
     const arrayContent = groups.arrayContent;
-    const searchStart = match.index ?? 0;
-    const insertionIndex = contents.indexOf('] as Service[];', searchStart);
+    const matchStart = match.index ?? 0;
+    const insertionIndex = matchStart + match[0].length - 2; // position before the closing ];
 
-    if (insertionIndex === -1) {
+    if (!Number.isFinite(insertionIndex) || insertionIndex < matchStart) {
         throw new Error('Unable to determine insertion point for new service.');
     }
 
@@ -290,6 +673,8 @@ const printSummary = (service: ServiceInput) => {
     console.log(`Port: ${service.port}`);
     console.log(`Logo: ${service.logo}`);
     console.log(`Color: ${service.color}`);
+    console.log(`Plugin signature: ${service.pluginSignature}`);
+    console.log(`Tunnel engine: ${service.tunnelEngine}`);
 
     if (service.inputs.length) {
         console.log('Inputs:');
@@ -299,6 +684,51 @@ const printSummary = (service: ServiceInput) => {
     } else {
         console.log('Inputs: none');
     }
+
+    if (service.envVars.length) {
+        console.log('Env vars:');
+        service.envVars.forEach((entry, index) => {
+            console.log(`  ${index + 1}. key="${entry.key}", value="${entry.value}"`);
+        });
+    } else {
+        console.log('Env vars: none');
+    }
+
+    if (service.dynamicEnvVars.length) {
+        console.log('Dynamic env vars:');
+        service.dynamicEnvVars.forEach((entry, index) => {
+            console.log(`  ${index + 1}. key="${entry.key}"`);
+            entry.values.forEach((value, valueIndex) => {
+                console.log(`     - [${valueIndex + 1}] type="${value.type}", value="${value.value}"`);
+            });
+        });
+    } else {
+        console.log('Dynamic env vars: none');
+    }
+
+    if (service.buildAndRunCommands.length) {
+        console.log('Build/run commands:');
+        service.buildAndRunCommands.forEach((command, index) => {
+            console.log(`  ${index + 1}. ${command}`);
+        });
+    } else {
+        console.log('Build/run commands: none');
+    }
+
+    if (service.pipelineParams !== undefined) {
+        console.log('Pipeline params:');
+        console.log(JSON.stringify(service.pipelineParams, null, 2));
+    } else {
+        console.log('Pipeline params: none');
+    }
+
+    if (service.pluginParams !== undefined) {
+        console.log('Plugin params:');
+        console.log(JSON.stringify(service.pluginParams, null, 2));
+    } else {
+        console.log('Plugin params: none');
+    }
+
     console.log(divider);
 };
 
@@ -310,7 +740,8 @@ const main = async () => {
     try {
         const { contents, insertionIndex, nextId } = readServicesFile();
         const colorVariants = extractColorVariants();
-        const service = await promptForService(nextId, colorVariants);
+        const dynamicEnvTypes = extractDynamicEnvTypes();
+        const service = await promptForService(nextId, colorVariants, dynamicEnvTypes);
 
         printSummary(service);
 

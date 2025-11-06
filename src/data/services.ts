@@ -43,8 +43,7 @@ export const serviceContainerTypes: BaseContainerOrWorkerType[] = [
     },
 ];
 
-// Services
-export default [
+const services: Service[] = [
     {
         id: 1,
         name: 'PostgreSQL',
@@ -97,6 +96,8 @@ export default [
         pluginSignature: 'CONTAINER_APP_RUNNER',
         tunnelEngine: 'ngrok',
     },
-] as Service[];
+];
 
 export type { Service };
+
+export default services;

@@ -301,7 +301,7 @@ export const formatGenericPluginConfigAndSignature = (
         // Tunneling
         PORT: formatPort(plugin.port),
         TUNNEL_ENGINE: 'cloudflare',
-        CLOUDFLARE_TOKEN: plugin.tunnelingToken || null,
+        CLOUDFLARE_TOKEN: plugin.tunnelingToken ?? null,
         TUNNEL_ENGINE_ENABLED: plugin.enableTunneling === 'True',
         // Variables
         ENV: envVars,
@@ -350,7 +350,7 @@ const formatNativePlugin = (plugin: NativePlugin) => {
 
         // Tunneling
         PORT: formatPort(plugin.port),
-        CLOUDFLARE_TOKEN: plugin.tunnelingToken || null,
+        CLOUDFLARE_TOKEN: plugin.tunnelingToken ?? null,
         TUNNEL_ENGINE_ENABLED: plugin.enableTunneling === 'True',
 
         // Custom Parameters
@@ -515,7 +515,7 @@ export const formatServiceJobPayload = (
                 PORT: formatPort(service.port),
                 TUNNEL_ENGINE_ENABLED: true, // Tunneling is always enabled for services
                 TUNNEL_ENGINE: service.tunnelEngine,
-                NGROK_AUTH_TOKEN: deployment.tunnelingToken, // Tunneling is always enabled for services
+                NGROK_AUTH_TOKEN: deployment.tunnelingToken ?? null,
                 NGROK_EDGE_LABEL: deployment.tunnelingLabel ?? null,
 
                 // Variables
