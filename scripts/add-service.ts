@@ -158,8 +158,20 @@ const promptForService = async (nextId: number, colorVariants: string[]): Promis
         {
             name: 'description',
             type: 'input',
-            message: 'Service description:',
-            validate: (input: string) => (input.trim() ? true : 'Description cannot be empty.'),
+            message: 'Service description (max 100 chars):',
+            validate: (input: string) => {
+                const trimmed = input.trim();
+
+                if (!trimmed) {
+                    return 'Description cannot be empty.';
+                }
+
+                if (trimmed.length > 100) {
+                    return 'Description must be 100 characters or fewer.';
+                }
+
+                return true;
+            },
             filter: (input: string) => input.trim(),
         },
         {

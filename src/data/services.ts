@@ -40,7 +40,7 @@ export default [
     {
         id: 1,
         name: 'PostgreSQL',
-        description: 'PostgreSQL single instance',
+        description: 'Relational database management system',
         image: 'postgres:17',
         port: 5432,
         inputs: [{ key: 'POSTGRES_PASSWORD', label: 'PostgreSQL Password' }],
@@ -50,7 +50,7 @@ export default [
     {
         id: 2,
         name: 'MySQL',
-        description: 'MySQL single instance',
+        description: 'Relational database management system',
         image: 'mysql',
         port: 3306,
         inputs: [{ key: 'MYSQL_ROOT_PASSWORD', label: 'MySQL Root Password' }],
@@ -60,7 +60,7 @@ export default [
     {
         id: 3,
         name: 'MongoDB',
-        description: 'MongoDB single instance',
+        description: 'NoSQL database management system',
         image: 'mongodb',
         port: 27017,
         inputs: [
@@ -73,7 +73,7 @@ export default [
     {
         id: 4,
         name: 'Strapi',
-        description: 'Next-gen headless CMS',
+        description: 'Next-gen headless content management system',
         image: 'strapi',
         port: 1337,
         inputs: [
@@ -82,6 +82,16 @@ export default [
         ],
         logo: 'strapi.svg',
         color: 'violet',
+    },
+    {
+        id: 5,
+        name: 'n8n',
+        description: 'Workflow automation platform',
+        image: 'n8n',
+        port: 1234,
+        inputs: [],
+        logo: 'n8n.png',
+        color: 'pink',
     },
 ] as Service[];
 

@@ -38,6 +38,10 @@ export default function ServiceInputsSection({ inputs }: { inputs: { key: string
         }
     }, [inputs, fields]);
 
+    if (!fields.length) {
+        return null;
+    }
+
     return (
         <SlateCard title="Service Inputs">
             <div className="col gap-4">
