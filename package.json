@@ -9,8 +9,8 @@
         "build": "tsc -b && vite build",
         "lint": "eslint .",
         "preview": "vite preview",
-        "add-service": "ts-node scripts/add-service.ts",
-        "validate-services": "ts-node scripts/validate-services.ts"
+        "add-service": "tsx scripts/add-service.ts",
+        "validate-services": "tsx scripts/validate-services.ts"
     },
     "dependencies": {
         "@codemirror/autocomplete": "^6.19.0",
@@ -77,6 +77,7 @@
         "prettier": "^3.5.3",
         "prettier-plugin-tailwindcss": "^0.6.14",
         "tailwindcss": "^4.1.11",
+        "tsx": "^4.20.6",
         "typescript": "~5.8.3",
         "typescript-eslint": "^8.30.1",
         "vite": "^6.3.5"

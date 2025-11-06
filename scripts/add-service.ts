@@ -18,17 +18,14 @@ type ServiceInput = {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SERVICES_FILE_PATH = path.resolve(__dirname, '../src/data/services.ts');
+const SMALL_TAG_FILE_PATH = path.resolve(__dirname, '../src/shared/SmallTag.tsx');
 
 const SERVICES_ARRAY_REGEX = /export default\s*\[(?<arrayContent>[\s\S]*?)\]\s*as Service\[];/;
+const COLOR_VARIANTS_REGEX = /export type ColorVariant\s*=\s*(?<variants>[\s\S]*?);/;
 
 const INDENT = '    ';
 
-const sanitizeString = (value: string) =>
-    value
-        .trim()
-        .replace(/\r?\n/g, ' ')
-        .replace(/\\/g, '\\\\')
-        .replace(/'/g, "\\'");
+const sanitizeString = (value: string) => value.trim().replace(/\r?\n/g, ' ').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
 const indent = (level: number) => INDENT.repeat(level);
 
@@ -59,6 +56,30 @@ const formatService = (service: ServiceInput) => {
     );
 };
 
+const extractColorVariants = () => {
+    const contents = readFileSync(SMALL_TAG_FILE_PATH, 'utf8');
+    const match = contents.match(COLOR_VARIANTS_REGEX);
+
+    if (!match?.groups?.variants) {
+        throw new Error('Unable to locate ColorVariant definitions in src/shared/SmallTag.tsx');
+    }
+
+    return match.groups.variants
+        .split('|')
+        .map((variant) => variant.replace(/['"`]/g, '').trim())
+        .filter(Boolean);
+};
+
+const buildColorPromptMessage = (variants: string[]) => {
+    if (!variants.length) {
+        return 'Color (e.g. blue):';
+    }
+
+    const formattedVariants = variants.map((variant) => `  • ${variant}`).join('\n');
+
+    return `Color (e.g. blue):\nAvailable variants:\n${formattedVariants}\n`;
+};
+
 const extractNextServiceId = (servicesArray: string) => {
     const matches = [...servicesArray.matchAll(/id:\s*(\d+)/g)].map((match) => Number(match[1]));
     const maxId = matches.length ? Math.max(...matches) : 0;
@@ -72,7 +93,7 @@ const promptForInputs = async () => {
         {
             name: 'shouldAddInputs',
             type: 'confirm',
-            message: 'Add environment inputs (key/label pairs)?',
+            message: 'Add required environment variables (key/label pairs)?',
             default: false,
         },
     ]);
@@ -88,14 +109,14 @@ const promptForInputs = async () => {
             {
                 name: 'key',
                 type: 'input',
-                message: 'Input key (e.g. POSTGRES_PASSWORD):',
+                message: 'Key (e.g. POSTGRES_PASSWORD):',
                 validate: (input: string) => (input.trim() ? true : 'Key cannot be empty.'),
                 filter: (input: string) => input.trim(),
             },
             {
                 name: 'label',
                 type: 'input',
-                message: 'Input label (e.g. PostgreSQL Password):',
+                message: 'Label (e.g. PostgreSQL Password):',
                 validate: (input: string) => (input.trim() ? true : 'Label cannot be empty.'),
                 filter: (input: string) => input.trim(),
             },
@@ -118,7 +139,7 @@ const promptForInputs = async () => {
     return inputs;
 };
 
-const promptForService = async (nextId: number): Promise<ServiceInput> => {
+const promptForService = async (nextId: number, colorVariants: string[]): Promise<ServiceInput> => {
     const answers = await inquirer.prompt<{
         name: string;
         description: string;
@@ -171,8 +192,20 @@ const promptForService = async (nextId: number): Promise<ServiceInput> => {
         {
             name: 'color',
             type: 'input',
-            message: 'Color (e.g. blue, violet):',
-            validate: (input: string) => (input.trim() ? true : 'Color cannot be empty.'),
+            message: buildColorPromptMessage(colorVariants),
+            validate: (input: string) => {
+                const trimmed = input.trim();
+
+                if (!trimmed) {
+                    return 'Color cannot be empty.';
+                }
+
+                if (colorVariants.length && !colorVariants.includes(trimmed)) {
+                    return `Invalid color. Choose one of: ${colorVariants.join(', ')}.`;
+                }
+
+                return true;
+            },
             filter: (input: string) => input.trim(),
         },
     ]);
@@ -249,7 +282,8 @@ const appendService = (contents: string, insertionIndex: number, serviceSnippet:
 const main = async () => {
     try {
         const { contents, insertionIndex, nextId } = readServicesFile();
-        const service = await promptForService(nextId);
+        const colorVariants = extractColorVariants();
+        const service = await promptForService(nextId, colorVariants);
 
         printSummary(service);
 

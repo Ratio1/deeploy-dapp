@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { FunctionComponent, PropsWithChildren } from 'react';
 
 export type ColorVariant =
-    | 'default'
+    | 'slate'
     | 'green'
     | 'blue'
     | 'red'
@@ -15,20 +15,20 @@ export type ColorVariant =
     | 'darkgreen'
     | 'pink'
     | 'violet'
-    | 'soft';
+    | 'lightslate';
 
 export const SmallTag: FunctionComponent<
     PropsWithChildren<{
         variant?: ColorVariant;
         isLarge?: boolean;
     }>
-> = ({ children, variant = 'default', isLarge = false }) => (
+> = ({ children, variant = 'slate', isLarge = false }) => (
     <div className="flex">
         <div
             className={clsx('center-all rounded-md px-1.5 py-0.5 font-medium', {
                 'text-xs': !isLarge,
                 'text-sm': isLarge,
-                'bg-slate-200 text-slate-700': variant === 'default',
+                'bg-slate-200 text-slate-700': variant === 'slate',
                 'bg-green-100 text-green-600': variant === 'green',
                 'bg-blue-100 text-blue-600': variant === 'blue',
                 'bg-red-100 text-red-600': variant === 'red',
@@ -41,7 +41,7 @@ export const SmallTag: FunctionComponent<
                 'bg-green-150 text-green-600': variant === 'darkgreen',
                 'bg-pink-100 text-pink-600': variant === 'pink',
                 'bg-violet-100 text-violet-600': variant === 'violet',
-                'bg-[#e7edf6] text-slate-500': variant === 'soft',
+                'bg-[#e7edf6] text-slate-500': variant === 'lightslate',
             })}
         >
             {children}
