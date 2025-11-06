@@ -22,6 +22,7 @@ const SMALL_TAG_FILE_PATH = path.resolve(__dirname, '../src/shared/SmallTag.tsx'
 
 const SERVICES_ARRAY_REGEX = /export default\s*\[(?<arrayContent>[\s\S]*?)\]\s*as Service\[];/;
 const COLOR_VARIANTS_REGEX = /export type ColorVariant\s*=\s*(?<variants>[\s\S]*?);/;
+const ALLOWED_LOGO_EXTENSIONS = ['.svg', '.png'];
 
 const INDENT = '    ';
 
@@ -197,8 +198,22 @@ const promptForService = async (nextId: number, colorVariants: string[]): Promis
         {
             name: 'logo',
             type: 'input',
-            message: 'Logo filename (e.g. postgres.svg):',
-            validate: (input: string) => (input.trim() ? true : 'Logo cannot be empty.'),
+            message: `Logo filename (allowed: ${ALLOWED_LOGO_EXTENSIONS.join(', ')}):`,
+            validate: (input: string) => {
+                const trimmed = input.trim();
+
+                if (!trimmed) {
+                    return 'Logo cannot be empty.';
+                }
+
+                const extension = path.extname(trimmed).toLowerCase();
+
+                if (!ALLOWED_LOGO_EXTENSIONS.includes(extension)) {
+                    return `Image must be of type: ${ALLOWED_LOGO_EXTENSIONS.join(', ')}.`;
+                }
+
+                return true;
+            },
             filter: (input: string) => input.trim(),
         },
         {

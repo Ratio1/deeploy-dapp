@@ -38,7 +38,7 @@ function ServiceLogo({ filename, name }: { filename: string; name: string }) {
 const SelectableCard = ({ children, isSelected, onPress }) => {
     return (
         <div
-            className={clsx('bg-slate-120 cursor-pointer rounded-lg border-2 p-4 transition-all', {
+            className={clsx('cursor-pointer rounded-lg border-2 bg-slate-100 p-4 transition-all', {
                 'border-transparent hover:border-slate-200': !isSelected,
                 'border-primary': isSelected,
             })}

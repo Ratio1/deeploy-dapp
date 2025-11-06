@@ -90,7 +90,7 @@ export default [
         image: 'n8n',
         port: 1234,
         inputs: [],
-        logo: 'n8n.png',
+        logo: 'n8n.svg',
         color: 'pink',
     },
 ] as Service[];

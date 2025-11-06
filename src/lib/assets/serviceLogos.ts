@@ -1,4 +1,6 @@
-const serviceLogoLoaders = import.meta.glob('../../assets/services/*.svg');
+const serviceLogoLoaders = import.meta.glob<{ default: string }>(
+    '../../assets/services/*.{svg,png}'
+);
 
 const cachedLogos = new Map<string, string>();
 
