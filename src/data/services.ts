@@ -83,6 +83,16 @@ export default [
         logo: 'strapi.svg',
         color: 'violet',
     },
+    {
+        id: 5,
+        name: 'n8n',
+        description: 'Workflow automation platform',
+        image: 'n8n',
+        port: 1234,
+        inputs: [],
+        logo: 'n8n.svg',
+        color: 'pink',
+    },
 ] as Service[];
 
 export type { Service };
