@@ -208,7 +208,7 @@ export default function ReviewAndConfirm({
                         {stepsStatus.map((step) => (
                             <div className="col gap-1" key={step.key}>
                                 <div className="row gap-2">
-                                    <SmallTag variant={step.modified ? 'blue' : 'default'}>
+                                    <SmallTag variant={step.modified ? 'blue' : 'slate'}>
                                         {step.modified ? 'Modified' : 'Unchanged'}
                                     </SmallTag>
 

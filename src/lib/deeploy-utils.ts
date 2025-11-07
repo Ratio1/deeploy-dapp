@@ -70,8 +70,6 @@ export const getResourcesCostPerEpoch = (
 };
 
 export const getJobCost = (job: DraftJob): bigint => {
-    console.log('getJobCost', job);
-
     const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
     const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
 
@@ -515,13 +513,13 @@ export const formatServiceJobPayload = (
                 PORT: formatPort(service.port),
                 TUNNEL_ENGINE_ENABLED: true, // Tunneling is always enabled for services
                 TUNNEL_ENGINE: service.tunnelEngine,
-                NGROK_AUTH_TOKEN: deployment.tunnelingToken ?? null,
+                NGROK_AUTH_TOKEN: deployment.tunnelingToken ?? null, // TODO: If using Cloudflare add "CLOUDFLARE_AUTH_TOKEN" (and label if available)
                 NGROK_EDGE_LABEL: deployment.tunnelingLabel ?? null,
 
                 // Variables
                 ENV: envVars,
                 DYNAMIC_ENV: dynamicEnvVars,
-                BUILD_AND_RUN_COMMANDS: service.buildAndRunCommands,
+                BUILD_AND_RUN_COMMANDS: service.buildAndRunCommands ?? [],
 
                 // Policies
                 RESTART_POLICY: 'always',
