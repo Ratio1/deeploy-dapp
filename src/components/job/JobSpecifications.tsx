@@ -10,11 +10,11 @@ export default function JobSpecifications({ resources }: { resources: RunningJob
     const items = [
         {
             label: `${resources.jobType === JobType.Native ? 'Worker' : 'Container'} Type`,
-            value: resources.containerOrWorkerType.name,
+            value: resources.containerOrWorkerType.name, // TODO: Use the correct serviceContainerType
         },
         {
             label: 'Resources',
-            value: formatResourcesSummary(resources.containerOrWorkerType),
+            value: formatResourcesSummary(resources.containerOrWorkerType), // TODO: Use the correct serviceContainerType
         },
         {
             label: 'GPU Type',
@@ -24,6 +24,7 @@ export default function JobSpecifications({ resources }: { resources: RunningJob
             label: 'Monthly Cost Per Node',
             value: (
                 <UsdcValue
+                    // TODO: Use the correct serviceContainerType
                     value={fBI(
                         getResourcesCostPerEpoch(resources.containerOrWorkerType, resources.gpuType) *
                             30n *

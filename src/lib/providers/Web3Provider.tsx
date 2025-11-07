@@ -22,7 +22,6 @@ const siweConfig: SIWEConfig = {
             nonce,
             issuedAt: new Date().toISOString(),
             statement:
-                // TODO: Modify for Deeploy
                 `By confirming this signature and engaging with our platform,` +
                 ` you confirm your status as the rightful account manager or authorized representative for the wallet address ${address}. ` +
                 `This action grants permission for a login attempt on the https://${window.location.host} portal. ` +

@@ -25,7 +25,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
 
     const costPerEpoch: bigint = useMemo(() => {
         return (
-            job.numberOfNodesRequested * getResourcesCostPerEpoch(job.resources.containerOrWorkerType, job.resources.gpuType)
+            job.numberOfNodesRequested * getResourcesCostPerEpoch(job.resources.containerOrWorkerType, job.resources.gpuType) // TODO: Use the correct serviceContainerType
         );
     }, [job]);
 
@@ -113,11 +113,11 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
             },
             {
                 label: `${job.resources.jobType === JobType.Native ? 'Worker' : 'Container'} Type`,
-                value: job.resources.containerOrWorkerType.name,
+                value: job.resources.containerOrWorkerType.name, // TODO: Use the correct serviceContainerType
             },
             {
                 label: 'Resources',
-                value: formatResourcesSummary(job.resources.containerOrWorkerType),
+                value: formatResourcesSummary(job.resources.containerOrWorkerType), // TODO: Use the correct serviceContainerType
             },
             {
                 label: 'Target Nodes',

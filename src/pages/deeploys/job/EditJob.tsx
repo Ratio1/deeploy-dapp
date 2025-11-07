@@ -144,7 +144,7 @@ export default function EditJob() {
 
                 case JobType.Service:
                     payload = formatServiceJobPayload(
-                        job!.resources.containerOrWorkerType,
+                        job!.resources.containerOrWorkerType, // TODO: Use the correct serviceContainerType
                         services[0], // TODO: Obtain serviceId through getRunningJobResources
                         data.specifications as ServiceJobSpecifications,
                         data.deployment as ServiceJobDeployment,
@@ -166,7 +166,7 @@ export default function EditJob() {
                 scaleUpWorkersRequest = await signAndBuildScaleUpWorkersRequest(
                     job!,
                     data.deployment.targetNodes.map((node) => node.address),
-                    job!.resources.containerOrWorkerType,
+                    job!.resources.containerOrWorkerType, // TODO: Use the correct serviceContainerType
                 );
                 console.log('[EditJob] Signed scale up workers request', scaleUpWorkersRequest);
             }

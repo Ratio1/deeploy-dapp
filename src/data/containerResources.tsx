@@ -462,7 +462,7 @@ export const getRunningJobResources = (jobType: bigint): RunningJobResources | u
             }
         }
     }
-    // TODO: Add data from the 'serviceContainerTypes' array
+    // TODO: Refactor (add data from the 'serviceContainerTypes' array)
 };
 
 export type { BaseContainerOrWorkerType, ContainerOrWorkerType, GpuType, LegacyService, RunningJobResources };
