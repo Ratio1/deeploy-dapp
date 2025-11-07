@@ -29,6 +29,10 @@ const TUNNEL_ENGINE_CHOICES: TunnelEngine[] = ['cloudflare', 'ngrok'];
 const ALLOWED_LOGO_EXTENSIONS = ['.svg', '.png'];
 
 const INDENT = '    ';
+const CYAN = '\x1b[36m';
+const RESET = '\x1b[0m';
+
+const colorValue = (value: unknown) => `${CYAN}${String(value)}${RESET}`;
 
 const sanitizeString = (value: string) => value.trim().replace(/\r?\n/g, ' ').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
@@ -446,7 +450,7 @@ const promptForJsonField = async (fieldLabel: string): Promise<unknown | undefin
         {
             name: 'jsonValue',
             type: 'input',
-            message: `${fieldLabel} JSON (e.g. {"key":"value"}). Leave empty for {}:`,
+            message: `${fieldLabel.charAt(0).toUpperCase() + fieldLabel.slice(1)} JSON (e.g. {"key":"value"}). Leave empty for {}:`,
             validate: (input: string) => {
                 const trimmed = input.trim();
                 if (!trimmed) {
@@ -643,67 +647,67 @@ const printSummary = (service: Service) => {
 
     console.log('\nService overview');
     console.log(divider);
-    console.log(`ID: ${service.id}`);
-    console.log(`Name: ${service.name}`);
-    console.log(`Description: ${service.description}`);
-    console.log(`Image: ${service.image}`);
-    console.log(`Port: ${service.port}`);
-    console.log(`Logo: ${service.logo}`);
-    console.log(`Color: ${service.color}`);
-    console.log(`Plugin signature: ${service.pluginSignature}`);
-    console.log(`Tunnel engine: ${service.tunnelEngine}`);
+    console.log(`ID: ${colorValue(service.id)}`);
+    console.log(`Name: ${colorValue(service.name)}`);
+    console.log(`Description: ${colorValue(service.description)}`);
+    console.log(`Image: ${colorValue(service.image)}`);
+    console.log(`Port: ${colorValue(service.port)}`);
+    console.log(`Logo: ${colorValue(service.logo)}`);
+    console.log(`Color: ${colorValue(service.color)}`);
+    console.log(`Plugin signature: ${colorValue(service.pluginSignature)}`);
+    console.log(`Tunnel engine: ${colorValue(service.tunnelEngine)}`);
 
     if (service.inputs.length) {
         console.log('Inputs:');
         service.inputs.forEach((input, index) => {
-            console.log(`  ${index + 1}. key="${input.key}", label="${input.label}"`);
+            console.log(`  ${index + 1}. key="${colorValue(input.key)}", label="${colorValue(input.label)}"`);
         });
     } else {
-        console.log('Inputs: none');
+        console.log(`Inputs: ${colorValue('[] (none)')}`);
     }
 
     if (service.envVars?.length) {
-        console.log('Env vars:');
+        console.log('Environment variables:');
         service.envVars.forEach((entry, index) => {
-            console.log(`  ${index + 1}. key="${entry.key}", value="${entry.value}"`);
+            console.log(`  ${index + 1}. key="${colorValue(entry.key)}", value="${colorValue(entry.value)}"`);
         });
     } else {
-        console.log('Env vars: none');
+        console.log(`Environment variables: ${colorValue('[] (none)')}`);
     }
 
     if (service.dynamicEnvVars?.length) {
-        console.log('Dynamic env vars:');
+        console.log('Dynamic environment variables:');
         service.dynamicEnvVars.forEach((entry, index) => {
-            console.log(`  ${index + 1}. key="${entry.key}"`);
+            console.log(`  ${index + 1}. key="${colorValue(entry.key)}"`);
             entry.values.forEach((value, valueIndex) => {
-                console.log(`     - [${valueIndex + 1}] type="${value.type}", value="${value.value}"`);
+                console.log(`     - [${valueIndex + 1}] type="${colorValue(value.type)}", value="${colorValue(value.value)}"`);
             });
         });
     } else {
-        console.log('Dynamic env vars: none');
+        console.log(`Dynamic environment variables: ${colorValue('[] (none)')}`);
     }
 
     if (service.buildAndRunCommands?.length) {
-        console.log('Build/run commands:');
+        console.log('Build and run commands:');
         service.buildAndRunCommands.forEach((command, index) => {
-            console.log(`  ${index + 1}. ${command}`);
+            console.log(`  ${index + 1}. ${colorValue(command)}`);
         });
     } else {
-        console.log('Build/run commands: none');
+        console.log(`Build and run commands: ${colorValue('[] (none)')}`);
     }
 
     if (service.pipelineParams !== undefined) {
-        console.log('Pipeline params:');
-        console.log(JSON.stringify(service.pipelineParams, null, 2));
+        console.log('Pipeline parameters:');
+        console.log(colorValue(JSON.stringify(service.pipelineParams, null, 2)));
     } else {
-        console.log('Pipeline params: none');
+        console.log(`Pipeline parameters: ${colorValue('{} (none)')}`);
     }
 
     if (service.pluginParams !== undefined) {
-        console.log('Plugin params:');
-        console.log(JSON.stringify(service.pluginParams, null, 2));
+        console.log('Root plugin paramaters:');
+        console.log(colorValue(JSON.stringify(service.pluginParams, null, 2)));
     } else {
-        console.log('Plugin params: none');
+        console.log(`Root plugin paramaters: ${colorValue('{} (none)')}`);
     }
 
     console.log(divider);
