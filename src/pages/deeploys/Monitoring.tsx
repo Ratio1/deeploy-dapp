@@ -1,5 +1,7 @@
+import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
 import { Skeleton } from '@heroui/skeleton';
+import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { routePath } from '@lib/routes/route-paths';
@@ -20,7 +22,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiCalendarLine, RiDraftLine, RiTimeLine } from 'react-icons/ri';
 import { Link, useNavigate } from 'react-router-dom';
-import { usePublicClient } from 'wagmi';
+import { usePublicClient, useWalletClient } from 'wagmi';
 
 type RunningJobWithDraft = RunningJob & {
     draftJob: DraftJob;
@@ -36,15 +38,20 @@ const widthClasses = [
 ];
 
 export default function Monitoring() {
+    const { watchTx } = useBlockchainContext() as BlockchainContextType;
     const { confirm } = useInteractionContext() as InteractionContextType;
     const { escrowContractAddress, fetchRunningJobsWithDetails, setProjectOverviewTab } =
         useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
+    const [isClaimingFunds, setClaimingFunds] = useState(false);
+
     const [jobs, setJobs] = useState<MonitoredJob[]>([]);
 
     const navigate = useNavigate();
+
     const publicClient = usePublicClient();
+    const { data: walletClient } = useWalletClient();
 
     const draftJobs: DraftJob[] | undefined = useLiveQuery(() => db.jobs.toArray(), []);
     const paidDraftJobsRef = useRef<PaidDraftJob[]>([]);
@@ -98,6 +105,68 @@ export default function Monitoring() {
         [publicClient, escrowContractAddress, fetchRunningJobsWithDetails],
     );
 
+    const onClaimFunds = async (job: MonitoredJob) => {
+        if (!walletClient || !publicClient || !escrowContractAddress) {
+            toast.error('Please refresh this page and try again.');
+            return;
+        }
+
+        console.log('Claiming funds for job', job);
+        setClaimingFunds(true);
+
+        try {
+            let jobId: bigint | undefined;
+
+            if ('draftJob' in job) {
+                const confirmed = await confirm(
+                    <div className="col gap-1.5">
+                        <div>Claiming funds will unlink the payment from the following job draft:</div>
+                        <div className="font-medium">{job.draftJob.deployment.jobAlias}</div>
+                    </div>,
+                );
+
+                if (!confirmed) {
+                    return;
+                }
+
+                const paidDraftJob = job.draftJob as PaidDraftJob;
+                jobId = paidDraftJob.runningJobId;
+            } else {
+                jobId = job.id;
+            }
+
+            const txHash = await walletClient.writeContract({
+                address: escrowContractAddress,
+                abi: CspEscrowAbi,
+                functionName: 'redeemUnusedJob',
+                args: [jobId],
+            });
+
+            const receipt = await watchTx(txHash, publicClient);
+
+            if (receipt.status !== 'success') {
+                throw new Error('Failed to redeem unused job.');
+            }
+
+            if ('draftJob' in job) {
+                const { runningJobId, ...other } = job.draftJob as PaidDraftJob;
+                const updatedjob = { ...other, paid: false };
+
+                await db.jobs.put(updatedjob);
+                console.log('Unlinked payment for job draft', updatedjob);
+            }
+
+            console.log('Successfully redeemed unused job, refreshing jobs...');
+            toast.success('Funds claimed successfully.');
+            getJobs(paidDraftJobsRef.current);
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to claim funds.');
+        } finally {
+            setClaimingFunds(false);
+        }
+    };
+
     useEffect(() => {
         if (draftJobs === undefined) {
             paidDraftJobsRef.current = [];
@@ -133,45 +202,17 @@ export default function Monitoring() {
         };
     }, [refreshRunningJobs]);
 
-    const onClaimFunds = async (job: MonitoredJob) => {
-        try {
-            if ('draftJob' in job) {
-                const confirmed = await confirm(
-                    <div className="col gap-1.5">
-                        <div>Claiming funds will unlink the payment from the following job draft:</div>
-                        <div className="font-medium">{job.draftJob.deployment.jobAlias}</div>
-                    </div>,
-                );
-
-                if (!confirmed) {
-                    return;
-                }
-
-                const { runningJobId, ...other } = job.draftJob as PaidDraftJob;
-                const updatedjob = { ...other, paid: false };
-
-                await db.jobs.put(updatedjob);
-                toast.success('Payment unlinked successfully.');
-            }
-
-            console.log('Claiming funds for job', job);
-        } catch (error) {
-            console.error(error);
-            toast.error('Failed to claim funds.');
-        }
-    };
-
     const getOngoingStatus = (job: MonitoredJob) => {
         const hasJobStarted = job.startTimestamp > 0n;
         const variant = hasJobStarted ? 'green' : 'default';
         const label = hasJobStarted ? 'Confirming' : 'Pending';
 
         return (
-            <div className="row gap-1.5">
+            <div className="row gap-1">
                 <SmallTag variant={variant}>{label}</SmallTag>
 
                 <SmallTag variant={variant}>
-                    <div className="row gap-1">
+                    <div className="row gap-0.5">
                         <RiTimeLine className="text-[15px]" />
 
                         <div className="font-[13px]">
@@ -318,6 +359,7 @@ export default function Monitoring() {
                                                     onPress: () => onClaimFunds(job),
                                                 },
                                             ]}
+                                            isDisabled={isClaimingFunds}
                                         />
                                     </div>
                                 )}
