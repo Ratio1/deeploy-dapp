@@ -25,10 +25,8 @@ export default function EnvVariablesCard({
             title="ENV Variables"
             label={
                 <Button
-                    className="h-[34px] border-2 border-slate-200 bg-white px-2.5 data-[hover=true]:opacity-65!"
-                    color="primary"
+                    className="h-[34px] bg-slate-200 px-2.5 hover:opacity-60!"
                     size="sm"
-                    variant="flat"
                     onPress={() => onDotEnvPaste(append, remove, fields)}
                 >
                     <div className="row gap-1">
