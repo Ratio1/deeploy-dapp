@@ -3,38 +3,16 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-
-type KeyLabelPair = { key: string; label: string };
-
-type EnvVarEntry = { key: string; value: string };
-
-type DynamicEnvVarValue = { type: string; value: string };
-
-type DynamicEnvVarEntry = {
-    key: string;
-    values: [DynamicEnvVarValue, DynamicEnvVarValue, DynamicEnvVarValue];
-};
+import { Service } from '../src/data/services';
+import {
+    DynamicEnvVarsEntry,
+    DynamicEnvVarValue,
+    KeyLabelEntry,
+    KeyValueEntry,
+} from '../src/typedefs/steps/deploymentStepTypes';
 
 type PluginSignature = 'CONTAINER_APP_RUNNER' | 'WORKER_APP_RUNNER';
 type TunnelEngine = 'cloudflare' | 'ngrok';
-
-type ServiceInput = {
-    id: number;
-    name: string;
-    description: string;
-    image: string;
-    port: number;
-    inputs: KeyLabelPair[];
-    logo: string;
-    color: string;
-    pluginSignature: PluginSignature;
-    tunnelEngine: TunnelEngine;
-    envVars: EnvVarEntry[];
-    dynamicEnvVars: DynamicEnvVarEntry[];
-    buildAndRunCommands: string[];
-    pipelineParams?: unknown;
-    pluginParams?: unknown;
-};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -56,7 +34,7 @@ const sanitizeString = (value: string) => value.trim().replace(/\r?\n/g, ' ').re
 
 const indent = (level: number) => INDENT.repeat(level);
 
-const formatInputs = (inputs: ServiceInput['inputs']) => {
+const formatInputs = (inputs: Service['inputs']) => {
     if (!inputs.length) {
         return `${indent(2)}inputs: [],\n`;
     }
@@ -68,8 +46,8 @@ const formatInputs = (inputs: ServiceInput['inputs']) => {
     return `${indent(2)}inputs: [\n${formatted}\n${indent(2)}],\n`;
 };
 
-const formatEnvVars = (envVars: EnvVarEntry[]) => {
-    if (!envVars.length) {
+const formatEnvVars = (envVars: KeyValueEntry[] | undefined) => {
+    if (!envVars?.length) {
         return '';
     }
 
@@ -80,8 +58,8 @@ const formatEnvVars = (envVars: EnvVarEntry[]) => {
     return `${indent(2)}envVars: [\n${formatted}\n${indent(2)}],\n`;
 };
 
-const formatDynamicEnvVars = (dynamicEnvVars: DynamicEnvVarEntry[]) => {
-    if (!dynamicEnvVars.length) {
+const formatDynamicEnvVars = (dynamicEnvVars: DynamicEnvVarsEntry[] | undefined) => {
+    if (!dynamicEnvVars?.length) {
         return '';
     }
 
@@ -106,11 +84,10 @@ const formatDynamicEnvVars = (dynamicEnvVars: DynamicEnvVarEntry[]) => {
     return `${indent(2)}dynamicEnvVars: [\n${formatted}\n${indent(2)}],\n`;
 };
 
-const formatCommands = (commands: string[]) => {
-    if (!commands.length) {
+const formatCommands = (commands: string[] | undefined) => {
+    if (!commands?.length) {
         return '';
     }
-
     const formatted = commands.map((command) => `${indent(3)}'${sanitizeString(command)}',`).join('\n');
 
     return `${indent(2)}buildAndRunCommands: [\n${formatted}\n${indent(2)}],\n`;
@@ -143,7 +120,7 @@ const formatJsonField = (fieldName: string, value: unknown) => {
     return `${formattedLines}\n`;
 };
 
-const formatService = (service: ServiceInput) => {
+const formatService = (service: Service) => {
     return (
         `${indent(1)}{\n` +
         `${indent(2)}id: ${service.id},\n` +
@@ -210,13 +187,13 @@ const extractNextServiceId = (servicesArray: string) => {
 };
 
 const promptForInputs = async () => {
-    const inputs: KeyLabelPair[] = [];
+    const inputs: KeyLabelEntry[] = [];
 
     const { shouldAddInputs } = await inquirer.prompt<{ shouldAddInputs: boolean }>([
         {
             name: 'shouldAddInputs',
             type: 'confirm',
-            message: 'Add required environment variables (key/label pairs)?',
+            message: 'Add required UI inputs (key/label pairs)?',
             default: false,
         },
     ]);
@@ -239,7 +216,7 @@ const promptForInputs = async () => {
             {
                 name: 'label',
                 type: 'input',
-                message: 'Label (e.g. PostgreSQL Password):',
+                message: 'Label (e.g. Password):',
                 validate: (input: string) => (input.trim() ? true : 'Label cannot be empty.'),
                 filter: (input: string) => input.trim(),
             },
@@ -262,14 +239,14 @@ const promptForInputs = async () => {
     return inputs;
 };
 
-const promptForEnvVars = async (): Promise<EnvVarEntry[]> => {
-    const envVars: EnvVarEntry[] = [];
+const promptForEnvVars = async (): Promise<KeyValueEntry[]> => {
+    const envVars: KeyValueEntry[] = [];
 
     const { shouldAddEnvVars } = await inquirer.prompt<{ shouldAddEnvVars: boolean }>([
         {
             name: 'shouldAddEnvVars',
             type: 'confirm',
-            message: 'Add static env vars (key/value pairs)?',
+            message: 'Add static environment variables (key/value pairs)?',
             default: false,
         },
     ]);
@@ -285,14 +262,14 @@ const promptForEnvVars = async (): Promise<EnvVarEntry[]> => {
             {
                 name: 'key',
                 type: 'input',
-                message: 'Env var key:',
+                message: 'ENV var key:',
                 validate: (input: string) => (input.trim() ? true : 'Key cannot be empty.'),
                 filter: (input: string) => input.trim(),
             },
             {
                 name: 'value',
                 type: 'input',
-                message: 'Env var value:',
+                message: 'ENV var value:',
                 validate: (input: string) => (input.trim() ? true : 'Value cannot be empty.'),
                 filter: (input: string) => input.trim(),
             },
@@ -304,7 +281,7 @@ const promptForEnvVars = async (): Promise<EnvVarEntry[]> => {
             {
                 name: 'continueAdding',
                 type: 'confirm',
-                message: 'Add another env var?',
+                message: 'Add another environment variable?',
                 default: true,
             },
         ]);
@@ -353,14 +330,14 @@ const promptForDynamicEnvValue = async (index: number, typeOptions: string[]): P
     return { type: typeResponse.type, value };
 };
 
-const promptForDynamicEnvVars = async (typeOptions: string[]): Promise<DynamicEnvVarEntry[]> => {
-    const dynamicEnvVars: DynamicEnvVarEntry[] = [];
+const promptForDynamicEnvVars = async (typeOptions: string[]): Promise<DynamicEnvVarsEntry[]> => {
+    const dynamicEnvVars: DynamicEnvVarsEntry[] = [];
 
     const { shouldAddDynamicEnvVars } = await inquirer.prompt<{ shouldAddDynamicEnvVars: boolean }>([
         {
             name: 'shouldAddDynamicEnvVars',
             type: 'confirm',
-            message: 'Add dynamic env vars (each requires exactly 3 typed values)?',
+            message: 'Add dynamic environment variables (each entry requires exactly 3 typed values)?',
             default: false,
         },
     ]);
@@ -376,13 +353,13 @@ const promptForDynamicEnvVars = async (typeOptions: string[]): Promise<DynamicEn
             {
                 name: 'key',
                 type: 'input',
-                message: 'Dynamic env var key:',
+                message: 'Dynamic ENV variable key:',
                 validate: (input: string) => (input.trim() ? true : 'Key cannot be empty.'),
                 filter: (input: string) => input.trim(),
             },
         ]);
 
-        const values: DynamicEnvVarEntry['values'] = [
+        const values: DynamicEnvVarsEntry['values'] = [
             await promptForDynamicEnvValue(1, typeOptions),
             await promptForDynamicEnvValue(2, typeOptions),
             await promptForDynamicEnvValue(3, typeOptions),
@@ -394,7 +371,7 @@ const promptForDynamicEnvVars = async (typeOptions: string[]): Promise<DynamicEn
             {
                 name: 'continueAdding',
                 type: 'confirm',
-                message: 'Add another dynamic env var?',
+                message: 'Add another dynamic ENV variable?',
                 default: true,
             },
         ]);
@@ -412,7 +389,7 @@ const promptForCommands = async (): Promise<string[]> => {
         {
             name: 'shouldAddCommands',
             type: 'confirm',
-            message: 'Add build/run commands?',
+            message: 'Add build and run commands?',
             default: false,
         },
     ]);
@@ -495,7 +472,7 @@ const promptForJsonField = async (fieldLabel: string): Promise<unknown | undefin
     return JSON.parse(trimmed);
 };
 
-const promptForService = async (nextId: number, colorVariants: string[], dynamicEnvTypes: string[]): Promise<ServiceInput> => {
+const promptForService = async (nextId: number, colorVariants: string[], dynamicEnvTypes: string[]): Promise<Service> => {
     const answers = await inquirer.prompt<{
         name: string;
         description: string;
@@ -612,8 +589,8 @@ const promptForService = async (nextId: number, colorVariants: string[], dynamic
     const envVars = await promptForEnvVars();
     const dynamicEnvVars = await promptForDynamicEnvVars(dynamicEnvTypes);
     const buildAndRunCommands = await promptForCommands();
-    const pipelineParams = await promptForJsonField('pipeline params');
-    const pluginParams = await promptForJsonField('plugin params');
+    const pipelineParams = await promptForJsonField('pipeline parameters');
+    const pluginParams = await promptForJsonField('root plugin paramaters (will be available in the root plugin object)');
 
     return {
         id: nextId,
@@ -661,7 +638,7 @@ const readServicesFile = () => {
     return { contents, insertionIndex, nextId };
 };
 
-const printSummary = (service: ServiceInput) => {
+const printSummary = (service: Service) => {
     const divider = '-'.repeat(40);
 
     console.log('\nService overview');
@@ -685,7 +662,7 @@ const printSummary = (service: ServiceInput) => {
         console.log('Inputs: none');
     }
 
-    if (service.envVars.length) {
+    if (service.envVars?.length) {
         console.log('Env vars:');
         service.envVars.forEach((entry, index) => {
             console.log(`  ${index + 1}. key="${entry.key}", value="${entry.value}"`);
@@ -694,7 +671,7 @@ const printSummary = (service: ServiceInput) => {
         console.log('Env vars: none');
     }
 
-    if (service.dynamicEnvVars.length) {
+    if (service.dynamicEnvVars?.length) {
         console.log('Dynamic env vars:');
         service.dynamicEnvVars.forEach((entry, index) => {
             console.log(`  ${index + 1}. key="${entry.key}"`);
@@ -706,7 +683,7 @@ const printSummary = (service: ServiceInput) => {
         console.log('Dynamic env vars: none');
     }
 
-    if (service.buildAndRunCommands.length) {
+    if (service.buildAndRunCommands?.length) {
         console.log('Build/run commands:');
         service.buildAndRunCommands.forEach((command, index) => {
             console.log(`  ${index + 1}. ${command}`);

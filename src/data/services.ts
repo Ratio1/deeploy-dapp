@@ -1,5 +1,5 @@
 import { ColorVariant } from '@shared/SmallTag';
-import { DynamicEnvVarsEntry, KeyValueEntry } from '@typedefs/steps/deploymentStepTypes';
+import { DynamicEnvVarsEntry, KeyLabelEntry, KeyValueEntry } from '@typedefs/steps/deploymentStepTypes';
 import { BaseContainerOrWorkerType } from './containerResources';
 
 type Service = {
@@ -8,7 +8,7 @@ type Service = {
     description: string;
     image: string;
     port: number;
-    inputs: { key: string; label: string }[];
+    inputs: KeyLabelEntry[];
     logo: string;
     color: ColorVariant;
     pluginSignature: 'CONTAINER_APP_RUNNER' | 'WORKER_APP_RUNNER';
