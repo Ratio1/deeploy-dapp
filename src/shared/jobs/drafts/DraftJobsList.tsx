@@ -4,6 +4,8 @@ import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
+import { SmallTag } from '@shared/SmallTag';
+import { PaidDraftJob } from '@typedefs/deeploys';
 import toast from 'react-hot-toast';
 import { RiAddLine } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
@@ -49,8 +51,43 @@ export default function DraftJobsList({
             await db.jobs.delete(job.id);
             toast.success('Job draft deleted successfully.');
         } catch (error) {
-            console.error('[JobList] Error deleting job:', error);
+            console.error('[DraftJobsList] Error deleting job:', error);
             toast.error('Failed to delete job.');
+        }
+    };
+
+    const onUnlinkPayment = async (job: Job) => {
+        console.log('Unlinking payment for job', job);
+
+        try {
+            const confirmed = await confirm(
+                <div className="col gap-3">
+                    <div className="col gap-1.5">
+                        <div>Are you sure you want to unlink the payment from this job draft?</div>
+                        <div className="font-medium">{job.deployment.jobAlias}</div>
+                    </div>
+
+                    <div>After unlinking, all the job's fields will become editable again.</div>
+
+                    <div>
+                        The job's funds can be claimed back after <span className="text-primary font-medium">one hour</span> has
+                        passed since the payment was made.
+                    </div>
+                </div>,
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            const { runningJobId, ...other } = job as PaidDraftJob;
+            const updatedjob = { ...other, paid: false };
+
+            await db.jobs.put(updatedjob);
+            toast.success('Payment unlinked successfully.');
+        } catch (error) {
+            console.error('[DraftJobsList] Error unlinking payment:', error);
+            toast.error('Failed to unlink payment.');
         }
     };
 
@@ -79,6 +116,8 @@ export default function DraftJobsList({
             <div className="row justify-between gap-2 px-4 py-3 text-[13px] font-medium text-slate-500">
                 {tableHeader}
 
+                <div className="min-w-[60px]">Status</div>
+
                 {/* Accounts for the context menu button */}
                 <div className="min-w-[32px]"></div>
             </div>
@@ -86,6 +125,10 @@ export default function DraftJobsList({
             {jobs.map((job) => (
                 <div key={job.id} className="row justify-between gap-2 border-t-2 border-slate-200/65 px-4 py-3 text-[13px]">
                     {renderJob(job)}
+
+                    <div className="min-w-[60px]">
+                        <SmallTag variant={job.paid ? 'green' : 'default'}>{job.paid ? 'Paid' : 'Unpaid'}</SmallTag>
+                    </div>
 
                     <ContextMenuWithTrigger
                         items={[
@@ -101,6 +144,17 @@ export default function DraftJobsList({
                                 description: 'Edit the job draft',
                                 onPress: () => onEditJob(job),
                             },
+                            ...(job.paid
+                                ? [
+                                      {
+                                          key: 'unlink-payment',
+                                          label: 'Unlink Payment',
+                                          description: 'Disconnect the payment from the job draft',
+                                          isDangerous: true,
+                                          onPress: () => onUnlinkPayment(job),
+                                      },
+                                  ]
+                                : []),
                             {
                                 key: 'delete',
                                 label: 'Delete',

@@ -19,15 +19,6 @@ import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import z from 'zod';
 
-const DEFAULT_STEPS: {
-    title: string;
-    validationName?: string;
-}[] = [
-    { title: 'Specifications', validationName: 'specifications' },
-    { title: 'Cost & Duration', validationName: 'costAndDuration' },
-    { title: 'Deployment', validationName: 'deployment' },
-];
-
 export default function DraftEditFormWrapper({
     job,
     onSubmit,
@@ -39,7 +30,13 @@ export default function DraftEditFormWrapper({
 
     const navigate = useNavigate();
 
-    const [steps, setSteps] = useState(DEFAULT_STEPS);
+    const [steps, setSteps] = useState<
+        | {
+              title: string;
+              validationName?: string;
+          }[]
+        | undefined
+    >();
 
     const getBaseSchemaDeploymentDefaults = () => ({
         jobAlias: job.deployment.jobAlias,
@@ -200,8 +197,21 @@ export default function DraftEditFormWrapper({
     });
 
     useEffect(() => {
-        if (job.jobType === JobType.Native) {
-            setSteps([...DEFAULT_STEPS, { title: 'Plugins' }]);
+        if (job) {
+            const defaultSteps: {
+                title: string;
+                validationName?: string;
+            }[] = [
+                { title: 'Specifications', validationName: 'specifications' },
+                ...(job.paid ? [] : [{ title: 'Cost & Duration', validationName: 'costAndDuration' }]),
+                { title: 'Deployment', validationName: 'deployment' },
+            ];
+
+            if (job.jobType === JobType.Native) {
+                defaultSteps.push({ title: 'Plugins' });
+            }
+
+            setSteps(defaultSteps);
         }
     }, [job]);
 
@@ -214,27 +224,39 @@ export default function DraftEditFormWrapper({
             <form onSubmit={form.handleSubmit(onSubmit, onError)} key={`${job.jobType}-draft-edit`}>
                 <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">
-                        <div className="col gap-6">
-                            <JobFormHeaderInterface
-                                steps={steps.map((step) => step.title)}
-                                onCancel={() => {
-                                    navigate(-1);
-                                }}
-                            >
-                                <div className="big-title">Edit Job Draft</div>
-                            </JobFormHeaderInterface>
+                        {!!steps && (
+                            <div className="col gap-6">
+                                <JobFormHeaderInterface
+                                    steps={steps.map((step) => step.title)}
+                                    onCancel={() => {
+                                        navigate(-1);
+                                    }}
+                                >
+                                    <div className="big-title">Edit Job Draft</div>
+                                </JobFormHeaderInterface>
 
-                            {step === 0 && <Specifications />}
-                            {step === 1 && <CostAndDuration />}
-                            {step === 2 && <Deployment />}
-                            {step === 3 && <Plugins />}
+                                {job.paid ? (
+                                    <>
+                                        {step === 0 && <Specifications isJobPaid />}
+                                        {step === 1 && <Deployment />}
+                                        {step === 2 && <Plugins />}
+                                    </>
+                                ) : (
+                                    <>
+                                        {step === 0 && <Specifications />}
+                                        {step === 1 && <CostAndDuration />}
+                                        {step === 2 && <Deployment />}
+                                        {step === 3 && <Plugins />}
+                                    </>
+                                )}
 
-                            <JobFormButtons
-                                steps={steps}
-                                cancelLabel="Project"
-                                customSubmitButton={<SubmitButton label="Update Draft" />}
-                            />
-                        </div>
+                                <JobFormButtons
+                                    steps={steps}
+                                    cancelLabel="Project"
+                                    customSubmitButton={<SubmitButton label="Update Draft" />}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </form>

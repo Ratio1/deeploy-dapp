@@ -23,11 +23,11 @@ export interface DeploymentContextType {
     apps: Apps;
     // Utils
     getProjectName: (projectHash: string) => string | undefined;
-    fetchRunningJobsWithDetails: (appsOverride?: Apps) => Promise<RunningJobWithDetails[]>;
-    formatRunningJobsWithDetails: (
-        runningJobs: readonly RunningJob[],
-        appsOverride?: Apps,
-    ) => RunningJobWithDetails[];
+    fetchRunningJobsWithDetails: (appsOverride?: Apps) => Promise<{
+        runningJobs: readonly RunningJob[];
+        runningJobsWithDetails: RunningJobWithDetails[];
+    }>;
+    formatRunningJobsWithDetails: (runningJobs: readonly RunningJob[], appsOverride?: Apps) => RunningJobWithDetails[];
     // Escrow
     escrowContractAddress: EthAddress | undefined;
     setEscrowContractAddress: React.Dispatch<React.SetStateAction<EthAddress | undefined>>;

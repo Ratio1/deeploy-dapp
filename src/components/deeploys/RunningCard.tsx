@@ -134,7 +134,7 @@ export default function RunningCard({
                         const daysLeftUntilNextPayment = getDaysLeftUntilNextPayment(job);
 
                         return (
-                            <div key={job.id} className="row">
+                            <div key={`${job.id}-${index}`} className="row">
                                 <div className="row flex-1 gap-6">
                                     <div className="row gap-1.5">
                                         {/* Tree Line */}

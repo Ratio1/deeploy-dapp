@@ -7,11 +7,13 @@ import SpecsNodesSection from '@shared/jobs/SpecsNodesSection';
 import { JobType } from '@typedefs/deeploys';
 
 export default function NativeSpecifications({
-    isEditingRunningJob,
+    isEditingRunningJob = false,
+    disablePaymentAffectingControls = false,
     initialTargetNodesCount,
     onTargetNodesCountDecrease,
 }: {
     isEditingRunningJob?: boolean;
+    disablePaymentAffectingControls?: boolean;
     initialTargetNodesCount?: number;
     onTargetNodesCountDecrease?: (blocked: boolean) => void;
 }) {
@@ -22,10 +24,10 @@ export default function NativeSpecifications({
                     name="specifications.workerType"
                     label="Worker Type"
                     options={nativeWorkerTypes}
-                    isDisabled={isEditingRunningJob}
+                    isDisabled={disablePaymentAffectingControls}
                 />
 
-                <SelectGPU jobType={JobType.Native} isDisabled={isEditingRunningJob} />
+                <SelectGPU jobType={JobType.Native} isDisabled={disablePaymentAffectingControls} />
 
                 <ContainerResourcesInfo name="specifications.workerType" options={nativeWorkerTypes} />
             </SlateCard>
@@ -33,6 +35,7 @@ export default function NativeSpecifications({
             <SpecsNodesSection
                 jobType={JobType.Native}
                 isEditingRunningJob={isEditingRunningJob}
+                disablePaymentAffectingControls={disablePaymentAffectingControls}
                 initialTargetNodesCount={initialTargetNodesCount}
                 onTargetNodesCountDecrease={onTargetNodesCountDecrease}
             />

@@ -24,15 +24,16 @@ export default function JobsCostRundown({
                         </div>
                     </div>
 
-                    <div className="row gap-4">
-                        <div className="compact min-w-20">Payment</div>
-                        <div className="compact min-w-20 text-right">Cost ($)</div>
+                    <div className="row gap-2">
+                        <div className="compact min-w-20">Duration</div>
+                        <div className="compact min-w-[58px]">Status</div>
+                        <div className="compact min-w-16 text-right">Cost</div>
                     </div>
                 </div>
             }
             footer={
                 <div className="row compact justify-between">
-                    <div>Total Cost ($)</div>
+                    <div>Total Cost</div>
 
                     <div className="text-primary">${formatUsdc(getJobsTotalCost(jobs))}</div>
                 </div>
@@ -46,14 +47,17 @@ export default function JobsCostRundown({
                     >
                         {renderJob(job)}
 
-                        <div className="row gap-4">
+                        <div className="row gap-2">
                             <div className="compact min-w-20">
                                 <SmallTag>
                                     {job.costAndDuration.paymentMonthsCount} month
                                     {job.costAndDuration.paymentMonthsCount > 1 ? 's' : ''}
                                 </SmallTag>
                             </div>
-                            <div className="text-primary compact min-w-20 text-right">${formatUsdc(getJobCost(job))}</div>
+                            <div className="compact min-w-[58px]">
+                                <SmallTag variant={job?.paid ? 'green' : 'default'}>{job?.paid ? 'Paid' : 'Unpaid'}</SmallTag>
+                            </div>
+                            <div className="text-primary compact min-w-16 text-right">${formatUsdc(getJobCost(job))}</div>
                         </div>
                     </div>
                 );

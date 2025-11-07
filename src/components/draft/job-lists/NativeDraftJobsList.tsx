@@ -11,8 +11,7 @@ const widthClasses = [
     'min-w-[138px]', // alias
     'min-w-[80px]', // duration
     'min-w-[90px]', // targetNodes
-    'min-w-[90px]', // type
-    'min-w-[310px]', // resources
+    'min-w-[310px]', // worker type
 ];
 
 export default function NativeDraftJobsList({ jobs }: { jobs: NativeDraftJob[] }) {
@@ -26,7 +25,7 @@ export default function NativeDraftJobsList({ jobs }: { jobs: NativeDraftJob[] }
                     <div className="compact">Native Apps</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Type', 'Worker Type'], widthClasses)}</>}
+            tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Worker Type'], widthClasses)}</>}
             jobs={jobs}
             renderJob={(job) => {
                 const nativeJob = job as NativeDraftJob;
@@ -38,7 +37,7 @@ export default function NativeDraftJobsList({ jobs }: { jobs: NativeDraftJob[] }
                 return (
                     <>
                         <div className={widthClasses[0]}>
-                            <div className="max-w-[138px] truncate">{nativeJob.deployment.jobAlias}</div>
+                            <div className="max-w-[138px] truncate font-medium">{nativeJob.deployment.jobAlias}</div>
                         </div>
 
                         <div className={widthClasses[1]}>
@@ -51,12 +50,6 @@ export default function NativeDraftJobsList({ jobs }: { jobs: NativeDraftJob[] }
                         <div className={widthClasses[2]}>{nativeJob.specifications.targetNodesCount}</div>
 
                         <div className={widthClasses[3]}>
-                            <SmallTag variant={nativeJob.specifications.gpuType ? 'green' : 'blue'}>
-                                {nativeJob.specifications.gpuType ? 'GPU' : 'CPU'}
-                            </SmallTag>
-                        </div>
-
-                        <div className={widthClasses[4]}>
                             {containerOrWorkerType.name} ({formatResourcesSummary(containerOrWorkerType)})
                         </div>
                     </>

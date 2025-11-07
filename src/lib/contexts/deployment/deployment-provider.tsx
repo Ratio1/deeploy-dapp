@@ -116,10 +116,15 @@ export const DeploymentProvider = ({ children }) => {
         }
     };
 
-    const fetchRunningJobsWithDetails = async (appsOverride?: Apps): Promise<RunningJobWithDetails[]> => {
+    const fetchRunningJobsWithDetails = async (
+        appsOverride?: Apps,
+    ): Promise<{
+        runningJobs: readonly RunningJob[];
+        runningJobsWithDetails: RunningJobWithDetails[];
+    }> => {
         if (!publicClient || !escrowContractAddress) {
             toast.error('Please connect your wallet and refresh this page.');
-            return [];
+            throw new Error('Unable to fetch running jobs.');
         }
 
         const runningJobs: readonly RunningJob[] = await publicClient.readContract({
@@ -128,10 +133,8 @@ export const DeploymentProvider = ({ children }) => {
             functionName: 'getActiveJobs',
         });
 
-        console.log('[DeploymentProvider] getActiveJobs', runningJobs);
-
         const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(runningJobs, appsOverride);
-        return runningJobsWithDetails;
+        return { runningJobs, runningJobsWithDetails };
     };
 
     const formatRunningJobsWithDetails = (runningJobs: readonly RunningJob[], appsOverride?: Apps): RunningJobWithDetails[] => {
@@ -245,21 +248,6 @@ export const DeploymentProvider = ({ children }) => {
                     return null;
                 }
 
-                console.log({
-                    job,
-                    appsData: {
-                        alias,
-                        projectName: specs.project_name,
-                        allowReplicationInTheWild: specs.allow_replication_in_the_wild,
-                        spareNodes: specs.spare_nodes,
-                        jobTags: specs.job_tags,
-                        nodes: appWithInstances.instances.map((instance) => instance.nodeAddress),
-                        instances: appWithInstances.instances,
-                        config,
-                        pipelineData,
-                    },
-                });
-
                 const jobWithDetails: RunningJobWithDetails = {
                     alias,
                     projectName: specs.project_name,
@@ -316,7 +304,7 @@ export const DeploymentProvider = ({ children }) => {
         >
             {children}
 
-            <SigningModal ref={signMessageModalRef} type="signMessage" />
+            <SigningModal ref={signMessageModalRef} type="message" />
         </DeploymentContext.Provider>
     );
 };

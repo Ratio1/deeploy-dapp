@@ -9,7 +9,7 @@ export default function DeeployAlert({
 }: {
     type: 'success' | 'error';
     title: ReactElement | string;
-    items: { text: string; serverAlias: string }[];
+    items: { text: string; serverAlias: string; jobAlias?: string }[];
 }) {
     if (!items.length) {
         return null;
@@ -30,6 +30,9 @@ export default function DeeployAlert({
                         <div key={index} className="text-[13px]">
                             <div className="row flex-wrap gap-1.5">
                                 {item.text}
+                                {item.jobAlias && (
+                                    <SmallTag variant={type === 'error' ? 'darkred' : 'darkgreen'}>{item.jobAlias}</SmallTag>
+                                )}
                                 <SmallTag variant={type === 'error' ? 'darkred' : 'darkgreen'}>{item.serverAlias}</SmallTag>
                             </div>
                         </div>

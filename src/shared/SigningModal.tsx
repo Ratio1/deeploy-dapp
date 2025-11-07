@@ -4,7 +4,7 @@ import { forwardRef, useImperativeHandle } from 'react';
 import { useAccount } from 'wagmi';
 import { DetailedAlert } from './DetailedAlert';
 
-export const SigningModal = forwardRef(({ type }: { type: 'signMessage' | 'tokenApproval' }, ref) => {
+export const SigningModal = forwardRef(({ type }: { type: 'message' | 'tokenApproval' | 'transaction' }, ref) => {
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
     const { connector } = useAccount();
 
@@ -40,13 +40,23 @@ export const SigningModal = forwardRef(({ type }: { type: 'signMessage' | 'token
                                     <Spinner size="sm" />
                                 </div>
                             }
-                            title={type === 'signMessage' ? 'Sign Message' : 'Token Approval'}
+                            title={
+                                type === 'message'
+                                    ? 'Sign Message'
+                                    : type === 'tokenApproval'
+                                      ? 'Token Approval'
+                                      : 'Sign Transaction'
+                            }
                             description={
                                 <div className="col items-center gap-4">
                                     <div className="text-[15px]">
                                         Please <span className="text-primary font-medium">sign</span> the required{' '}
-                                        {type === 'signMessage' ? 'message' : 'spending cap request'} when prompted by your
-                                        wallet extension.
+                                        {type === 'message'
+                                            ? 'message'
+                                            : type === 'tokenApproval'
+                                              ? 'spending cap request'
+                                              : 'transaction'}{' '}
+                                        when prompted by your wallet extension.
                                     </div>
 
                                     {!!connector?.icon && (
