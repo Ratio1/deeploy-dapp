@@ -304,7 +304,7 @@ export const DeploymentProvider = ({ children }) => {
         >
             {children}
 
-            <SigningModal ref={signMessageModalRef} type="signMessage" />
+            <SigningModal ref={signMessageModalRef} type="message" />
         </DeploymentContext.Provider>
     );
 };

@@ -11,6 +11,7 @@ import { BorderedCard } from '@shared/cards/BorderedCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import EmptyData from '@shared/EmptyData';
 import ListHeader from '@shared/ListHeader';
+import { SigningModal } from '@shared/SigningModal';
 import { SmallTag } from '@shared/SmallTag';
 import { Timer } from '@shared/Timer';
 import { UsdcValue } from '@shared/UsdcValue';
@@ -54,7 +55,12 @@ export default function Monitoring() {
     const { data: walletClient } = useWalletClient();
 
     const draftJobs: DraftJob[] | undefined = useLiveQuery(() => db.jobs.toArray(), []);
+
     const paidDraftJobsRef = useRef<PaidDraftJob[]>([]);
+    const signTxModalRef = useRef<{
+        open: () => void;
+        close: () => void;
+    }>(null);
 
     const getJobs = useCallback(
         async (paidDraftJobs: PaidDraftJob[]) => {
@@ -112,9 +118,11 @@ export default function Monitoring() {
         }
 
         console.log('Claiming funds for job', job);
-        setClaimingFunds(true);
 
         try {
+            setClaimingFunds(true);
+            signTxModalRef.current?.open();
+
             let jobId: bigint | undefined;
 
             if ('draftJob' in job) {
@@ -164,6 +172,7 @@ export default function Monitoring() {
             toast.error('Failed to claim funds.');
         } finally {
             setClaimingFunds(false);
+            signTxModalRef.current?.close();
         }
     };
 
@@ -262,113 +271,120 @@ export default function Monitoring() {
     }
 
     return (
-        <Wrapper>
-            <ListHeader>
-                <div className="row gap-6">{applyWidthClasses(['Date', 'Balance', 'Job/Draft'], widthClasses)}</div>
+        <>
+            <Wrapper>
+                <ListHeader>
+                    <div className="row gap-6">{applyWidthClasses(['Date', 'Balance', 'Job/Draft'], widthClasses)}</div>
 
-                <div className={`${widthClasses[3]} text-right`}>Status</div>
-            </ListHeader>
+                    <div className={`${widthClasses[3]} text-right`}>Status</div>
+                </ListHeader>
 
-            {!jobs.length && (
-                <div className="py-8">
-                    <EmptyData
-                        title="No running jobs"
-                        description="Recent running jobs will be displayed here"
-                        icon={<RiDraftLine />}
-                    />
-                </div>
-            )}
+                {!jobs.length && (
+                    <div className="py-8">
+                        <EmptyData
+                            title="No running jobs"
+                            description="Recent running jobs will be displayed here"
+                            icon={<RiDraftLine />}
+                        />
+                    </div>
+                )}
 
-            {jobs.map((job, index) => {
-                const diffInSeconds = Date.now() / 1000 - Number(job.requestTimestamp);
+                {jobs.map((job, index) => {
+                    const diffInSeconds = Date.now() / 1000 - Number(job.requestTimestamp);
 
-                // A job is considered finalized if it started and it was paid for more than 1 hour ago
-                if (diffInSeconds > 3600 && job.startTimestamp > 0n) {
-                    return null;
-                }
+                    // A job is considered finalized if it started and it was paid for more than 1 hour ago
+                    if (diffInSeconds > 3600 && job.startTimestamp > 0n) {
+                        return null;
+                    }
 
-                return (
-                    <BorderedCard key={`${job.id}-${index}`}>
-                        <div className="row compact justify-between gap-6">
-                            <div className="row gap-6">
-                                <div className={widthClasses[0]}>
-                                    <SmallTag>
-                                        <div className="row gap-1">
-                                            <RiCalendarLine className="text-sm" />
-                                            <div>
-                                                {new Date(Number(job.requestTimestamp) * 1000).toLocaleString(undefined, {
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    year: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit',
-                                                })}
+                    return (
+                        <BorderedCard key={`${job.id}-${index}`}>
+                            <div className="row compact justify-between gap-6">
+                                <div className="row gap-6">
+                                    <div className={widthClasses[0]}>
+                                        <SmallTag>
+                                            <div className="row gap-1">
+                                                <RiCalendarLine className="text-sm" />
+                                                <div>
+                                                    {new Date(Number(job.requestTimestamp) * 1000).toLocaleString(undefined, {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                    })}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </SmallTag>
-                                </div>
-
-                                <div className={widthClasses[1]}>
-                                    <UsdcValue value={fBI(job.balance, 6, 2)} />
-                                </div>
-
-                                {'alias' in job && (
-                                    <div className={widthClasses[2]}>{getRunningJobCard(job.id, job.jobType, job.alias)}</div>
-                                )}
-
-                                {'draftJob' in job && (
-                                    <div className={widthClasses[2]}>
-                                        <Link
-                                            to={`${routePath.deeploys}/${routePath.project}/${job.draftJob.projectHash}`}
-                                            className="hover:opacity-60"
-                                            onClick={(event) => {
-                                                event.preventDefault();
-                                                setProjectOverviewTab('draftJobs');
-
-                                                navigate(
-                                                    `${routePath.deeploys}/${routePath.project}/${job.draftJob.projectHash}`,
-                                                );
-                                            }}
-                                        >
-                                            <div className={`${widthClasses[2]} truncate text-[13px]`}>
-                                                {job.draftJob.deployment.jobAlias}
-                                            </div>
-                                        </Link>
+                                        </SmallTag>
                                     </div>
-                                )}
-                            </div>
 
-                            <div className="row gap-2.5">
-                                {/* Status */}
-                                <div className={`flex ${widthClasses[3]} justify-end`}>
-                                    {diffInSeconds > 3600 ? (
-                                        <SmallTag variant="red">Deployment failed</SmallTag>
-                                    ) : (
-                                        getOngoingStatus(job)
+                                    <div className={widthClasses[1]}>
+                                        <UsdcValue value={fBI(job.balance, 6, 2)} />
+                                    </div>
+
+                                    {'alias' in job && (
+                                        <div className={widthClasses[2]}>
+                                            {getRunningJobCard(job.id, job.jobType, job.alias)}
+                                        </div>
+                                    )}
+
+                                    {'draftJob' in job && (
+                                        <div className={widthClasses[2]}>
+                                            <Link
+                                                to={`${routePath.deeploys}/${routePath.project}/${job.draftJob.projectHash}`}
+                                                className="hover:opacity-60"
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    setProjectOverviewTab('draftJobs');
+
+                                                    navigate(
+                                                        `${routePath.deeploys}/${routePath.project}/${job.draftJob.projectHash}`,
+                                                    );
+                                                }}
+                                            >
+                                                <div className={`${widthClasses[2]} truncate text-[13px]`}>
+                                                    {job.draftJob.deployment.jobAlias}
+                                                </div>
+                                            </Link>
+                                        </div>
                                     )}
                                 </div>
 
-                                {diffInSeconds > 3600 && (
-                                    <div className="min-w-[32px]">
-                                        <ContextMenuWithTrigger
-                                            items={[
-                                                {
-                                                    key: 'claim',
-                                                    label: 'Claim Funds',
-                                                    description: 'Withdraw the funds from the job',
-                                                    onPress: () => onClaimFunds(job),
-                                                },
-                                            ]}
-                                            isDisabled={isClaimingFunds}
-                                        />
+                                <div className="row gap-2.5">
+                                    {/* Status */}
+                                    <div className={`flex ${widthClasses[3]} justify-end`}>
+                                        {diffInSeconds > 3600 ? (
+                                            <SmallTag variant="red">Deployment failed</SmallTag>
+                                        ) : (
+                                            getOngoingStatus(job)
+                                        )}
                                     </div>
-                                )}
+
+                                    {diffInSeconds > 3600 && (
+                                        <div className="min-w-[32px]">
+                                            <ContextMenuWithTrigger
+                                                items={[
+                                                    {
+                                                        key: 'claim',
+                                                        label: 'Claim Funds',
+                                                        description: 'Withdraw the funds from the job',
+                                                        onPress: () => onClaimFunds(job),
+                                                    },
+                                                ]}
+                                                isDisabled={isClaimingFunds}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    </BorderedCard>
-                );
-            })}
-        </Wrapper>
+                        </BorderedCard>
+                    );
+                })}
+            </Wrapper>
+
+            {/* Transaction Modal */}
+            <SigningModal ref={signTxModalRef} type="transaction" />
+        </>
     );
 }
 
