@@ -200,7 +200,7 @@ export default function Monitor() {
                     getJobs(paidDraftJobsRef.current);
                 },
                 1000,
-                { leading: true, trailing: false },
+                { leading: false, trailing: true },
             ),
         [getJobs],
     );
@@ -350,9 +350,9 @@ export default function Monitor() {
                                     )}
                                 </div>
 
-                                <div className="row gap-2.5">
+                                <div className={`row gap-2.5 ${widthClasses[3]} justify-end`}>
                                     {/* Status */}
-                                    <div className={`flex ${widthClasses[3]} justify-end`}>
+                                    <div className="flex">
                                         {diffInSeconds > 3600 ? (
                                             <SmallTag variant="red">Deployment failed</SmallTag>
                                         ) : (
