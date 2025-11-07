@@ -378,20 +378,31 @@ export default function Payment({
         const jobIds: bigint[] = jobCreatedLogs.map((log) => log.args.jobId);
 
         // Mark job drafts as paid
-        jobIds.forEach(async (jobId, index) => {
-            const paymentInfo = {
-                paid: true,
-                runningJobId: jobId,
-            };
+        await Promise.all(
+            jobIds.map(async (jobId, index) => {
+                const draft = unpaidJobDrafts[index];
 
-            unpaidJobDrafts[index] = {
-                ...unpaidJobDrafts[index],
-                ...paymentInfo,
-            };
+                if (!draft) {
+                    console.warn('No draft found for jobId index', index);
+                    return;
+                }
 
-            await db.jobs.update(unpaidJobDrafts[index].id, unpaidJobDrafts[index]);
-            console.log('Marked job draft as paid', unpaidJobDrafts[index]);
-        });
+                const paymentInfo = {
+                    paid: true,
+                    runningJobId: jobId,
+                };
+
+                const updatedDraft = {
+                    ...draft,
+                    ...paymentInfo,
+                };
+
+                unpaidJobDrafts[index] = updatedDraft;
+
+                await db.jobs.update(updatedDraft.id, updatedDraft);
+                console.log('Marked job draft as paid', updatedDraft);
+            }),
+        );
     };
 
     return (

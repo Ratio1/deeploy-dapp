@@ -200,7 +200,7 @@ export default function Monitor() {
                     getJobs(paidDraftJobsRef.current);
                 },
                 1000,
-                { leading: true, trailing: true },
+                { leading: true, trailing: false },
             ),
         [getJobs],
     );
