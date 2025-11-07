@@ -38,7 +38,7 @@ const widthClasses = [
     'w-[176px]', // status + context menu
 ];
 
-export default function Monitoring() {
+export default function Monitor() {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
     const { confirm } = useInteractionContext() as InteractionContextType;
     const { escrowContractAddress, fetchRunningJobsWithDetails, setProjectOverviewTab } =

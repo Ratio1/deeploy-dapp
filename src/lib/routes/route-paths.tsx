@@ -5,7 +5,7 @@ export const routePath = {
     deeploys: '/deeploys',
     // Children of /deeploys
     dashboard: 'dashboard',
-    monitoring: 'monitoring',
+    monitor: 'monitor',
     legacyRequester: 'legacy-requester',
     createProject: 'create-project',
     projectDraft: 'project-draft',
