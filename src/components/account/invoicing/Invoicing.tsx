@@ -40,10 +40,10 @@ function Invoicing() {
             }
 
             const months: string[] = _(drafts)
-                .orderBy('creationTimestamp', 'desc')
                 .map((draft) => draft.creationTimestamp.slice(0, 7))
                 .uniq()
-                .value();
+                .value()
+                .sort((a, b) => (a > b ? -1 : a < b ? 1 : 0));
 
             const obj = {};
 

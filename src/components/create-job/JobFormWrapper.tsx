@@ -198,6 +198,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
                     ...data.deployment,
                     jobAlias: data.deployment.jobAlias.toLowerCase(),
                 },
+                paid: false,
             };
 
             if (data.jobType === JobType.Native) {

@@ -23,12 +23,13 @@ import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import EmptyData from '@shared/EmptyData';
 import DeeployErrors from '@shared/jobs/DeeployErrors';
+import DeeployInfoAlert from '@shared/jobs/DeeployInfoAlert';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
 import { UsdcValue } from '@shared/UsdcValue';
-import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
+import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, PaidDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { addDays } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -56,10 +57,13 @@ export default function Payment({
     const [totalCost, setTotalCost] = useState<bigint>(0n);
     const [isLoading, setLoading] = useState<boolean>(false);
 
+    const [isPaymentRequired, setPaymentRequired] = useState<boolean>(false);
+
     const [errors, setErrors] = useState<
         {
             text: string;
             serverAlias: string;
+            jobAlias?: string;
         }[]
     >([]);
 
@@ -68,6 +72,10 @@ export default function Payment({
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const { signMessageAsync } = useSignMessage();
 
+    const [deeployModalActions, setDeeployModalActions] = useState<DEEPLOY_FLOW_ACTION_KEYS[]>([
+        'signXMessages',
+        'callDeeployApi',
+    ]);
     const deeployFlowModalRef = useRef<{
         open: (jobsCount: number, messagesToSign: number) => void;
         progress: (action: DEEPLOY_FLOW_ACTION_KEYS) => void;
@@ -82,15 +90,24 @@ export default function Payment({
             const jobsTotalCost = getJobsTotalCost(jobs);
             setTotalCost(jobsTotalCost);
 
-            // Log payloads in development
-            if (process.env.NODE_ENV === 'development') {
-                getJobPayloads(jobs);
-            }
+            setPaymentRequired(jobs.filter((job) => !job.paid).length > 0);
         }
     }, [jobs]);
 
-    const getJobPayloads = (jobs: DraftJob[]) => {
-        return jobs.map((job) => {
+    useEffect(() => {
+        if (isPaymentRequired) {
+            setDeeployModalActions(['payment', 'signXMessages', 'callDeeployApi']);
+        }
+    }, [isPaymentRequired]);
+
+    const getJobPayloadsWithIds = (
+        paidJobs: PaidDraftJob[],
+    ): {
+        draftJobId: number;
+        runningJobId: bigint;
+        payload: any;
+    }[] => {
+        return paidJobs.map((job) => {
             let payload = {};
 
             switch (job.jobType) {
@@ -113,7 +130,7 @@ export default function Payment({
 
             console.log('[Payment] Payloads', payload);
 
-            return payload;
+            return { draftJobId: job.id, runningJobId: job.runningJobId, payload };
         });
     };
 
@@ -158,145 +175,234 @@ export default function Payment({
             setErrors([]);
             setLoading(true);
 
-            const messagesToSign = jobs.length;
-            deeployFlowModalRef.current?.open(jobs.length, messagesToSign);
+            const unpaidJobDrafts: DraftJob[] = jobs.filter((job) => !job.paid);
+            deeployFlowModalRef.current?.open(unpaidJobDrafts.length, jobs.length);
 
-            const args = jobs.map((job) => {
-                const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-                const expiryDate = addDays(new Date(), job.costAndDuration.duration * 30);
-                const durationInEpochs = diffTimeFn(expiryDate, new Date());
-                const lastExecutionEpoch = BigInt(getCurrentEpoch() + durationInEpochs);
-
-                return {
-                    jobType: BigInt(containerType.jobType),
-                    projectHash: projectHash as `0x${string}`,
-                    lastExecutionEpoch,
-                    numberOfNodesRequested: BigInt(job.specifications.targetNodesCount),
-                };
-            });
-
-            const txHash = await walletClient.writeContract({
-                address: escrowContractAddress,
-                abi: CspEscrowAbi,
-                functionName: 'createJobs',
-                args: [args],
-            });
-
-            const receipt = await watchTx(txHash, publicClient);
-
-            if (receipt.status === 'success') {
-                const jobCreatedLogs = receipt.logs
-                    .filter((log) => log.address === escrowContractAddress.toLowerCase())
-                    .map((log) => {
-                        try {
-                            const decoded = decodeEventLog({
-                                abi: CspEscrowAbi,
-                                data: log.data,
-                                topics: log.topics,
-                            });
-                            return decoded;
-                        } catch (err) {
-                            console.error('Failed to decode log', log, err);
-                            return null;
-                        }
-                    })
-                    .filter((log) => log !== null && log.eventName === 'JobCreated');
-
-                const jobIds = jobCreatedLogs.map((log) => log.args.jobId);
-                const payloads = getJobPayloads(jobs);
-
-                deeployFlowModalRef.current?.progress('signXMessages');
-
-                const requests = await Promise.all(
-                    payloads.map((payload, index) => {
-                        const jobId = Number(jobIds[index]);
-                        return signAndBuildRequest(jobId, payload);
-                    }),
-                );
-
-                deeployFlowModalRef.current?.progress('callDeeployApi');
-
-                const responses = await Promise.allSettled(
-                    requests.map((request) => {
-                        return createPipeline(request);
-                    }),
-                );
-
-                // Check for any failed deployments
-                const failedJobs = responses.filter(
-                    (response) =>
-                        response.status === 'rejected' ||
-                        response.value.status === 'fail' ||
-                        response.value.status === 'timeout',
-                );
-                const successfulJobs = responses.filter(
-                    (response) =>
-                        response.status === 'fulfilled' &&
-                        (response.value.status === 'success' || response.value.status === 'command_delivered'),
-                );
-
-                if (failedJobs.length > 0) {
-                    console.error('Some jobs failed to deploy:', failedJobs);
-                    toast.error(`${failedJobs.length} job${failedJobs.length > 1 ? 's' : ''} failed to deploy.`);
-
-                    setErrors(
-                        failedJobs
-                            .filter((job) => job.status === 'fulfilled')
-                            .map((job) => ({
-                                text: job.value?.error || 'Request timed out',
-                                serverAlias: job.value?.server_info.alias,
-                            })),
-                    );
-                }
-
-                if (successfulJobs.length > 0) {
-                    setFetchAppsRequired(true);
-
-                    console.log(
-                        'Successfully deployed jobs:',
-                        successfulJobs.map((r) => (r as PromiseFulfilledResult<any>).value),
-                    );
-                    toast.success(`${successfulJobs.length} job${successfulJobs.length > 1 ? 's' : ''} deployed successfully.`);
-                }
-
-                if (successfulJobs.length === jobs.length) {
-                    deeployFlowModalRef.current?.progress('done');
-                    setProjectOverviewTab('runningJobs');
-
-                    setTimeout(() => {
-                        deeployFlowModalRef.current?.close();
-
-                        const items = successfulJobs
-                            .map((r) => (r as PromiseFulfilledResult<any>).value)
-                            .filter((response) => !!response.app_id)
-                            .map((response) => ({
-                                text: response.app_id as string,
-                                serverAlias: response.server_info.alias as string,
-                            }));
-
-                        callback(items);
-
-                        // Delete all job drafts
-                        db.jobs.where('projectHash').equals(projectHash).delete();
-                        // If at least one job was deployed, delete the projectdraft
-                        db.projects.delete(projectHash);
-                    }, 1000);
-                } else {
-                    deeployFlowModalRef.current?.displayError();
-                }
-
-                console.log('All deployment responses:', responses);
-            } else {
-                toast.error('Deployment failed, please try again.');
+            if (isPaymentRequired) {
+                console.log('Payment required for the following job drafts', unpaidJobDrafts);
+                await payJobDrafts(unpaidJobDrafts);
             }
+
+            // If a payment has occurred, fetch the updated paid jobs from the database
+            const paidJobs: PaidDraftJob[] = (
+                isPaymentRequired
+                    ? await db.jobs
+                          .where('projectHash')
+                          .equals(projectHash)
+                          .filter((job) => job.paid)
+                          .toArray()
+                    : jobs
+            ) as PaidDraftJob[];
+
+            if (isPaymentRequired && paidJobs.length !== jobs.length) {
+                toast.error('Unexpected error, some jobs were not paid.');
+                deeployFlowModalRef.current?.displayError();
+                return;
+            }
+
+            console.log('Proceeding with the following paid job drafts', paidJobs);
+
+            const payloadsWithIds: {
+                draftJobId: number;
+                runningJobId: bigint;
+                payload: any;
+            }[] = getJobPayloadsWithIds(paidJobs);
+
+            deeployFlowModalRef.current?.progress('signXMessages');
+
+            const requestsWithDraftIds = await Promise.all(
+                payloadsWithIds.map(async (payloadWithIds) => {
+                    const runningJobId = Number(payloadWithIds.runningJobId);
+                    const draftJobId = payloadWithIds.draftJobId;
+
+                    const request = await signAndBuildRequest(runningJobId, payloadWithIds.payload);
+                    return { request, draftJobId };
+                }),
+            );
+
+            deeployFlowModalRef.current?.progress('callDeeployApi');
+
+            const responses = await Promise.allSettled(
+                requestsWithDraftIds.map(({ request }) => {
+                    return createPipeline(request);
+                }),
+            );
+
+            // Map responses back to draft job IDs
+            const responsesWithDraftJobIds = responses.map((response, index) => {
+                const { draftJobId } = requestsWithDraftIds[index];
+                return { response, draftJobId };
+            });
+
+            // Check for any failed deployments
+            const failedJobs = responsesWithDraftJobIds.filter(
+                (item) =>
+                    item.response.status === 'rejected' ||
+                    (item.response.status === 'fulfilled' &&
+                        (item.response.value.status === 'fail' || item.response.value.status === 'timeout')),
+            );
+
+            const successfulJobs = responsesWithDraftJobIds.filter(
+                (item) =>
+                    item.response.status === 'fulfilled' &&
+                    (item.response.value.status === 'success' || item.response.value.status === 'command_delivered'),
+            );
+
+            if (failedJobs.length > 0) {
+                console.error('Some jobs failed to deploy:', failedJobs);
+                toast.error(`${failedJobs.length} job${failedJobs.length > 1 ? 's' : ''} failed to deploy.`);
+
+                setErrors(
+                    failedJobs.map((item) => {
+                        const draftJob = paidJobs.find((job) => job.id === item.draftJobId);
+                        if (item.response.status === 'fulfilled') {
+                            const fulfilledResponse = item.response as PromiseFulfilledResult<any>;
+                            return {
+                                text: fulfilledResponse.value?.error || 'Request timed out',
+                                jobAlias: draftJob?.deployment.jobAlias || 'Unknown',
+                                serverAlias: fulfilledResponse.value?.server_info.alias || 'Unknown',
+                            };
+                        } else {
+                            const rejectedResponse = item.response as PromiseRejectedResult;
+                            return {
+                                text: rejectedResponse.reason?.message || 'Request failed',
+                                serverAlias: 'Unknown',
+                            };
+                        }
+                    }),
+                );
+            }
+
+            if (successfulJobs.length > 0) {
+                setFetchAppsRequired(true);
+
+                console.log(
+                    'Successfully deployed jobs:',
+                    successfulJobs.map((item) => (item.response as PromiseFulfilledResult<any>).value),
+                );
+                toast.success(`${successfulJobs.length} job${successfulJobs.length > 1 ? 's' : ''} deployed successfully.`);
+
+                // Delete only successfully deployed job drafts
+                const successfulDraftJobIds = successfulJobs.map((item) => item.draftJobId);
+                console.log('Deleting successful draft job IDs:', successfulDraftJobIds);
+                await Promise.all(successfulDraftJobIds.map((id) => db.jobs.delete(id)));
+            }
+
+            if (successfulJobs.length === jobs.length) {
+                deeployFlowModalRef.current?.progress('done');
+                setProjectOverviewTab('runningJobs');
+
+                setTimeout(() => {
+                    deeployFlowModalRef.current?.close();
+
+                    const items = successfulJobs
+                        .map((item) => (item.response as PromiseFulfilledResult<any>).value)
+                        .filter((response) => !!response.app_id)
+                        .map((response) => ({
+                            text: response.app_id as string,
+                            serverAlias: response.server_info.alias as string,
+                        }));
+
+                    callback(items);
+
+                    // If all jobs were deployed successfully, delete the project draft
+                    db.projects.delete(projectHash);
+                }, 1000);
+            } else {
+                deeployFlowModalRef.current?.displayError();
+            }
+
+            console.log('All deployment responses:', responses);
         } catch (error: any) {
             console.error(error.message);
-            toast.error('An error occured, please try again.');
+            toast.error('An error occurred, please try again.');
             deeployFlowModalRef.current?.displayError();
         } finally {
             await payButtonRef.current?.fetchAllowance();
             setLoading(false);
         }
+    };
+
+    const payJobDrafts = async (unpaidJobDrafts: DraftJob[]) => {
+        if (!walletClient || !publicClient || !address || !escrowContractAddress) {
+            toast.error('Please refresh this page and try again.');
+            return;
+        }
+
+        const args = unpaidJobDrafts.map((job) => {
+            const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+            const expiryDate = addDays(new Date(), job.costAndDuration.duration * 30);
+            const durationInEpochs = diffTimeFn(expiryDate, new Date());
+            const lastExecutionEpoch = BigInt(getCurrentEpoch() + durationInEpochs);
+
+            return {
+                jobType: BigInt(containerType.jobType),
+                projectHash: projectHash as `0x${string}`,
+                lastExecutionEpoch,
+                numberOfNodesRequested: BigInt(job.specifications.targetNodesCount),
+            };
+        });
+
+        const txHash = await walletClient.writeContract({
+            address: escrowContractAddress,
+            abi: CspEscrowAbi,
+            functionName: 'createJobs',
+            args: [args],
+        });
+
+        const receipt = await watchTx(txHash, publicClient);
+
+        if (receipt.status !== 'success') {
+            toast.error('Payment failed, please try again.');
+            deeployFlowModalRef.current?.displayError();
+            return;
+        }
+
+        const jobCreatedLogs = receipt.logs
+            .filter((log) => log.address === escrowContractAddress.toLowerCase())
+            .map((log) => {
+                try {
+                    const decoded = decodeEventLog({
+                        abi: CspEscrowAbi,
+                        data: log.data,
+                        topics: log.topics,
+                    });
+                    return decoded;
+                } catch (err) {
+                    console.error('Failed to decode log', log, err);
+                    return null;
+                }
+            })
+            .filter((log) => log !== null && log.eventName === 'JobCreated');
+
+        const jobIds: bigint[] = jobCreatedLogs.map((log) => log.args.jobId);
+
+        // Mark job drafts as paid
+        await Promise.all(
+            jobIds.map(async (jobId, index) => {
+                const draft = unpaidJobDrafts[index];
+
+                if (!draft) {
+                    console.warn('No draft found for jobId index', index);
+                    return;
+                }
+
+                const paymentInfo = {
+                    paid: true,
+                    runningJobId: jobId,
+                };
+
+                const updatedDraft = {
+                    ...draft,
+                    ...paymentInfo,
+                };
+
+                unpaidJobDrafts[index] = updatedDraft;
+
+                await db.jobs.update(updatedDraft.id, updatedDraft);
+                console.log('Marked job draft as paid', updatedDraft);
+            }),
+        );
     };
 
     return (
@@ -315,7 +421,8 @@ export default function Payment({
                             isLoading={isLoading}
                             setLoading={setLoading}
                             callback={onPayAndDeploy}
-                            isButtonDisabled={jobs?.length === 0 || totalCost === 0n}
+                            isButtonDisabled={jobs?.length === 0}
+                            label={jobs?.every((job) => job.paid) ? 'Deploy' : 'Pay & Deploy'}
                         />
                     </div>
                 </div>
@@ -347,6 +454,28 @@ export default function Payment({
                 {/* Errors */}
                 <DeeployErrors type="deployment" errors={errors} />
 
+                {/* Paid Jobs Alert */}
+                {jobs?.some((job) => job.paid) && (
+                    <DeeployInfoAlert
+                        variant="green"
+                        title={<div className="font-medium">Paid job drafts</div>}
+                        description={
+                            <div className="col gap-1">
+                                <div>
+                                    This project might contain job drafts that were{' '}
+                                    <span className="font-medium">paid but not yet deployed</span>. You{' '}
+                                    <span className="font-medium">won't be charged again</span> when you deploy them.
+                                </div>
+                                <div>
+                                    If any of these job drafts have already been successfully deployed, please delete them to
+                                    prevent further errors.
+                                </div>
+                            </div>
+                        }
+                        size="lg"
+                    />
+                )}
+
                 {/* Rundowns */}
                 {!!jobs && !!jobs.length && (
                     <>
@@ -377,11 +506,7 @@ export default function Payment({
 
             <SupportFooter />
 
-            <DeeployFlowModal
-                ref={deeployFlowModalRef}
-                actions={['payment', 'signXMessages', 'callDeeployApi']}
-                type="deploy"
-            />
+            <DeeployFlowModal ref={deeployFlowModalRef} actions={deeployModalActions} type="deploy" />
         </div>
     );
 }

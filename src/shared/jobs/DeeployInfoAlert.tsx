@@ -1,9 +1,28 @@
+import clsx from 'clsx';
 import { ReactNode } from 'react';
 import { RiInformationLine } from 'react-icons/ri';
 
-export default function DeeployInfoAlert({ title, description }: { title: ReactNode; description: ReactNode }) {
+export default function DeeployInfoAlert({
+    variant = 'blue',
+    title,
+    description,
+    size = 'md',
+}: {
+    variant?: 'blue' | 'green';
+    title: ReactNode;
+    description: ReactNode;
+    size?: 'sm' | 'md' | 'lg';
+}) {
     return (
-        <div className="col gap-2 rounded-md bg-blue-100 p-3 text-sm text-blue-600">
+        <div
+            className={clsx('col gap-2 rounded-md text-sm', {
+                'p-3': size === 'sm',
+                'px-4 py-3': size === 'md',
+                'px-4 py-4 lg:px-6': size === 'lg',
+                'bg-blue-100 text-blue-600': variant === 'blue',
+                'bg-green-100 text-green-600': variant === 'green',
+            })}
+        >
             <div className="row gap-1.5">
                 <RiInformationLine className="text-[20px]" />
 

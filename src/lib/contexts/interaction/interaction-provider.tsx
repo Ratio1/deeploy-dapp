@@ -118,7 +118,7 @@ export const InteractionProvider = ({ children }) => {
             </Modal>
 
             {/* Sign Message Modal */}
-            <SigningModal ref={signMessageModalRef} type="signMessage" />
+            <SigningModal ref={signMessageModalRef} type="message" />
         </InteractionContext.Provider>
     );
 };

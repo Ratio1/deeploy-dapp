@@ -8,7 +8,7 @@ import DetailedUsage from '@shared/projects/DetailedUsage';
 import { SmallTag } from '@shared/SmallTag';
 import { RunningJobWithResources } from '@typedefs/deeploys';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import JobActions from '../JobActions';
 
 export default function RunningJobsList({
@@ -24,8 +24,6 @@ export default function RunningJobsList({
     renderAlias: (job: RunningJobWithResources) => React.ReactNode;
     renderJob: (job: RunningJobWithResources) => React.ReactNode;
 }) {
-    const navigate = useNavigate();
-
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
     return (
@@ -43,21 +41,21 @@ export default function RunningJobsList({
             }
         >
             {/* Table Header */}
-            <div className="row justify-between gap-2 px-4 py-3 text-sm font-medium text-slate-500">
+            <div className="row justify-between gap-2 px-4 py-3 text-[13px] font-medium text-slate-500">
                 {tableHeader}
 
                 {/* Accounts for the context menu button */}
                 <div className="min-w-[32px]"></div>
             </div>
 
-            {jobs.map((job) => {
+            {jobs.map((job, index) => {
                 const requestDate = new Date(Number(job.requestTimestamp) * 1000);
                 const requestEpoch = diffTimeFn(requestDate, config.genesisDate);
 
                 const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
 
                 return (
-                    <div key={job.id} className="col gap-4 border-t-2 border-slate-200/65 px-4 py-5 text-sm">
+                    <div key={`${job.id}-${index}`} className="col gap-4 border-t-2 border-slate-200/65 px-4 py-5 text-sm">
                         {/* Content */}
                         <div className="row justify-between gap-2">
                             <div className="row gap-2">
