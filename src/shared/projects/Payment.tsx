@@ -183,7 +183,7 @@ export default function Payment({
                 await payJobDrafts(unpaidJobDrafts);
             }
 
-            // If a payment has occured, fetch the updated paid jobs from the database
+            // If a payment has occurred, fetch the updated paid jobs from the database
             const paidJobs: PaidDraftJob[] = (
                 isPaymentRequired
                     ? await db.jobs
@@ -315,7 +315,7 @@ export default function Payment({
             console.log('All deployment responses:', responses);
         } catch (error: any) {
             console.error(error.message);
-            toast.error('An error occured, please try again.');
+            toast.error('An error occurred, please try again.');
             deeployFlowModalRef.current?.displayError();
         } finally {
             await payButtonRef.current?.fetchAllowance();

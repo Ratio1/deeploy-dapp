@@ -224,7 +224,7 @@ export default function Monitor() {
                     <div className="row gap-0.5">
                         <RiTimeLine className="text-[15px]" />
 
-                        <div className="font-[13px]">
+                        <div className="text-[13px]">
                             <Timer
                                 variant="compact"
                                 timestamp={new Date(Number(job.requestTimestamp) * 1000 + 3600 * 1000)}
