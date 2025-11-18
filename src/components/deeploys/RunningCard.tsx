@@ -85,7 +85,7 @@ export default function RunningCard({
                         </div>
                     </div>
 
-                    <div className="min-w-[164px]">
+                    <div className="min-w-[114px]">
                         <SmallTag>
                             <div className="row gap-1">
                                 <RiCalendarLine className="text-sm" />
@@ -168,7 +168,7 @@ export default function RunningCard({
                                         {targetNodes > 1 ? 's' : ''}
                                     </div>
 
-                                    <div className="min-w-[164px]">
+                                    <div className="min-w-[114px]">
                                         <SmallTag>
                                             <div className="row gap-1">
                                                 <RiCalendarLine className="text-sm" />

@@ -43,7 +43,7 @@ function Invoicing() {
                 .map((draft) => draft.creationTimestamp.slice(0, 7))
                 .uniq()
                 .value()
-                .sort((a, b) => (a > b ? -1 : a < b ? 1 : 0));
+                .sort((a, b) => b.localeCompare(a));
 
             const obj = {};
 

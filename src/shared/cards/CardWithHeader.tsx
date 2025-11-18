@@ -18,7 +18,7 @@ export const CardWithHeader: FunctionComponent<PropsWithChildren<Props>> = ({ ch
                         <div className={cn('bg-primary rounded-full p-1.5 text-lg text-white', isDisabled && 'bg-slate-500')}>
                             {icon}
                         </div>
-                        <div className={cn('larger:text-lg text-base leading-6 font-semibold', isDisabled && 'text-slate-600')}>
+                        <div className={cn('text-base leading-6 font-semibold xl:text-lg', isDisabled && 'text-slate-600')}>
                             {title}
                         </div>
                     </div>

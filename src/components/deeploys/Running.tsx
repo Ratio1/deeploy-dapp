@@ -104,7 +104,7 @@ const Running = forwardRef<
                 <div className="row gap-6">
                     <div className="min-w-[232px]">Alias</div>
                     <div className="min-w-[80px]">Details</div>
-                    <div className="min-w-[164px]">End Date</div>
+                    <div className="min-w-[114px]">End Date</div>
                     <div className="min-w-[200px]">Usage</div>
                 </div>
 
