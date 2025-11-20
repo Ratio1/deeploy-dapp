@@ -1,6 +1,6 @@
 import { Button } from '@heroui/button';
 import { deletePipeline, sendJobCommand } from '@lib/api/deeploy';
-import { getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
+import { environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
@@ -216,12 +216,16 @@ export default function JobActions({
                     isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
                     onPress: onEdit,
                 },
-                {
-                    key: 'delete',
-                    label: 'Delete',
-                    description: 'Remove the job from all running nodes',
-                    onPress: onDeleteJob,
-                },
+                ...(environment === 'devnet'
+                    ? [
+                          {
+                              key: 'delete',
+                              label: 'Delete',
+                              description: 'Remove the job from all running nodes',
+                              onPress: onDeleteJob,
+                          },
+                      ]
+                    : []),
             ]}
             onOpenChange={(isOpen) => {
                 setContextMenuOpen(isOpen);

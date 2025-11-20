@@ -7,15 +7,19 @@ export default function DeeployInfoAlert({
     title,
     description,
     size = 'md',
+    isRoundedLg = false,
 }: {
     variant?: 'blue' | 'green';
     title: ReactNode;
     description: ReactNode;
     size?: 'sm' | 'md' | 'lg';
+    isRoundedLg?: boolean;
 }) {
     return (
         <div
-            className={clsx('col gap-2 rounded-md text-sm', {
+            className={clsx('col gap-2 text-sm', {
+                'rounded-md': !isRoundedLg,
+                'rounded-lg': isRoundedLg,
                 'p-3': size === 'sm',
                 'px-4 py-3': size === 'md',
                 'px-4 py-4 lg:px-6': size === 'lg',

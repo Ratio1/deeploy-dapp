@@ -1,6 +1,7 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
 import { Skeleton } from '@heroui/skeleton';
+import { environment } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
@@ -10,6 +11,7 @@ import { applyWidthClasses, fBI } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import EmptyData from '@shared/EmptyData';
+import DeeployInfoAlert from '@shared/jobs/DeeployInfoAlert';
 import ListHeader from '@shared/ListHeader';
 import { SigningModal } from '@shared/SigningModal';
 import { SmallTag } from '@shared/SmallTag';
@@ -99,7 +101,6 @@ export default function Monitor() {
                     });
                 }
 
-                console.log(jobs);
                 setJobs(jobs);
             } catch (error) {
                 console.error(error);
@@ -117,11 +118,8 @@ export default function Monitor() {
             return;
         }
 
-        console.log('Claiming funds for job', job);
-
         try {
             setClaimingFunds(true);
-            signTxModalRef.current?.open();
 
             let jobId: bigint | undefined;
 
@@ -142,6 +140,8 @@ export default function Monitor() {
             } else {
                 jobId = job.id;
             }
+
+            signTxModalRef.current?.open();
 
             const txHash = await walletClient.writeContract({
                 address: escrowContractAddress,
@@ -224,7 +224,7 @@ export default function Monitor() {
                     <div className="row gap-0.5">
                         <RiTimeLine className="text-[15px]" />
 
-                        <div className="text-[13px]">
+                        <div className="text-[12px]">
                             <Timer
                                 variant="compact"
                                 timestamp={new Date(Number(job.requestTimestamp) * 1000 + 3600 * 1000)}
@@ -273,6 +273,17 @@ export default function Monitor() {
     return (
         <>
             <Wrapper>
+                {environment === 'devnet' &&
+                    jobs.some(
+                        (job) => Date.now() / 1000 - Number(job.requestTimestamp) > 3600 && job.startTimestamp === 0n,
+                    ) && (
+                        <DeeployInfoAlert
+                            title="Possible unvalidated jobs"
+                            description="Some jobs may have started, but network consensus may still be pending. Claiming funds for these jobs may not be successful."
+                            isRoundedLg
+                        />
+                    )}
+
                 <ListHeader>
                     <div className="row gap-6">{applyWidthClasses(['Date', 'Balance', 'Job/Draft'], widthClasses)}</div>
 
