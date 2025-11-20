@@ -5,7 +5,7 @@ import Navigation from './Navigation';
 
 function Sider() {
     return (
-        <div className="col w-sider fixed top-0 bottom-0 left-0 m-4 justify-between rounded-xl bg-slate-100 px-6 pt-12 pb-12">
+        <div className="col w-sider-sm xl:w-sider fixed top-0 bottom-0 left-0 m-4 justify-between rounded-xl bg-slate-100 px-4 py-8 xl:px-6 xl:py-12">
             <div className="col gap-8">
                 <div className="center-all">
                     <img src={Logo} alt="Logo" className="h-7" />

@@ -152,6 +152,31 @@ export const CspEscrowAbi = [
             },
             {
                 indexed: false,
+                internalType: 'address',
+                name: 'owner',
+                type: 'address',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'refundAmount',
+                type: 'uint256',
+            },
+        ],
+        name: 'JobRedeemed',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
                 internalType: 'uint256',
                 name: 'startTimestamp',
                 type: 'uint256',
@@ -196,18 +221,12 @@ export const CspEscrowAbi = [
             },
             {
                 indexed: false,
-                internalType: 'address',
-                name: 'nodeOwner',
-                type: 'address',
-            },
-            {
-                indexed: false,
                 internalType: 'uint256',
                 name: 'usdcAmount',
                 type: 'uint256',
             },
         ],
-        name: 'RewardsAllocatedV2',
+        name: 'RewardsAllocatedV3',
         type: 'event',
     },
     {
@@ -629,6 +648,25 @@ export const CspEscrowAbi = [
                 type: 'uint256',
             },
         ],
+        name: 'getJobActiveNodes',
+        outputs: [
+            {
+                internalType: 'address[]',
+                name: '',
+                type: 'address[]',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+        ],
         name: 'getJobDetails',
         outputs: [
             {
@@ -875,6 +913,19 @@ export const CspEscrowAbi = [
     {
         inputs: [],
         name: 'reconcileJobsBalance',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+        ],
+        name: 'redeemUnusedJob',
         outputs: [],
         stateMutability: 'nonpayable',
         type: 'function',

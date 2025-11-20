@@ -8,7 +8,7 @@ import DetailedUsage from '@shared/projects/DetailedUsage';
 import { SmallTag } from '@shared/SmallTag';
 import { RunningJobWithResources } from '@typedefs/deeploys';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import JobActions from '../JobActions';
 
 export default function RunningJobsList({
@@ -24,8 +24,6 @@ export default function RunningJobsList({
     renderAlias: (job: RunningJobWithResources) => React.ReactNode;
     renderJob: (job: RunningJobWithResources) => React.ReactNode;
 }) {
-    const navigate = useNavigate();
-
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
     return (
@@ -43,21 +41,21 @@ export default function RunningJobsList({
             }
         >
             {/* Table Header */}
-            <div className="row justify-between gap-2 px-4 py-3 text-sm font-medium text-slate-500">
+            <div className="row justify-between gap-2 px-4 py-3 text-[13px] font-medium text-slate-500">
                 {tableHeader}
 
                 {/* Accounts for the context menu button */}
                 <div className="min-w-[32px]"></div>
             </div>
 
-            {jobs.map((job) => {
+            {jobs.map((job, index) => {
                 const requestDate = new Date(Number(job.requestTimestamp) * 1000);
                 const requestEpoch = diffTimeFn(requestDate, config.genesisDate);
 
                 const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
 
                 return (
-                    <div key={job.id} className="col gap-4 border-t-2 border-slate-200/65 px-4 py-5 text-sm">
+                    <div key={`${job.id}-${index}`} className="col gap-4 border-t-2 border-slate-200/65 px-4 py-5 text-sm">
                         {/* Content */}
                         <div className="row justify-between gap-2">
                             <div className="row gap-2">
@@ -89,54 +87,20 @@ export default function RunningJobsList({
                             <div className="col bg-slate-75 gap-2.5 rounded-lg px-5 py-4">
                                 <div className="text-base font-semibold">Details</div>
 
-                                <div className="row justify-between gap-2">
-                                    <ItemWithLabel
-                                        label="Start Date"
-                                        value={
-                                            <div className="row gap-1.5">
-                                                <div className="leading-none">
-                                                    {requestDate.toLocaleDateString(undefined, {
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                        year: 'numeric',
-                                                        hour: '2-digit',
-                                                        minute: '2-digit',
-                                                    })}
-                                                </div>
-
-                                                <SmallTag>Epoch {requestEpoch}</SmallTag>
-                                            </div>
-                                        }
+                                <div className="xxl:hidden grid grid-cols-2 gap-4">
+                                    <JobDetails
+                                        requestDate={requestDate}
+                                        requestEpoch={requestEpoch}
+                                        expirationDate={expirationDate}
                                     />
+                                </div>
 
-                                    <ItemWithLabel
-                                        label="End Date"
-                                        value={
-                                            <div className="leading-none">
-                                                {expirationDate.toLocaleDateString(undefined, {
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    year: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit',
-                                                })}
-                                            </div>
-                                        }
+                                <div className="xxl:flex hidden justify-between gap-2">
+                                    <JobDetails
+                                        requestDate={requestDate}
+                                        requestEpoch={requestEpoch}
+                                        expirationDate={expirationDate}
                                     />
-
-                                    <ItemWithLabel
-                                        label="Next payment due"
-                                        value={<div className="font-medium text-green-600">Paid in full</div>}
-                                    />
-
-                                    <div className="min-w-[350px]">
-                                        {/* Update when custom payment duration is implemented */}
-                                        <DetailedUsage
-                                            used={Math.max(diffTimeFn(new Date(), requestDate), 1)}
-                                            paid={diffTimeFn(expirationDate, requestDate) + 1}
-                                            total={diffTimeFn(expirationDate, requestDate) + 1}
-                                        />
-                                    </div>
                                 </div>
                             </div>
                         )}
@@ -144,5 +108,64 @@ export default function RunningJobsList({
                 );
             })}
         </CompactCustomCard>
+    );
+}
+
+function JobDetails({
+    requestDate,
+    requestEpoch,
+    expirationDate,
+}: {
+    requestDate: Date;
+    requestEpoch: number;
+    expirationDate: Date;
+}) {
+    return (
+        <>
+            <ItemWithLabel
+                label="Start Date"
+                value={
+                    <div className="row gap-1.5">
+                        <div className="leading-none">
+                            {requestDate.toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                            })}
+                        </div>
+
+                        <SmallTag>Epoch {requestEpoch}</SmallTag>
+                    </div>
+                }
+            />
+
+            <ItemWithLabel
+                label="End Date"
+                value={
+                    <div className="leading-none">
+                        {expirationDate.toLocaleDateString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                        })}
+                    </div>
+                }
+            />
+
+            <ItemWithLabel label="Next payment due" value={<div className="font-medium text-green-600">Paid in full</div>} />
+
+            <div className="min-w-[350px]">
+                {/* Update when custom payment duration is implemented */}
+                <DetailedUsage
+                    used={Math.max(diffTimeFn(new Date(), requestDate), 1)}
+                    paid={diffTimeFn(expirationDate, requestDate) + 1}
+                    total={diffTimeFn(expirationDate, requestDate) + 1}
+                />
+            </div>
+        </>
     );
 }

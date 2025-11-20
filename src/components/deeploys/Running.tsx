@@ -7,6 +7,7 @@ import ListHeader from '@shared/ListHeader';
 import { RunningJobWithDetails } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import toast from 'react-hot-toast';
 import { RiDraftLine } from 'react-icons/ri';
 import { usePublicClient } from 'wagmi';
 import RunningCard from './RunningCard';
@@ -54,13 +55,18 @@ const Running = forwardRef<
     const getProjectsWithJobs = async () => {
         setLoading(true);
 
-        const jobsWithDetails: RunningJobWithDetails[] = await fetchRunningJobsWithDetails();
-        const projectsWithJobs = _.groupBy(jobsWithDetails, 'projectHash');
+        try {
+            const { runningJobsWithDetails } = await fetchRunningJobsWithDetails();
+            const projectsWithJobs = _.groupBy(runningJobsWithDetails, 'projectHash');
 
-        setProjects(projectsWithJobs);
-        setProjectsCount(Object.keys(projectsWithJobs).length);
-
-        setLoading(false);
+            setProjects(projectsWithJobs);
+            setProjectsCount(Object.keys(projectsWithJobs).length);
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to fetch running jobs.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const expandAll = () => {
@@ -98,7 +104,7 @@ const Running = forwardRef<
                 <div className="row gap-6">
                     <div className="min-w-[232px]">Alias</div>
                     <div className="min-w-[80px]">Details</div>
-                    <div className="min-w-[164px]">End Date</div>
+                    <div className="min-w-[114px]">End Date</div>
                     <div className="min-w-[200px]">Usage</div>
                 </div>
 

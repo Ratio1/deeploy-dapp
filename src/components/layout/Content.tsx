@@ -25,7 +25,7 @@ function Content() {
     }, [location]);
 
     return (
-        <div className="col mx-auto h-full max-w-6xl gap-8 px-8 lg:gap-12 lg:px-10">
+        <div className="col mx-auto h-full max-w-6xl gap-8 px-6 lg:gap-12 xl:px-10">
             <div className="flex justify-between gap-8 lg:gap-8">
                 <div className="col gap-1.5">
                     {!!title && (

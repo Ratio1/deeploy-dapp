@@ -8,14 +8,13 @@ import EditJob from '@pages/deeploys/job/EditJob';
 import ExtendJob from '@pages/deeploys/job/ExtendJob';
 import Job from '@pages/deeploys/job/Job';
 import LegacyRequester from '@pages/deeploys/LegacyRequester';
+import Monitor from '@pages/deeploys/Monitor';
 import Project from '@pages/deeploys/Project';
-import Docs from '@pages/Docs';
 import Home from '@pages/Home';
-import Support from '@pages/Support';
 import TunnelPage from '@pages/tunnels/TunnelPage';
 import Tunnels from '@pages/tunnels/Tunnels';
 import { JSX } from 'react';
-import { RiBox3Line, RiCodeBoxLine, RiFileTextLine, RiHeadphoneLine, RiHomeLine, RiUser3Line } from 'react-icons/ri';
+import { RiBox3Line, RiCodeBoxLine, RiHomeLine, RiUser3Line } from 'react-icons/ri';
 import { routePath } from './route-paths';
 
 export type BaseRoute = {
@@ -59,6 +58,10 @@ export const routeInfo = {
     [`${routePath.deeploys}/${routePath.dashboard}`]: {
         title: 'Dashboard',
         description: 'An organized view of your deployed projects',
+    },
+    [`${routePath.deeploys}/${routePath.monitor}`]: {
+        title: 'Monitor',
+        description: 'Monitor recent or failed deployments and claim funds',
     },
     [`${routePath.deeploys}/${routePath.createProject}`]: {
         title: 'Deployment',
@@ -126,6 +129,10 @@ export const routes: AppRoute[] = [
                 path: routePath.legacyRequester,
                 page: LegacyRequester,
             },
+            {
+                path: routePath.monitor,
+                page: Monitor,
+            },
         ],
     },
     {
@@ -138,16 +145,16 @@ export const routes: AppRoute[] = [
         page: Account,
         icon: <RiUser3Line />,
     },
-    {
-        path: routePath.docs,
-        page: Docs,
-        icon: <RiFileTextLine />,
-    },
-    {
-        path: routePath.support,
-        page: Support,
-        icon: <RiHeadphoneLine />,
-    },
+    // {
+    //     path: routePath.docs,
+    //     page: Docs,
+    //     icon: <RiFileTextLine />,
+    // },
+    // {
+    //     path: routePath.support,
+    //     page: Support,
+    //     icon: <RiHeadphoneLine />,
+    // },
     // Routes which are not displayed in the main navigation
     {
         path: `${routePath.deeploys}/${routePath.projectDraft}/:projectHash`,

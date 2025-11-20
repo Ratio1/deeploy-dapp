@@ -6,14 +6,14 @@ import Sider from './Sider';
 function Layout() {
     return (
         <div className="bg-light flex min-h-dvh items-stretch">
-            <div className="hidden xl:block">
+            <div className="layout:block hidden">
                 <Sider />
             </div>
 
-            <div className="xl:ml-sider-with-padding relative mb-[88px] hidden min-h-dvh w-full py-10 lg:block lg:py-12 xl:mb-0">
+            <div className="layout:ml-sider-sm-with-padding xl:ml-sider-with-padding layout:mb-0 relative mb-[88px] hidden min-h-dvh w-full py-10 lg:block lg:py-12">
                 <Content />
 
-                <div className="xl:hidden">
+                <div className="layout:hidden">
                     <FloatingNavigation />
                 </div>
             </div>
