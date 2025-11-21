@@ -57,7 +57,7 @@ export const Timer: FunctionComponent<
         return () => {
             clearInterval(timer);
         };
-    }, [timestamp]);
+    }, [timestamp, callback]);
 
     return (
         <div className="font-roboto-mono">

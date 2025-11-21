@@ -119,8 +119,6 @@ export default function Monitor() {
         }
 
         try {
-            setClaimingFunds(true);
-
             let jobId: bigint | undefined;
 
             if ('draftJob' in job) {
@@ -140,6 +138,8 @@ export default function Monitor() {
             } else {
                 jobId = job.id;
             }
+
+            setClaimingFunds(true);
 
             signTxModalRef.current?.open();
 

@@ -97,6 +97,8 @@ export default function Payment({
     useEffect(() => {
         if (isPaymentRequired) {
             setDeeployModalActions(['payment', 'signXMessages', 'callDeeployApi']);
+        } else {
+            setDeeployModalActions(['signXMessages', 'callDeeployApi']);
         }
     }, [isPaymentRequired]);
 
@@ -191,7 +193,7 @@ export default function Payment({
                           .equals(projectHash)
                           .filter((job) => job.paid)
                           .toArray()
-                    : jobs
+                    : jobs.filter((job): job is PaidDraftJob => job.paid)
             ) as PaidDraftJob[];
 
             if (isPaymentRequired && paidJobs.length !== jobs.length) {
@@ -200,7 +202,7 @@ export default function Payment({
                 return;
             }
 
-            console.log('Proceeding with the following paid job drafts', paidJobs);
+            console.log('Proceeding with the following paid jobs', paidJobs);
 
             const payloadsWithIds: {
                 draftJobId: number;
@@ -326,7 +328,7 @@ export default function Payment({
     const payJobDrafts = async (unpaidJobDrafts: DraftJob[]) => {
         if (!walletClient || !publicClient || !address || !escrowContractAddress) {
             toast.error('Please refresh this page and try again.');
-            return;
+            throw new Error('Please refresh this page and try again.');
         }
 
         const args = unpaidJobDrafts.map((job) => {
@@ -355,7 +357,7 @@ export default function Payment({
         if (receipt.status !== 'success') {
             toast.error('Payment failed, please try again.');
             deeployFlowModalRef.current?.displayError();
-            return;
+            throw new Error('Payment failed, please try again.');
         }
 
         const jobCreatedLogs = receipt.logs
@@ -376,6 +378,14 @@ export default function Payment({
             .filter((log) => log !== null && log.eventName === 'JobCreated');
 
         const jobIds: bigint[] = jobCreatedLogs.map((log) => log.args.jobId);
+
+        if (jobIds.length !== unpaidJobDrafts.length) {
+            toast.error(`Payment error: expected ${unpaidJobDrafts.length} jobs but received ${jobIds.length} confirmations.`);
+            deeployFlowModalRef.current?.displayError();
+            throw new Error(
+                `Payment error: expected ${unpaidJobDrafts.length} jobs but received ${jobIds.length} confirmations.`,
+            );
+        }
 
         // Mark job drafts as paid
         await Promise.all(
@@ -400,7 +410,6 @@ export default function Payment({
                 unpaidJobDrafts[index] = updatedDraft;
 
                 await db.jobs.update(updatedDraft.id, updatedDraft);
-                console.log('Marked job draft as paid', updatedDraft);
             }),
         );
     };
