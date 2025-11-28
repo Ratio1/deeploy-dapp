@@ -1,50 +1,78 @@
 import AppParametersSection from '@components/create-job/sections/AppParametersSection';
-import { Service } from '@data/containerResources';
-import { getContainerOrWorkerType } from '@lib/deeploy-utils';
+import services, { Service } from '@data/services';
+import { Button } from '@heroui/button';
+import { createTunnel } from '@lib/api/tunnels';
+import { DeploymentContextType } from '@lib/contexts/deployment/context';
+import { useDeploymentContext } from '@lib/contexts/deployment/hook';
+import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
+import { routePath } from '@lib/routes/route-paths';
+import { stripToAlphanumeric } from '@lib/utils';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
+import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import ServiceInputsSection from '@shared/jobs/ServiceInputsSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
-import { JobSpecifications, JobType } from '@typedefs/deeploys';
-import clsx from 'clsx';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import { RiCodeSSlashLine } from 'react-icons/ri';
+import { Link } from 'react-router-dom';
 
 function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
+    const { setFormSubmissionDisabled } = useDeploymentContext() as DeploymentContextType;
+    const { tunnelingSecrets } = useTunnelsContext() as TunnelsContextType;
+
     const { watch, setValue } = useFormContext();
 
-    const jobType: JobType = watch('jobType');
-    const specifications: JobSpecifications = watch('specifications');
+    const serviceId: number = watch('serviceId');
+    const alias: string = watch('deployment.jobAlias');
 
-    const containerOrWorkerType: Service = getContainerOrWorkerType(jobType, specifications);
+    const service: Service = services.find((service) => service.id === serviceId)!;
 
-    // Init
+    const [isCreatingTunnel, setCreatingTunnel] = useState<boolean>(false);
+
     useEffect(() => {
-        if (!isEditingRunningJob && containerOrWorkerType) {
-            setValue('deployment.jobAlias', containerOrWorkerType.notes.split(' ')[0]?.toLowerCase());
-            setValue('deployment.port', containerOrWorkerType.port);
+        if (!alias || alias === '') {
+            setValue('deployment.jobAlias', stripToAlphanumeric(service.name).toLowerCase());
         }
-    }, [isEditingRunningJob, containerOrWorkerType]);
+    }, [alias]);
+
+    useEffect(() => {
+        setValue('deployment.port', service.port);
+    }, [service]);
+
+    const onGenerateTunnel = async () => {
+        if (!tunnelingSecrets) {
+            throw new Error('No tunneling secrets found.');
+        }
+
+        setFormSubmissionDisabled(true);
+        setCreatingTunnel(true);
+
+        try {
+            console.log('Creating tunnel', stripToAlphanumeric(service.name));
+            const response = await createTunnel(alias, tunnelingSecrets, stripToAlphanumeric(service.name));
+
+            if (!response.result.id) {
+                throw new Error('Failed to create tunnel.');
+            }
+
+            console.log('Tunnel created', response.result);
+
+            setValue('deployment.tunnelingToken', response.result.metadata.tunnel_token);
+            setValue('tunnelURL', response.result.metadata.dns_name);
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to create tunnel.');
+        } finally {
+            setCreatingTunnel(false);
+            setFormSubmissionDisabled(false);
+        }
+    };
 
     return (
         <div className="col gap-6">
-            <SlateCard
-                title="Service Identity"
-                label={
-                    containerOrWorkerType?.tag ? (
-                        <div
-                            className={clsx(
-                                'center-all h-[30px] rounded-md bg-blue-100 px-2',
-                                containerOrWorkerType.tag.bgClass,
-                            )}
-                        >
-                            <div className={clsx('row gap-1.5', containerOrWorkerType.tag.textClass)}>
-                                <div className="compact">{containerOrWorkerType.tag.text}</div>
-                            </div>
-                        </div>
-                    ) : null
-                }
-            >
+            <SlateCard title="Service Identity">
                 <div className="flex gap-4">
                     <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="Service" />
                 </div>
@@ -52,11 +80,47 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
 
             <TargetNodesCard isEditingRunningJob={isEditingRunningJob} />
 
-            <SlateCard title="App Parameters">
-                <AppParametersSection enableTunnelingLabel />
+            <SlateCard
+                title="Tunneling"
+                label={
+                    <Button
+                        className="h-[34px]"
+                        color="primary"
+                        size="sm"
+                        onPress={onGenerateTunnel}
+                        isLoading={isCreatingTunnel}
+                        isDisabled={!tunnelingSecrets}
+                    >
+                        <div className="row gap-1.5">
+                            <RiCodeSSlashLine className="text-base" />
+                            <div className="compact">Generate Tunnel</div>
+                        </div>
+                    </Button>
+                }
+            >
+                {!tunnelingSecrets && (
+                    <DeeployInfoTag
+                        text={
+                            <>
+                                Please add your{' '}
+                                <Link to={routePath.tunnels} className="text-primary font-medium hover:opacity-70">
+                                    Cloudflare secrets
+                                </Link>{' '}
+                                to enable tunnel generation.
+                            </>
+                        }
+                    />
+                )}
+
+                <AppParametersSection
+                    enablePort={false}
+                    isCreatingTunnel={isCreatingTunnel}
+                    enableTunnelingLabel
+                    forceTunnelingEnabled
+                />
             </SlateCard>
 
-            {containerOrWorkerType.inputs && <ServiceInputsSection inputs={containerOrWorkerType.inputs} />}
+            {service?.inputs?.length > 0 && <ServiceInputsSection inputs={service.inputs} />}
 
             {/* <SlateCard title="Other">
                 <InputWithLabel name="deployment.serviceReplica" label="Service Replica" placeholder="0x_ai" isOptional />

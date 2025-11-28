@@ -1,11 +1,11 @@
-import { ContainerOrWorkerType } from '@data/containerResources';
+import { BaseContainerOrWorkerType } from '@data/containerResources';
 import { getCurrentEpoch } from '@lib/config';
 import { formatUsdc, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
 import { jobSchema } from '@schemas/index';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { SmallTag } from '@shared/SmallTag';
 import { UsdcValue } from '@shared/UsdcValue';
-import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
+import { JobType, RunningJobWithResources, ServiceJobSpecifications } from '@typedefs/deeploys';
 import isEqual from 'lodash/isEqual';
 import { useEffect, useMemo } from 'react';
 import type { FieldPath } from 'react-hook-form';
@@ -13,7 +13,10 @@ import { useFormContext, useWatch } from 'react-hook-form';
 import z from 'zod';
 
 type JobFormValues = z.infer<typeof jobSchema>;
-type StepKey = 'specifications' | 'costAndDuration' | 'deployment' | 'plugins';
+type StepKey = 'specifications' | 'costAndDuration' | 'deployment' | 'plugins' | 'services';
+
+type JobDeploymentFormValues = JobFormValues['deployment'];
+type DeploymentWithEnvVars = Extract<JobDeploymentFormValues, { envVars: unknown }>;
 
 const hasDirtyFields = (dirtyValue: unknown): boolean => {
     if (typeof dirtyValue === 'boolean') {
@@ -33,6 +36,35 @@ const hasDirtyFields = (dirtyValue: unknown): boolean => {
     }
 
     return false;
+};
+
+const normalizeKeyValueEntries = (entries?: Array<{ key?: string; value?: string; id?: string }>) =>
+    (entries ?? []).map(({ key, value }) => ({
+        key: key ?? '',
+        value: value ?? '',
+    }));
+
+const hasDeploymentEnvVars = (deployment?: JobDeploymentFormValues): deployment is DeploymentWithEnvVars => {
+    return !!deployment && 'envVars' in deployment;
+};
+
+const getDeploymentEnvVars = (deployment?: JobDeploymentFormValues) => {
+    if (!hasDeploymentEnvVars(deployment)) {
+        return [];
+    }
+
+    return normalizeKeyValueEntries(deployment.envVars);
+};
+
+const haveDeploymentEnvVarsChanged = (
+    currentDeployment?: JobDeploymentFormValues,
+    defaultDeployment?: JobDeploymentFormValues,
+) => {
+    if (!hasDeploymentEnvVars(currentDeployment) && !hasDeploymentEnvVars(defaultDeployment)) {
+        return false;
+    }
+
+    return !isEqual(getDeploymentEnvVars(currentDeployment), getDeploymentEnvVars(defaultDeployment));
 };
 
 export default function ReviewAndConfirm({
@@ -55,6 +87,7 @@ export default function ReviewAndConfirm({
     const costAndDuration = useWatch({ control, name: 'costAndDuration' });
     const deployment = useWatch({ control, name: 'deployment' });
     const plugins = useWatch({ control, name: 'plugins' as FieldPath<JobFormValues> });
+    const serviceId = useWatch({ control, name: 'serviceId' as FieldPath<JobFormValues> });
 
     const { lastExecutionEpoch } = job;
 
@@ -75,7 +108,7 @@ export default function ReviewAndConfirm({
             return 0n;
         }
 
-        const containerOrWorkerType: ContainerOrWorkerType = job.resources.containerOrWorkerType;
+        const containerOrWorkerType: BaseContainerOrWorkerType = job.resources.containerOrWorkerType;
         const costPerEpoch = getResourcesCostPerEpoch(containerOrWorkerType, job.resources.gpuType);
 
         return BigInt(increasedNodesCount) * costPerEpoch * remainingEpochs;
@@ -92,6 +125,42 @@ export default function ReviewAndConfirm({
         const dirtyFieldsRecord = dirtyFields as Record<string, unknown> | undefined;
         const defaultPlugins = defaultValues.jobType === JobType.Native ? defaultValues.plugins : undefined;
 
+        const specificationChildren: {
+            label: string;
+            previousValue: number | string;
+            currentValue: number | string;
+        }[] = [];
+
+        const currentDeploymentValue = deployment ?? defaultValues.deployment;
+        const defaultDeploymentValue = defaultValues.deployment;
+        const deploymentEnvVarsChanged = haveDeploymentEnvVarsChanged(currentDeploymentValue, defaultDeploymentValue);
+
+        if (currentTargetNodesCount > defaultValues.specifications.targetNodesCount) {
+            specificationChildren.push({
+                label: 'Target Nodes Count',
+                previousValue: defaultValues.specifications.targetNodesCount,
+                currentValue: currentTargetNodesCount,
+            });
+        }
+
+        if (job.resources.jobType === JobType.Service && defaultValues.jobType === JobType.Service) {
+            const defaultServiceContainerType = defaultValues.specifications.serviceContainerType;
+            const currentServiceContainerType =
+                (specifications as ServiceJobSpecifications)?.serviceContainerType ?? defaultServiceContainerType;
+
+            if (
+                defaultServiceContainerType &&
+                currentServiceContainerType &&
+                currentServiceContainerType !== defaultServiceContainerType
+            ) {
+                specificationChildren.push({
+                    label: 'Service Container Type',
+                    previousValue: defaultServiceContainerType,
+                    currentValue: currentServiceContainerType,
+                });
+            }
+        }
+
         const baseSteps: {
             key: StepKey;
             label: string;
@@ -101,8 +170,8 @@ export default function ReviewAndConfirm({
             children?:
                 | {
                       label: string;
-                      previousValue: number;
-                      currentValue: number;
+                      previousValue: number | string;
+                      currentValue: number | string;
                   }[]
                 | undefined;
         }[] = [
@@ -112,16 +181,7 @@ export default function ReviewAndConfirm({
                 currentValue: specifications ?? defaultValues.specifications,
                 defaultValue: defaultValues.specifications,
                 dirtyValue: dirtyFieldsRecord?.specifications,
-                children:
-                    currentTargetNodesCount > defaultValues.specifications.targetNodesCount
-                        ? [
-                              {
-                                  label: 'Target Nodes Count',
-                                  previousValue: defaultValues.specifications.targetNodesCount,
-                                  currentValue: currentTargetNodesCount,
-                              },
-                          ]
-                        : undefined,
+                children: specificationChildren.length ? specificationChildren : undefined,
             },
             {
                 key: 'costAndDuration',
@@ -133,8 +193,8 @@ export default function ReviewAndConfirm({
             {
                 key: 'deployment',
                 label: 'Deployment',
-                currentValue: deployment ?? defaultValues.deployment,
-                defaultValue: defaultValues.deployment,
+                currentValue: currentDeploymentValue,
+                defaultValue: defaultDeploymentValue,
                 dirtyValue: dirtyFieldsRecord?.deployment,
             },
         ];
@@ -149,8 +209,19 @@ export default function ReviewAndConfirm({
             });
         }
 
+        if (job.resources.jobType === JobType.Service && defaultValues.jobType === JobType.Service) {
+            baseSteps.unshift({
+                key: 'services',
+                label: 'Service Type',
+                currentValue: serviceId ?? defaultValues.serviceId,
+                defaultValue: defaultValues.serviceId,
+                dirtyValue: dirtyFieldsRecord?.serviceId,
+            });
+        }
+
         return baseSteps.map(({ key, label, currentValue, defaultValue, dirtyValue, children }) => {
-            const isDirty = hasDirtyFields(dirtyValue);
+            const envVarsChanged = key === 'deployment' && deploymentEnvVarsChanged;
+            const isDirty = hasDirtyFields(dirtyValue) || envVarsChanged;
             const hasChanged = !isEqual(currentValue, defaultValue);
 
             return {
@@ -167,6 +238,7 @@ export default function ReviewAndConfirm({
         dirtyFields,
         job.resources.jobType,
         plugins,
+        serviceId,
         specifications,
         currentTargetNodesCount,
     ]);
@@ -208,7 +280,7 @@ export default function ReviewAndConfirm({
                         {stepsStatus.map((step) => (
                             <div className="col gap-1" key={step.key}>
                                 <div className="row gap-2">
-                                    <SmallTag variant={step.modified ? 'blue' : 'default'}>
+                                    <SmallTag variant={step.modified ? 'blue' : 'slate'}>
                                         {step.modified ? 'Modified' : 'Unchanged'}
                                     </SmallTag>
 

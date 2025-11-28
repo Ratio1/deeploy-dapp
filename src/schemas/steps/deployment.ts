@@ -393,8 +393,6 @@ export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(
 );
 
 const serviceAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
-    enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
-    tunnelingToken: getOptionalStringSchema(512),
     inputs: validations.envVars,
     serviceReplica: nodeSchema.shape.address.optional(),
 });

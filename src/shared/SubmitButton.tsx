@@ -5,10 +5,12 @@ function SubmitButton({
     label = 'Submit',
     icon,
     isLoading = false,
+    isDisabled = false,
 }: {
     label?: string;
     icon?: React.ReactNode;
     isLoading?: boolean;
+    isDisabled?: boolean;
 }) {
     const [isVisible, setVisible] = useState(false);
 
@@ -21,7 +23,7 @@ function SubmitButton({
     return (
         <>
             {isVisible && (
-                <Button type="submit" color="primary" variant="solid" isLoading={isLoading}>
+                <Button type="submit" color="primary" variant="solid" isLoading={isLoading} isDisabled={isDisabled}>
                     <div className="row gap-1.5">
                         {!!icon && <div className="text-lg">{icon}</div>}
                         <div className="compact">{label}</div>

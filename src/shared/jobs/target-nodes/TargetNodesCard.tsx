@@ -49,7 +49,7 @@ function TargetNodesCard({ isEditingRunningJob }: { isEditingRunningJob?: boolea
                         }}
                         size="sm"
                     >
-                        <SmallTag variant={autoAssign ? 'blue' : 'default'}>Auto-Assignment</SmallTag>
+                        <SmallTag variant={autoAssign ? 'blue' : 'slate'}>Auto-Assignment</SmallTag>
                     </Switch>
                 ) : null
             }

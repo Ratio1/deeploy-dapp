@@ -48,6 +48,12 @@ function Dashboard() {
         runningRef.current?.collapseAll();
     };
 
+    const clearSuccessfulJobsFromLocation = () => {
+        const currentState = location.state as { successfulJobs?: { text: string; serverAlias: string }[] } | null;
+        const updatedState = currentState ? { ...currentState, successfulJobs: undefined } : {};
+        navigate(location.pathname + location.search, { state: updatedState, replace: true });
+    };
+
     return (
         <div className="col w-full flex-1 gap-5">
             <div className="row justify-between">
@@ -91,6 +97,7 @@ function Dashboard() {
                     setProjectsCount={setProjectsCount}
                     successfulJobs={visibleSuccessfulJobs}
                     setSuccessfulJobs={setVisibleSuccessfulJobs}
+                    clearSuccessfulJobsFromLocation={clearSuccessfulJobsFromLocation}
                 />
             )}
             {selectedTab === 'drafts' && <Drafts />}

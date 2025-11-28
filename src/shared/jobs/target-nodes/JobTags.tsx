@@ -31,7 +31,7 @@ export default function JobTags() {
     }
     return (
         <div className="col gap-4">
-            <div className="text-[17px] leading-none font-medium">Nodes Options</div>
+            <div className="text-[17px] leading-none font-medium">Nodes Filtering</div>
 
             <div className="col gap-2">
                 <div className="col w-full gap-2">
@@ -69,7 +69,10 @@ export default function JobTags() {
                         ))}
                     </StyledSelect>
                 </div>
+            </div>
 
+            <div className="col w-full gap-2">
+                <Label value="KYB/KYC" />
                 <CustomTabs
                     tabs={[
                         {
@@ -105,20 +108,23 @@ export default function JobTags() {
                 />
             </div>
 
-            <Checkbox
-                isSelected={jobTags?.includes(DC_TAG)}
-                onValueChange={(value) => {
-                    if (value) {
-                        setValue('specifications.jobTags', [...(jobTags ?? []), DC_TAG], { shouldDirty: true });
-                    } else {
-                        setValue('specifications.jobTags', jobTags?.filter((tag) => tag !== DC_TAG) ?? [], {
-                            shouldDirty: true,
-                        });
-                    }
-                }}
-            >
-                <div className="compact text-slate-600">Certified data centers only</div>
-            </Checkbox>
+            <div className="col w-full gap-2">
+                <Label value="Other" />
+                <Checkbox
+                    isSelected={jobTags?.includes(DC_TAG)}
+                    onValueChange={(value) => {
+                        if (value) {
+                            setValue('specifications.jobTags', [...(jobTags ?? []), DC_TAG], { shouldDirty: true });
+                        } else {
+                            setValue('specifications.jobTags', jobTags?.filter((tag) => tag !== DC_TAG) ?? [], {
+                                shouldDirty: true,
+                            });
+                        }
+                    }}
+                >
+                    <div className="compact text-slate-600">Certified data centers only</div>
+                </Checkbox>
+            </div>
         </div>
     );
 }

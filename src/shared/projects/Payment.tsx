@@ -3,12 +3,13 @@ import { DeeployFlowModal } from '@components/draft/DeeployFlowModal';
 import GenericJobsCostRundown from '@components/draft/job-rundowns/GenericJobsCostRundown';
 import NativeJobsCostRundown from '@components/draft/job-rundowns/NativeJobsCostRundown';
 import ServiceJobsCostRundown from '@components/draft/job-rundowns/ServiceJobsCostRundown';
-import { ContainerOrWorkerType } from '@data/containerResources';
+import { BaseContainerOrWorkerType } from '@data/containerResources';
 import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
 import { createPipeline } from '@lib/api/deeploy';
 import { environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import {
     buildDeeployMessage,
     diffTimeFn,
@@ -53,6 +54,7 @@ export default function Payment({
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
     const { escrowContractAddress, setFetchAppsRequired, setProjectOverviewTab } =
         useDeploymentContext() as DeploymentContextType;
+    const { tunnelingSecrets } = useTunnelsContext() as TunnelsContextType;
 
     const [totalCost, setTotalCost] = useState<bigint>(0n);
     const [isLoading, setLoading] = useState<boolean>(false);
@@ -75,13 +77,16 @@ export default function Payment({
     const [deeployModalActions, setDeeployModalActions] = useState<DEEPLOY_FLOW_ACTION_KEYS[]>([
         'signXMessages',
         'callDeeployApi',
-    ]);
+    ] as DEEPLOY_FLOW_ACTION_KEYS[]);
+
     const deeployFlowModalRef = useRef<{
         open: (jobsCount: number, messagesToSign: number) => void;
         progress: (action: DEEPLOY_FLOW_ACTION_KEYS) => void;
         close: () => void;
         displayError: () => void;
     }>(null);
+
+    const isFlowInProgressRef = useRef<boolean>(false);
 
     const payButtonRef = useRef<{ fetchAllowance: () => Promise<bigint | undefined> }>(null);
 
@@ -91,18 +96,21 @@ export default function Payment({
             setTotalCost(jobsTotalCost);
 
             setPaymentRequired(jobs.filter((job) => !job.paid).length > 0);
+
+            console.log(
+                'Payloads',
+                jobs.map((job) => getDraftJobPayload(job)),
+            );
         }
     }, [jobs]);
 
     useEffect(() => {
         if (isPaymentRequired) {
-            setDeeployModalActions(['payment', 'signXMessages', 'callDeeployApi']);
-        } else {
-            setDeeployModalActions(['signXMessages', 'callDeeployApi']);
+            setDeeployModalActions((currentActions) => ['payment', ...currentActions]);
         }
     }, [isPaymentRequired]);
 
-    const getJobPayloadsWithIds = (
+    const getPaidJobPayloadsWithIds = (
         paidJobs: PaidDraftJob[],
     ): {
         draftJobId: number;
@@ -110,30 +118,33 @@ export default function Payment({
         payload: any;
     }[] => {
         return paidJobs.map((job) => {
-            let payload = {};
-
-            switch (job.jobType) {
-                case JobType.Generic:
-                    payload = formatGenericDraftJobPayload(job as GenericDraftJob);
-                    break;
-
-                case JobType.Native:
-                    payload = formatNativeDraftJobPayload(job as NativeDraftJob);
-                    break;
-
-                case JobType.Service:
-                    payload = formatServiceDraftJobPayload(job as ServiceDraftJob);
-                    break;
-
-                default:
-                    payload = {};
-                    break;
-            }
-
-            console.log('[Payment] Payloads', payload);
-
+            const payload = getDraftJobPayload(job);
             return { draftJobId: job.id, runningJobId: job.runningJobId, payload };
         });
+    };
+
+    const getDraftJobPayload = (job: DraftJob) => {
+        let payload = {};
+
+        switch (job.jobType) {
+            case JobType.Generic:
+                payload = formatGenericDraftJobPayload(job as GenericDraftJob);
+                break;
+
+            case JobType.Native:
+                payload = formatNativeDraftJobPayload(job as NativeDraftJob);
+                break;
+
+            case JobType.Service:
+                payload = formatServiceDraftJobPayload(job as ServiceDraftJob);
+                break;
+
+            default:
+                payload = {};
+                break;
+        }
+
+        return payload;
     };
 
     const signAndBuildRequest = async (jobId: number, payload: any) => {
@@ -176,9 +187,10 @@ export default function Payment({
         try {
             setErrors([]);
             setLoading(true);
+            isFlowInProgressRef.current = true;
 
             const unpaidJobDrafts: DraftJob[] = jobs.filter((job) => !job.paid);
-            deeployFlowModalRef.current?.open(unpaidJobDrafts.length, jobs.length);
+            deeployFlowModalRef.current?.open(jobs.length, jobs.length);
 
             if (isPaymentRequired) {
                 console.log('Payment required for the following job drafts', unpaidJobDrafts);
@@ -186,7 +198,7 @@ export default function Payment({
             }
 
             // If a payment has occurred, fetch the updated paid jobs from the database
-            const paidJobs: PaidDraftJob[] = (
+            const paidJobDrafts: PaidDraftJob[] = (
                 isPaymentRequired
                     ? await db.jobs
                           .where('projectHash')
@@ -196,19 +208,19 @@ export default function Payment({
                     : jobs.filter((job): job is PaidDraftJob => job.paid)
             ) as PaidDraftJob[];
 
-            if (isPaymentRequired && paidJobs.length !== jobs.length) {
+            if (isPaymentRequired && paidJobDrafts.length !== jobs.length) {
                 toast.error('Unexpected error, some jobs were not paid.');
                 deeployFlowModalRef.current?.displayError();
                 return;
             }
 
-            console.log('Proceeding with the following paid jobs', paidJobs);
+            console.log('Proceeding with the following paid jobs', paidJobDrafts);
 
             const payloadsWithIds: {
                 draftJobId: number;
                 runningJobId: bigint;
                 payload: any;
-            }[] = getJobPayloadsWithIds(paidJobs);
+            }[] = getPaidJobPayloadsWithIds(paidJobDrafts);
 
             deeployFlowModalRef.current?.progress('signXMessages');
 
@@ -237,14 +249,20 @@ export default function Payment({
             });
 
             // Check for any failed deployments
-            const failedJobs = responsesWithDraftJobIds.filter(
+            const failedJobs: {
+                response: PromiseSettledResult<any>;
+                draftJobId: number;
+            }[] = responsesWithDraftJobIds.filter(
                 (item) =>
                     item.response.status === 'rejected' ||
                     (item.response.status === 'fulfilled' &&
                         (item.response.value.status === 'fail' || item.response.value.status === 'timeout')),
             );
 
-            const successfulJobs = responsesWithDraftJobIds.filter(
+            const successfulJobs: {
+                response: PromiseSettledResult<any>;
+                draftJobId: number;
+            }[] = responsesWithDraftJobIds.filter(
                 (item) =>
                     item.response.status === 'fulfilled' &&
                     (item.response.value.status === 'success' || item.response.value.status === 'command_delivered'),
@@ -256,7 +274,7 @@ export default function Payment({
 
                 setErrors(
                     failedJobs.map((item) => {
-                        const draftJob = paidJobs.find((job) => job.id === item.draftJobId);
+                        const draftJob = paidJobDrafts.find((job) => job.id === item.draftJobId);
                         if (item.response.status === 'fulfilled') {
                             const fulfilledResponse = item.response as PromiseFulfilledResult<any>;
                             return {
@@ -275,6 +293,8 @@ export default function Payment({
                 );
             }
 
+            const tunnelURLs: Record<number, string | undefined> = {}; // draftJobId -> tunnelURL
+
             if (successfulJobs.length > 0) {
                 setFetchAppsRequired(true);
 
@@ -284,8 +304,21 @@ export default function Payment({
                 );
                 toast.success(`${successfulJobs.length} job${successfulJobs.length > 1 ? 's' : ''} deployed successfully.`);
 
-                // Delete only successfully deployed job drafts
+                // Obtain successful draft jobs before deletion
                 const successfulDraftJobIds = successfulJobs.map((item) => item.draftJobId);
+                const successfulDraftJobs = paidJobDrafts.filter((job) => successfulDraftJobIds.includes(job.id));
+
+                // Get tunneling URLs for service jobs
+                for (const job of successfulDraftJobs) {
+                    if (job.jobType === JobType.Service) {
+                        const serviceJob = job as ServiceDraftJob;
+                        tunnelURLs[serviceJob.id] = serviceJob.tunnelURL;
+                    }
+                }
+
+                console.log('Tunnel URLs:', tunnelURLs);
+
+                // Delete only successfully deployed job drafts
                 console.log('Deleting successful draft job IDs:', successfulDraftJobIds);
                 await Promise.all(successfulDraftJobIds.map((id) => db.jobs.delete(id)));
             }
@@ -297,14 +330,27 @@ export default function Payment({
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
 
+                    // Add tunneling URLs to items for service jobs
                     const items = successfulJobs
-                        .map((item) => (item.response as PromiseFulfilledResult<any>).value)
-                        .filter((response) => !!response.app_id)
-                        .map((response) => ({
-                            text: response.app_id as string,
-                            serverAlias: response.server_info.alias as string,
+                        .map((item) => {
+                            const response = (item.response as PromiseFulfilledResult<any>).value;
+                            const draftJobId = item.draftJobId;
+                            const tunnelURL = tunnelURLs[draftJobId];
+
+                            return {
+                                response,
+                                draftJobId,
+                                tunnelURL,
+                            };
+                        })
+                        .filter((item) => !!item.response.app_id)
+                        .map((item) => ({
+                            text: item.response.app_id as string,
+                            serverAlias: item.response.server_info.alias as string,
+                            ...(item.tunnelURL && { tunnelURL: item.tunnelURL }),
                         }));
 
+                    console.log('Items:', items);
                     callback(items);
 
                     // If all jobs were deployed successfully, delete the project draft
@@ -320,9 +366,16 @@ export default function Payment({
             toast.error('An error occurred, please try again.');
             deeployFlowModalRef.current?.displayError();
         } finally {
+            isFlowInProgressRef.current = false;
             await payButtonRef.current?.fetchAllowance();
             setLoading(false);
         }
+    };
+
+    const handleModalClose = () => {
+        isFlowInProgressRef.current = false;
+        setLoading(false);
+        toast.error('Deployment flow cancelled.');
     };
 
     const payJobDrafts = async (unpaidJobDrafts: DraftJob[]) => {
@@ -332,7 +385,7 @@ export default function Payment({
         }
 
         const args = unpaidJobDrafts.map((job) => {
-            const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+            const containerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
             const expiryDate = addDays(new Date(), job.costAndDuration.duration * 30);
             const durationInEpochs = diffTimeFn(expiryDate, new Date());
             const lastExecutionEpoch = BigInt(getCurrentEpoch() + durationInEpochs);
@@ -515,7 +568,12 @@ export default function Payment({
 
             <SupportFooter />
 
-            <DeeployFlowModal ref={deeployFlowModalRef} actions={deeployModalActions} type="deploy" />
+            <DeeployFlowModal
+                ref={deeployFlowModalRef}
+                actions={deeployModalActions}
+                type="deploy"
+                onUserClose={handleModalClose}
+            />
         </div>
     );
 }

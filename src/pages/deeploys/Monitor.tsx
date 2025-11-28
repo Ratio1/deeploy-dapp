@@ -213,7 +213,7 @@ export default function Monitor() {
 
     const getOngoingStatus = (job: MonitoredJob) => {
         const hasJobStarted = job.startTimestamp > 0n;
-        const variant = hasJobStarted ? 'green' : 'default';
+        const variant = hasJobStarted ? 'green' : 'slate';
         const label = hasJobStarted ? 'Confirming' : 'Pending';
 
         return (

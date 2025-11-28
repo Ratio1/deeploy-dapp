@@ -234,7 +234,7 @@ export default function TunnelPage() {
 
     const getStatusTagVariant = () => {
         if (!tunnel) {
-            return 'default';
+            return 'slate';
         }
 
         switch (tunnel.status) {
@@ -246,7 +246,7 @@ export default function TunnelPage() {
                 return 'red';
 
             default:
-                return 'default';
+                return 'slate';
         }
     };
 

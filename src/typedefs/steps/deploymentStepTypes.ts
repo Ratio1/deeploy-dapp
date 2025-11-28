@@ -1,6 +1,5 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
-import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
@@ -12,16 +11,17 @@ type KeyValueEntry = {
     value: string;
 };
 
+type KeyLabelEntry = { key: string; label: string };
+
 type CustomParameterEntry = KeyValueEntry & {
     valueType: 'string' | 'json';
 };
 
+type DynamicEnvVarValue = { type: string; value: string };
+
 type DynamicEnvVarsEntry = {
     key: string;
-    values: Array<{
-        type: (typeof DYNAMIC_ENV_TYPES)[number];
-        value: string;
-    }>;
+    values: [DynamicEnvVarValue, DynamicEnvVarValue, DynamicEnvVarValue];
 };
 
 type VolumesEntry = {
@@ -165,9 +165,13 @@ export type {
     ContainerDeploymentType,
     CustomParameterEntry,
     DeploymentType,
+    DynamicEnvVarsEntry,
+    DynamicEnvVarValue,
     GenericJobDeployment,
     GenericPlugin,
     JobDeployment,
+    KeyLabelEntry,
+    KeyValueEntry,
     NativeJobDeployment,
     NativePlugin,
     Plugin,

@@ -55,7 +55,7 @@ export default function JobsCostRundown({
                                 </SmallTag>
                             </div>
                             <div className="compact min-w-[58px]">
-                                <SmallTag variant={job?.paid ? 'green' : 'default'}>{job?.paid ? 'Paid' : 'Unpaid'}</SmallTag>
+                                <SmallTag variant={job?.paid ? 'green' : 'slate'}>{job?.paid ? 'Paid' : 'Unpaid'}</SmallTag>
                             </div>
                             <div className="text-primary compact min-w-16 text-right">${formatUsdc(getJobCost(job))}</div>
                         </div>

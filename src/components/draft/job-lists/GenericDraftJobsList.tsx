@@ -1,4 +1,4 @@
-import { ContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
+import { BaseContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { applyWidthClasses } from '@lib/utils';
@@ -10,7 +10,7 @@ import { RiBox3Line } from 'react-icons/ri';
 const widthClasses = [
     'min-w-[138px]', // alias
     'min-w-[80px]', // duration
-    'min-w-[90px]', // targetNodes
+    'min-w-[120px]', // targetNodes
     'min-w-[310px]', // container type
 ];
 
@@ -29,7 +29,7 @@ export default function GenericDraftJobsList({ jobs }: { jobs: GenericDraftJob[]
             jobs={jobs}
             renderJob={(job) => {
                 const genericJob = job as GenericDraftJob;
-                const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(
+                const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(
                     genericJob.jobType,
                     genericJob.specifications,
                 );

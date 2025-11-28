@@ -1,20 +1,24 @@
 import { JobType } from '@typedefs/deeploys';
+import services, { Service, serviceContainerTypes } from './services';
 
-export type ContainerOrWorkerType = {
+type BaseContainerOrWorkerType = {
     id: number;
     name: string;
     jobType: number;
-    notes: string;
-    notesColor: 'red' | 'orange' | 'green' | 'blue';
     monthlyBudgetPerWorker: number;
     pricePerEpoch: bigint;
-    minimalBalancing: number;
     cores: number;
     ram: number;
-    storage?: number;
+    storage: number;
 };
 
-export const formatResourcesSummary = (containerOrWorkerType: ContainerOrWorkerType): string => {
+type ContainerOrWorkerType = BaseContainerOrWorkerType & {
+    notes: string;
+    notesColor: 'red' | 'orange' | 'green' | 'blue';
+    minimalBalancing: number;
+};
+
+export const formatResourcesSummary = (containerOrWorkerType: BaseContainerOrWorkerType): string => {
     const coreLabel = `${containerOrWorkerType.cores} ${containerOrWorkerType.cores === 1 ? 'core' : 'cores'}`;
     const ramLabel = `${containerOrWorkerType.ram} GB`;
 
@@ -29,19 +33,7 @@ export const formatResourcesSummary = (containerOrWorkerType: ContainerOrWorkerT
     return [coreLabel, ramLabel, storageLabel].filter(Boolean).join(' ');
 };
 
-export type Service = ContainerOrWorkerType & {
-    port?: number;
-    image?: string;
-    serviceName?: string;
-    tag?: {
-        text: string;
-        bgClass: string;
-        textClass: string;
-    };
-    inputs?: { key: string; label: string }[];
-};
-
-export type GpuType = {
+type GpuType = {
     id: number;
     name: string;
     gpus: string[];
@@ -56,8 +48,8 @@ export type GpuType = {
     minimalBalancing: number;
 };
 
-export type RunningJobResources = {
-    containerOrWorkerType: ContainerOrWorkerType;
+type RunningJobResources = {
+    containerOrWorkerType: BaseContainerOrWorkerType | ContainerOrWorkerType;
     gpuType?: GpuType;
     jobType: JobType;
 };
@@ -250,123 +242,6 @@ export const nativeWorkerTypes: ContainerOrWorkerType[] = [
     },
 ];
 
-export const serviceContainerTypes: Service[] = [
-    {
-        id: 1,
-        name: 'PGSQL-LOW',
-        jobType: 10,
-        notes: 'PostgreSQL single instance',
-        notesColor: 'blue',
-        monthlyBudgetPerWorker: 30,
-        pricePerEpoch: 1_000_000n,
-        minimalBalancing: 1,
-        cores: 1,
-        ram: 2,
-        storage: 50,
-        port: 5432,
-        image: 'postgres:17',
-        serviceName: 'PostgreSQL',
-        tag: { text: 'PostgreSQL', bgClass: 'bg-blue-100', textClass: 'text-blue-600' },
-        inputs: [{ key: 'POSTGRES_PASSWORD', label: 'PostgreSQL Password' }],
-    },
-    {
-        id: 2,
-        name: 'PGSQL-MED',
-        jobType: 11,
-        notes: 'PostgreSQL single instance',
-        notesColor: 'blue',
-        monthlyBudgetPerWorker: 65,
-        pricePerEpoch: 2_166_666n,
-        minimalBalancing: 1,
-        cores: 2,
-        ram: 4,
-        storage: 200,
-        port: 5432,
-        image: 'postgres:17',
-        serviceName: 'PostgreSQL',
-        tag: { text: 'PostgreSQL', bgClass: 'bg-blue-100', textClass: 'text-blue-600' },
-        inputs: [{ key: 'POSTGRES_PASSWORD', label: 'PostgreSQL Password' }],
-    },
-    {
-        id: 3,
-        name: 'MYSQL-LOW',
-        jobType: 12,
-        notes: 'MySQL single instance',
-        notesColor: 'orange',
-        monthlyBudgetPerWorker: 30,
-        pricePerEpoch: 1_000_000n,
-        minimalBalancing: 1,
-        cores: 1,
-        ram: 2,
-        storage: 50,
-        port: 3306,
-        image: 'mysql',
-        serviceName: 'MySQL',
-        tag: { text: 'MySQL', bgClass: 'bg-orange-100', textClass: 'text-orange-600' },
-        inputs: [{ key: 'MYSQL_ROOT_PASSWORD', label: 'MySQL Root Password' }],
-    },
-    {
-        id: 4,
-        name: 'MYSQL-MED',
-        jobType: 13,
-        notes: 'MySQL single instance',
-        notesColor: 'orange',
-        monthlyBudgetPerWorker: 65,
-        pricePerEpoch: 2_166_666n,
-        minimalBalancing: 1,
-        cores: 2,
-        ram: 4,
-        storage: 200,
-        port: 3306,
-        image: 'mysql',
-        serviceName: 'MySQL',
-        tag: { text: 'MySQL', bgClass: 'bg-orange-100', textClass: 'text-orange-600' },
-        inputs: [{ key: 'MYSQL_ROOT_PASSWORD', label: 'MySQL Root Password' }],
-    },
-    {
-        id: 5,
-        name: 'NoSQL-LOW',
-        jobType: 14,
-        notes: 'MongoDB single instance',
-        notesColor: 'green',
-        monthlyBudgetPerWorker: 30,
-        pricePerEpoch: 1_000_000n,
-        minimalBalancing: 1,
-        cores: 1,
-        ram: 2,
-        storage: 50,
-        port: 27017,
-        image: 'mongodb',
-        serviceName: 'MongoDB',
-        tag: { text: 'MongoDB', bgClass: 'bg-green-100', textClass: 'text-green-600' },
-        inputs: [
-            { key: 'MONGO_INITDB_ROOT_USERNAME', label: 'MongoDB Root Username' },
-            { key: 'MONGO_INITDB_ROOT_PASSWORD', label: 'MongoDB Root Password' },
-        ],
-    },
-    {
-        id: 6,
-        name: 'NoSQL-MED',
-        jobType: 15,
-        notes: 'MongoDB single instance',
-        notesColor: 'green',
-        monthlyBudgetPerWorker: 65,
-        pricePerEpoch: 2_166_666n,
-        minimalBalancing: 1,
-        cores: 2,
-        ram: 4,
-        storage: 200,
-        port: 27017,
-        image: 'mongodb',
-        serviceName: 'MongoDB',
-        tag: { text: 'MongoDB', bgClass: 'bg-green-100', textClass: 'text-green-600' },
-        inputs: [
-            { key: 'MONGO_INITDB_ROOT_USERNAME', label: 'MongoDB Root Username' },
-            { key: 'MONGO_INITDB_ROOT_PASSWORD', label: 'MongoDB Root Password' },
-        ],
-    },
-];
-
 export const gpuTypes: GpuType[] = [
     {
         id: 1,
@@ -467,17 +342,7 @@ export const getRunningJobResources = (jobType: bigint): RunningJobResources | u
                 jobType: JobType.Generic,
             };
         }
-    } else if (jobTypeN <= 15) {
-        // Service
-        const serviceContainerType = serviceContainerTypes.find((type) => type.jobType === jobTypeN);
-
-        if (serviceContainerType) {
-            return {
-                containerOrWorkerType: serviceContainerType,
-                jobType: JobType.Service,
-            };
-        }
-    } else if (jobTypeN <= 20) {
+    } else if (jobTypeN >= 16 && jobTypeN <= 20) {
         // Native
         const nativeWorkerType = nativeWorkerTypes.find((type) => type.jobType === jobTypeN);
 
@@ -485,6 +350,16 @@ export const getRunningJobResources = (jobType: bigint): RunningJobResources | u
             return {
                 containerOrWorkerType: nativeWorkerType,
                 jobType: JobType.Native,
+            };
+        }
+    } else if (jobTypeN >= 50 && jobTypeN <= 52) {
+        // Service
+        const serviceContainerType = serviceContainerTypes.find((type) => type.jobType === jobTypeN);
+
+        if (serviceContainerType) {
+            return {
+                containerOrWorkerType: serviceContainerType,
+                jobType: JobType.Service,
             };
         }
     } else {
@@ -508,3 +383,9 @@ export const getRunningJobResources = (jobType: bigint): RunningJobResources | u
         }
     }
 };
+
+export const getRunningService = (image: string): Service | undefined => {
+    return services.find((service) => service.image === image);
+};
+
+export type { BaseContainerOrWorkerType, ContainerOrWorkerType, GpuType, RunningJobResources };

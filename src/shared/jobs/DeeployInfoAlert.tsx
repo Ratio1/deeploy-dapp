@@ -30,7 +30,7 @@ export default function DeeployInfoAlert({
             <div className="row gap-1.5">
                 <RiInformationLine className="text-[20px]" />
 
-                {title}
+                <div className="font-medium">{title}</div>
             </div>
 
             <div>{description}</div>

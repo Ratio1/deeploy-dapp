@@ -24,8 +24,11 @@ export const DeploymentProvider = ({ children }) => {
     // Only used after logging in, at which point they can't be undefined
     const [apps, setApps] = useState<Apps>({});
 
+    // Form-related
     const [jobType, setJobType] = useState<JobType | undefined>();
     const [step, setStep] = useState<number>(0);
+    const [isFormSubmissionDisabled, setFormSubmissionDisabled] = useState<boolean>(false);
+
     const [projectPage, setProjectPage] = useState<ProjectPage>(ProjectPage.Overview);
     const [projectOverviewTab, setProjectOverviewTab] = useState<ProjectOverviewTab>('runningJobs');
 
@@ -45,7 +48,7 @@ export const DeploymentProvider = ({ children }) => {
         setFetchingApps(true);
 
         try {
-            const request = await signAndBuildGetAppsRequest(address);
+            const request = await signAndBuildDeeployRequest(address);
             const response = await getApps(request);
 
             console.log('[DeploymentProvider] fetchApps', response);
@@ -76,7 +79,7 @@ export const DeploymentProvider = ({ children }) => {
         }
     };
 
-    const signAndBuildGetAppsRequest = async (address: EthAddress) => {
+    const signAndBuildDeeployRequest = async (address: EthAddress) => {
         const nonce = generateDeeployNonce();
 
         const message = buildDeeployMessage(
@@ -278,10 +281,14 @@ export const DeploymentProvider = ({ children }) => {
     return (
         <DeploymentContext.Provider
             value={{
+                // Form-related
                 jobType,
                 setJobType,
                 step,
                 setStep,
+                isFormSubmissionDisabled,
+                setFormSubmissionDisabled,
+
                 projectPage,
                 setProjectPage,
                 projectOverviewTab,
@@ -290,6 +297,7 @@ export const DeploymentProvider = ({ children }) => {
                 isFetchAppsRequired,
                 setFetchAppsRequired,
                 isFetchingApps,
+                setFetchingApps,
                 fetchApps,
                 setApps,
                 apps,

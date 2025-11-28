@@ -143,7 +143,13 @@ export default function Job() {
                     <div className="relative rounded-lg border-2 border-green-100 bg-green-100 px-4 py-3 text-sm text-green-800">
                         <div
                             className="absolute top-1.5 right-1 cursor-pointer rounded-full p-1 hover:bg-black/5"
-                            onClick={() => setUpdatingServerAliases([])}
+                            onClick={() => {
+                                setUpdatingServerAliases([]);
+                                // Clear serverAliases from location state so it doesn't reappear after navigation
+                                const currentState = location.state as { serverAliases?: string[] } | null;
+                                const updatedState = currentState ? { ...currentState, serverAliases: undefined } : {};
+                                navigate(location.pathname, { state: updatedState, replace: true });
+                            }}
                         >
                             <RiCloseFill className="text-lg" />
                         </div>

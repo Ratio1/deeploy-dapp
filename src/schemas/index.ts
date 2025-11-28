@@ -7,6 +7,7 @@ import {
     nativeAppPluginsSchema,
     serviceAppDeploymentSchema,
 } from './steps/deployment';
+import { serviceIdSchema } from './steps/services';
 import { genericSpecificationsSchema, nativeSpecificationsSchema, serviceSpecificationsSchema } from './steps/specifications';
 
 export const TARGET_NODES_REQUIRED_ERROR = 'All target nodes must be specified';
@@ -31,8 +32,10 @@ export const jobSchema = z
         }),
         jobBaseSchema.extend({
             jobType: z.literal(JobType.Service),
+            serviceId: serviceIdSchema,
             specifications: serviceSpecificationsSchema,
             deployment: serviceAppDeploymentSchema,
+            tunnelURL: z.string().optional(),
         }),
     ])
     .refine(

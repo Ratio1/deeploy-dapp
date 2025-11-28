@@ -1,13 +1,15 @@
 import JobFormButtons from '@components/create-job/JobFormButtons';
 import Deployment from '@components/create-job/steps/Deployment';
 import Plugins from '@components/create-job/steps/Plugins';
+import Services from '@components/create-job/steps/Services';
 import Specifications from '@components/create-job/steps/Specifications';
-import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
+import { getRunningService } from '@data/containerResources';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { boolToBooleanType, isGenericPlugin, NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS, titlecase } from '@lib/deeploy-utils';
+import { Step, STEPS } from '@lib/steps/steps';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
@@ -15,21 +17,20 @@ import { AppsPlugin, JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { BasePluginType, CustomParameterEntry, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import _ from 'lodash';
-import { useEffect, useRef, useState } from 'react';
+import { JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import z from 'zod';
 import ReviewAndConfirm from './ReviewAndConfirm';
 
-const DEFAULT_STEPS: {
-    title: string;
-    validationName?: string;
-}[] = [
-    { title: 'Specifications', validationName: 'specifications' },
-    { title: 'Deployment', validationName: 'deployment' },
-    { title: 'Review & Confirm' },
-];
+const MAIN_EDITING_STEPS: Step[] = [Step.SPECIFICATIONS, Step.DEPLOYMENT];
+
+const JOB_TYPE_STEPS: Record<JobType, Step[]> = {
+    [JobType.Generic]: [...MAIN_EDITING_STEPS, Step.REVIEW_AND_CONFIRM],
+    [JobType.Native]: [...MAIN_EDITING_STEPS, Step.PLUGINS, Step.REVIEW_AND_CONFIRM],
+    [JobType.Service]: [...MAIN_EDITING_STEPS, Step.REVIEW_AND_CONFIRM], // Editing service type is disabled for now
+};
 
 export default function JobEditFormWrapper({
     job,
@@ -50,12 +51,15 @@ export default function JobEditFormWrapper({
 
     const jobConfig: JobConfig = job.config;
 
-    // console.log('[JobEditFormWrapper]', { job, jobConfig });
+    console.log('[JobEditFormWrapper]', { job, jobConfig });
 
     const [isTargetNodesCountLower, setTargetNodesCountLower] = useState<boolean>(false);
     const [additionalCost, setAdditionalCost] = useState<bigint>(0n);
 
-    const [steps, setSteps] = useState(DEFAULT_STEPS);
+    const steps: Step[] = useMemo(
+        () => (job.resources.jobType ? JOB_TYPE_STEPS[job.resources.jobType] : []),
+        [job.resources.jobType],
+    );
 
     const getBaseSchemaDeploymentDefaults = () => ({
         jobAlias: job.alias,
@@ -71,7 +75,7 @@ export default function JobEditFormWrapper({
     const getBaseSchemaTunnelingDefaults = (config: JobConfig) => ({
         enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED),
         port: config.PORT ?? '',
-        tunnelingToken: config.CLOUDFLARE_TOKEN || config.NGROK_AUTH_TOKEN,
+        tunnelingToken: config.CLOUDFLARE_TOKEN || config.NGROK_AUTH_TOKEN || undefined,
     });
 
     const getGenericSpecificDeploymentDefaults = (config: JobConfig) => ({
@@ -134,7 +138,7 @@ export default function JobEditFormWrapper({
     const getBaseSchemaDefaults = (config: JobConfig = jobConfig) => ({
         jobType: job.resources.jobType,
         specifications: {
-            applicationType: APPLICATION_TYPES[0], // Disabled for now
+            // applicationType: APPLICATION_TYPES[0],
             targetNodesCount: Number(job.numberOfNodesRequested),
             jobTags: !job.jobTags ? [] : job.jobTags.filter((tag) => !tag.startsWith('CT:')),
             nodesCountries: !job.jobTags
@@ -183,9 +187,10 @@ export default function JobEditFormWrapper({
 
     const getServiceSchemaDefaults = () => ({
         ...getBaseSchemaDefaults(),
+        serviceId: getRunningService(job.config.IMAGE)!.id,
         specifications: {
             ...getBaseSchemaDefaults().specifications,
-            containerType: job.resources.containerOrWorkerType.name,
+            serviceContainerType: job.resources.containerOrWorkerType.name,
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
@@ -304,17 +309,10 @@ export default function JobEditFormWrapper({
         const defaults = getDefaultSchemaValues() as z.infer<typeof jobSchema>;
         setDefaultValues(defaults);
         form.reset(defaults);
+
         setTargetNodesCountLower(false);
         setAdditionalCost(0n);
-
-        if (job.resources.jobType === JobType.Native) {
-            setSteps([
-                ...DEFAULT_STEPS.slice(0, DEFAULT_STEPS.length - 1),
-                { title: 'Plugins', validationName: 'plugins' },
-                DEFAULT_STEPS[DEFAULT_STEPS.length - 1],
-            ]);
-        }
-    }, [job, form]);
+    }, [form]);
 
     useEffect(() => {
         if (step !== 0 && isTargetNodesCountLower) {
@@ -337,6 +335,39 @@ export default function JobEditFormWrapper({
         await onSubmit(data);
     };
 
+    const activeStep: Step = steps[step];
+
+    const stepRenderers = useMemo<Partial<Record<Step, () => JSX.Element>>>(
+        () => ({
+            [Step.SERVICES]: () => <Services />,
+            [Step.SPECIFICATIONS]: () => (
+                <Specifications
+                    isEditingRunningJob
+                    initialTargetNodesCount={defaultValues.specifications?.targetNodesCount ?? 0}
+                    onTargetNodesCountDecrease={setTargetNodesCountLower}
+                />
+            ),
+            [Step.DEPLOYMENT]: () => <Deployment isEditingRunningJob />,
+            [Step.PLUGINS]: () => <Plugins />,
+            [Step.REVIEW_AND_CONFIRM]: () => (
+                <ReviewAndConfirm
+                    defaultValues={defaultValues}
+                    job={job}
+                    onHasModifiedStepsChange={(hasModifiedSteps) => {
+                        hasModifiedStepsRef.current = hasModifiedSteps;
+                    }}
+                    onAdditionalCostChange={setAdditionalCost}
+                />
+            ),
+        }),
+        [defaultValues, job, hasModifiedStepsRef, setAdditionalCost, setTargetNodesCountLower],
+    );
+
+    const ActiveStep: (() => JSX.Element) | null = useMemo(
+        () => stepRenderers[activeStep] ?? null,
+        [activeStep, stepRenderers],
+    );
+
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit, onError)} key={`${job.resources.jobType}-edit`}>
@@ -344,7 +375,7 @@ export default function JobEditFormWrapper({
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
                             <JobFormHeaderInterface
-                                steps={steps.map((step) => step.title)}
+                                steps={steps.map((step) => STEPS[step].title)}
                                 onCancel={() => {
                                     navigate(-1);
                                 }}
@@ -352,28 +383,10 @@ export default function JobEditFormWrapper({
                                 <div className="big-title">Edit Job</div>
                             </JobFormHeaderInterface>
 
-                            {step === 0 && (
-                                <Specifications
-                                    isEditingRunningJob
-                                    initialTargetNodesCount={defaultValues.specifications.targetNodesCount}
-                                    onTargetNodesCountDecrease={setTargetNodesCountLower}
-                                />
-                            )}
-                            {step === 1 && <Deployment isEditingRunningJob />}
-                            {step === 2 && steps[step].validationName === 'plugins' && <Plugins />}
-                            {((step === 2 && steps[step].validationName === undefined) || step === 3) && (
-                                <ReviewAndConfirm
-                                    defaultValues={defaultValues}
-                                    job={job}
-                                    onHasModifiedStepsChange={(hasModifiedSteps) => {
-                                        hasModifiedStepsRef.current = hasModifiedSteps;
-                                    }}
-                                    onAdditionalCostChange={setAdditionalCost}
-                                />
-                            )}
+                            {ActiveStep ? <ActiveStep /> : null}
 
                             <JobFormButtons
-                                steps={steps}
+                                steps={steps.map((step) => STEPS[step])}
                                 cancelLabel="Job"
                                 onCancel={() => {
                                     navigate(-1);

@@ -1,11 +1,5 @@
-import { APPLICATION_TYPES } from '@data/applicationTypes';
-import {
-    genericContainerTypes,
-    gpuTypes,
-    nativeWorkerTypes,
-    RunningJobResources,
-    serviceContainerTypes,
-} from '@data/containerResources';
+import { genericContainerTypes, gpuTypes, nativeWorkerTypes, RunningJobResources } from '@data/containerResources';
+import { serviceContainerTypes } from '@data/services';
 import { EthAddress, R1Address } from './blockchain';
 import { AppsPlugin, JobConfig, PipelineData } from './deeployApi';
 import { GenericJobDeployment, JobDeployment, NativeJobDeployment, ServiceJobDeployment } from './steps/deploymentStepTypes';
@@ -23,7 +17,7 @@ enum ProjectPage {
 
 // Specifications
 type BaseJobSpecifications = {
-    applicationType: (typeof APPLICATION_TYPES)[number]; // Disabled for now
+    // applicationType: (typeof APPLICATION_TYPES)[number];
     targetNodesCount: number;
     jobTags: string[];
     nodesCountries: string[];
@@ -43,7 +37,7 @@ type NativeJobSpecifications = BaseJobSpecifications & {
 
 type ServiceJobSpecifications = BaseJobSpecifications & {
     type: 'Service';
-    containerType: (typeof serviceContainerTypes)[number]['name'];
+    serviceContainerType: (typeof serviceContainerTypes)[number]['name'];
 };
 
 type JobSpecifications = BaseJobSpecifications &
@@ -87,8 +81,10 @@ type NativeDraftJob = BaseDraftJob & {
 
 type ServiceDraftJob = BaseDraftJob & {
     jobType: JobType.Service;
+    serviceId: number;
     specifications: ServiceJobSpecifications;
     deployment: ServiceJobDeployment;
+    tunnelURL?: string;
 };
 
 type DraftJob = GenericDraftJob | NativeDraftJob | ServiceDraftJob;
