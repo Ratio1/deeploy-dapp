@@ -16,13 +16,14 @@ import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { RiCodeSSlashLine } from 'react-icons/ri';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
-    const { setFormSubmissionDisabled } = useDeploymentContext() as DeploymentContextType;
+    const { setFormSubmissionDisabled, getProjectName } = useDeploymentContext() as DeploymentContextType;
     const { tunnelingSecrets } = useTunnelsContext() as TunnelsContextType;
 
     const { watch, setValue } = useFormContext();
+    const { projectHash } = useParams();
 
     const serviceId: number = watch('serviceId');
     const alias: string = watch('deployment.jobAlias');
@@ -50,8 +51,11 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
         setCreatingTunnel(true);
 
         try {
-            console.log('Creating tunnel', stripToAlphanumeric(service.name));
-            const response = await createTunnel(alias, tunnelingSecrets, stripToAlphanumeric(service.name));
+            const projectName = projectHash ? getProjectName(projectHash) : '';
+            const tunnelAlias = projectName ? `${stripToAlphanumeric(projectName).toLowerCase()}-${alias}` : alias;
+
+            console.log('Creating tunnel', tunnelAlias, stripToAlphanumeric(service.name).toLowerCase());
+            const response = await createTunnel(tunnelAlias, tunnelingSecrets, stripToAlphanumeric(service.name).toLowerCase());
 
             if (!response.result.id) {
                 throw new Error('Failed to create tunnel.');
