@@ -1,5 +1,5 @@
 import { Button } from '@heroui/button';
-import { downloadCspDraft } from '@lib/api/backend';
+import { downloadCspDraft, downloadCspDraftJSON } from '@lib/api/backend';
 import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
@@ -32,6 +32,19 @@ export default function DraftInvoiceCard({
         }
     };
 
+    const downloadDraftJson = async (draftId: string) => {
+        try {
+            setLoading(true);
+            const draft = await downloadCspDraftJSON(draftId);
+            console.log('Draft JSON', draft);
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to download draft.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <BorderedCard isHoverable onClick={toggle}>
             <div className="col gap-4">
@@ -55,7 +68,7 @@ export default function DraftInvoiceCard({
 
                     <div className="min-w-[118px] font-medium">${draft.totalUsdcAmount.toFixed(2)}</div>
 
-                    <div className="flex min-w-[124px] justify-end">
+                    <div className="flex min-w-[124px] justify-end gap-2">
                         <Button
                             className="border-2 border-slate-200 bg-white data-[hover=true]:!opacity-65"
                             isLoading={isLoading}
@@ -69,7 +82,23 @@ export default function DraftInvoiceCard({
                                 }
                             }}
                         >
-                            <div className="text-sm">Download</div>
+                            <div className="text-sm">Download .doc</div>
+                        </Button>
+
+                        <Button
+                            className="border-2 border-slate-200 bg-white data-[hover=true]:!opacity-65"
+                            isLoading={isLoading}
+                            size="sm"
+                            color="primary"
+                            variant="flat"
+                            onPress={() => {
+                                if (!isLoading) {
+                                    console.log('Download JSON', draft.draftId);
+                                    downloadDraftJson(draft.draftId);
+                                }
+                            }}
+                        >
+                            <div className="text-sm">Download JSON</div>
                         </Button>
                     </div>
                 </div>

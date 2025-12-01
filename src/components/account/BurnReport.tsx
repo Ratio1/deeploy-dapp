@@ -1,7 +1,7 @@
 import { Button } from '@heroui/button';
 import { DateRangePicker } from '@heroui/date-picker';
 import { CalendarDate, parseDate, today } from '@internationalized/date';
-import { downloadBurnReport } from '@lib/api/backend';
+import { downloadBurnReportCSV, downloadBurnReportJSON } from '@lib/api/backend';
 import { padNumber } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { formatISO, subMonths } from 'date-fns';
@@ -20,14 +20,31 @@ export default function BurnReport() {
 
     const [isLoading, setLoading] = useState<boolean>(false);
 
-    const onDownload = async () => {
+    const onDownloadCSV = async () => {
         try {
             setLoading(true);
 
             const start = `${padNumber(value.start.day, 2)}-${padNumber(value.start.month, 2)}-${value.start.year}`;
             const end = `${padNumber(value.end.day, 2)}-${padNumber(value.end.month, 2)}-${value.end.year}`;
 
-            const report = await downloadBurnReport(start, end);
+            const report = await downloadBurnReportCSV(start, end);
+            console.log(report);
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to download burn report.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const onDownloadJSON = async () => {
+        try {
+            setLoading(true);
+
+            const start = `${padNumber(value.start.day, 2)}-${padNumber(value.start.month, 2)}-${value.start.year}`;
+            const end = `${padNumber(value.end.day, 2)}-${padNumber(value.end.month, 2)}-${value.end.year}`;
+
+            const report = await downloadBurnReportJSON(start, end);
             console.log(report);
         } catch (error) {
             console.error(error);
@@ -69,11 +86,18 @@ export default function BurnReport() {
                             />
                         </div>
 
-                        <div className="center-all">
-                            <Button color="primary" onPress={onDownload} isLoading={isLoading}>
+                        <div className="center-all gap-1.5">
+                            <Button color="primary" onPress={onDownloadCSV} isLoading={isLoading}>
                                 <div className="row gap-1.5">
                                     <RiFileTextLine className="text-lg" />
-                                    <div className="text-sm">Download</div>
+                                    <div className="text-sm">Download CSV</div>
+                                </div>
+                            </Button>
+
+                            <Button color="primary" onPress={onDownloadJSON} isLoading={isLoading}>
+                                <div className="row gap-1.5">
+                                    <RiFileTextLine className="text-lg" />
+                                    <div className="text-sm">Download JSON</div>
                                 </div>
                             </Button>
                         </div>
