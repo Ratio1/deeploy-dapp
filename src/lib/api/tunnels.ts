@@ -3,7 +3,7 @@ import { TunnelingSecrets } from '@typedefs/general';
 import axios from 'axios';
 
 // Tunnels API
-const tunnelsBaseUrl = 'https://b89f1e11262e.ratio1.link';
+const tunnelsBaseUrl = 'https://1f8b266e9dbf.ratio1.link';
 
 const axiosInstance = axios.create({
     baseURL: tunnelsBaseUrl,
