@@ -6,7 +6,11 @@ import { useEffect, useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import DeeployInfoAlert from './DeeployInfoAlert';
 
-export default function ServiceInputsSection({ inputs }: { inputs: { key: string; label: string }[] }) {
+export default function ServiceInputsSection({
+    inputs,
+}: {
+    inputs: { key: string; label: string; description?: string; placeholder?: string }[];
+}) {
     const { control, setValue } = useFormContext();
 
     const { fields } = useFieldArray({
@@ -54,7 +58,8 @@ export default function ServiceInputsSection({ inputs }: { inputs: { key: string
                             <InputWithLabel
                                 name={`deployment.inputs.${index}.value`}
                                 label={inputs[index].label}
-                                placeholder="None"
+                                placeholder={inputs[index].placeholder ?? 'None'}
+                                description={inputs[index].description}
                                 endContent={isKeySecret(field.key) ? 'copy' : undefined}
                                 hasSecretValue={isKeySecret(field.key)}
                             />

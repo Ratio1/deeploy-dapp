@@ -11,7 +11,12 @@ type KeyValueEntry = {
     value: string;
 };
 
-type KeyLabelEntry = { key: string; label: string };
+type KeyLabelEntry = {
+    key: string;
+    label: string;
+    description?: string;
+    placeholder?: string;
+};
 
 type CustomParameterEntry = KeyValueEntry & {
     valueType: 'string' | 'json';
