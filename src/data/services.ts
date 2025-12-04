@@ -106,6 +106,18 @@ const services: Service[] = [
     },
     {
         id: 4,
+        name: 'EMQX',
+        description: 'Scalable MQTT message broker for IoT applications',
+        image: 'emqx',
+        port: 1883,
+        inputs: [],
+        logo: 'emqx.svg',
+        color: 'emerald',
+        pluginSignature: 'CONTAINER_APP_RUNNER',
+        tunnelEngine: 'ngrok',
+    },
+    {
+        id: 5,
         name: 'n8n',
         description: 'Workflow automation platform',
         image: 'n8nio/n8n',
@@ -118,7 +130,7 @@ const services: Service[] = [
         volumes: [{ key: 'n8n_data', value: '/home/node/.n8n' }],
     },
     {
-        id: 5,
+        id: 6,
         name: 'vdo_ninja',
         description: 'Peer to peer video streaming',
         image: 'caddy:alpine',
@@ -136,18 +148,7 @@ const services: Service[] = [
             CONTAINER_START_COMMAND: null,
         },
     },
-    {
-        id: 6,
-        name: 'EMQX',
-        description: 'Scalable MQTT message broker for IoT applications',
-        image: 'emqx',
-        port: 1883,
-        inputs: [],
-        logo: 'emqx.svg',
-        color: 'emerald',
-        pluginSignature: 'CONTAINER_APP_RUNNER',
-        tunnelEngine: 'ngrok',
-    },
+
 ];
 
 export type { Service };
