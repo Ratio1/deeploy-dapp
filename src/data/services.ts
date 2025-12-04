@@ -1,5 +1,11 @@
 import { ColorVariant } from '@shared/SmallTag';
-import { DynamicEnvVarsEntry, KeyLabelEntry, KeyValueEntry } from '@typedefs/steps/deploymentStepTypes';
+import {
+    DynamicEnvVarsEntry,
+    FileVolumesEntry,
+    KeyLabelEntry,
+    KeyValueEntry,
+    VolumesEntry,
+} from '@typedefs/steps/deploymentStepTypes';
 import { BaseContainerOrWorkerType } from './containerResources';
 
 type Service = {
@@ -15,6 +21,8 @@ type Service = {
     tunnelEngine: 'cloudflare' | 'ngrok';
     envVars?: KeyValueEntry[];
     dynamicEnvVars?: DynamicEnvVarsEntry[];
+    volumes?: VolumesEntry[];
+    fileVolumes?: FileVolumesEntry[];
     buildAndRunCommands?: string[];
     pipelineParams?: any; // JSON format
     pluginParams?: any; // JSON format
@@ -65,6 +73,7 @@ const services: Service[] = [
         color: 'blue',
         pluginSignature: 'CONTAINER_APP_RUNNER',
         tunnelEngine: 'ngrok',
+        volumes: [{ key: 'postgres_data', value: '/var/lib/postgresql/data' }],
     },
     {
         id: 2,
@@ -77,12 +86,13 @@ const services: Service[] = [
         color: 'orange',
         pluginSignature: 'CONTAINER_APP_RUNNER',
         tunnelEngine: 'ngrok',
+        volumes: [{ key: 'mysql_data', value: '/var/lib/mysql' }],
     },
     {
         id: 3,
         name: 'MongoDB',
         description: 'NoSQL database management system',
-        image: 'mongodb',
+        image: 'mongo',
         port: 27017,
         inputs: [
             { key: 'MONGO_INITDB_ROOT_USERNAME', label: 'MongoDB Root Username' },
@@ -92,6 +102,7 @@ const services: Service[] = [
         color: 'green',
         pluginSignature: 'CONTAINER_APP_RUNNER',
         tunnelEngine: 'ngrok',
+        volumes: [{ key: 'mongo_data', value: '/data/db' }],
     },
     {
         id: 4,
@@ -104,10 +115,11 @@ const services: Service[] = [
         color: 'pink',
         pluginSignature: 'CONTAINER_APP_RUNNER',
         tunnelEngine: 'cloudflare',
+        volumes: [{ key: 'n8n_data', value: '/home/node/.n8n' }],
     },
     {
         id: 5,
-        name: 'vdo.ninja',
+        name: 'vdo_ninja',
         description: 'Peer to peer video streaming',
         image: 'caddy:alpine',
         port: 80,
