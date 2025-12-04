@@ -179,6 +179,26 @@ const services: Service[] = [
             CONTAINER_START_COMMAND: null,
         },
     },
+    {
+        id: 7,
+        name: 'Docker Registry',
+        description: 'Private container image registry',
+        image: 'registry:2',
+        port: 5000,
+        inputs: [
+            {
+                key: 'REGISTRY_HTTP_SECRET',
+                label: 'Registry HTTP Secret',
+                description: 'Secret key for signing session state and securing upload operations',
+                placeholder: 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6',
+            },
+        ],
+        logo: 'docker.svg',
+        color: 'blue',
+        pluginSignature: 'CONTAINER_APP_RUNNER',
+        tunnelEngine: 'cloudflare',
+        volumes: [{ key: 'registry_data', value: '/var/lib/registry' }],
+    },
 
 ];
 
