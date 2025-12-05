@@ -502,7 +502,7 @@ export const formatServiceJobPayload = (
 
         // Tunneling
         PORT: formatPort(service.port),
-        TUNNEL_ENGINE_ENABLED: true, // Tunneling is always enabled for services
+        TUNNEL_ENGINE_ENABLED: deployment.isPublicService,
         TUNNEL_ENGINE: service.tunnelEngine,
 
         // Variables
