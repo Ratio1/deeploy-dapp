@@ -13,6 +13,69 @@ export const CspEscrowAbi = [
         anonymous: false,
         inputs: [
             {
+                indexed: true,
+                internalType: 'address',
+                name: 'delegate',
+                type: 'address',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'permissions',
+                type: 'uint256',
+            },
+        ],
+        name: 'DelegatePermissionsUpdated',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: 'address',
+                name: 'delegate',
+                type: 'address',
+            },
+        ],
+        name: 'DelegateRemoved',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'oldJobType',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'newJobType',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'newPricePerEpoch',
+                type: 'uint256',
+            },
+        ],
+        name: 'DeprecatedJobMigrated',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
                 indexed: false,
                 internalType: 'uint64',
                 name: 'version',
@@ -114,6 +177,31 @@ export const CspEscrowAbi = [
             },
         ],
         name: 'JobDurationExtended',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'oldLastExecutionEpoch',
+                type: 'uint256',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'newLastExecutionEpoch',
+                type: 'uint256',
+            },
+        ],
+        name: 'JobLastExecutionEpochReconciled',
         type: 'event',
     },
     {
@@ -628,6 +716,38 @@ export const CspEscrowAbi = [
         type: 'function',
     },
     {
+        inputs: [
+            {
+                internalType: 'address',
+                name: 'delegate',
+                type: 'address',
+            },
+        ],
+        name: 'getDelegatePermissions',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'getDelegatedAddresses',
+        outputs: [
+            {
+                internalType: 'address[]',
+                name: '',
+                type: 'address[]',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
         inputs: [],
         name: 'getFirstClosableJobId',
         outputs: [
@@ -912,6 +1032,13 @@ export const CspEscrowAbi = [
     },
     {
         inputs: [],
+        name: 'reconcileAllJobs',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [],
         name: 'reconcileJobsBalance',
         outputs: [],
         stateMutability: 'nonpayable',
@@ -926,6 +1053,37 @@ export const CspEscrowAbi = [
             },
         ],
         name: 'redeemUnusedJob',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'address',
+                name: 'delegate',
+                type: 'address',
+            },
+        ],
+        name: 'removeDelegate',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'address',
+                name: 'delegate',
+                type: 'address',
+            },
+            {
+                internalType: 'uint256',
+                name: 'permissions',
+                type: 'uint256',
+            },
+        ],
+        name: 'setDelegatePermissions',
         outputs: [],
         stateMutability: 'nonpayable',
         type: 'function',
