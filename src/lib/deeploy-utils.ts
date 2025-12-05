@@ -479,7 +479,10 @@ export const formatServiceJobPayload = (
     deployment: ServiceJobDeployment,
 ) => {
     const jobTags = formatJobTags(specifications);
-    const containerResources = formatContainerResources(serviceContainerType, []);
+    const containerResources = formatContainerResources(
+        serviceContainerType,
+        deployment.isPublicService ? [] : deployment.ports,
+    );
     const targetNodes = formatNodes(deployment.targetNodes);
     const spareNodes = formatNodes(deployment.spareNodes);
 

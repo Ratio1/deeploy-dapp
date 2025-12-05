@@ -125,7 +125,7 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
                             size="sm"
                             onPress={onGenerateTunnel}
                             isLoading={isCreatingTunnel}
-                            isDisabled={!tunnelingSecrets}
+                            isDisabled={!tunnelingSecrets || isEditingRunningJob}
                         >
                             <div className="row gap-1.5">
                                 <RiCodeSSlashLine className="text-base" />
@@ -136,12 +136,14 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
                 }
             >
                 <div className="col gap-4">
-                    <Checkbox
-                        isSelected={isPublicService}
-                        onValueChange={(value) => setValue('deployment.isPublicService', value, { shouldDirty: true })}
-                    >
-                        <div className="compact">Public Service</div>
-                    </Checkbox>
+                    {!isEditingRunningJob && (
+                        <Checkbox
+                            isSelected={isPublicService}
+                            onValueChange={(value) => setValue('deployment.isPublicService', value, { shouldDirty: true })}
+                        >
+                            <div className="compact">Public Service</div>
+                        </Checkbox>
+                    )}
 
                     {isPublicService && !tunnelingSecrets && (
                         <DeeployInfoTag
