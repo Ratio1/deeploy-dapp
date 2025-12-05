@@ -652,7 +652,7 @@ const printSummary = (service: Service) => {
     console.log(`Description: ${colorValue(service.description)}`);
     console.log(`Image: ${colorValue(service.image)}`);
     console.log(`Port: ${colorValue(service.port)}`);
-    console.log(`Logo: ${colorValue(service.logo)}`);
+    console.log(`Logo filename (in src/assets/services): ${colorValue(service.logo)}`);
     console.log(`Color: ${colorValue(service.color)}`);
     console.log(`Plugin signature: ${colorValue(service.pluginSignature)}`);
     console.log(`Tunnel engine: ${colorValue(service.tunnelEngine)}`);

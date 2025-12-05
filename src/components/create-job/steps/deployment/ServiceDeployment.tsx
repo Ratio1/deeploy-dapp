@@ -119,7 +119,7 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
                 <AppParametersSection
                     enablePort={false}
                     isCreatingTunnel={isCreatingTunnel}
-                    enableTunnelingLabel
+                    enableTunnelingLabel={service.tunnelEngine === 'ngrok'}
                     forceTunnelingEnabled
                 />
             </SlateCard>

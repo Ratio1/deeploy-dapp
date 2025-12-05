@@ -37,17 +37,20 @@ export default function DeeploySuccessAlert({
                             <div>{item.text}</div>
                             <div>•</div>
                             <div>{item.serverAlias}</div>
-                            <div>•</div>
 
-                            {item.tunnelURL && (
-                                <Link
-                                    to={`https://${item.tunnelURL}`}
-                                    target="_blank"
-                                    className="row gap-1 text-[13px] text-green-500 hover:opacity-70"
-                                >
-                                    <span className="font-roboto-mono">{item.tunnelURL}</span>
-                                    <RiExternalLinkLine className="mb-px text-[14px]" />
-                                </Link>
+                            {!!item.tunnelURL && (
+                                <>
+                                    <div>•</div>
+
+                                    <Link
+                                        to={`https://${item.tunnelURL}`}
+                                        target="_blank"
+                                        className="row gap-1 text-[13px] text-green-500 hover:opacity-70"
+                                    >
+                                        <span className="font-roboto-mono">{item.tunnelURL}</span>
+                                        <RiExternalLinkLine className="mb-px text-[14px]" />
+                                    </Link>
+                                </>
                             )}
                         </div>
                     ))}
