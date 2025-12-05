@@ -7,6 +7,7 @@ import ItemWithLabel from '@shared/ItemWithLabel';
 import { InvoiceDraft } from '@typedefs/general';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { RiDownloadLine } from 'react-icons/ri';
 
 export default function DraftInvoiceCard({
     draft,
@@ -68,7 +69,7 @@ export default function DraftInvoiceCard({
 
                     <div className="min-w-[118px] font-medium">${draft.totalUsdcAmount.toFixed(2)}</div>
 
-                    <div className="flex min-w-[124px] justify-end gap-2">
+                    <div className="flex min-w-[214px] justify-end gap-2">
                         <Button
                             className="border-2 border-slate-200 bg-white data-[hover=true]:!opacity-65"
                             isLoading={isLoading}
@@ -82,7 +83,10 @@ export default function DraftInvoiceCard({
                                 }
                             }}
                         >
-                            <div className="text-sm">Download .doc</div>
+                            <div className="row gap-1">
+                                <RiDownloadLine className="text-base" />
+                                <div className="text-sm">Document</div>
+                            </div>
                         </Button>
 
                         <Button
@@ -98,7 +102,10 @@ export default function DraftInvoiceCard({
                                 }
                             }}
                         >
-                            <div className="text-sm">Download JSON</div>
+                            <div className="row gap-1">
+                                <RiDownloadLine className="text-base" />
+                                <div className="text-sm">JSON</div>
+                            </div>
                         </Button>
                     </div>
                 </div>

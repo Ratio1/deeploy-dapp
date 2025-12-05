@@ -7,7 +7,8 @@ import { BorderedCard } from '@shared/cards/BorderedCard';
 import { formatISO, subMonths } from 'date-fns';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiCalendarEventLine, RiFileTextLine } from 'react-icons/ri';
+import { LuFileJson, LuFileSpreadsheet } from 'react-icons/lu';
+import { RiCalendarEventLine } from 'react-icons/ri';
 
 export default function BurnReport() {
     const [value, setValue] = useState<{
@@ -89,14 +90,14 @@ export default function BurnReport() {
                         <div className="center-all gap-1.5">
                             <Button color="primary" onPress={onDownloadCSV} isLoading={isLoading}>
                                 <div className="row gap-1.5">
-                                    <RiFileTextLine className="text-lg" />
+                                    <LuFileSpreadsheet className="text-lg" />
                                     <div className="text-sm">Download CSV</div>
                                 </div>
                             </Button>
 
                             <Button color="primary" onPress={onDownloadJSON} isLoading={isLoading}>
                                 <div className="row gap-1.5">
-                                    <RiFileTextLine className="text-lg" />
+                                    <LuFileJson className="text-lg" />
                                     <div className="text-sm">Download JSON</div>
                                 </div>
                             </Button>
