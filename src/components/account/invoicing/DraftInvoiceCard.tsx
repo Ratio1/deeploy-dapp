@@ -1,5 +1,5 @@
 import { Button } from '@heroui/button';
-import { downloadCspDraft } from '@lib/api/backend';
+import { downloadCspDraft, downloadCspDraftJSON } from '@lib/api/backend';
 import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
@@ -7,6 +7,7 @@ import ItemWithLabel from '@shared/ItemWithLabel';
 import { InvoiceDraft } from '@typedefs/general';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { RiDownloadLine } from 'react-icons/ri';
 
 export default function DraftInvoiceCard({
     draft,
@@ -24,6 +25,19 @@ export default function DraftInvoiceCard({
             setLoading(true);
             const draft = await downloadCspDraft(draftId);
             console.log('Draft', draft);
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to download draft.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const downloadDraftJson = async (draftId: string) => {
+        try {
+            setLoading(true);
+            const draft = await downloadCspDraftJSON(draftId);
+            console.log('Draft JSON', draft);
         } catch (error) {
             console.error(error);
             toast.error('Failed to download draft.');
@@ -55,7 +69,7 @@ export default function DraftInvoiceCard({
 
                     <div className="min-w-[118px] font-medium">${draft.totalUsdcAmount.toFixed(2)}</div>
 
-                    <div className="flex min-w-[124px] justify-end">
+                    <div className="flex min-w-[214px] justify-end gap-2">
                         <Button
                             className="border-2 border-slate-200 bg-white data-[hover=true]:!opacity-65"
                             isLoading={isLoading}
@@ -69,7 +83,29 @@ export default function DraftInvoiceCard({
                                 }
                             }}
                         >
-                            <div className="text-sm">Download</div>
+                            <div className="row gap-1">
+                                <RiDownloadLine className="text-base" />
+                                <div className="text-sm">Document</div>
+                            </div>
+                        </Button>
+
+                        <Button
+                            className="border-2 border-slate-200 bg-white data-[hover=true]:!opacity-65"
+                            isLoading={isLoading}
+                            size="sm"
+                            color="primary"
+                            variant="flat"
+                            onPress={() => {
+                                if (!isLoading) {
+                                    console.log('Download JSON', draft.draftId);
+                                    downloadDraftJson(draft.draftId);
+                                }
+                            }}
+                        >
+                            <div className="row gap-1">
+                                <RiDownloadLine className="text-base" />
+                                <div className="text-sm">JSON</div>
+                            </div>
                         </Button>
                     </div>
                 </div>

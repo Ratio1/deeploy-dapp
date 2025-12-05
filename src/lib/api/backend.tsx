@@ -45,7 +45,10 @@ export const downloadCspDraft = async (draftId: string) => {
     setTimeout(() => URL.revokeObjectURL(urlObj), 0);
 };
 
-export const downloadBurnReport = async (start: string, end: string) => {
+export const downloadCspDraftJSON = async (draftId: string) =>
+    downloadJsonFile(`/invoice-draft/download-csp-draft-json?draftId=${draftId}`, 'csp_draft.json');
+
+export const downloadBurnReportCSV = async (start: string, end: string) => {
     const res = await axiosDapp.get(`/burn-report/download-burn-report?startTime=${start}&endTime=${end}`, {
         responseType: 'blob',
     });
@@ -83,6 +86,12 @@ export const downloadBurnReport = async (start: string, end: string) => {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(urlObj), 0);
 };
+
+export const downloadBurnReportJSON = async (start: string, end: string) =>
+    downloadJsonFile(
+        `/burn-report/download-burn-report-json?startTime=${start}&endTime=${end}`,
+        'burn_report.json',
+    );
 
 export const getBrandingPlatforms = async () => _doGet<string[]>('/branding/get-platforms');
 
@@ -140,6 +149,41 @@ async function _doPost<T>(endpoint: string, body: any, headers?: Record<string, 
         throw new Error(data.error);
     }
     return data.data;
+}
+
+async function downloadJsonFile<T = unknown>(endpoint: string, defaultFilename: string): Promise<T> {
+    const res = await axiosDapp.get(endpoint);
+
+    if (res.status !== 200) {
+        throw new Error(`Download failed with status ${res.status}.`);
+    }
+
+    if (res.data?.error) {
+        throw new Error(res.data.error);
+    }
+
+    const payload = (res.data?.data ?? res.data) as T;
+
+    let filename = defaultFilename;
+    const contentDisposition = res.headers['content-disposition'];
+    if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename=([^;]+)/);
+        if (filenameMatch) {
+            filename = filenameMatch[1].replace(/['"]/g, '');
+        }
+    }
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const urlObj = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = urlObj;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(urlObj), 0);
+
+    return payload;
 }
 
 const axiosDapp = axios.create({
