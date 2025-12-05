@@ -31,10 +31,12 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
     const serviceId: number = watch('serviceId');
     const alias: string = watch('deployment.jobAlias');
     const isPublicService: boolean = watch('deployment.isPublicService');
+    const ports = watch('deployment.ports');
 
     const service: Service = services.find((service) => service.id === serviceId)!;
 
     const [isCreatingTunnel, setCreatingTunnel] = useState<boolean>(false);
+    const [generatedPortMapping, setGeneratedPortMapping] = useState<boolean>(false);
 
     useEffect(() => {
         if (!alias || alias === '') {
@@ -45,6 +47,20 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
     useEffect(() => {
         setValue('deployment.port', service.port);
     }, [service]);
+
+    useEffect(() => {
+        if (!isPublicService && !generatedPortMapping) {
+            const hasPorts = Array.isArray(ports) && ports.length > 0;
+            if (!hasPorts) {
+                const hostPort = 32000 + Math.floor(Math.random() * 700) + 1;
+                setValue('deployment.ports', [{ hostPort, containerPort: service.port }], {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                });
+                setGeneratedPortMapping(true);
+            }
+        }
+    }, [isPublicService, ports, service.port, setValue]);
 
     useEffect(() => {
         setValue('deployment.enableTunneling', isPublicService ? BOOLEAN_TYPES[0] : BOOLEAN_TYPES[1], {
@@ -124,7 +140,7 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
                         isSelected={isPublicService}
                         onValueChange={(value) => setValue('deployment.isPublicService', value, { shouldDirty: true })}
                     >
-                        <div className="compact text-slate-600">Public Service</div>
+                        <div className="compact">Public Service</div>
                     </Checkbox>
 
                     {isPublicService && !tunnelingSecrets && (
@@ -149,7 +165,13 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
                             forceTunnelingEnabled
                         />
                     ) : (
-                        <PortMappingSection />
+                        <div className="col gap-2">
+                            <DeeployInfoTag
+                                text={<>Add a port mapping of type HOST_PORT to SERVICE_PORT ({service.port}).</>}
+                            />
+
+                            <PortMappingSection />
+                        </div>
                     )}
                 </div>
             </SlateCard>
