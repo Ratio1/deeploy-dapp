@@ -158,7 +158,7 @@ function JobDetails({
 
             <ItemWithLabel label="Next payment due" value={<div className="font-medium text-green-600">Paid in full</div>} />
 
-            <div className="min-w-[350px]">
+            <div className="center-all min-w-[350px]">
                 {/* Update when custom payment duration is implemented */}
                 <DetailedUsage
                     used={Math.max(diffTimeFn(new Date(), requestDate), 1)}
