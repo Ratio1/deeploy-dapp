@@ -71,7 +71,7 @@ export default function EscrowDelegates() {
         setLoading(true);
 
         try {
-            const [delegateAddresses, owner] = await Promise.all([
+            const [[delegateAddresses, delegatePermissions], owner] = await Promise.all([
                 publicClient.readContract({
                     address: escrowContractAddress,
                     abi: CspEscrowAbi,
@@ -84,23 +84,12 @@ export default function EscrowDelegates() {
                 }),
             ]);
 
-            const delegatePermissions: bigint[] = await Promise.all(
-                delegateAddresses.map((delegate) =>
-                    publicClient.readContract({
-                        address: escrowContractAddress,
-                        abi: CspEscrowAbi,
-                        functionName: 'getDelegatePermissions',
-                        args: [delegate],
-                    }),
-                ),
+            setDelegates(
+                delegateAddresses.map((address: EthAddress, index: number) => ({
+                    address,
+                    permissions: delegatePermissions[index],
+                })),
             );
-
-            const formattedDelegates: Delegate[] = delegateAddresses.map((delegateAddress, index) => ({
-                address: delegateAddress,
-                permissions: delegatePermissions[index],
-            }));
-
-            setDelegates(formattedDelegates);
             setOwnerAddress(owner);
         } catch (error) {
             console.error(error);

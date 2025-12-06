@@ -743,6 +743,11 @@ export const CspEscrowAbi = [
                 name: '',
                 type: 'address[]',
             },
+            {
+                internalType: 'uint256[]',
+                name: '',
+                type: 'uint256[]',
+            },
         ],
         stateMutability: 'view',
         type: 'function',
