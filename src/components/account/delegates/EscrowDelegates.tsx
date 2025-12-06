@@ -7,65 +7,20 @@ import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getShortAddressOrHash, isZeroAddress } from '@lib/utils';
+import { Delegate, DELEGATE_PERMISSIONS, DelegatePermissionKey } from '@lib/permissions/delegates';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
 import EmptyData from '@shared/EmptyData';
 import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
-import { ColorVariant, SmallTag } from '@shared/SmallTag';
+import { SmallTag } from '@shared/SmallTag';
 import { EthAddress } from '@typedefs/blockchain';
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiAddLine, RiDeleteBinLine, RiFileInfoLine, RiPencilLine, RiRefreshLine, RiShieldUserLine } from 'react-icons/ri';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 
-type DelegatePermissionKey = 'createJobs' | 'extendDuration' | 'extendNodes' | 'redeemUnused';
-
 type DelegatePermissionState = Record<DelegatePermissionKey, boolean>;
-
-type Delegate = {
-    address: EthAddress;
-    permissions: bigint;
-};
-
-const DELEGATE_PERMISSIONS: {
-    key: DelegatePermissionKey;
-    label: string;
-    description: string;
-    value: bigint;
-    color: ColorVariant;
-}[] = [
-    {
-        key: 'createJobs',
-        label: 'Create jobs',
-        description: 'Deploy new jobs and allocate funds.',
-        value: 1n << 0n,
-        color: 'blue',
-    },
-    {
-        key: 'extendDuration',
-        label: 'Extend duration',
-        description: 'Add more epochs to existing jobs.',
-        value: 1n << 1n,
-        color: 'green',
-    },
-    {
-        key: 'extendNodes',
-        label: 'Extend nodes',
-        description: 'Increase the number of active nodes.',
-        value: 1n << 2n,
-        color: 'orange',
-    },
-    {
-        key: 'redeemUnused',
-        label: 'Redeem unused jobs',
-        description: 'Close jobs and redeem unused funds.',
-        value: 1n << 3n,
-        color: 'purple',
-    },
-];
-
-const allPermissions = DELEGATE_PERMISSIONS.reduce((acc, perm) => acc | perm.value, 0n);
 
 const createEmptyPermissionState = (): DelegatePermissionState => ({
     createJobs: false,
@@ -82,12 +37,7 @@ export default function EscrowDelegates() {
     const publicClient = usePublicClient();
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
 
-    const [delegates, setDelegates] = useState<Delegate[]>([
-        {
-            address: '0x0000000000000000000000000000000000000000',
-            permissions: allPermissions,
-        },
-    ]);
+    const [delegates, setDelegates] = useState<Delegate[]>([]);
     const [ownerAddress, setOwnerAddress] = useState<EthAddress | undefined>();
 
     const [formAddress, setFormAddress] = useState<string>('');
@@ -378,9 +328,7 @@ export default function EscrowDelegates() {
                                         <div className="row flex-wrap gap-1.5">
                                             {activePermissions.length ? (
                                                 activePermissions.map((permission) => (
-                                                    <SmallTag key={permission.key} variant={permission.color}>
-                                                        {permission.label}
-                                                    </SmallTag>
+                                                    <SmallTag key={permission.key}>{permission.label}</SmallTag>
                                                 ))
                                             ) : (
                                                 <SmallTag>No permissions</SmallTag>

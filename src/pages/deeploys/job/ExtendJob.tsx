@@ -1,17 +1,20 @@
 import JobExtension from '@components/extend-job/JobExtension';
 import JobBreadcrumbs from '@components/job/JobBreadcrumbs';
 import ExtendJobPageLoading from '@components/loading/ExtendJobPageLoading';
+import { DetailedAlert } from '@shared/DetailedAlert';
 import ActionButton from '@shared/ActionButton';
 import SupportFooter from '@shared/SupportFooter';
+import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { RunningJobWithResources } from '@typedefs/deeploys';
 import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import { useEffect, useState } from 'react';
-import { RiArrowLeftLine } from 'react-icons/ri';
+import { RiAlertLine, RiArrowLeftLine } from 'react-icons/ri';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function ExtendJob() {
     const navigate = useNavigate();
     const location = useLocation();
+    const { hasEscrowPermission } = useDeploymentContext() as DeploymentContextType;
 
     const job: RunningJobWithResources | undefined = (location.state as { job?: RunningJobWithResources })?.job;
     const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
@@ -24,6 +27,20 @@ export default function ExtendJob() {
 
     if (!job) {
         return <ExtendJobPageLoading />;
+    }
+
+    if (!hasEscrowPermission('extendDuration')) {
+        return (
+            <div className="center-all flex-1">
+                <DetailedAlert
+                    variant="red"
+                    icon={<RiAlertLine />}
+                    title="Permission required"
+                    description={<div>You do not have permission to extend job duration.</div>}
+                    isCompact
+                />
+            </div>
+        );
     }
 
     return (

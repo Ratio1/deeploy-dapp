@@ -4,6 +4,12 @@ import { getApps } from '@lib/api/deeploy';
 import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import { isZeroAddress } from '@lib/utils';
+import {
+    ALL_DELEGATE_PERMISSIONS_MASK,
+    DelegatePermissionKey,
+    getPermissionValue,
+    hasDelegatePermission,
+} from '@lib/permissions/delegates';
 import { SigningModal } from '@shared/SigningModal';
 import { EthAddress, R1Address } from '@typedefs/blockchain';
 import { Apps, AppsPlugin, DeeploySpecs, JobConfig, PipelineData } from '@typedefs/deeployApi';
@@ -163,12 +169,11 @@ export const DeploymentProvider = ({ children }) => {
             const isOwner = ownerAddress?.toLowerCase() === userAddress.toLowerCase();
 
             if (isOwner) {
-                const fullPermissions = BigInt.asUintN(256, -1n); // represent all bits set for owner
-                setCurrentUserPermissions(fullPermissions);
+                setCurrentUserPermissions(ALL_DELEGATE_PERMISSIONS_MASK);
                 return {
                     escrowAddress: escrowAddress,
                     owner: ownerAddress,
-                    permissions: fullPermissions,
+                    permissions: ALL_DELEGATE_PERMISSIONS_MASK,
                     isOwner,
                 };
             }
@@ -213,6 +218,13 @@ export const DeploymentProvider = ({ children }) => {
 
         const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(runningJobs, appsOverride);
         return { runningJobs, runningJobsWithDetails };
+    };
+
+    const hasEscrowPermission = (permission: DelegatePermissionKey): boolean => {
+        if (currentUserPermissions === undefined) {
+            return false;
+        }
+        return hasDelegatePermission(currentUserPermissions, permission);
     };
 
     const formatRunningJobsWithDetails = (runningJobs: readonly RunningJob[], appsOverride?: Apps): RunningJobWithDetails[] => {
@@ -388,6 +400,7 @@ export const DeploymentProvider = ({ children }) => {
                 currentUserPermissions,
                 setCurrentUserPermissions,
                 fetchEscrowAccess,
+                hasEscrowPermission,
             }}
         >
             {children}

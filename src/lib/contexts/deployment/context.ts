@@ -1,3 +1,4 @@
+import { DelegatePermissionKey } from '@lib/permissions/delegates';
 import { EthAddress } from '@typedefs/blockchain';
 import { Apps } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
@@ -51,6 +52,7 @@ export interface DeploymentContextType {
     currentUserPermissions: bigint | undefined;
     setCurrentUserPermissions: Dispatch<SetStateAction<bigint | undefined>>;
     fetchEscrowAccess: (account?: EthAddress) => Promise<EscrowAccess | undefined>;
+    hasEscrowPermission: (permission: DelegatePermissionKey) => boolean;
 }
 
 export const DeploymentContext = createContext<DeploymentContextType | null>(null);
