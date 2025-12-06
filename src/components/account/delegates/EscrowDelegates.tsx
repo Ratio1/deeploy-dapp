@@ -1,6 +1,7 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { Button } from '@heroui/button';
 import { Checkbox } from '@heroui/checkbox';
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/modal';
 import { Skeleton } from '@heroui/skeleton';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
@@ -15,7 +16,7 @@ import { ColorVariant, SmallTag } from '@shared/SmallTag';
 import { EthAddress } from '@typedefs/blockchain';
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiAddLine, RiDeleteBinLine, RiRefreshLine, RiShieldUserLine } from 'react-icons/ri';
+import { RiAddLine, RiDeleteBinLine, RiFileInfoLine, RiPencilLine, RiRefreshLine, RiShieldUserLine } from 'react-icons/ri';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 
 type DelegatePermissionKey = 'createJobs' | 'extendDuration' | 'extendNodes' | 'redeemUnused';
@@ -64,6 +65,8 @@ const DELEGATE_PERMISSIONS: {
     },
 ];
 
+const allPermissions = DELEGATE_PERMISSIONS.reduce((acc, perm) => acc | perm.value, 0n);
+
 const createEmptyPermissionState = (): DelegatePermissionState => ({
     createJobs: false,
     extendDuration: false,
@@ -79,13 +82,18 @@ export default function EscrowDelegates() {
     const publicClient = usePublicClient();
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
 
-    const [delegates, setDelegates] = useState<Delegate[]>([]);
+    const [delegates, setDelegates] = useState<Delegate[]>([
+        {
+            address: '0x0000000000000000000000000000000000000000',
+            permissions: allPermissions,
+        },
+    ]);
     const [ownerAddress, setOwnerAddress] = useState<EthAddress | undefined>();
-    console.log({ ownerAddress });
 
     const [formAddress, setFormAddress] = useState<string>('');
     const [formPermissions, setFormPermissions] = useState<DelegatePermissionState>(createEmptyPermissionState);
     const [editingAddress, setEditingAddress] = useState<EthAddress | null>(null);
+    const [isModalOpen, setModalOpen] = useState<boolean>(false);
 
     const [isLoading, setLoading] = useState<boolean>(false);
     const [isSaving, setSaving] = useState<boolean>(false);
@@ -127,7 +135,7 @@ export default function EscrowDelegates() {
             ]);
 
             const delegatePermissions: bigint[] = await Promise.all(
-                (delegateAddresses as EthAddress[]).map((delegate) =>
+                delegateAddresses.map((delegate) =>
                     publicClient.readContract({
                         address: escrowContractAddress,
                         abi: CspEscrowAbi,
@@ -137,13 +145,13 @@ export default function EscrowDelegates() {
                 ),
             );
 
-            const formattedDelegates: Delegate[] = (delegateAddresses as EthAddress[]).map((delegateAddress, index) => ({
+            const formattedDelegates: Delegate[] = delegateAddresses.map((delegateAddress, index) => ({
                 address: delegateAddress,
                 permissions: delegatePermissions[index],
             }));
 
             setDelegates(formattedDelegates);
-            setOwnerAddress(owner as EthAddress);
+            setOwnerAddress(owner);
         } catch (error) {
             console.error(error);
             toast.error('Failed to fetch delegates.');
@@ -169,10 +177,16 @@ export default function EscrowDelegates() {
         setEditingAddress(null);
     };
 
-    const startEditing = (delegate: Delegate) => {
+    const openCreateModal = () => {
+        resetForm();
+        setModalOpen(true);
+    };
+
+    const openEditModal = (delegate: Delegate) => {
         setFormAddress(delegate.address);
         setFormPermissions(permissionsToState(delegate.permissions));
         setEditingAddress(delegate.address);
+        setModalOpen(true);
     };
 
     const saveDelegate = async () => {
@@ -212,6 +226,7 @@ export default function EscrowDelegates() {
             await watchTx(txHash, publicClient);
             await fetchDelegates();
             resetForm();
+            setModalOpen(false);
         } catch (error) {
             console.error(error);
             toast.error('Failed to save delegate.');
@@ -247,6 +262,7 @@ export default function EscrowDelegates() {
             if (editingAddress === delegateAddress) {
                 resetForm();
             }
+            setModalOpen(false);
         } catch (error) {
             console.error(error);
             toast.error('Failed to remove delegate.');
@@ -256,161 +272,36 @@ export default function EscrowDelegates() {
     };
 
     const selectedPermissionsCount = useMemo(() => Object.values(formPermissions).filter(Boolean).length, [formPermissions]);
+    const canManageDelegates = isOwnerConnected && hasWalletReady;
+    const canSubmit = canManageDelegates && !isSaving && !!formAddress && selectedPermissionsCount > 0;
     const isPermissionsLocked = !hasWalletReady || isSaving || !isOwnerConnected;
 
     return (
         <div className="col w-full flex-1 gap-5">
             <BorderedCard>
-                <div className="row items-start justify-between gap-3">
-                    <div className="col gap-1">
-                        <div className="text-body text-xl font-semibold">Escrow Delegates</div>
-                        <div className="compact text-slate-600">
-                            Allow trusted addresses to manage your jobs on your behalf. Permissions are enforced on-chain.
-                        </div>
+                <div className="flex gap-2">
+                    <div className="flex">
+                        <RiFileInfoLine className="text-primary text-xl" />
                     </div>
 
-                    <SmallTag variant={isOwnerConnected ? 'green' : 'orange'}>
-                        {isOwnerConnected ? 'Owner connected' : 'Read-only'}
-                    </SmallTag>
-                </div>
-
-                <div className="row flex-wrap gap-3 pt-3 text-sm text-slate-600">
-                    {isEscrowReady ? (
-                        <div className="row items-center gap-2">
-                            <div className="compact text-slate-500">Escrow</div>
-                            <CopyableValue value={escrowContractAddress!}>
-                                <div className="font-roboto-mono text-sm font-medium">
-                                    {getShortAddressOrHash(escrowContractAddress!, 5, true)}
-                                </div>
-                            </CopyableValue>
-                        </div>
-                    ) : (
-                        <div className="compact text-red-500">No escrow contract deployed yet.</div>
-                    )}
-
-                    {ownerAddress && (
-                        <div className="row items-center gap-2">
-                            <div className="compact text-slate-500">Owner</div>
-                            <CopyableValue value={ownerAddress}>
-                                <div className="font-roboto-mono text-sm font-medium">
-                                    {getShortAddressOrHash(ownerAddress, 5, true)}
-                                </div>
-                            </CopyableValue>
-                        </div>
-                    )}
-
-                    {address && (
-                        <div className="row items-center gap-2">
-                            <div className="compact text-slate-500">Connected</div>
-                            <div className="font-roboto-mono text-sm font-medium">
-                                {getShortAddressOrHash(address, 5, true)}
-                            </div>
-                        </div>
-                    )}
+                    <div className="compact text-slate-600">
+                        Delegated addresses will be able to operate on the Escrow smart contract like the owner, within the
+                        permissions you assign. Only add addresses you fully trust. The owner remains responsible for every
+                        on-chain operation executed by delegates.
+                    </div>
                 </div>
             </BorderedCard>
 
-            <div className="grid gap-4 lg:grid-cols-2">
-                <BorderedCard>
-                    <div className="row items-center justify-between">
-                        <div className="text-lg font-semibold">{editingAddress ? 'Edit delegate' : 'Add delegate'}</div>
-                        {editingAddress && (
-                            <Button
-                                variant="light"
-                                size="sm"
-                                className="text-slate-600"
-                                onPress={() => resetForm()}
-                                isDisabled={isSaving}
-                            >
-                                Reset
-                            </Button>
-                        )}
-                    </div>
-
-                    <div className="col gap-4 pt-3">
-                        <div className="col gap-2">
-                            <Label value="Delegate address" />
-                            <StyledInput
-                                placeholder="0x..."
-                                value={formAddress}
-                                onValueChange={(value) => setFormAddress(value)}
-                                isDisabled={!hasWalletReady || isSaving}
-                            />
-                        </div>
-
-                        <div className="col gap-2">
-                            <div className="row items-center gap-2">
-                                <Label value="Permissions" />
-                                <SmallTag variant={selectedPermissionsCount ? 'green' : 'slate'}>
-                                    {selectedPermissionsCount} selected
-                                </SmallTag>
-                            </div>
-
-                            <div className="grid gap-3 md:grid-cols-2">
-                                {DELEGATE_PERMISSIONS.map((permission) => (
-                                    <div key={permission.key} className="h-full">
-                                        <div
-                                            className={`col h-full rounded-lg border border-slate-200 bg-white px-3 py-3 shadow-none ${
-                                                isPermissionsLocked ? 'opacity-60' : ''
-                                            }`}
-                                        >
-                                            <Checkbox
-                                                isSelected={formPermissions[permission.key]}
-                                                onValueChange={(value) =>
-                                                    isPermissionsLocked
-                                                        ? undefined
-                                                        : setFormPermissions((previous) => ({
-                                                              ...previous,
-                                                              [permission.key]: value,
-                                                          }))
-                                                }
-                                                isReadOnly={isPermissionsLocked}
-                                                classNames={{
-                                                    base: 'w-full items-start gap-3',
-                                                    wrapper: 'mt-1 mr-1',
-                                                    label: 'col gap-0.5',
-                                                    icon: 'text-white',
-                                                }}
-                                                radius="sm"
-                                                color="primary"
-                                            >
-                                                <div className="font-medium text-slate-700">{permission.label}</div>
-                                                <div className="compact text-slate-500">{permission.description}</div>
-                                            </Checkbox>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {!isOwnerConnected && (
-                            <div className="compact text-sm text-orange-500">
-                                Connect with the escrow owner wallet to change delegates.
-                            </div>
-                        )}
-
-                        <div className="row gap-2">
-                            <Button
-                                color="primary"
-                                startContent={<RiAddLine />}
-                                onPress={saveDelegate}
-                                isDisabled={!hasWalletReady || isSaving || !formAddress}
-                                isLoading={isSaving}
-                            >
-                                {editingAddress ? 'Update delegate' : 'Add delegate'}
-                            </Button>
-
-                            <Button variant="flat" onPress={() => resetForm()} isDisabled={isSaving}>
-                                Clear
-                            </Button>
+            <BorderedCard>
+                <div className="row flex-wrap items-center justify-between gap-3">
+                    <div className="col gap-1">
+                        <div className="text-lg font-semibold">Delegates</div>
+                        <div className="compact text-slate-600">
+                            View who can act on your escrow and update their permissions.
                         </div>
                     </div>
-                </BorderedCard>
 
-                <BorderedCard>
-                    <div className="row items-center justify-between">
-                        <div className="text-lg font-semibold">Current delegates</div>
-
+                    <div className="row gap-2">
                         <Button
                             size="sm"
                             variant="light"
@@ -420,82 +311,228 @@ export default function EscrowDelegates() {
                         >
                             Refresh
                         </Button>
-                    </div>
 
-                    <div className="col gap-3 pt-3">
-                        {!isEscrowReady ? (
-                            <div className="center-all w-full py-6">
-                                <EmptyData
-                                    icon={<RiShieldUserLine />}
-                                    title="Escrow not deployed"
-                                    description="Deploy your escrow to add and view delegates."
-                                />
+                        <Button
+                            color="primary"
+                            startContent={<RiAddLine />}
+                            onPress={openCreateModal}
+                            isDisabled={!isEscrowReady || !hasWalletReady}
+                        >
+                            New delegate
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="col gap-3 pt-3">
+                    {!isEscrowReady ? (
+                        <div className="center-all w-full py-6">
+                            <EmptyData
+                                icon={<RiShieldUserLine />}
+                                title="Escrow not deployed"
+                                description="Deploy your escrow to add and view delegates."
+                            />
+                        </div>
+                    ) : isLoading ? (
+                        <>
+                            {Array.from({ length: 3 }).map((_, index) => (
+                                <Skeleton key={index} className="h-[86px] w-full rounded-xl" />
+                            ))}
+                        </>
+                    ) : delegates.length === 0 ? (
+                        <div className="center-all w-full py-6">
+                            <EmptyData
+                                icon={<RiShieldUserLine />}
+                                title="No delegates yet"
+                                description="Add a delegate to allow trusted automation or teammates."
+                            />
+                        </div>
+                    ) : (
+                        <div className="list">
+                            <div className="hidden w-full rounded-xl border-2 border-slate-100 bg-slate-100 px-4 py-3 text-slate-500 lg:flex lg:gap-6 lg:px-6">
+                                <div className="compact flex w-full justify-between">
+                                    <div className="min-w-[200px]">Delegate</div>
+                                    <div className="min-w-[240px]">Permissions</div>
+                                    <div className="flex min-w-[120px] justify-end pr-1">Action</div>
+                                </div>
                             </div>
-                        ) : isLoading ? (
-                            <>
-                                {Array.from({ length: 3 }).map((_, index) => (
-                                    <Skeleton key={index} className="h-[86px] w-full rounded-xl" />
-                                ))}
-                            </>
-                        ) : delegates.length === 0 ? (
-                            <div className="center-all w-full py-6">
-                                <EmptyData
-                                    icon={<RiShieldUserLine />}
-                                    title="No delegates yet"
-                                    description="Add a delegate to allow trusted automation or teammates."
-                                />
-                            </div>
-                        ) : (
-                            delegates.map((delegate) => (
-                                <div
-                                    key={delegate.address}
-                                    className="row w-full flex-wrap items-start justify-between gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3"
-                                >
-                                    <div className="col gap-1">
-                                        <CopyableValue value={delegate.address}>
-                                            <div className="font-roboto-mono text-sm font-medium">
-                                                {getShortAddressOrHash(delegate.address, 6, true)}
-                                            </div>
-                                        </CopyableValue>
+
+                            {delegates.map((delegate) => {
+                                const activePermissions = DELEGATE_PERMISSIONS.filter(
+                                    (permission) => (delegate.permissions & permission.value) !== 0n,
+                                );
+
+                                return (
+                                    <div
+                                        key={delegate.address}
+                                        className="row w-full flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3 hover:border-slate-200"
+                                        onClick={() => openEditModal(delegate)}
+                                    >
+                                        <div className="col gap-1">
+                                            <CopyableValue value={delegate.address}>
+                                                <div className="font-roboto-mono text-sm font-medium">
+                                                    {getShortAddressOrHash(delegate.address, 6, true)}
+                                                </div>
+                                            </CopyableValue>
+                                        </div>
 
                                         <div className="row flex-wrap gap-1.5">
-                                            {DELEGATE_PERMISSIONS.filter(
-                                                (permission) => (delegate.permissions & permission.value) !== 0n,
-                                            ).map((permission) => (
-                                                <SmallTag key={permission.key} variant={permission.color}>
-                                                    {permission.label}
-                                                </SmallTag>
-                                            ))}
+                                            {activePermissions.length ? (
+                                                activePermissions.map((permission) => (
+                                                    <SmallTag key={permission.key} variant={permission.color}>
+                                                        {permission.label}
+                                                    </SmallTag>
+                                                ))
+                                            ) : (
+                                                <SmallTag>No permissions</SmallTag>
+                                            )}
+                                        </div>
+
+                                        <div className="row gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="flat"
+                                                startContent={<RiPencilLine />}
+                                                onPress={() => {
+                                                    openEditModal(delegate);
+                                                }}
+                                            >
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                color="danger"
+                                                variant="flat"
+                                                startContent={<RiDeleteBinLine />}
+                                                onPress={() => {
+                                                    removeDelegate(delegate.address);
+                                                }}
+                                                isDisabled={!canManageDelegates || removingAddress === delegate.address}
+                                                isLoading={removingAddress === delegate.address}
+                                            >
+                                                Remove
+                                            </Button>
                                         </div>
                                     </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            </BorderedCard>
 
-                                    <div className="row gap-2">
-                                        <Button
-                                            size="sm"
-                                            variant="flat"
-                                            onPress={() => startEditing(delegate)}
-                                            isDisabled={!isOwnerConnected}
-                                        >
-                                            Edit
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            color="danger"
-                                            variant="flat"
-                                            startContent={<RiDeleteBinLine />}
-                                            onPress={() => removeDelegate(delegate.address)}
-                                            isDisabled={!isOwnerConnected || removingAddress === delegate.address}
-                                            isLoading={removingAddress === delegate.address}
-                                        >
-                                            Remove
-                                        </Button>
-                                    </div>
+            <Modal
+                isOpen={isModalOpen}
+                onOpenChange={(isOpen) => {
+                    setModalOpen(isOpen);
+                    if (!isOpen) {
+                        resetForm();
+                    }
+                }}
+                size="md"
+                placement="center"
+                shouldBlockScroll={false}
+                classNames={{
+                    closeButton: 'cursor-pointer',
+                }}
+            >
+                <ModalContent>
+                    <ModalHeader className="flex flex-col gap-1">
+                        {editingAddress ? 'Edit delegate' : 'New delegate'}
+                        <div className="compact text-slate-500">
+                            Assign granular permissions to addresses allowed to act on your escrow.
+                        </div>
+                    </ModalHeader>
+                    <ModalBody className="pb-2">
+                        <div className="col gap-3">
+                            <div className="col gap-2">
+                                <Label value="Delegate address" />
+                                <StyledInput
+                                    placeholder="0x..."
+                                    value={formAddress}
+                                    onValueChange={(value) => setFormAddress(value)}
+                                    isDisabled={!canManageDelegates || isSaving}
+                                />
+                            </div>
+
+                            <div className="col gap-2">
+                                <div className="row items-center gap-2">
+                                    <Label value="Permissions" />
+                                    <SmallTag variant={selectedPermissionsCount ? 'green' : 'slate'}>
+                                        {selectedPermissionsCount} selected
+                                    </SmallTag>
                                 </div>
-                            ))
-                        )}
-                    </div>
-                </BorderedCard>
-            </div>
+
+                                <div className="grid gap-3 md:grid-cols-2">
+                                    {DELEGATE_PERMISSIONS.map((permission) => (
+                                        <div key={permission.key} className="h-full">
+                                            <div className="col h-full rounded-lg border border-slate-200 bg-white px-3 py-3 shadow-none">
+                                                <Checkbox
+                                                    isSelected={formPermissions[permission.key]}
+                                                    onValueChange={(value) =>
+                                                        setFormPermissions((previous) => ({
+                                                            ...previous,
+                                                            [permission.key]: value,
+                                                        }))
+                                                    }
+                                                    isReadOnly={isPermissionsLocked}
+                                                    classNames={{
+                                                        base: `w-full items-start gap-3 ${isPermissionsLocked ? 'pointer-events-none opacity-60' : ''}`,
+                                                        wrapper: 'mt-1 mr-1',
+                                                        label: 'col gap-0.5',
+                                                        icon: 'text-white',
+                                                    }}
+                                                    radius="sm"
+                                                    color="primary"
+                                                >
+                                                    <div className="font-medium text-slate-700">{permission.label}</div>
+                                                    <div className="compact text-slate-500">{permission.description}</div>
+                                                </Checkbox>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {!canManageDelegates && (
+                                <div className="compact text-sm text-orange-500">
+                                    Connect with the escrow owner wallet to change delegates.
+                                </div>
+                            )}
+                        </div>
+                    </ModalBody>
+                    <ModalFooter className="pt-0">
+                        <div className="row w-full justify-between gap-2">
+                            <div className="row gap-2">
+                                <Button variant="flat" onPress={() => setModalOpen(false)}>
+                                    Cancel
+                                </Button>
+                                {editingAddress && (
+                                    <Button
+                                        color="danger"
+                                        variant="flat"
+                                        startContent={<RiDeleteBinLine />}
+                                        onPress={() => removeDelegate(editingAddress)}
+                                        isDisabled={!canManageDelegates || removingAddress === editingAddress}
+                                        isLoading={removingAddress === editingAddress}
+                                    >
+                                        Delete
+                                    </Button>
+                                )}
+                            </div>
+
+                            <Button
+                                color="primary"
+                                startContent={editingAddress ? <RiPencilLine /> : <RiAddLine />}
+                                onPress={saveDelegate}
+                                isDisabled={!canSubmit}
+                                isLoading={isSaving}
+                            >
+                                {editingAddress ? 'Update delegate' : 'Add delegate'}
+                            </Button>
+                        </div>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </div>
     );
 }
