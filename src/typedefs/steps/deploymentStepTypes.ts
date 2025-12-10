@@ -16,6 +16,7 @@ type KeyLabelEntry = {
     label: string;
     description?: string;
     placeholder?: string;
+    defaultValue?: string;
 };
 
 type CustomParameterEntry = KeyValueEntry & {

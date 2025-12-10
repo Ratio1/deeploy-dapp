@@ -12,6 +12,7 @@ This document describes the pre-configured services available for deployment on 
   - [n8n](#n8n)
   - [VDO.Ninja](#vdoninja)
   - [Docker Registry](#docker-registry)
+  - [GitLab](#gitlab)
 - [Container Resource Tiers](#container-resource-tiers)
 - [Service Configuration Reference](#service-configuration-reference)
   - [Plugin Signatures](#plugin-signatures)
@@ -262,6 +263,78 @@ Docker Registry is a stateless, server-side application for storing and distribu
 | `GET /v2/<name>/tags/list` | List tags for a repository |
 
 **Note:** This is an API-only registry with no built-in web UI. For a UI, consider deploying a separate registry browser.
+
+---
+
+### GitLab
+
+**Self-hosted Git repository and DevOps platform**
+
+GitLab is a complete DevOps platform delivered as a single application, providing source code management, CI/CD, security, and more.
+
+| Property | Value |
+|----------|-------|
+| Image | `gitlab/gitlab-ce:latest` |
+| Port | 80 |
+| Tunnel | cloudflare |
+| Config Volume | `/etc/gitlab` |
+| Logs Volume | `/var/log/gitlab` |
+| Data Volume | `/var/opt/gitlab` |
+
+**Configuration:**
+
+| Input | Description |
+|-------|-------------|
+| `GITLAB_ROOT_PASSWORD` | Initial password for the root administrator account (minimum 8 characters) |
+| `GITLAB_OMNIBUS_CONFIG` | **Required.** GitLab configuration string. Must include your tunnel URL. |
+
+**Example Configuration:**
+```
+external_url 'https://your-tunnel-url.com'
+```
+
+> **Why is this required?** GitLab needs to know its external URL to correctly generate asset links, redirects, and clone URLs. Without this, you'll see a blank white page.
+
+**Use Cases:**
+- Self-hosted Git repositories
+- CI/CD pipelines
+- Code review and merge requests
+- Issue tracking and project management
+- Container registry (built-in)
+- Wiki and documentation
+- DevSecOps workflows
+
+**Access:**
+Open `https://<tunnel-url>` in your browser. Login with:
+- Username: `root`
+- Password: The password you configured
+
+**Important Notes:**
+
+1. **Resource Requirements**: GitLab is resource-intensive. **Minimum recommended: S_MED1 tier** (4GB+ RAM required, 8GB+ recommended for production).
+
+2. **Initial Startup**: First boot can take 5-10 minutes while GitLab initializes its components.
+
+3. **Built-in Features**:
+   - Container Registry (port 5050)
+   - Package Registry
+   - Terraform state management
+   - Kubernetes integration
+
+4. **SSH Access**: Git SSH operations are not available through the tunnel. Use HTTPS for git operations:
+   ```bash
+   git clone https://<tunnel-url>/username/repo.git
+   ```
+
+**Features:**
+- Unlimited private repositories
+- Built-in CI/CD with GitLab Runner
+- Code review tools
+- Issue boards (Kanban)
+- Time tracking
+- Wikis per project
+- Snippets
+- Web IDE
 
 ---
 

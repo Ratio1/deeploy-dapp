@@ -52,6 +52,9 @@ const formatInputs = (inputs: Service['inputs']) => {
             if (input.placeholder) {
                 entry += `, placeholder: '${sanitizeString(input.placeholder)}'`;
             }
+            if (input.defaultValue) {
+                entry += `, defaultValue: '${sanitizeString(input.defaultValue)}'`;
+            }
             entry += ' },';
             return entry;
         })
@@ -219,11 +222,12 @@ const promptForInputs = async () => {
     let addAnother = true;
 
     while (addAnother) {
-        const { key, label, description, placeholder } = await inquirer.prompt<{
+        const { key, label, description, placeholder, defaultValue } = await inquirer.prompt<{
             key: string;
             label: string;
             description: string;
             placeholder: string;
+            defaultValue: string;
         }>([
             {
                 name: 'key',
@@ -251,11 +255,18 @@ const promptForInputs = async () => {
                 message: 'Placeholder example (optional, leave empty to skip):',
                 filter: (input: string) => input.trim(),
             },
+            {
+                name: 'defaultValue',
+                type: 'input',
+                message: 'Default value (optional, leave empty to skip):',
+                filter: (input: string) => input.trim(),
+            },
         ]);
 
         const input: KeyLabelEntry = { key, label };
         if (description) input.description = description;
         if (placeholder) input.placeholder = placeholder;
+        if (defaultValue) input.defaultValue = defaultValue;
 
         inputs.push(input);
 
@@ -694,6 +705,7 @@ const printSummary = (service: Service) => {
             let line = `  ${index + 1}. key="${colorValue(input.key)}", label="${colorValue(input.label)}"`;
             if (input.description) line += `, description="${colorValue(input.description)}"`;
             if (input.placeholder) line += `, placeholder="${colorValue(input.placeholder)}"`;
+            if (input.defaultValue) line += `, defaultValue="${colorValue(input.defaultValue)}"`;
             console.log(line);
         });
     } else {

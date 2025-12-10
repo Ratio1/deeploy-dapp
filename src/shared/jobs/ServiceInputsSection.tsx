@@ -9,7 +9,7 @@ import DeeployInfoAlert from './DeeployInfoAlert';
 export default function ServiceInputsSection({
     inputs,
 }: {
-    inputs: { key: string; label: string; description?: string; placeholder?: string }[];
+    inputs: { key: string; label: string; description?: string; placeholder?: string; defaultValue?: string }[];
 }) {
     const { control, setValue } = useFormContext();
 
@@ -32,7 +32,7 @@ export default function ServiceInputsSection({
             setValue(
                 'deployment.inputs',
                 inputs.map((input) => {
-                    let value = '';
+                    let value = input.defaultValue ?? '';
 
                     if (isKeySecret(input.key)) {
                         value = generateSecurePassword();
