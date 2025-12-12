@@ -4,6 +4,7 @@ import Plugins from '@components/create-job/steps/Plugins';
 import Services from '@components/create-job/steps/Services';
 import Specifications from '@components/create-job/steps/Specifications';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
+import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { getRunningService } from '@data/containerResources';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -122,18 +123,27 @@ export default function JobEditFormWrapper({
         ...getGenericSpecificDeploymentDefaults(config),
     });
 
-    const getNativePluginSchemaDefaults = (pluginInfo: AppsPlugin & { signature: string }) => ({
-        basePluginType: BasePluginType.Native,
+    const getNativePluginSchemaDefaults = (pluginInfo: AppsPlugin & { signature: string }) => {
+        const isKnownSignature = PLUGIN_SIGNATURE_TYPES.includes(
+            pluginInfo.signature as (typeof PLUGIN_SIGNATURE_TYPES)[number],
+        );
 
-        // Signature
-        pluginSignature: pluginInfo.signature,
+        return {
+            basePluginType: BasePluginType.Native,
 
-        // Tunneling
-        ...getBaseSchemaTunnelingDefaults(pluginInfo.instance_conf),
+            // Signature - if not in the predefined list, select CUSTOM and pre-fill customPluginSignature
+            pluginSignature: isKnownSignature
+                ? pluginInfo.signature
+                : PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1],
+            customPluginSignature: isKnownSignature ? undefined : pluginInfo.signature,
 
-        // Custom Parameters
-        customParams: formatCustomParams(pluginInfo.instance_conf),
-    });
+            // Tunneling
+            ...getBaseSchemaTunnelingDefaults(pluginInfo.instance_conf),
+
+            // Custom Parameters
+            customParams: formatCustomParams(pluginInfo.instance_conf),
+        };
+    };
 
     const getBaseSchemaDefaults = (config: JobConfig = jobConfig) => ({
         jobType: job.resources.jobType,
