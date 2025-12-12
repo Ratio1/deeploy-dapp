@@ -148,6 +148,11 @@ export default function KeyValueEntriesSection({
                                                         onChange={async (e) => {
                                                             const value = e.target.value;
                                                             field.onChange(value);
+
+                                                            // Re-validate on change if field has error to clear it immediately
+                                                            if (hasError) {
+                                                                await trigger(`${name}.${index}.key`);
+                                                            }
                                                         }}
                                                         onBlur={async () => {
                                                             field.onBlur();
@@ -183,9 +188,14 @@ export default function KeyValueEntriesSection({
                                                     <StyledInput
                                                         placeholder={placeholders[1]}
                                                         value={field.value ?? ''}
-                                                        onChange={(e) => {
+                                                        onChange={async (e) => {
                                                             const value = e.target.value;
                                                             field.onChange(value);
+
+                                                            // Re-validate on change if field has error to clear it immediately
+                                                            if (hasError) {
+                                                                await trigger(`${name}.${index}.value`);
+                                                            }
                                                         }}
                                                         onBlur={async () => {
                                                             field.onBlur();
