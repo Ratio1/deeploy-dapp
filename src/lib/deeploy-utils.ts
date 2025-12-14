@@ -26,6 +26,7 @@ import {
 import {
     BasePluginType,
     ContainerDeploymentType,
+    CustomParameterEntry,
     GenericPlugin,
     NativePlugin,
     PluginType,
@@ -53,6 +54,41 @@ export const NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS: (keyof JobConfig)[] = [
     'PORT',
     'TUNNEL_ENGINE_ENABLED',
     'NGROK_USE_API',
+];
+
+// Keys that are system-managed and cannot be edited by users
+export const SYSTEM_MANAGED_JOB_CONFIG_KEYS: (keyof JobConfig)[] = [
+    'CHAINSTORE_PEERS',
+    'CHAINSTORE_RESPONSE_KEY',
+    'INSTANCE_ID',
+    'TUNNEL_ENGINE',
+    'NGROK_AUTH_TOKEN',
+    'NGROK_EDGE_LABEL',
+    'NGROK_USE_API',
+];
+
+// Keys that are editable via dedicated UI sections in generic job deployment
+export const GENERIC_JOB_UI_MANAGED_KEYS: (keyof JobConfig)[] = [
+    'ENV',
+    'DYNAMIC_ENV',
+    'VOLUMES',
+    'FILE_VOLUMES',
+    'CONTAINER_RESOURCES',
+    'PORT',
+    'TUNNEL_ENGINE_ENABLED',
+    'CLOUDFLARE_TOKEN',
+    'RESTART_POLICY',
+    'IMAGE_PULL_POLICY',
+    'IMAGE',
+    'VCS_DATA',
+    'CR_DATA',
+    'BUILD_AND_RUN_COMMANDS',
+];
+
+// Combined: all keys that should be excluded from custom parameters for generic jobs
+export const GENERIC_JOB_RESERVED_KEYS: (keyof JobConfig)[] = [
+    ...SYSTEM_MANAGED_JOB_CONFIG_KEYS,
+    ...GENERIC_JOB_UI_MANAGED_KEYS,
 ];
 
 export const getDiscountPercentage = (_paymentMonthsCount: number): number => {
@@ -287,6 +323,20 @@ const formatNativeJobCustomParams = (plugin: NativePlugin) => {
     return customParams;
 };
 
+const formatGenericJobCustomParams = (customParams: CustomParameterEntry[]) => {
+    const formatted: Record<string, any> = {};
+
+    if (!_.isEmpty(customParams)) {
+        customParams.forEach((param) => {
+            if (param.key) {
+                formatted[param.key] = parseIfJson(param.value);
+            }
+        });
+    }
+
+    return formatted;
+};
+
 export const formatGenericPluginConfigAndSignature = (
     resources: {
         cpu: number;
@@ -377,6 +427,8 @@ export const formatGenericJobPayload = (
         deployment,
     );
 
+    const customParams = formatGenericJobCustomParams(deployment.customParams);
+
     const nonce = generateDeeployNonce();
 
     return {
@@ -391,6 +443,7 @@ export const formatGenericJobPayload = (
             {
                 plugin_signature: pluginSignature,
                 ...pluginConfig,
+                ...customParams,
             },
         ],
         pipeline_input_type: 'void',
@@ -424,16 +477,20 @@ export const formatNativeJobPayload = (
     // Build plugins array
     const plugins = deployment.plugins.map((plugin) => {
         if (plugin.basePluginType === BasePluginType.Generic) {
-            const secondaryPluginNodeResources = formatContainerResources(workerType, (plugin as GenericPlugin).ports);
+            const genericPlugin = plugin as GenericPlugin;
+            const secondaryPluginNodeResources = formatContainerResources(workerType, genericPlugin.ports);
 
             const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
                 secondaryPluginNodeResources,
-                plugin as GenericPlugin,
+                genericPlugin,
             );
+
+            const customParams = formatGenericJobCustomParams(genericPlugin.customParams);
 
             return {
                 plugin_signature: pluginSignature,
                 ...pluginConfig,
+                ...customParams,
             };
         }
 

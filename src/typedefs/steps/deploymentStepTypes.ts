@@ -95,6 +95,9 @@ type GenericPlugin = {
     // Policies
     restartPolicy: (typeof POLICY_TYPES)[number];
     imagePullPolicy: (typeof POLICY_TYPES)[number];
+
+    // Custom Parameters
+    customParams: Array<CustomParameterEntry>;
 };
 
 type NativePlugin = {
@@ -143,6 +146,9 @@ type GenericJobDeployment = BaseJobDeployment & {
     // Policies
     restartPolicy: (typeof POLICY_TYPES)[number];
     imagePullPolicy: (typeof POLICY_TYPES)[number];
+
+    // Custom Parameters
+    customParams: Array<CustomParameterEntry>;
 };
 
 type NativeJobDeployment = BaseJobDeployment & {
