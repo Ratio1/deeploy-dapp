@@ -15,7 +15,12 @@ function GenericDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
         <div className="col gap-6">
             <SlateCard title="App Identity">
                 <div className="flex gap-4">
-                    <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="My App" />
+                    <InputWithLabel
+                        name="deployment.jobAlias"
+                        label="Alias"
+                        placeholder="My App"
+                        isDisabled={isEditingRunningJob}
+                    />
                 </div>
             </SlateCard>
 
