@@ -20,12 +20,13 @@ import toast from 'react-hot-toast';
 import {
     RiAddLine,
     RiDeleteBinLine,
+    RiEdit2Line,
     RiFileCloseLine,
     RiFileInfoLine,
-    RiPencilLine,
     RiRefreshLine,
     RiUserUnfollowLine,
 } from 'react-icons/ri';
+import { isAddress } from 'viem';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 
 type DelegatePermissionState = Record<DelegatePermissionKey, boolean>;
@@ -150,13 +151,23 @@ export default function EscrowDelegates() {
         const trimmedAddress = formAddress.trim() as EthAddress;
         const permissionsValue = stateToPermissions(formPermissions);
 
-        if (!trimmedAddress || !trimmedAddress.startsWith('0x') || trimmedAddress.length !== 42) {
+        if (!isAddress(trimmedAddress)) {
             toast.error('Enter a valid delegate address.');
             return;
         }
 
         if (permissionsValue === 0n) {
             toast.error('Select at least one permission.');
+            return;
+        }
+
+        if (trimmedAddress.toLowerCase() === ownerAddress?.toLowerCase()) {
+            toast.error('Cannot add owner address as delegate.');
+            return;
+        }
+
+        if (isZeroAddress(trimmedAddress)) {
+            toast.error('Cannot add zero address as delegate.');
             return;
         }
 
@@ -294,9 +305,9 @@ export default function EscrowDelegates() {
                         <div className="list">
                             <div className="hidden w-full rounded-xl border-2 border-slate-100 bg-slate-100 px-4 py-3 text-slate-500 lg:flex lg:gap-6 lg:px-6">
                                 <div className="compact flex w-full justify-between">
-                                    <div className="min-w-[200px]">Delegate</div>
-                                    <div className="min-w-[240px]">Permissions</div>
-                                    <div className="flex min-w-[120px] justify-end pr-1">Action</div>
+                                    <div className="min-w-[200px]">Address</div>
+                                    <div className="min-w-[280px]">Permissions</div>
+                                    <div className="min-w-[220px] text-right">Actions</div>
                                 </div>
                             </div>
 
@@ -306,55 +317,59 @@ export default function EscrowDelegates() {
                                 );
 
                                 return (
-                                    <div
-                                        key={delegate.address}
-                                        className="row w-full flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3 hover:border-slate-200"
-                                        onClick={() => openEditModal(delegate)}
-                                    >
-                                        <div className="col gap-1">
-                                            <CopyableValue value={delegate.address}>
-                                                <div className="font-roboto-mono text-sm font-medium">
-                                                    {getShortAddressOrHash(delegate.address, 6, true)}
-                                                </div>
-                                            </CopyableValue>
-                                        </div>
+                                    <BorderedCard key={delegate.address}>
+                                        <div className="row justify-between gap-6">
+                                            {/* Address */}
+                                            <div className="col min-w-[200px] gap-1">
+                                                <CopyableValue value={delegate.address}>
+                                                    <div className="font-roboto-mono text-sm font-medium text-slate-500">
+                                                        {getShortAddressOrHash(delegate.address, 6, true)}
+                                                    </div>
+                                                </CopyableValue>
+                                            </div>
 
-                                        <div className="row flex-wrap gap-1.5">
-                                            {activePermissions.length ? (
-                                                activePermissions.map((permission) => (
-                                                    <SmallTag key={permission.key}>{permission.label}</SmallTag>
-                                                ))
-                                            ) : (
-                                                <SmallTag>No permissions</SmallTag>
-                                            )}
-                                        </div>
+                                            {/* Permissions */}
+                                            <div className="row min-w-[280px] flex-wrap gap-1.5">
+                                                {activePermissions.length ? (
+                                                    activePermissions.map((permission) => (
+                                                        <SmallTag key={permission.key}>{permission.label}</SmallTag>
+                                                    ))
+                                                ) : (
+                                                    <SmallTag>No permissions</SmallTag>
+                                                )}
+                                            </div>
 
-                                        <div className="row gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="flat"
-                                                startContent={<RiPencilLine />}
-                                                onPress={() => {
-                                                    openEditModal(delegate);
-                                                }}
-                                            >
-                                                Edit
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                color="danger"
-                                                variant="flat"
-                                                startContent={<RiDeleteBinLine />}
-                                                onPress={() => {
-                                                    removeDelegate(delegate.address);
-                                                }}
-                                                isDisabled={!canManageDelegates || removingAddress === delegate.address}
-                                                isLoading={removingAddress === delegate.address}
-                                            >
-                                                Remove
-                                            </Button>
+                                            {/* Actions */}
+                                            <div className="row min-w-[220px] justify-end gap-2">
+                                                <Button
+                                                    className="gap-1.5"
+                                                    size="sm"
+                                                    variant="flat"
+                                                    startContent={<RiEdit2Line className="text-base" />}
+                                                    onPress={() => {
+                                                        openEditModal(delegate);
+                                                    }}
+                                                >
+                                                    Edit
+                                                </Button>
+
+                                                <Button
+                                                    className="gap-1.5"
+                                                    size="sm"
+                                                    color="danger"
+                                                    variant="flat"
+                                                    startContent={<RiDeleteBinLine className="text-base" />}
+                                                    onPress={() => {
+                                                        removeDelegate(delegate.address);
+                                                    }}
+                                                    isDisabled={!canManageDelegates || removingAddress === delegate.address}
+                                                    isLoading={removingAddress === delegate.address}
+                                                >
+                                                    Remove
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </BorderedCard>
                                 );
                             })}
                         </div>
@@ -366,6 +381,7 @@ export default function EscrowDelegates() {
                 isOpen={isModalOpen}
                 onOpenChange={(isOpen) => {
                     setModalOpen(isOpen);
+
                     if (!isOpen) {
                         resetForm();
                     }
@@ -384,6 +400,7 @@ export default function EscrowDelegates() {
                             Assign granular permissions to addresses allowed to act on your behalf on the Escrow smart contract.
                         </div>
                     </ModalHeader>
+
                     <ModalBody className="pb-2">
                         <div className="col gap-3">
                             <div className="col gap-2">
@@ -392,7 +409,7 @@ export default function EscrowDelegates() {
                                     placeholder="0x"
                                     value={formAddress}
                                     onValueChange={(value) => setFormAddress(value)}
-                                    isDisabled={!canManageDelegates || isSaving}
+                                    isDisabled={!canManageDelegates || isSaving || !!editingAddress}
                                 />
                             </div>
 
@@ -452,9 +469,10 @@ export default function EscrowDelegates() {
 
                                 {editingAddress && (
                                     <Button
+                                        className="gap-1.5"
                                         color="danger"
                                         variant="flat"
-                                        startContent={<RiDeleteBinLine />}
+                                        startContent={<RiDeleteBinLine className="text-lg" />}
                                         onPress={() => removeDelegate(editingAddress)}
                                         isDisabled={!canManageDelegates || removingAddress === editingAddress}
                                         isLoading={removingAddress === editingAddress}
@@ -464,8 +482,14 @@ export default function EscrowDelegates() {
                                 )}
                             </div>
 
-                            <Button color="primary" onPress={saveDelegate} isDisabled={!canSubmit} isLoading={isSaving}>
-                                Confirm
+                            <Button
+                                color="primary"
+                                startContent={<RiEdit2Line className="text-lg" />}
+                                onPress={saveDelegate}
+                                isDisabled={!canSubmit}
+                                isLoading={isSaving}
+                            >
+                                {editingAddress ? 'Update' : 'Confirm'}
                             </Button>
                         </div>
                     </ModalFooter>
