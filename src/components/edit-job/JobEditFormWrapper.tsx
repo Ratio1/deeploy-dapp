@@ -4,11 +4,18 @@ import Plugins from '@components/create-job/steps/Plugins';
 import Services from '@components/create-job/steps/Services';
 import Specifications from '@components/create-job/steps/Specifications';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
+import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { getRunningService } from '@data/containerResources';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { boolToBooleanType, isGenericPlugin, NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS, titlecase } from '@lib/deeploy-utils';
+import {
+    boolToBooleanType,
+    GENERIC_JOB_RESERVED_KEYS,
+    isGenericPlugin,
+    NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS,
+    titlecase,
+} from '@lib/deeploy-utils';
 import { Step, STEPS } from '@lib/steps/steps';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
@@ -111,6 +118,9 @@ export default function JobEditFormWrapper({
         // Policies
         restartPolicy: titlecase(config.RESTART_POLICY!),
         imagePullPolicy: titlecase(config.IMAGE_PULL_POLICY!),
+
+        // Custom Parameters
+        customParams: formatCustomParams(config, GENERIC_JOB_RESERVED_KEYS),
     });
 
     const getGenericPluginSchemaDefaults = (config: JobConfig) => ({
@@ -122,18 +132,27 @@ export default function JobEditFormWrapper({
         ...getGenericSpecificDeploymentDefaults(config),
     });
 
-    const getNativePluginSchemaDefaults = (pluginInfo: AppsPlugin & { signature: string }) => ({
-        basePluginType: BasePluginType.Native,
+    const getNativePluginSchemaDefaults = (pluginInfo: AppsPlugin & { signature: string }) => {
+        const isKnownSignature = PLUGIN_SIGNATURE_TYPES.includes(
+            pluginInfo.signature as (typeof PLUGIN_SIGNATURE_TYPES)[number],
+        );
 
-        // Signature
-        pluginSignature: pluginInfo.signature,
+        return {
+            basePluginType: BasePluginType.Native,
 
-        // Tunneling
-        ...getBaseSchemaTunnelingDefaults(pluginInfo.instance_conf),
+            // Signature - if not in the predefined list, select CUSTOM and pre-fill customPluginSignature
+            pluginSignature: isKnownSignature
+                ? pluginInfo.signature
+                : PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1],
+            customPluginSignature: isKnownSignature ? undefined : pluginInfo.signature,
 
-        // Custom Parameters
-        customParams: formatCustomParams(pluginInfo.instance_conf),
-    });
+            // Tunneling
+            ...getBaseSchemaTunnelingDefaults(pluginInfo.instance_conf),
+
+            // Custom Parameters
+            customParams: formatCustomParams(pluginInfo.instance_conf, NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS),
+        };
+    };
 
     const getBaseSchemaDefaults = (config: JobConfig = jobConfig) => ({
         jobType: job.resources.jobType,
@@ -252,11 +271,11 @@ export default function JobEditFormWrapper({
         ];
     };
 
-    const formatCustomParams = (config: JobConfig) => {
+    const formatCustomParams = (config: JobConfig, reservedKeys: (keyof JobConfig)[]) => {
         const customParams: CustomParameterEntry[] = [];
 
         Object.entries(config).forEach(([key, value]) => {
-            if (!NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS.includes(key as keyof JobConfig)) {
+            if (!reservedKeys.includes(key as keyof JobConfig)) {
                 const valueType = typeof value === 'string' ? 'string' : 'json';
 
                 let parsedValue: string = '';

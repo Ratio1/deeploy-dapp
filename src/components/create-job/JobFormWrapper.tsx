@@ -84,6 +84,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             },
             restartPolicy: POLICY_TYPES[0],
             imagePullPolicy: POLICY_TYPES[0],
+            customParams: [],
         },
     });
 

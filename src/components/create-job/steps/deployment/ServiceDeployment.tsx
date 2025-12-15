@@ -78,7 +78,12 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
         <div className="col gap-6">
             <SlateCard title="Service Identity">
                 <div className="flex gap-4">
-                    <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="Service" />
+                    <InputWithLabel
+                        name="deployment.jobAlias"
+                        label="Alias"
+                        placeholder="Service"
+                        isDisabled={isEditingRunningJob}
+                    />
                 </div>
             </SlateCard>
 

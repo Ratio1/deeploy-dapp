@@ -322,6 +322,7 @@ const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend
     fileVolumes: validations.fileVolumes,
     restartPolicy: validations.restartPolicy,
     imagePullPolicy: validations.imagePullPolicy,
+    customParams: validations.customParams,
 });
 
 export const genericAppDeploymentSchema = applyDeploymentTypeRefinements(
@@ -352,6 +353,9 @@ const genericPluginSchema = z.object({
     // Policies
     restartPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
     imagePullPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
+
+    // Custom Parameters
+    customParams: validations.customParams,
 });
 
 const nativePluginSchema = z.object({

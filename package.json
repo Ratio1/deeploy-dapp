@@ -2,7 +2,7 @@
     "name": "deeploy-dapp",
     "private": true,
     "type": "module",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "scripts": {
         "dev": "vite",
         "dev:logs": "vite --debug",

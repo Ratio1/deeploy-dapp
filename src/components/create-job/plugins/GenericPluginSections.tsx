@@ -2,6 +2,7 @@ import ConfigSectionTitle from '@components/job/config/ConfigSectionTitle';
 import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';
 import FileVolumesSection from '@shared/jobs/FileVolumesSection';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
+import CustomParametersSection from '@shared/jobs/native/CustomParametersSection';
 import PortMappingSection from '@shared/PortMappingSection';
 import AppParametersSection from '../sections/AppParametersSection';
 import PluginEnvVariablesSection from '../sections/PluginEnvVariablesSection';
@@ -34,6 +35,9 @@ export default function GenericPluginSections({ name }: { name: string }) {
 
             <ConfigSectionTitle title="Policies" />
             <PoliciesSection baseName={name} />
+
+            <ConfigSectionTitle title="Custom Parameters" />
+            <CustomParametersSection baseName={name} />
         </>
     );
 }
