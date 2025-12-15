@@ -6,18 +6,26 @@ import { Skeleton } from '@heroui/skeleton';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { getShortAddressOrHash, isZeroAddress } from '@lib/utils';
 import { Delegate, DELEGATE_PERMISSIONS, DelegatePermissionKey } from '@lib/permissions/delegates';
+import { getShortAddressOrHash, isZeroAddress } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
 import EmptyData from '@shared/EmptyData';
 import Label from '@shared/Label';
-import StyledInput from '@shared/StyledInput';
 import { SmallTag } from '@shared/SmallTag';
+import StyledInput from '@shared/StyledInput';
 import { EthAddress } from '@typedefs/blockchain';
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiAddLine, RiDeleteBinLine, RiFileInfoLine, RiPencilLine, RiRefreshLine, RiShieldUserLine } from 'react-icons/ri';
+import {
+    RiAddLine,
+    RiDeleteBinLine,
+    RiFileCloseLine,
+    RiFileInfoLine,
+    RiPencilLine,
+    RiRefreshLine,
+    RiUserUnfollowLine,
+} from 'react-icons/ri';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 
 type DelegatePermissionState = Record<DelegatePermissionKey, boolean>;
@@ -224,27 +232,23 @@ export default function EscrowDelegates() {
                     </div>
 
                     <div className="compact text-slate-600">
-                        Delegated addresses will be able to operate on the Escrow smart contract like the owner, within the
-                        permissions you assign. Only add addresses you fully trust. The owner remains responsible for every
-                        on-chain operation executed by delegates.
+                        Delegate addresses can use the Escrow smart contract on your behalf, limited to the permissions you
+                        grant. Only add addresses you trust completely. As the owner, you remain responsible for every on-chain
+                        operation executed by your delegates.
                     </div>
                 </div>
             </BorderedCard>
 
             <BorderedCard>
                 <div className="row flex-wrap items-center justify-between gap-3">
-                    <div className="col gap-1">
-                        <div className="text-lg font-semibold">Delegates</div>
-                        <div className="compact text-slate-600">
-                            View who can act on your escrow and update their permissions.
-                        </div>
-                    </div>
+                    <div className="text-lg font-semibold">Delegates</div>
 
                     <div className="row gap-2">
                         <Button
-                            size="sm"
-                            variant="light"
-                            startContent={<RiRefreshLine />}
+                            className="gap-1.5 border-2 border-slate-200 bg-white data-[hover=true]:opacity-65!"
+                            variant="solid"
+                            color="default"
+                            startContent={<RiRefreshLine className="text-lg" />}
                             onPress={() => fetchDelegates()}
                             isDisabled={isLoading}
                         >
@@ -252,12 +256,13 @@ export default function EscrowDelegates() {
                         </Button>
 
                         <Button
+                            className="gap-1"
                             color="primary"
-                            startContent={<RiAddLine />}
+                            startContent={<RiAddLine className="text-lg" />}
                             onPress={openCreateModal}
                             isDisabled={!isEscrowReady || !hasWalletReady}
                         >
-                            New delegate
+                            Add delegate
                         </Button>
                     </div>
                 </div>
@@ -266,9 +271,9 @@ export default function EscrowDelegates() {
                     {!isEscrowReady ? (
                         <div className="center-all w-full py-6">
                             <EmptyData
-                                icon={<RiShieldUserLine />}
+                                icon={<RiFileCloseLine />}
                                 title="Escrow not deployed"
-                                description="Deploy your escrow to add and view delegates."
+                                description="Deploy your escrow to add and view delegates"
                             />
                         </div>
                     ) : isLoading ? (
@@ -280,9 +285,9 @@ export default function EscrowDelegates() {
                     ) : delegates.length === 0 ? (
                         <div className="center-all w-full py-6">
                             <EmptyData
-                                icon={<RiShieldUserLine />}
+                                icon={<RiUserUnfollowLine />}
                                 title="No delegates yet"
-                                description="Add a delegate to allow trusted automation or teammates."
+                                description="Add a delegate to allow trusted automation or teammates"
                             />
                         </div>
                     ) : (
@@ -374,17 +379,17 @@ export default function EscrowDelegates() {
             >
                 <ModalContent>
                     <ModalHeader className="flex flex-col gap-1">
-                        {editingAddress ? 'Edit delegate' : 'New delegate'}
+                        {editingAddress ? 'Edit delegate' : 'Add delegate'}
                         <div className="compact text-slate-500">
-                            Assign granular permissions to addresses allowed to act on your escrow.
+                            Assign granular permissions to addresses allowed to act on your behalf on the Escrow smart contract.
                         </div>
                     </ModalHeader>
                     <ModalBody className="pb-2">
                         <div className="col gap-3">
                             <div className="col gap-2">
-                                <Label value="Delegate address" />
+                                <Label value="Delegate address (Ethereum)" />
                                 <StyledInput
-                                    placeholder="0x..."
+                                    placeholder="0x"
                                     value={formAddress}
                                     onValueChange={(value) => setFormAddress(value)}
                                     isDisabled={!canManageDelegates || isSaving}
@@ -399,7 +404,7 @@ export default function EscrowDelegates() {
                                     </SmallTag>
                                 </div>
 
-                                <div className="grid gap-3 md:grid-cols-2">
+                                <div className="col gap-2">
                                     {DELEGATE_PERMISSIONS.map((permission) => (
                                         <div key={permission.key} className="h-full">
                                             <div className="col h-full rounded-lg border border-slate-200 bg-white px-3 py-3 shadow-none">
@@ -413,15 +418,15 @@ export default function EscrowDelegates() {
                                                     }
                                                     isReadOnly={isPermissionsLocked}
                                                     classNames={{
-                                                        base: `w-full items-start gap-3 ${isPermissionsLocked ? 'pointer-events-none opacity-60' : ''}`,
+                                                        base: `w-full items-start gap-2 ${isPermissionsLocked ? 'pointer-events-none opacity-60' : ''}`,
                                                         wrapper: 'mt-1 mr-1',
-                                                        label: 'col gap-0.5',
+                                                        label: 'col',
                                                         icon: 'text-white',
                                                     }}
                                                     radius="sm"
                                                     color="primary"
                                                 >
-                                                    <div className="font-medium text-slate-700">{permission.label}</div>
+                                                    <div className="text-[15px] font-medium">{permission.label}</div>
                                                     <div className="compact text-slate-500">{permission.description}</div>
                                                 </Checkbox>
                                             </div>
@@ -432,17 +437,19 @@ export default function EscrowDelegates() {
 
                             {!canManageDelegates && (
                                 <div className="compact text-sm text-orange-500">
-                                    Connect with the escrow owner wallet to change delegates.
+                                    Connect with the wallet which owns the Escrow smart contract in order to change delegates.
                                 </div>
                             )}
                         </div>
                     </ModalBody>
-                    <ModalFooter className="pt-0">
+
+                    <ModalFooter className="pt-2">
                         <div className="row w-full justify-between gap-2">
                             <div className="row gap-2">
                                 <Button variant="flat" onPress={() => setModalOpen(false)}>
                                     Cancel
                                 </Button>
+
                                 {editingAddress && (
                                     <Button
                                         color="danger"
@@ -457,14 +464,8 @@ export default function EscrowDelegates() {
                                 )}
                             </div>
 
-                            <Button
-                                color="primary"
-                                startContent={editingAddress ? <RiPencilLine /> : <RiAddLine />}
-                                onPress={saveDelegate}
-                                isDisabled={!canSubmit}
-                                isLoading={isSaving}
-                            >
-                                {editingAddress ? 'Update delegate' : 'Add delegate'}
+                            <Button color="primary" onPress={saveDelegate} isDisabled={!canSubmit} isLoading={isSaving}>
+                                Confirm
                             </Button>
                         </div>
                     </ModalFooter>
