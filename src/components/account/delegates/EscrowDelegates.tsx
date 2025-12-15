@@ -7,7 +7,7 @@ import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { Delegate, DELEGATE_PERMISSIONS, DelegatePermissionKey } from '@lib/permissions/delegates';
-import { getShortAddressOrHash, isZeroAddress } from '@lib/utils';
+import { applyWidthClasses, getShortAddressOrHash, isZeroAddress } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
 import EmptyData from '@shared/EmptyData';
@@ -37,6 +37,12 @@ const createEmptyPermissionState = (): DelegatePermissionState => ({
     extendNodes: false,
     redeemUnused: false,
 });
+
+const widthClasses = [
+    'min-w-[160px]', // Address
+    'min-w-[380px]', // Permissions
+    'min-w-[180px]', // Actions
+];
 
 export default function EscrowDelegates() {
     const { escrowContractAddress } = useDeploymentContext() as DeploymentContextType;
@@ -305,9 +311,8 @@ export default function EscrowDelegates() {
                         <div className="list">
                             <div className="hidden w-full rounded-xl border-2 border-slate-100 bg-slate-100 px-4 py-3 text-slate-500 lg:flex lg:gap-6 lg:px-6">
                                 <div className="compact flex w-full justify-between">
-                                    <div className="min-w-[200px]">Address</div>
-                                    <div className="min-w-[280px]">Permissions</div>
-                                    <div className="min-w-[220px] text-right">Actions</div>
+                                    {applyWidthClasses(['Address', 'Permissions'], widthClasses)}
+                                    <div className={`${widthClasses[2]} text-right`}>Actions</div>
                                 </div>
                             </div>
 
@@ -320,7 +325,7 @@ export default function EscrowDelegates() {
                                     <BorderedCard key={delegate.address}>
                                         <div className="row justify-between gap-6">
                                             {/* Address */}
-                                            <div className="col min-w-[200px] gap-1">
+                                            <div className={`col ${widthClasses[0]} gap-1`}>
                                                 <CopyableValue value={delegate.address}>
                                                     <div className="font-roboto-mono text-sm font-medium text-slate-500">
                                                         {getShortAddressOrHash(delegate.address, 6, true)}
@@ -329,7 +334,7 @@ export default function EscrowDelegates() {
                                             </div>
 
                                             {/* Permissions */}
-                                            <div className="row min-w-[280px] flex-wrap gap-1.5">
+                                            <div className={`row ${widthClasses[1]} flex-wrap gap-1.5`}>
                                                 {activePermissions.length ? (
                                                     activePermissions.map((permission) => (
                                                         <SmallTag key={permission.key}>{permission.label}</SmallTag>
@@ -340,7 +345,7 @@ export default function EscrowDelegates() {
                                             </div>
 
                                             {/* Actions */}
-                                            <div className="row min-w-[220px] justify-end gap-2">
+                                            <div className={`row ${widthClasses[2]} justify-end gap-2`}>
                                                 <Button
                                                     className="gap-1.5"
                                                     size="sm"
