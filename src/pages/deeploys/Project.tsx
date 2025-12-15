@@ -5,6 +5,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
+import { DetailedAlert } from '@shared/DetailedAlert';
 import ProjectIdentity from '@shared/jobs/projects/ProjectIdentity';
 import Payment from '@shared/projects/Payment';
 import { Apps } from '@typedefs/deeployApi';
@@ -13,6 +14,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
+import { RiAlertLine } from 'react-icons/ri';
 import { usePublicClient } from 'wagmi';
 
 export default function Project() {
@@ -24,6 +26,7 @@ export default function Project() {
         setProjectPage,
         getProjectName,
         fetchRunningJobsWithDetails,
+        hasEscrowPermission,
     } = useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
@@ -87,6 +90,20 @@ export default function Project() {
 
     if (isLoading || draftJobs === null) {
         return <ProjectPageLoading />;
+    }
+
+    if (!hasEscrowPermission('createJobs')) {
+        return (
+            <div className="center-all flex-1">
+                <DetailedAlert
+                    variant="red"
+                    icon={<RiAlertLine />}
+                    title="Permission required"
+                    description={<div>You do not have permission to create new jobs.</div>}
+                    isCompact
+                />
+            </div>
+        );
     }
 
     if (!projectHash || !projectName || draftJobs === undefined) {

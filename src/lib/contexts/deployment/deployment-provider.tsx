@@ -1,7 +1,10 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
+import { PoAIManagerAbi } from '@blockchain/PoAIManager';
 import { getApps } from '@lib/api/deeploy';
-import { getDevAddress, isUsingDevAddress } from '@lib/config';
+import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
+import { ALL_DELEGATE_PERMISSIONS_MASK, DelegatePermissionKey, hasDelegatePermission } from '@lib/permissions/delegates';
+import { isZeroAddress } from '@lib/utils';
 import { SigningModal } from '@shared/SigningModal';
 import { EthAddress, R1Address } from '@typedefs/blockchain';
 import { Apps, AppsPlugin, DeeploySpecs, JobConfig, PipelineData } from '@typedefs/deeployApi';
@@ -10,7 +13,7 @@ import _ from 'lodash';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
-import { DeploymentContext, ProjectOverviewTab } from './context';
+import { DeploymentContext, EscrowAccess, ProjectOverviewTab } from './context';
 
 export const DeploymentProvider = ({ children }) => {
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
@@ -33,6 +36,8 @@ export const DeploymentProvider = ({ children }) => {
     const [projectOverviewTab, setProjectOverviewTab] = useState<ProjectOverviewTab>('runningJobs');
 
     const [escrowContractAddress, setEscrowContractAddress] = useState<EthAddress | undefined>();
+    const [escrowOwner, setEscrowOwner] = useState<EthAddress | undefined>();
+    const [currentUserPermissions, setCurrentUserPermissions] = useState<bigint | undefined>();
 
     const signMessageModalRef = useRef<{
         open: () => void;
@@ -119,6 +124,76 @@ export const DeploymentProvider = ({ children }) => {
         }
     };
 
+    const fetchEscrowAccess = async (account?: EthAddress): Promise<EscrowAccess | undefined> => {
+        if (!publicClient) {
+            toast.error('Please connect your wallet and refresh this page.');
+            return;
+        }
+
+        const userAddress = account ?? address;
+        if (!userAddress) {
+            toast.error('Please connect your wallet.');
+            return;
+        }
+
+        try {
+            const [isActive, escrowAddress] = await publicClient.readContract({
+                address: config.poAIManagerContractAddress,
+                abi: PoAIManagerAbi,
+                functionName: 'getAddressRegistration',
+                args: [userAddress],
+            });
+
+            if (!isActive || !escrowAddress || isZeroAddress(escrowAddress)) {
+                setEscrowContractAddress(undefined);
+                setEscrowOwner(undefined);
+                setCurrentUserPermissions(undefined);
+                return { isOwner: false };
+            }
+
+            setEscrowContractAddress(escrowAddress);
+
+            const ownerAddress = await publicClient.readContract({
+                address: escrowAddress,
+                abi: CspEscrowAbi,
+                functionName: 'cspOwner',
+            });
+
+            setEscrowOwner(ownerAddress);
+
+            const isOwner = ownerAddress?.toLowerCase() === userAddress.toLowerCase();
+
+            if (isOwner) {
+                setCurrentUserPermissions(ALL_DELEGATE_PERMISSIONS_MASK);
+                return {
+                    escrowAddress: escrowAddress,
+                    owner: ownerAddress,
+                    permissions: ALL_DELEGATE_PERMISSIONS_MASK,
+                    isOwner,
+                };
+            }
+
+            const delegatePermissions = await publicClient.readContract({
+                address: escrowAddress,
+                abi: CspEscrowAbi,
+                functionName: 'getDelegatePermissions',
+                args: [userAddress],
+            });
+
+            setCurrentUserPermissions(delegatePermissions);
+
+            return {
+                escrowAddress: escrowAddress,
+                owner: ownerAddress,
+                permissions: delegatePermissions,
+                isOwner,
+            };
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to fetch escrow access details.');
+        }
+    };
+
     const fetchRunningJobsWithDetails = async (
         appsOverride?: Apps,
     ): Promise<{
@@ -138,6 +213,13 @@ export const DeploymentProvider = ({ children }) => {
 
         const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(runningJobs, appsOverride);
         return { runningJobs, runningJobsWithDetails };
+    };
+
+    const hasEscrowPermission = (permission: DelegatePermissionKey): boolean => {
+        if (currentUserPermissions === undefined) {
+            return false;
+        }
+        return hasDelegatePermission(currentUserPermissions, permission);
     };
 
     const formatRunningJobsWithDetails = (runningJobs: readonly RunningJob[], appsOverride?: Apps): RunningJobWithDetails[] => {
@@ -308,6 +390,12 @@ export const DeploymentProvider = ({ children }) => {
                 // Escrow
                 escrowContractAddress,
                 setEscrowContractAddress,
+                escrowOwner,
+                setEscrowOwner,
+                currentUserPermissions,
+                setCurrentUserPermissions,
+                fetchEscrowAccess,
+                hasEscrowPermission,
             }}
         >
             {children}

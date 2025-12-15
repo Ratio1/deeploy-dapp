@@ -1,9 +1,17 @@
+import { DelegatePermissionKey } from '@lib/permissions/delegates';
 import { EthAddress } from '@typedefs/blockchain';
 import { Apps } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
-import { createContext } from 'react';
+import { createContext, Dispatch, SetStateAction } from 'react';
 
 export type ProjectOverviewTab = 'runningJobs' | 'draftJobs';
+
+export type EscrowAccess = {
+    escrowAddress?: EthAddress;
+    owner?: EthAddress;
+    permissions?: bigint;
+    isOwner: boolean;
+};
 
 export interface DeploymentContextType {
     // Form-related
@@ -38,7 +46,13 @@ export interface DeploymentContextType {
 
     // Escrow
     escrowContractAddress: EthAddress | undefined;
-    setEscrowContractAddress: React.Dispatch<React.SetStateAction<EthAddress | undefined>>;
+    setEscrowContractAddress: Dispatch<SetStateAction<EthAddress | undefined>>;
+    escrowOwner: EthAddress | undefined;
+    setEscrowOwner: Dispatch<SetStateAction<EthAddress | undefined>>;
+    currentUserPermissions: bigint | undefined;
+    setCurrentUserPermissions: Dispatch<SetStateAction<bigint | undefined>>;
+    fetchEscrowAccess: (account?: EthAddress) => Promise<EscrowAccess | undefined>;
+    hasEscrowPermission: (permission: DelegatePermissionKey) => boolean;
 }
 
 export const DeploymentContext = createContext<DeploymentContextType | null>(null);
