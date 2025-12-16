@@ -145,6 +145,8 @@ export default function LoginCard({ hasOracles }: { hasOracles: boolean }) {
         try {
             const [appsResult, secretsResult] = await Promise.allSettled([getApps(request), getSecrets(request)]);
 
+            console.log('Login', { appsResult, secretsResult });
+
             if (appsResult.status === 'rejected') {
                 throw appsResult.reason;
             }

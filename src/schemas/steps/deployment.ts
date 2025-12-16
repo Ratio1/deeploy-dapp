@@ -398,7 +398,9 @@ export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(
 
 const serviceAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     inputs: validations.envVars,
-    serviceReplica: nodeSchema.shape.address.optional(),
+    ports: validations.ports,
+    isPublicService: z.boolean().default(true),
+    // serviceReplica: nodeSchema.shape.address.optional(),
 });
 
 export const serviceAppDeploymentSchema = applyTunnelingRefinements(serviceAppDeploymentSchemaWihtoutRefinements);

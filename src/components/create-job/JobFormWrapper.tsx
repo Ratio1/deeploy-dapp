@@ -120,6 +120,8 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
+            ports: [],
+            isPublicService: true,
             envVars: [],
             inputs: [],
         },

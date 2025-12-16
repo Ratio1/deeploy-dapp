@@ -167,6 +167,8 @@ export default function DraftEditFormWrapper({
             deployment: {
                 ...baseDefaults.deployment,
                 inputs: cloneDeep(deployment.inputs),
+                ports: cloneDeep(deployment.ports ?? []),
+                isPublicService: deployment.isPublicService ?? true,
                 serviceReplica: deployment.serviceReplica ?? '',
             },
         } as z.infer<typeof jobSchema>;

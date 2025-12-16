@@ -215,6 +215,8 @@ export default function JobEditFormWrapper({
             ...getBaseSchemaDefaults().deployment,
             tunnelingLabel: jobConfig.NGROK_EDGE_LABEL || '',
             inputs: getEnvVars(jobConfig),
+            ports: getPortMappings(jobConfig),
+            isPublicService: !!(jobConfig.CLOUDFLARE_TOKEN || jobConfig.NGROK_AUTH_TOKEN),
         },
     });
 

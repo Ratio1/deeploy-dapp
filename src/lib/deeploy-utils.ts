@@ -536,7 +536,10 @@ export const formatServiceJobPayload = (
     deployment: ServiceJobDeployment,
 ) => {
     const jobTags = formatJobTags(specifications);
-    const containerResources = formatContainerResources(serviceContainerType, []);
+    const containerResources = formatContainerResources(
+        serviceContainerType,
+        deployment.isPublicService ? [] : deployment.ports,
+    );
     const targetNodes = formatNodes(deployment.targetNodes);
     const spareNodes = formatNodes(deployment.spareNodes);
 
@@ -558,7 +561,7 @@ export const formatServiceJobPayload = (
 
         // Tunneling
         PORT: formatPort(service.port),
-        TUNNEL_ENGINE_ENABLED: true, // Tunneling is always enabled for services
+        TUNNEL_ENGINE_ENABLED: deployment.isPublicService,
         TUNNEL_ENGINE: service.tunnelEngine,
 
         // Variables

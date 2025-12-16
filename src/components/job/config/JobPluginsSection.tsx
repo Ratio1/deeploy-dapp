@@ -48,24 +48,26 @@ export default function JobPluginsSection({ job }: { job: RunningJobWithResource
                 <div className="flex items-start justify-between">
                     <div className="text-lg font-semibold">Plugins</div>
 
-                    <div className="w-[240px]">
-                        <StyledSelect
-                            selectedKeys={[pluginConfig.signature]}
-                            onSelectionChange={(keys) => {
-                                const selectedKey = Array.from(keys)[0] as string;
-                                setPluginConfig(pluginConfigs.find((config) => config.signature === selectedKey)!);
-                            }}
-                            placeholder="Select a plugin"
-                        >
-                            {pluginConfigs.map((item) => (
-                                <SelectItem key={item.signature} textValue={item.signature}>
-                                    <div className="row gap-2 py-1">
-                                        <div className="font-medium">{item.signature}</div>
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </StyledSelect>
-                    </div>
+                    {job.resources.jobType !== JobType.Service && (
+                        <div className="w-[240px]">
+                            <StyledSelect
+                                selectedKeys={[pluginConfig.signature]}
+                                onSelectionChange={(keys) => {
+                                    const selectedKey = Array.from(keys)[0] as string;
+                                    setPluginConfig(pluginConfigs.find((config) => config.signature === selectedKey)!);
+                                }}
+                                placeholder="Select a plugin"
+                            >
+                                {pluginConfigs.map((item) => (
+                                    <SelectItem key={item.signature} textValue={item.signature}>
+                                        <div className="row gap-2 py-1">
+                                            <div className="font-medium">{item.signature}</div>
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                            </StyledSelect>
+                        </div>
+                    )}
                 </div>
 
                 <div className="col gap-4">

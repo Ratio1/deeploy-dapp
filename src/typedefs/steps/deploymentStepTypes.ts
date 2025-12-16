@@ -167,6 +167,8 @@ type NativeJobDeployment = BaseJobDeployment & {
 
 type ServiceJobDeployment = BaseJobDeployment & {
     inputs: Array<KeyValueEntry>;
+    ports: Array<PortMappingEntry>;
+    isPublicService: boolean;
     serviceReplica?: R1Address;
 };
 
