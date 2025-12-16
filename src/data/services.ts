@@ -199,37 +199,38 @@ const services: Service[] = [
         tunnelEngine: 'cloudflare',
         volumes: [{ key: 'registry_data', value: '/var/lib/registry' }],
     },
-    {
-        id: 8,
-        name: 'GitLab',
-        description: 'Self-hosted Git repository and DevOps platform',
-        image: 'gitlab/gitlab-ce:latest',
-        port: 80,
-        inputs: [
-            {
-                key: 'GITLAB_ROOT_PASSWORD',
-                label: 'GitLab Root Password',
-                description: 'Initial password for the root administrator account (min 8 characters)',
-                placeholder: 'my-secure-password',
-            },
-            {
-                key: 'GITLAB_OMNIBUS_CONFIG',
-                label: 'GitLab External URL Config',
-                description: 'Paste your tunnel URL inside the quotes',
-                placeholder: "external_url 'https://your-tunnel-url.com'",
-                defaultValue: "external_url ''",
-            },
-        ],
-        logo: 'gitlab.svg',
-        color: 'orange',
-        pluginSignature: 'CONTAINER_APP_RUNNER',
-        tunnelEngine: 'cloudflare',
-        volumes: [
-            { key: 'gitlab_config', value: '/etc/gitlab' },
-            { key: 'gitlab_logs', value: '/var/log/gitlab' },
-            { key: 'gitlab_data', value: '/var/opt/gitlab' },
-        ],
-    },
+    // TODO: @vitalii check the configuration
+    // {
+    //     id: 8,
+    //     name: 'GitLab',
+    //     description: 'Self-hosted Git repository and DevOps platform',
+    //     image: 'gitlab/gitlab-ce:latest',
+    //     port: 80,
+    //     inputs: [
+    //         {
+    //             key: 'GITLAB_ROOT_PASSWORD',
+    //             label: 'GitLab Root Password',
+    //             description: 'Initial password for the root administrator account (min 8 characters)',
+    //             placeholder: 'my-secure-password',
+    //         },
+    //         {
+    //             key: 'GITLAB_OMNIBUS_CONFIG',
+    //             label: 'GitLab External URL Config',
+    //             description: 'Paste your tunnel URL inside the quotes',
+    //             placeholder: "external_url 'https://your-tunnel-url.com'",
+    //             defaultValue: "external_url ''",
+    //         },
+    //     ],
+    //     logo: 'gitlab.svg',
+    //     color: 'orange',
+    //     pluginSignature: 'CONTAINER_APP_RUNNER',
+    //     tunnelEngine: 'cloudflare',
+    //     volumes: [
+    //         { key: 'gitlab_config', value: '/etc/gitlab' },
+    //         { key: 'gitlab_logs', value: '/var/log/gitlab' },
+    //         { key: 'gitlab_data', value: '/var/opt/gitlab' },
+    //     ],
+    // },
 
 ];
 
