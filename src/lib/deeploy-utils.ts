@@ -546,6 +546,8 @@ export const formatServiceJobPayload = (
     };
 
     const dynamicEnvVars = service.dynamicEnvVars ? formatDynamicEnvVars(service.dynamicEnvVars) : {};
+    const volumes = service.volumes ? formatVolumes(service.volumes) : {};
+    const fileVolumes = service.fileVolumes ? formatFileVolumes(service.fileVolumes) : {};
 
     const nonce = generateDeeployNonce();
 
@@ -562,6 +564,8 @@ export const formatServiceJobPayload = (
         // Variables
         ENV: envVars,
         DYNAMIC_ENV: dynamicEnvVars,
+        VOLUMES: volumes,
+        FILE_VOLUMES: fileVolumes,
         BUILD_AND_RUN_COMMANDS: service.buildAndRunCommands ?? [],
 
         // Policies

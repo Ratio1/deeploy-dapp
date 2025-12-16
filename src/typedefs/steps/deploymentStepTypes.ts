@@ -11,7 +11,13 @@ type KeyValueEntry = {
     value: string;
 };
 
-type KeyLabelEntry = { key: string; label: string };
+type KeyLabelEntry = {
+    key: string;
+    label: string;
+    description?: string;
+    placeholder?: string;
+    defaultValue?: string;
+};
 
 type CustomParameterEntry = KeyValueEntry & {
     valueType: 'string' | 'json';
@@ -173,6 +179,7 @@ export type {
     DeploymentType,
     DynamicEnvVarsEntry,
     DynamicEnvVarValue,
+    FileVolumesEntry,
     GenericJobDeployment,
     GenericPlugin,
     JobDeployment,
@@ -183,5 +190,6 @@ export type {
     Plugin,
     PortMappingEntry,
     ServiceJobDeployment,
+    VolumesEntry,
     WorkerDeploymentType,
 };

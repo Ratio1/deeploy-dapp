@@ -44,7 +44,20 @@ const formatInputs = (inputs: Service['inputs']) => {
     }
 
     const formatted = inputs
-        .map((input) => `${indent(3)}{ key: '${sanitizeString(input.key)}', label: '${sanitizeString(input.label)}' },`)
+        .map((input) => {
+            let entry = `${indent(3)}{ key: '${sanitizeString(input.key)}', label: '${sanitizeString(input.label)}'`;
+            if (input.description) {
+                entry += `, description: '${sanitizeString(input.description)}'`;
+            }
+            if (input.placeholder) {
+                entry += `, placeholder: '${sanitizeString(input.placeholder)}'`;
+            }
+            if (input.defaultValue) {
+                entry += `, defaultValue: '${sanitizeString(input.defaultValue)}'`;
+            }
+            entry += ' },';
+            return entry;
+        })
         .join('\n');
 
     return `${indent(2)}inputs: [\n${formatted}\n${indent(2)}],\n`;
@@ -209,7 +222,13 @@ const promptForInputs = async () => {
     let addAnother = true;
 
     while (addAnother) {
-        const { key, label } = await inquirer.prompt<{ key: string; label: string }>([
+        const { key, label, description, placeholder, defaultValue } = await inquirer.prompt<{
+            key: string;
+            label: string;
+            description: string;
+            placeholder: string;
+            defaultValue: string;
+        }>([
             {
                 name: 'key',
                 type: 'input',
@@ -224,9 +243,32 @@ const promptForInputs = async () => {
                 validate: (input: string) => (input.trim() ? true : 'Label cannot be empty.'),
                 filter: (input: string) => input.trim(),
             },
+            {
+                name: 'description',
+                type: 'input',
+                message: 'Description (optional, leave empty to skip):',
+                filter: (input: string) => input.trim(),
+            },
+            {
+                name: 'placeholder',
+                type: 'input',
+                message: 'Placeholder example (optional, leave empty to skip):',
+                filter: (input: string) => input.trim(),
+            },
+            {
+                name: 'defaultValue',
+                type: 'input',
+                message: 'Default value (optional, leave empty to skip):',
+                filter: (input: string) => input.trim(),
+            },
         ]);
 
-        inputs.push({ key, label });
+        const input: KeyLabelEntry = { key, label };
+        if (description) input.description = description;
+        if (placeholder) input.placeholder = placeholder;
+        if (defaultValue) input.defaultValue = defaultValue;
+
+        inputs.push(input);
 
         const response = await inquirer.prompt<{ continueAdding: boolean }>([
             {
@@ -660,7 +702,11 @@ const printSummary = (service: Service) => {
     if (service.inputs.length) {
         console.log('Inputs:');
         service.inputs.forEach((input, index) => {
-            console.log(`  ${index + 1}. key="${colorValue(input.key)}", label="${colorValue(input.label)}"`);
+            let line = `  ${index + 1}. key="${colorValue(input.key)}", label="${colorValue(input.label)}"`;
+            if (input.description) line += `, description="${colorValue(input.description)}"`;
+            if (input.placeholder) line += `, placeholder="${colorValue(input.placeholder)}"`;
+            if (input.defaultValue) line += `, defaultValue="${colorValue(input.defaultValue)}"`;
+            console.log(line);
         });
     } else {
         console.log(`Inputs: ${colorValue('[] (none)')}`);
