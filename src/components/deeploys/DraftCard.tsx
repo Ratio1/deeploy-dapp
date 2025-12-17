@@ -61,7 +61,7 @@ export default function DraftCard({ project }: { project: DraftProject }) {
                     <div className="min-w-[110px]">
                         {!!jobs && (
                             <div className="font-medium">
-                                {jobs.length} job{jobs.length > 1 ? 's' : ''}
+                                {jobs.length} job{jobs.length > 1 || jobs.length === 0 ? 's' : ''}
                             </div>
                         )}
                     </div>
