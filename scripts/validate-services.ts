@@ -11,7 +11,7 @@ const errors: string[] = [];
 
 for (const s of services as Service[]) {
     if (isNaN(s.port)) {
-        errors.push(`${s.name}: invalid ID`);
+        errors.push(`${s.name}: invalid port`);
     }
     if (s.description.length > 100) {
         errors.push(`${s.name}: Description too long`);
