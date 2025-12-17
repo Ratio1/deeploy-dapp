@@ -1,3 +1,5 @@
+'use client';
+
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
@@ -5,12 +7,13 @@ import { SmallTag } from '@shared/SmallTag';
 import { DraftJob, DraftProject } from '@typedefs/deeploys';
 import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import { useLiveQuery } from 'dexie-react-hooks';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 export default function JobDraftBreadcrumbs({ jobDraft }: { jobDraft: DraftJob }) {
     const { getProjectName, setProjectOverviewTab } = useDeploymentContext() as DeploymentContextType;
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
 
@@ -35,7 +38,7 @@ export default function JobDraftBreadcrumbs({ jobDraft }: { jobDraft: DraftJob }
     return (
         <div className="row gap-1.5">
             <Link
-                to={targetPath}
+                href={targetPath}
                 className="hover:underline"
                 onClick={(event) => {
                     event.preventDefault();
@@ -44,7 +47,7 @@ export default function JobDraftBreadcrumbs({ jobDraft }: { jobDraft: DraftJob }
                         setProjectOverviewTab('draftJobs');
                     }
 
-                    navigate(targetPath);
+                    router.push(targetPath);
                 }}
             >
                 <div className="text-xl font-semibold">{projectDraft?.name ?? getProjectName(jobDraft.projectHash)}</div>

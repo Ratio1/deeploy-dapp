@@ -1,3 +1,5 @@
+'use client';
+
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { DeeployFlowModal } from '@components/draft/DeeployFlowModal';
 import { formatResourcesSummary } from '@data/containerResources';
@@ -12,16 +14,16 @@ import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import { SmallTag } from '@shared/SmallTag';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { addDays, differenceInHours, max } from 'date-fns';
+import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 
 export default function JobExtension({ job }: { job: RunningJobWithResources }) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
     const { escrowContractAddress } = useDeploymentContext() as DeploymentContextType;
 
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const costPerEpoch: bigint = useMemo(() => {
         return (
@@ -65,7 +67,7 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
 
                 setTimeout(() => {
                     deeployFlowModalRef.current?.close();
-                    navigate(`${routePath.deeploys}/${routePath.job}/${Number(job!.id)}`);
+                    router.push(`${routePath.deeploys}/${routePath.job}/${Number(job!.id)}`);
                 }, 1000);
             }
         } catch (err: any) {

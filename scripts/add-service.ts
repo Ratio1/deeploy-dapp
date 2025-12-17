@@ -646,7 +646,7 @@ const promptForService = async (nextId: number, colorVariants: string[], dynamic
         port: answers.port,
         inputs,
         logo: answers.logo,
-        color: answers.color,
+        color: answers.color as Service['color'],
         pluginSignature: answers.pluginSignature,
         tunnelEngine: answers.tunnelEngine,
         envVars,

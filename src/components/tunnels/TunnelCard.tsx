@@ -1,3 +1,5 @@
+'use client';
+
 import { deleteTunnel } from '@lib/api/tunnels';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
@@ -8,15 +10,16 @@ import { CopyableValue } from '@shared/CopyableValue';
 import { SmallTag } from '@shared/SmallTag';
 import { Tunnel } from '@typedefs/tunnels';
 import clsx from 'clsx';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { RiExternalLinkLine, RiLinkM } from 'react-icons/ri';
-import { Link, useNavigate } from 'react-router-dom';
 
 export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; fetchTunnels: () => Promise<void> }) {
     const { tunnelingSecrets, openTunnelRenameModal, openTunnelTokenModal } = useTunnelsContext() as TunnelsContextType;
     const { confirm } = useInteractionContext() as InteractionContextType;
 
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const onDeleteTunnel = async () => {
         try {
@@ -44,7 +47,7 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
     };
 
     return (
-        <div onClick={() => navigate(`${routePath.tunnels}/${tunnel.id}`)}>
+        <div onClick={() => router.push(`${routePath.tunnels}/${tunnel.id}`)}>
             <BorderedCard isHoverable>
                 <div className="row justify-between gap-3 bg-white lg:gap-6">
                     <div className="row gap-2.5">
@@ -62,8 +65,9 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
 
                             <CopyableValue value={tunnel.url}>
                                 <Link
-                                    to={`https://${tunnel.url}`}
+                                    href={`https://${tunnel.url}`}
                                     target="_blank"
+                                    rel="noreferrer"
                                     onClick={(e) => e.stopPropagation()}
                                     className="cursor-pointer transition-all hover:opacity-60"
                                 >

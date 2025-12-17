@@ -11,8 +11,8 @@ import { RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import { addDays, differenceInDays, formatDistanceStrict } from 'date-fns';
 import _ from 'lodash';
+import Link from 'next/link';
 import { RiCalendarLine } from 'react-icons/ri';
-import { Link } from 'react-router-dom';
 
 export default function RunningCard({
     projectHash,
@@ -73,7 +73,7 @@ export default function RunningCard({
                         <div className="row gap-2">
                             <Expander expanded={expanded} onToggle={toggle} />
 
-                            <Link to={`${routePath.deeploys}/${routePath.project}/${projectHash}`} className="hover:opacity-75">
+                            <Link href={`${routePath.deeploys}/${routePath.project}/${projectHash}`} className="hover:opacity-75">
                                 {getProjectIdentity()}
                             </Link>
                         </div>
@@ -159,7 +159,7 @@ export default function RunningCard({
 
                                         <div className="w-[163px]">
                                             <Link
-                                                to={`${routePath.deeploys}/${routePath.job}/${job.id}`}
+                                                href={`${routePath.deeploys}/${routePath.job}/${job.id}`}
                                                 className="hover:opacity-75"
                                             >
                                                 <SmallTag variant={jobTypeOption.color}>

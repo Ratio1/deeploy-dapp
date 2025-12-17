@@ -1,6 +1,9 @@
+'use client';
+
 import { AppRoute, isParentRoute, routeInfo, routes } from '@lib/routes/routes';
 import clsx from 'clsx';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 function Navigation() {
     return (
@@ -15,14 +18,14 @@ function Navigation() {
 }
 
 function Route({ route }: { route: AppRoute }) {
-    const location = useLocation();
+    const pathname = usePathname() ?? '';
 
     return (
         <div className="col gap-1">
             <Link
-                to={route.path}
+                href={route.path}
                 className={clsx('min-w-40 cursor-pointer rounded-lg px-3 py-2.5 text-body transition-all hover:bg-[#dbecff]', {
-                    'bg-[#dbecff] text-primary!': location.pathname.includes(route.path),
+                    'bg-[#dbecff] text-primary!': pathname.includes(route.path),
                 })}
             >
                 <div className="row gap-2.5">
@@ -38,12 +41,12 @@ function Route({ route }: { route: AppRoute }) {
                     {route.children.map((child) => (
                         <Link
                             key={child.path}
-                            to={`${route.path}/${child.path}`}
+                            href={`${route.path}/${child.path}`}
                             className={clsx(
                                 'cursor-pointer py-1 text-[15px] font-medium text-slate-700 transition-all hover:opacity-60',
                                 {
                                     'text-primary! hover:opacity-100!':
-                                        location.pathname.includes(route.path) && location.pathname.includes(child.path),
+                                        pathname.includes(route.path) && pathname.includes(child.path),
                                 },
                             )}
                         >

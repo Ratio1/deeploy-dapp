@@ -1,4 +1,5 @@
 import { config } from '@lib/config';
+import { toApiError } from '@lib/api/apiError';
 import { EthAddress } from '@typedefs/blockchain';
 import { DeeployDefaultResponse, GetAppsResponse } from '@typedefs/deeployApi';
 import axios from 'axios';
@@ -98,7 +99,7 @@ export const axiosDeeploy = axios.create({
 
 axiosDeeploy.interceptors.request.use(
     async (config) => {
-        const token = localStorage.getItem('accessToken');
+        const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -114,25 +115,28 @@ axiosDeeploy.interceptors.response.use(
         return response;
     },
     async (error) => {
-        const originalRequest = error.config;
-        if (error.response.status === 401 && !originalRequest._retry) {
+        const status: number | undefined = error?.response?.status;
+        const originalRequest = error?.config;
+
+        if (status === 401 && originalRequest && !originalRequest._retry) {
             originalRequest._retry = true;
-            const refreshToken = localStorage.getItem('refreshToken');
+            const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
             if (refreshToken) {
-                return axiosDeeploy
-                    .post('/auth/refresh', {
-                        refreshToken: refreshToken,
-                    })
-                    .then((res) => {
-                        if (res.status === 200) {
-                            localStorage.setItem('accessToken', res.data.accessToken);
-                            return axiosDeeploy(originalRequest);
-                        }
+                try {
+                    const refreshClient = axios.create({ baseURL: config.deeployUrl });
+                    const res = await refreshClient.post('/auth/refresh', { refreshToken });
+
+                    if (res.status === 200 && typeof window !== 'undefined' && res.data?.accessToken) {
+                        localStorage.setItem('accessToken', res.data.accessToken);
                         return axiosDeeploy(originalRequest);
-                    });
+                    }
+                } catch (refreshError) {
+                    return Promise.reject(toApiError(refreshError, 'Session refresh failed.'));
+                }
             }
         }
-        return error.response;
+
+        return Promise.reject(toApiError(error, 'Deeploy request failed.'));
     },
 );
 

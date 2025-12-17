@@ -1,7 +1,8 @@
 import { config } from '@lib/config';
+import { toApiError } from '@lib/api/apiError';
 import { InvoiceDraft, PublicProfileInfo } from '@typedefs/general';
 import axios from 'axios';
-import * as types from 'typedefs/blockchain';
+import * as types from '@typedefs/blockchain';
 
 // Ratio1 dApp API
 const backendUrl = config.backendUrl;
@@ -88,10 +89,7 @@ export const downloadBurnReportCSV = async (start: string, end: string) => {
 };
 
 export const downloadBurnReportJSON = async (start: string, end: string) =>
-    downloadJsonFile(
-        `/burn-report/download-burn-report-json?startTime=${start}&endTime=${end}`,
-        'burn_report.json',
-    );
+    downloadJsonFile(`/burn-report/download-burn-report-json?startTime=${start}&endTime=${end}`, 'burn_report.json');
 
 export const getBrandingPlatforms = async () => _doGet<string[]>('/branding/get-platforms');
 
@@ -196,7 +194,7 @@ const axiosDapp = axios.create({
 
 axiosDapp.interceptors.request.use(
     async (config) => {
-        const token = localStorage.getItem('accessToken');
+        const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -212,24 +210,27 @@ axiosDapp.interceptors.response.use(
         return response;
     },
     async (error) => {
-        const originalRequest = error.config;
-        if (error.response.status === 401 && !originalRequest._retry) {
+        const status: number | undefined = error?.response?.status;
+        const originalRequest = error?.config;
+
+        if (status === 401 && originalRequest && !originalRequest._retry) {
             originalRequest._retry = true;
-            const refreshToken = localStorage.getItem('refreshToken');
+            const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
             if (refreshToken) {
-                return axiosDapp
-                    .post('/auth/refresh', {
-                        refreshToken: refreshToken,
-                    })
-                    .then((res) => {
-                        if (res.status === 200) {
-                            localStorage.setItem('accessToken', res.data.accessToken);
-                            return axiosDapp(originalRequest);
-                        }
+                try {
+                    const refreshClient = axios.create({ baseURL: backendUrl });
+                    const res = await refreshClient.post('/auth/refresh', { refreshToken });
+
+                    if (res.status === 200 && typeof window !== 'undefined' && res.data?.accessToken) {
+                        localStorage.setItem('accessToken', res.data.accessToken);
                         return axiosDapp(originalRequest);
-                    });
+                    }
+                } catch (refreshError) {
+                    return Promise.reject(toApiError(refreshError, 'Session refresh failed.'));
+                }
             }
         }
-        return error.response;
+
+        return Promise.reject(toApiError(error, 'Backend request failed.'));
     },
 );

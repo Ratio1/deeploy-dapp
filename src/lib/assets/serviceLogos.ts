@@ -1,29 +1,36 @@
-const serviceLogoLoaders = import.meta.glob<{ default: string }>(
-    '../../assets/services/*.{svg,png}'
-);
+const logoCache = new Map<string, Promise<string | null>>();
 
-const cachedLogos = new Map<string, string>();
+function preloadLogo(url: string): Promise<string | null> {
+    return new Promise((resolve) => {
+        const image = new Image();
+        image.onload = () => resolve(url);
+        image.onerror = () => resolve(null);
+        image.src = url;
+    });
+}
 
 /**
- * Lazily loads a service logo from the assets directory.
+ * Returns the public URL for a service logo.
  */
 export async function loadServiceLogo(filename: string): Promise<string | null> {
-    const key = `../../assets/services/${filename}`;
-    const loader = serviceLogoLoaders[key];
-
-    if (!loader) {
-        console.warn(`[loadServiceLogo] Logo not found for filename: ${filename}`);
+    if (!filename || typeof window === 'undefined') {
         return null;
     }
 
-    if (cachedLogos.has(key)) {
-        return cachedLogos.get(key) as string;
+    const cachedLogo = logoCache.get(filename);
+    if (cachedLogo) {
+        return cachedLogo;
     }
 
-    const module = (await loader()) as { default: string };
-    const logoUrl = module.default;
+    const logoUrl = `/services/${filename}`;
+    const logoPromise = preloadLogo(logoUrl).then((resolvedUrl) => {
+        if (!resolvedUrl) {
+            console.warn(`[loadServiceLogo] Logo not found for filename: ${filename}`);
+        }
 
-    cachedLogos.set(key, logoUrl);
+        return resolvedUrl;
+    });
 
-    return logoUrl;
+    logoCache.set(filename, logoPromise);
+    return logoPromise;
 }

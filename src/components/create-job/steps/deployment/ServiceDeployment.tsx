@@ -1,3 +1,5 @@
+'use client';
+
 import AppParametersSection from '@components/create-job/sections/AppParametersSection';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import services, { Service } from '@data/services';
@@ -15,18 +17,19 @@ import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import ServiceInputsSection from '@shared/jobs/ServiceInputsSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import PortMappingSection from '@shared/PortMappingSection';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { RiCodeSSlashLine } from 'react-icons/ri';
-import { Link, useParams } from 'react-router-dom';
 
 function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     const { setFormSubmissionDisabled, getProjectName } = useDeploymentContext() as DeploymentContextType;
     const { tunnelingSecrets } = useTunnelsContext() as TunnelsContextType;
 
     const { watch, setValue } = useFormContext();
-    const { projectHash } = useParams();
+    const { projectHash } = useParams<{ projectHash?: string }>();
 
     const serviceId: number = watch('serviceId');
     const alias: string = watch('deployment.jobAlias');
@@ -155,7 +158,7 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
                             text={
                                 <>
                                     Please add your{' '}
-                                    <Link to={routePath.tunnels} className="text-primary font-medium hover:opacity-70">
+                                    <Link href={routePath.tunnels} className="text-primary font-medium hover:opacity-70">
                                         Cloudflare secrets
                                     </Link>{' '}
                                     to enable tunnel generation.

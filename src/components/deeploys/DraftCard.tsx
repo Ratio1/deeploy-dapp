@@ -7,8 +7,8 @@ import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { SmallTag } from '@shared/SmallTag';
 import { DraftJob, DraftProject } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
+import Link from 'next/link';
 import { toast } from 'react-hot-toast';
-import { Link } from 'react-router-dom';
 
 export default function DraftCard({ project }: { project: DraftProject }) {
     const { confirm } = useInteractionContext() as InteractionContextType;
@@ -44,7 +44,7 @@ export default function DraftCard({ project }: { project: DraftProject }) {
     };
 
     return (
-        <Link to={`${routePath.deeploys}/${routePath.projectDraft}/${project.projectHash}`}>
+        <Link href={`${routePath.deeploys}/${routePath.projectDraft}/${project.projectHash}`}>
             <BorderedCard isHoverable>
                 <div className="row justify-between gap-3 text-sm lg:gap-6">
                     <div className="min-w-[132px]">

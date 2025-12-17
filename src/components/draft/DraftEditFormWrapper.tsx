@@ -1,3 +1,5 @@
+'use client';
+
 import JobFormButtons from '@components/create-job/JobFormButtons';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
@@ -12,9 +14,9 @@ import SubmitButton from '@shared/SubmitButton';
 import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { ContainerDeploymentType, DeploymentType, PluginType, WorkerDeploymentType } from '@typedefs/steps/deploymentStepTypes';
 import { cloneDeep } from 'lodash';
+import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
 import z from 'zod';
 
 const JOB_TYPE_STEPS: Record<JobType, Step[]> = {
@@ -32,7 +34,7 @@ export default function DraftEditFormWrapper({
 }) {
     const { step } = useDeploymentContext() as DeploymentContextType;
 
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const steps: Step[] = useMemo(() => (job.jobType ? JOB_TYPE_STEPS[job.jobType] : []), [job.jobType]);
 
@@ -224,7 +226,7 @@ export default function DraftEditFormWrapper({
                             <JobFormHeaderInterface
                                 steps={steps.map((step) => STEPS[step].title)}
                                 onCancel={() => {
-                                    navigate(-1);
+                                    router.back();
                                 }}
                             >
                                 <div className="row justify-between">

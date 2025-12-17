@@ -12,7 +12,6 @@ import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { RiPencilLine } from 'react-icons/ri';
-import { Link } from 'react-router-dom';
 import { useAccount, useSignMessage } from 'wagmi';
 import { z } from 'zod';
 
@@ -126,13 +125,14 @@ export default function TunnelingSecretsForm({
                                             <div>Need a walkthrough?</div>
                                             <div>
                                                 Read the{' '}
-                                                <Link
-                                                    to="https://ratio1.ai/blog/deeploy-secrets-setup-guide"
+                                                <a
+                                                    href="https://ratio1.ai/blog/deeploy-secrets-setup-guide"
                                                     target="_blank"
                                                     className="text-primary font-medium hover:opacity-70"
+                                                    rel="noreferrer"
                                                 >
                                                     Deeploy secrets setup guide
-                                                </Link>
+                                                </a>
                                                 .
                                             </div>
                                         </div>

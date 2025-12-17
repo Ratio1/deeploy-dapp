@@ -1,28 +1,28 @@
+'use client';
+
 import { routeInfo } from '@lib/routes/routes';
 import { ConnectKitButton } from 'connectkit';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
 
-function Content() {
+function Content({ children }: { children: React.ReactNode }) {
     const [title, setTitle] = useState<string>();
     const [description, setDescription] = useState<string>();
 
-    const location = useLocation();
+    const pathname = usePathname() ?? '';
 
     useEffect(() => {
-        // Exclude the root route
-        if (location.pathname.length > 1) {
-            // Sort keys first in order to prioritize child routes which are longer
+        if (pathname.length > 1) {
             const path = Object.keys(routeInfo)
                 .sort((a, b) => b.length - a.length)
-                .find((p) => location.pathname.startsWith(p));
+                .find((p) => pathname.startsWith(p));
 
             if (path) {
                 setTitle(routeInfo[path]?.title);
                 setDescription(routeInfo[path]?.description);
             }
         }
-    }, [location]);
+    }, [pathname]);
 
     return (
         <div className="col mx-auto h-full max-w-6xl gap-8 px-6 lg:gap-12 xl:px-10">
@@ -42,7 +42,7 @@ function Content() {
                 </div>
             </div>
 
-            <Outlet />
+            {children}
         </div>
     );
 }

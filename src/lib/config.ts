@@ -23,7 +23,7 @@ const configs: {
     [key in 'mainnet' | 'testnet' | 'devnet']: Config;
 } = {
     mainnet: {
-        deeployUrl: import.meta.env.VITE_API_URL as string,
+        deeployUrl: process.env.NEXT_PUBLIC_API_URL as string,
         backendUrl: 'https://dapp-api.ratio1.ai',
         oraclesUrl: 'https://oracle.ratio1.ai',
         poAIManagerContractAddress: '0xa8d7FFCE91a888872A9f5431B4Dd6c0c135055c1',
@@ -38,7 +38,7 @@ const configs: {
         networks: [base],
     },
     testnet: {
-        deeployUrl: import.meta.env.VITE_API_URL as string,
+        deeployUrl: process.env.NEXT_PUBLIC_API_URL as string,
         backendUrl: 'https://testnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://testnet-oracle.ratio1.ai',
         poAIManagerContractAddress: '0x68f825aA8fD4Af498c2998F4b165F103080574d4',
@@ -53,7 +53,7 @@ const configs: {
         networks: [baseSepolia],
     },
     devnet: {
-        deeployUrl: import.meta.env.VITE_API_URL as string,
+        deeployUrl: process.env.NEXT_PUBLIC_API_URL as string,
         backendUrl: 'https://devnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://devnet-oracle.ratio1.ai',
         poAIManagerContractAddress: '0xCc7C4e0f4f25b57807F34227Fb446E68c8c36ce5',
@@ -69,7 +69,7 @@ const configs: {
     },
 };
 
-export const environment: 'mainnet' | 'testnet' | 'devnet' = import.meta.env.VITE_ENVIRONMENT as
+export const environment: 'mainnet' | 'testnet' | 'devnet' = process.env.NEXT_PUBLIC_ENVIRONMENT as
     | 'mainnet'
     | 'testnet'
     | 'devnet';
@@ -90,7 +90,7 @@ export const getLicenseAssignEpoch = (assignTimestamp: bigint) =>
 export const getDevAddress = (): {
     address: EthAddress;
 } => ({
-    address: import.meta.env.VITE_DEV_ADDRESS,
+    address: process.env.NEXT_PUBLIC_DEV_ADDRESS as EthAddress,
 });
 
-export const isUsingDevAddress = process.env.NODE_ENV === 'development' && !!import.meta.env.VITE_DEV_ADDRESS;
+export const isUsingDevAddress = process.env.NODE_ENV === 'development' && !!(process.env.NEXT_PUBLIC_DEV_ADDRESS ?? '');
