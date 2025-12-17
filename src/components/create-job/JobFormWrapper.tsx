@@ -1,3 +1,5 @@
+'use client';
+
 import JobFormButtons from '@components/create-job/JobFormButtons';
 import JobFormHeader from '@components/create-job/JobFormHeader';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
@@ -17,10 +19,10 @@ import { isValidProjectHash } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
 import { DraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes';
+import { useParams } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { useParams } from 'react-router-dom';
 import { z } from 'zod';
 
 const JOB_TYPE_STEPS: Record<JobType, Step[]> = {
@@ -30,7 +32,7 @@ const JOB_TYPE_STEPS: Record<JobType, Step[]> = {
 };
 
 function JobFormWrapper({ projectName, draftJobsCount }) {
-    const { projectHash } = useParams();
+    const { projectHash } = useParams<{ projectHash?: string }>();
 
     const { step, jobType, setJobType, setProjectOverviewTab } = useDeploymentContext() as DeploymentContextType;
     const { account } = useAuthenticationContext() as AuthenticationContextType;

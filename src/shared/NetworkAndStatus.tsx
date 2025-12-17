@@ -9,6 +9,7 @@ function NetworkAndStatus() {
         queryFn: ping,
         retry: false,
     });
+    const appVersion = process.env.NEXT_PUBLIC_APP_VERSION ?? '';
 
     return (
         <div className="col gap-2">
@@ -29,9 +30,7 @@ function NetworkAndStatus() {
                 <div className="compact text-slate-600">API Status</div>
             </div>
 
-            {!!import.meta.env.VITE_APP_VERSION && (
-                <div className="compact pt-1 text-center text-slate-500">v{import.meta.env.VITE_APP_VERSION}</div>
-            )}
+            {!!appVersion && <div className="compact pt-1 text-center text-slate-500">v{appVersion}</div>}
         </div>
     );
 }

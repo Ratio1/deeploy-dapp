@@ -8,8 +8,8 @@ import ItemWithBoldValue from '@shared/jobs/ItemWithBoldValue';
 import { useQuery } from '@tanstack/react-query';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { isEmpty } from 'lodash';
+import Link from 'next/link';
 import { RiExternalLinkLine } from 'react-icons/ri';
-import { Link } from 'react-router-dom';
 import JobKeyValueSection from '../JobKeyValueSection';
 import JobSimpleTagsSection from '../JobSimpleTagsSection';
 import ConfigSectionTitle from './ConfigSectionTitle';
@@ -55,7 +55,7 @@ export default function JobDeploymentSection({ job }: { job: RunningJobWithResou
                         <Skeleton className="min-h-[28px] w-[224px] rounded-lg" />
                     ) : tunnelUrl ? (
                         <CopyableValue value={tunnelUrl}>
-                            <Link to={`https://${tunnelUrl}`} target="_blank" className="hover:opacity-70">
+                            <Link href={`https://${tunnelUrl}`} target="_blank" rel="noreferrer" className="hover:opacity-70">
                                 <div className="row text-primary gap-1">
                                     <div className="font-roboto-mono text-sm font-medium">{tunnelUrl}</div>
                                     <RiExternalLinkLine className="mb-px text-[17px]" />

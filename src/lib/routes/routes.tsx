@@ -1,18 +1,3 @@
-import NotFound from '@pages/404';
-import Account from '@pages/Account';
-import CreateProject from '@pages/deeploys/CreateProject';
-import Dashboard from '@pages/deeploys/Dashboard';
-import EditJobDraft from '@pages/deeploys/drafts/EditJobDraft';
-import ProjectDraft from '@pages/deeploys/drafts/ProjectDraft';
-import EditJob from '@pages/deeploys/job/EditJob';
-import ExtendJob from '@pages/deeploys/job/ExtendJob';
-import Job from '@pages/deeploys/job/Job';
-import LegacyRequester from '@pages/deeploys/LegacyRequester';
-import Monitor from '@pages/deeploys/Monitor';
-import Project from '@pages/deeploys/Project';
-import Home from '@pages/Home';
-import TunnelPage from '@pages/tunnels/TunnelPage';
-import Tunnels from '@pages/tunnels/Tunnels';
 import { JSX } from 'react';
 import { RiBox3Line, RiCodeSSlashLine, RiHomeLine, RiUser3Line } from 'react-icons/ri';
 import { routePath } from './route-paths';
@@ -22,24 +7,15 @@ export type BaseRoute = {
     icon?: JSX.Element;
 };
 
-export type SimpleRoute = BaseRoute & {
-    page: () => JSX.Element;
-};
-
 export type ChildRoute = {
     path: string;
-    page: () => JSX.Element;
 };
 
 export type ParentRoute = BaseRoute & {
     children: ChildRoute[];
 };
 
-export type AppRoute = SimpleRoute | ParentRoute;
-
-export function isSimpleRoute(route: AppRoute): route is SimpleRoute {
-    return 'page' in route;
-}
+export type AppRoute = ParentRoute | BaseRoute;
 
 export function isParentRoute(route: AppRoute): route is ParentRoute {
     return 'children' in route;
@@ -110,7 +86,6 @@ export const routeInfo = {
 export const routes: AppRoute[] = [
     {
         path: routePath.home,
-        page: Home,
         icon: <RiHomeLine />,
     },
     {
@@ -119,73 +94,57 @@ export const routes: AppRoute[] = [
         children: [
             {
                 path: routePath.dashboard,
-                page: Dashboard,
             },
             {
                 path: routePath.createProject,
-                page: CreateProject,
             },
             {
                 path: routePath.legacyRequester,
-                page: LegacyRequester,
             },
             {
                 path: routePath.monitor,
-                page: Monitor,
             },
         ],
     },
     {
         path: routePath.tunnels,
-        page: () => <Tunnels />,
         icon: <RiCodeSSlashLine />,
     },
     {
         path: routePath.account,
-        page: Account,
         icon: <RiUser3Line />,
     },
     // {
     //     path: routePath.docs,
-    //     page: Docs,
     //     icon: <RiFileTextLine />,
     // },
     // {
     //     path: routePath.support,
-    //     page: Support,
     //     icon: <RiHeadphoneLine />,
     // },
     // Routes which are not displayed in the main navigation
     {
         path: `${routePath.deeploys}/${routePath.projectDraft}/:projectHash`,
-        page: () => <ProjectDraft />,
     },
     {
         path: `${routePath.deeploys}/${routePath.jobDraft}/:draftId`,
-        page: () => <EditJobDraft />,
     },
     {
         path: `${routePath.deeploys}/${routePath.project}/:projectHash`,
-        page: () => <Project />,
     },
     {
         path: `${routePath.deeploys}/${routePath.job}/:jobId`,
-        page: () => <Job />,
     },
     {
         path: `${routePath.deeploys}/${routePath.job}/:jobId/${routePath.edit}`,
-        page: () => <EditJob />,
     },
     {
         path: `${routePath.deeploys}/${routePath.job}/:jobId/${routePath.extend}`,
-        page: () => <ExtendJob />,
     },
     {
         path: `${routePath.tunnels}/:id`,
-        page: () => <TunnelPage />,
     },
     {
         path: routePath.notFound,
-        page: NotFound,
     },
 ];

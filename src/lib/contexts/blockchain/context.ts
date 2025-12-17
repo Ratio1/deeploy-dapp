@@ -1,6 +1,6 @@
 import { createContext } from 'react';
-import * as types from 'typedefs/blockchain';
-import { EthAddress } from 'typedefs/blockchain';
+import * as types from '@typedefs/blockchain';
+import { EthAddress } from '@typedefs/blockchain';
 import { TransactionReceipt } from 'viem';
 
 export interface BlockchainContextType {

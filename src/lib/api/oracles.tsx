@@ -1,6 +1,7 @@
 import { config } from '@lib/config';
+import { toApiError } from '@lib/api/apiError';
 import axios from 'axios';
-import * as types from 'typedefs/blockchain';
+import * as types from '@typedefs/blockchain';
 
 const oraclesUrl = config.oraclesUrl;
 
@@ -90,6 +91,6 @@ axiosInstance.interceptors.response.use(
         return response;
     },
     async (error) => {
-        return error.response;
+        return Promise.reject(toApiError(error, 'Oracles request failed.'));
     },
 );

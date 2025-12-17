@@ -7,8 +7,8 @@ import ItemWithLabel from '@shared/ItemWithLabel';
 import DetailedUsage from '@shared/projects/DetailedUsage';
 import { SmallTag } from '@shared/SmallTag';
 import { RunningJobWithResources } from '@typedefs/deeploys';
+import Link from 'next/link';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import JobActions from '../JobActions';
 
 export default function RunningJobsList({
@@ -69,7 +69,7 @@ export default function RunningJobsList({
                                 {/* Negative margin takes into account the width of the Expander */}
                                 <div className="-mr-[30px]">
                                     <Link
-                                        to={`${routePath.deeploys}/${routePath.job}/${job.id.toString()}`}
+                                        href={`${routePath.deeploys}/${routePath.job}/${job.id.toString()}`}
                                         className="hover:opacity-75"
                                     >
                                         {renderAlias(job)}

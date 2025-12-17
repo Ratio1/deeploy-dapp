@@ -1,3 +1,5 @@
+'use client';
+
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { downloadDataAsJson } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
@@ -6,9 +8,9 @@ import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { SmallTag } from '@shared/SmallTag';
 import { PaidDraftJob } from '@typedefs/deeploys';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { RiAddLine } from 'react-icons/ri';
-import { useNavigate } from 'react-router-dom';
 
 interface Job {
     id: number;
@@ -28,7 +30,7 @@ export default function DraftJobsList({
     renderJob: (job: Job) => React.ReactNode;
     onAddJob: () => void;
 }) {
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const { confirm } = useInteractionContext() as InteractionContextType;
 
@@ -37,7 +39,7 @@ export default function DraftJobsList({
     };
 
     const onEditJob = (job: Job) => {
-        navigate(`${routePath.deeploys}/${routePath.jobDraft}/${job.id}`);
+        router.push(`${routePath.deeploys}/${routePath.jobDraft}/${job.id}`);
     };
 
     const onDeleteJob = async (job: Job) => {

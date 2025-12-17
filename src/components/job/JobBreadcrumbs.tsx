@@ -2,7 +2,7 @@ import { routePath } from '@lib/routes/route-paths';
 import { SmallTag } from '@shared/SmallTag';
 import { RunningJobWithResources } from '@typedefs/deeploys';
 import { JobTypeOption } from '@typedefs/jobType';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 export default function JobBreadcrumbs({
     job,
@@ -13,7 +13,7 @@ export default function JobBreadcrumbs({
 }) {
     return (
         <div className="row gap-1.5">
-            <Link to={`${routePath.deeploys}/${routePath.project}/${job.projectHash}`} className="hover:underline">
+            <Link href={`${routePath.deeploys}/${routePath.project}/${job.projectHash}`} className="hover:underline">
                 <div className="text-xl font-semibold">{job.projectName}</div>
             </Link>
 

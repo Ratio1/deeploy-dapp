@@ -1,3 +1,5 @@
+'use client';
+
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
@@ -7,9 +9,9 @@ import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
 import SupportFooter from '@shared/SupportFooter';
 import { DraftJob, JobType, type DraftProject } from '@typedefs/deeploys';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { RiDeleteBin2Line } from 'react-icons/ri';
-import { useNavigate } from 'react-router-dom';
 import DraftStats from './DraftStats';
 import GenericDraftJobsList from './job-lists/GenericDraftJobsList';
 import NativeDraftJobsList from './job-lists/NativeDraftJobsList';
@@ -25,7 +27,7 @@ export default function DraftOverview({
     projectIdentity: React.ReactNode;
 }) {
     const { confirm } = useInteractionContext() as InteractionContextType;
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const onDeleteProject = async () => {
         try {
@@ -37,7 +39,7 @@ export default function DraftOverview({
 
             await db.projects.delete(project.projectHash);
             toast.success('Project draft deleted successfully.');
-            navigate(`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`);
+            router.push(`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`);
         } catch (error) {
             console.error('Error deleting project draft:', error);
             toast.error('Failed to delete project draft.');

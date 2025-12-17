@@ -1,6 +1,5 @@
 import { Button } from '@heroui/button';
 import { RiTelegram2Line } from 'react-icons/ri';
-import { Link } from 'react-router-dom';
 
 export default function SupportFooter() {
     return (
@@ -17,9 +16,10 @@ export default function SupportFooter() {
                 color="default"
                 variant="flat"
                 size="sm"
-                as={Link}
-                to="https://t.me/Ratio1Protocol"
+                as="a"
+                href="https://t.me/Ratio1Protocol"
                 target="_blank"
+                rel="noreferrer"
             >
                 <div className="row gap-1.5">
                     <div className="compact">Contact Support</div>
