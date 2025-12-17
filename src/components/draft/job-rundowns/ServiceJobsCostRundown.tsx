@@ -1,4 +1,6 @@
-import { ContainerOrWorkerType, formatResourcesSummary, serviceContainerTypes } from '@data/containerResources';
+import { BaseContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
+import services, { Service } from '@data/services';
+import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
 import { ServiceDraftJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
@@ -15,13 +17,16 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceDraftJob
             jobs={jobs}
             renderJob={(job) => {
                 const serviceJob = job as ServiceDraftJob;
-                const containerType = serviceContainerTypes.find(
-                    (type) => type.name === serviceJob.specifications.containerType,
-                ) as ContainerOrWorkerType;
+                const containerType: BaseContainerOrWorkerType = getContainerOrWorkerType(
+                    serviceJob.jobType,
+                    serviceJob.specifications,
+                );
+                const service: Service = services.find((service) => service.id === serviceJob.serviceId)!;
 
                 const entries = [
-                    // Alias
+                    // Identity
                     { label: 'Alias', value: serviceJob.deployment.jobAlias },
+                    { label: 'Type', value: service.name },
                     // Specifications
                     { label: 'Target Nodes', value: serviceJob.specifications.targetNodesCount },
                     {

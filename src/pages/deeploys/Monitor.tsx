@@ -23,9 +23,10 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import _ from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiCalendarLine, RiDraftLine, RiTimeLine } from 'react-icons/ri';
+import { RiAlertLine, RiCalendarLine, RiDraftLine, RiTimeLine } from 'react-icons/ri';
 import { Link, useNavigate } from 'react-router-dom';
 import { usePublicClient, useWalletClient } from 'wagmi';
+import { DetailedAlert } from '@shared/DetailedAlert';
 
 type RunningJobWithDraft = RunningJob & {
     draftJob: DraftJob;
@@ -43,7 +44,7 @@ const widthClasses = [
 export default function Monitor() {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
     const { confirm } = useInteractionContext() as InteractionContextType;
-    const { escrowContractAddress, fetchRunningJobsWithDetails, setProjectOverviewTab } =
+    const { escrowContractAddress, fetchRunningJobsWithDetails, setProjectOverviewTab, hasEscrowPermission } =
         useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
@@ -119,8 +120,6 @@ export default function Monitor() {
         }
 
         try {
-            setClaimingFunds(true);
-
             let jobId: bigint | undefined;
 
             if ('draftJob' in job) {
@@ -140,6 +139,8 @@ export default function Monitor() {
             } else {
                 jobId = job.id;
             }
+
+            setClaimingFunds(true);
 
             signTxModalRef.current?.open();
 
@@ -193,6 +194,20 @@ export default function Monitor() {
         getJobs(paidDraftJobsRef.current);
     }, [publicClient, draftJobs, getJobs]);
 
+    if (!hasEscrowPermission('redeemUnused')) {
+        return (
+            <div className="center-all flex-1">
+                <DetailedAlert
+                    variant="red"
+                    icon={<RiAlertLine />}
+                    title="Permission required"
+                    description={<div>You do not have permission to redeem unused jobs.</div>}
+                    isCompact
+                />
+            </div>
+        );
+    }
+
     const refreshRunningJobs = useMemo(
         () =>
             _.throttle(
@@ -213,7 +228,7 @@ export default function Monitor() {
 
     const getOngoingStatus = (job: MonitoredJob) => {
         const hasJobStarted = job.startTimestamp > 0n;
-        const variant = hasJobStarted ? 'green' : 'default';
+        const variant = hasJobStarted ? 'green' : 'slate';
         const label = hasJobStarted ? 'Confirming' : 'Pending';
 
         return (

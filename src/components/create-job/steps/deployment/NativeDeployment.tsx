@@ -11,7 +11,12 @@ function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boole
     return (
         <div className="col gap-6">
             <SlateCard title="App Identity">
-                <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="My App" />
+                <InputWithLabel
+                    name="deployment.jobAlias"
+                    label="Alias"
+                    placeholder="My App"
+                    isDisabled={isEditingRunningJob}
+                />
             </SlateCard>
 
             <TargetNodesCard isEditingRunningJob={isEditingRunningJob} />

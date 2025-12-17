@@ -1,23 +1,27 @@
 import JobFormButtons from '@components/create-job/JobFormButtons';
-import CostAndDuration from '@components/create-job/steps/CostAndDuration';
-import Deployment from '@components/create-job/steps/Deployment';
-import Plugins from '@components/create-job/steps/Plugins';
-import Specifications from '@components/create-job/steps/Specifications';
-import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
+import services from '@data/services';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { MAIN_STEPS, Step, STEPS } from '@lib/steps/steps';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
+import { SmallTag } from '@shared/SmallTag';
 import SubmitButton from '@shared/SubmitButton';
 import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { ContainerDeploymentType, DeploymentType, PluginType, WorkerDeploymentType } from '@typedefs/steps/deploymentStepTypes';
 import { cloneDeep } from 'lodash';
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import z from 'zod';
+
+const JOB_TYPE_STEPS: Record<JobType, Step[]> = {
+    [JobType.Generic]: [...MAIN_STEPS],
+    [JobType.Native]: [...MAIN_STEPS, Step.PLUGINS],
+    [JobType.Service]: [...MAIN_STEPS], // Editing service type is disabled for now
+};
 
 export default function DraftEditFormWrapper({
     job,
@@ -30,13 +34,9 @@ export default function DraftEditFormWrapper({
 
     const navigate = useNavigate();
 
-    const [steps, setSteps] = useState<
-        | {
-              title: string;
-              validationName?: string;
-          }[]
-        | undefined
-    >();
+    const steps: Step[] = useMemo(() => (job.jobType ? JOB_TYPE_STEPS[job.jobType] : []), [job.jobType]);
+
+    const serviceId = job.jobType === JobType.Service ? (job as ServiceDraftJob).serviceId : undefined;
 
     const getBaseSchemaDeploymentDefaults = () => ({
         jobAlias: job.deployment.jobAlias,
@@ -56,7 +56,7 @@ export default function DraftEditFormWrapper({
     const getBaseSchemaDefaults = () => ({
         jobType: job.jobType,
         specifications: {
-            applicationType: job.specifications.applicationType ?? APPLICATION_TYPES[0],
+            // applicationType: job.specifications.applicationType ?? APPLICATION_TYPES[0],
             targetNodesCount: job.specifications.targetNodesCount,
             jobTags: [...(job.specifications.jobTags ?? [])],
             nodesCountries: [...(job.specifications.nodesCountries ?? [])],
@@ -159,13 +159,16 @@ export default function DraftEditFormWrapper({
 
         return {
             ...baseDefaults,
+            serviceId,
             specifications: {
                 ...baseDefaults.specifications,
-                containerType: serviceJob.specifications.containerType,
+                serviceContainerType: serviceJob.specifications.serviceContainerType,
             },
             deployment: {
                 ...baseDefaults.deployment,
                 inputs: cloneDeep(deployment.inputs),
+                ports: cloneDeep(deployment.ports ?? []),
+                isPublicService: deployment.isPublicService ?? true,
                 serviceReplica: deployment.serviceReplica ?? '',
             },
         } as z.infer<typeof jobSchema>;
@@ -196,67 +199,53 @@ export default function DraftEditFormWrapper({
         defaultValues: getDefaultSchemaValues(),
     });
 
-    useEffect(() => {
-        if (job) {
-            const defaultSteps: {
-                title: string;
-                validationName?: string;
-            }[] = [
-                { title: 'Specifications', validationName: 'specifications' },
-                ...(job.paid ? [] : [{ title: 'Cost & Duration', validationName: 'costAndDuration' }]),
-                { title: 'Deployment', validationName: 'deployment' },
-            ];
-
-            if (job.jobType === JobType.Native) {
-                defaultSteps.push({ title: 'Plugins' });
-            }
-
-            setSteps(defaultSteps);
-        }
-    }, [job]);
-
     const onError = (errors: FieldErrors<z.infer<typeof jobSchema>>) => {
         console.log(errors);
     };
+
+    const ActiveStep = useMemo(() => {
+        return STEPS[steps[step]].component;
+    }, [step, steps]);
+
+    const service = useMemo(() => {
+        if (job.jobType === JobType.Service && serviceId) {
+            return services.find((service) => service.id === serviceId);
+        }
+
+        return undefined;
+    }, [job.jobType, serviceId]);
 
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit, onError)} key={`${job.jobType}-draft-edit`}>
                 <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">
-                        {!!steps && (
-                            <div className="col gap-6">
-                                <JobFormHeaderInterface
-                                    steps={steps.map((step) => step.title)}
-                                    onCancel={() => {
-                                        navigate(-1);
-                                    }}
-                                >
+                        <div className="col gap-6">
+                            <JobFormHeaderInterface
+                                steps={steps.map((step) => STEPS[step].title)}
+                                onCancel={() => {
+                                    navigate(-1);
+                                }}
+                            >
+                                <div className="row justify-between">
                                     <div className="big-title">Edit Job Draft</div>
-                                </JobFormHeaderInterface>
 
-                                {job.paid ? (
-                                    <>
-                                        {step === 0 && <Specifications isJobPaid />}
-                                        {step === 1 && <Deployment />}
-                                        {step === 2 && <Plugins />}
-                                    </>
-                                ) : (
-                                    <>
-                                        {step === 0 && <Specifications />}
-                                        {step === 1 && <CostAndDuration />}
-                                        {step === 2 && <Deployment />}
-                                        {step === 3 && <Plugins />}
-                                    </>
-                                )}
+                                    {job.jobType === JobType.Service && (
+                                        <SmallTag variant={service?.color} isLarge>
+                                            {service?.name}
+                                        </SmallTag>
+                                    )}
+                                </div>
+                            </JobFormHeaderInterface>
 
-                                <JobFormButtons
-                                    steps={steps}
-                                    cancelLabel="Project"
-                                    customSubmitButton={<SubmitButton label="Update Draft" />}
-                                />
-                            </div>
-                        )}
+                            <ActiveStep />
+
+                            <JobFormButtons
+                                steps={steps.map((step) => STEPS[step])}
+                                cancelLabel="Project"
+                                customSubmitButton={<SubmitButton label="Update" />}
+                            />
+                        </div>
                     </div>
                 </div>
             </form>

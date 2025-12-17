@@ -6,7 +6,11 @@ import { useEffect, useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import DeeployInfoAlert from './DeeployInfoAlert';
 
-export default function ServiceInputsSection({ inputs }: { inputs: { key: string; label: string }[] }) {
+export default function ServiceInputsSection({
+    inputs,
+}: {
+    inputs: { key: string; label: string; description?: string; placeholder?: string; defaultValue?: string }[];
+}) {
     const { control, setValue } = useFormContext();
 
     const { fields } = useFieldArray({
@@ -19,35 +23,43 @@ export default function ServiceInputsSection({ inputs }: { inputs: { key: string
     const [hasGenerated, setGenerated] = useState(false);
 
     useEffect(() => {
+        console.log('[ServiceInputsSection]', { inputs, fields });
+
         // If a job/job draft is not being edited and we haven't attempted to auto-generate passwords yet
         if (!fields.length && !hasGenerated) {
+            console.log('Attempting to auto-generate passwords');
+
             setValue(
                 'deployment.inputs',
                 inputs.map((input) => {
-                    let value = '';
+                    let value = input.defaultValue ?? '';
 
                     if (isKeySecret(input.key)) {
                         value = generateSecurePassword();
+                        setGenerated(true);
                     }
 
                     return { key: input.key, value };
                 }),
             );
-
-            setGenerated(true);
         }
     }, [inputs, fields]);
+
+    if (!fields.length || !inputs.length) {
+        return null;
+    }
 
     return (
         <SlateCard title="Service Inputs">
             <div className="col gap-4">
                 <div className="col gap-2">
                     {typedFields.map((field, index) => (
-                        <div key={field.id}>
+                        <div key={`${field.id}-${field.key}`}>
                             <InputWithLabel
                                 name={`deployment.inputs.${index}.value`}
                                 label={inputs[index].label}
-                                placeholder="Required"
+                                placeholder={inputs[index].placeholder ?? 'None'}
+                                description={inputs[index].description}
                                 endContent={isKeySecret(field.key) ? 'copy' : undefined}
                                 hasSecretValue={isKeySecret(field.key)}
                             />

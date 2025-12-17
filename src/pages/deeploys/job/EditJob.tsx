@@ -3,7 +3,7 @@ import { DeeployFlowModal } from '@components/draft/DeeployFlowModal';
 import JobEditFormWrapper from '@components/edit-job/JobEditFormWrapper';
 import JobBreadcrumbs from '@components/job/JobBreadcrumbs';
 import EditJobPageLoading from '@components/loading/EditJobPageLoading';
-import { ContainerOrWorkerType } from '@data/containerResources';
+import { BaseContainerOrWorkerType, getRunningService } from '@data/containerResources';
 import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
 import { scaleUpJobWorkers, updatePipeline } from '@lib/api/deeploy';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
@@ -35,14 +35,16 @@ import {
 import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { RiArrowLeftLine } from 'react-icons/ri';
+import { RiAlertLine, RiArrowLeftLine } from 'react-icons/ri';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wagmi';
+import { DetailedAlert } from '@shared/DetailedAlert';
 import z from 'zod';
 
 export default function EditJob() {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
-    const { setFetchAppsRequired, setStep, escrowContractAddress } = useDeploymentContext() as DeploymentContextType;
+    const { setFetchAppsRequired, setStep, escrowContractAddress, hasEscrowPermission } =
+        useDeploymentContext() as DeploymentContextType;
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -144,6 +146,7 @@ export default function EditJob() {
                 case JobType.Service:
                     payload = formatServiceJobPayload(
                         job!.resources.containerOrWorkerType,
+                        getRunningService(job!.config.IMAGE)!,
                         data.specifications as ServiceJobSpecifications,
                         data.deployment as ServiceJobDeployment,
                     );
@@ -278,7 +281,7 @@ export default function EditJob() {
     const signAndBuildScaleUpWorkersRequest = async (
         job: RunningJobWithResources,
         targetNodes: string[],
-        containerType: ContainerOrWorkerType,
+        containerType: BaseContainerOrWorkerType,
     ) => {
         const nonce = generateDeeployNonce();
 
@@ -318,6 +321,20 @@ export default function EditJob() {
 
     if (!job) {
         return <EditJobPageLoading />;
+    }
+
+    if (!hasEscrowPermission('extendNodes')) {
+        return (
+            <div className="center-all flex-1">
+                <DetailedAlert
+                    variant="red"
+                    icon={<RiAlertLine />}
+                    title="Permission required"
+                    description={<div>You do not have permission to extend job nodes.</div>}
+                    isCompact
+                />
+            </div>
+        );
     }
 
     return (

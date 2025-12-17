@@ -1,13 +1,12 @@
 import {
-    ContainerOrWorkerType,
+    BaseContainerOrWorkerType,
     genericContainerTypes,
     GpuType,
     gpuTypes,
     nativeWorkerTypes,
-    Service,
-    serviceContainerTypes,
 } from '@data/containerResources';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
+import services, { Service, serviceContainerTypes } from '@data/services';
 import { JobConfig } from '@typedefs/deeployApi';
 import {
     DraftJob,
@@ -27,6 +26,7 @@ import {
 import {
     BasePluginType,
     ContainerDeploymentType,
+    CustomParameterEntry,
     GenericPlugin,
     NativePlugin,
     PluginType,
@@ -56,6 +56,41 @@ export const NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS: (keyof JobConfig)[] = [
     'NGROK_USE_API',
 ];
 
+// Keys that are system-managed and cannot be edited by users
+export const SYSTEM_MANAGED_JOB_CONFIG_KEYS: (keyof JobConfig)[] = [
+    'CHAINSTORE_PEERS',
+    'CHAINSTORE_RESPONSE_KEY',
+    'INSTANCE_ID',
+    'TUNNEL_ENGINE',
+    'NGROK_AUTH_TOKEN',
+    'NGROK_EDGE_LABEL',
+    'NGROK_USE_API',
+];
+
+// Keys that are editable via dedicated UI sections in generic job deployment
+export const GENERIC_JOB_UI_MANAGED_KEYS: (keyof JobConfig)[] = [
+    'ENV',
+    'DYNAMIC_ENV',
+    'VOLUMES',
+    'FILE_VOLUMES',
+    'CONTAINER_RESOURCES',
+    'PORT',
+    'TUNNEL_ENGINE_ENABLED',
+    'CLOUDFLARE_TOKEN',
+    'RESTART_POLICY',
+    'IMAGE_PULL_POLICY',
+    'IMAGE',
+    'VCS_DATA',
+    'CR_DATA',
+    'BUILD_AND_RUN_COMMANDS',
+];
+
+// Combined: all keys that should be excluded from custom parameters for generic jobs
+export const GENERIC_JOB_RESERVED_KEYS: (keyof JobConfig)[] = [
+    ...SYSTEM_MANAGED_JOB_CONFIG_KEYS,
+    ...GENERIC_JOB_UI_MANAGED_KEYS,
+];
+
 export const getDiscountPercentage = (_paymentMonthsCount: number): number => {
     // Disabled for now
     return 0;
@@ -64,7 +99,7 @@ export const getDiscountPercentage = (_paymentMonthsCount: number): number => {
 const USDC_DECIMALS = 6;
 
 export const getResourcesCostPerEpoch = (
-    containerOrWorkerType: ContainerOrWorkerType,
+    containerOrWorkerType: BaseContainerOrWorkerType,
     gpuType: GpuType | undefined,
 ): bigint => {
     return containerOrWorkerType.pricePerEpoch + (gpuType?.pricePerEpoch ?? 0n);
@@ -75,7 +110,7 @@ export const getJobCost = (job: DraftJob): bigint => {
         return 0n;
     }
 
-    const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+    const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
     const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
 
     const targetNodesCount: bigint = BigInt(job.specifications.targetNodesCount);
@@ -111,17 +146,19 @@ export const formatUsdc = (amount: bigint, precision: number = 2): number => {
     return parseFloat(decimalValue.toFixed(precision));
 };
 
-export const getContainerOrWorkerType = (jobType: JobType, specifications: JobSpecifications): ContainerOrWorkerType => {
-    const containerOrWorkerType: ContainerOrWorkerType = (
+export function getContainerOrWorkerType(jobType: JobType, specifications: JobSpecifications): BaseContainerOrWorkerType {
+    const containerOrWorkerType = (
         jobType === JobType.Generic
             ? genericContainerTypes.find((type) => type.name === (specifications as GenericJobSpecifications).containerType)
             : jobType === JobType.Native
               ? nativeWorkerTypes.find((type) => type.name === (specifications as NativeJobSpecifications).workerType)
-              : serviceContainerTypes.find((type) => type.name === (specifications as ServiceJobSpecifications).containerType)
-    ) as ContainerOrWorkerType;
+              : serviceContainerTypes.find(
+                    (type) => type.name === (specifications as ServiceJobSpecifications).serviceContainerType,
+                )
+    )!;
 
     return containerOrWorkerType;
-};
+}
 
 export const getGpuType = (specifications: GenericJobSpecifications | NativeJobSpecifications): GpuType | undefined => {
     return specifications.gpuType && specifications.gpuType !== ''
@@ -195,7 +232,10 @@ export const formatFileVolumes = (fileVolumes: { name: string; mountingPoint: st
     return formatted;
 };
 
-export const formatContainerResources = (containerOrWorkerType: ContainerOrWorkerType, portsArray: Array<PortMappingEntry>) => {
+export const formatContainerResources = (
+    containerOrWorkerType: BaseContainerOrWorkerType,
+    portsArray: Array<PortMappingEntry>,
+) => {
     const baseResources: { cpu: number; memory: string; ports?: Record<string, number> } = {
         cpu: containerOrWorkerType.cores,
         memory: `${containerOrWorkerType.ram}g`,
@@ -239,18 +279,19 @@ export const formatJobTags = (specifications: JobSpecifications) => {
 };
 
 export const formatGenericDraftJobPayload = (job: GenericDraftJob) => {
-    const containerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+    const containerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
     return formatGenericJobPayload(containerType, job.specifications, job.deployment);
 };
 
 export const formatNativeDraftJobPayload = (job: NativeDraftJob) => {
-    const workerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+    const workerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
     return formatNativeJobPayload(workerType, job.specifications, job.deployment);
 };
 
 export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
-    const containerType: Service = getContainerOrWorkerType(job.jobType, job.specifications);
-    return formatServiceJobPayload(containerType, job.specifications, job.deployment);
+    const serviceContainerType: BaseContainerOrWorkerType = getContainerOrWorkerType(JobType.Service, job.specifications);
+    const service: Service = services.find((service) => service.id === job.serviceId)!;
+    return formatServiceJobPayload(serviceContainerType, service, job.specifications, job.deployment);
 };
 
 const formatGenericJobVariables = (plugin: GenericPlugin) => {
@@ -282,6 +323,20 @@ const formatNativeJobCustomParams = (plugin: NativePlugin) => {
     return customParams;
 };
 
+const formatGenericJobCustomParams = (customParams: CustomParameterEntry[]) => {
+    const formatted: Record<string, any> = {};
+
+    if (!_.isEmpty(customParams)) {
+        customParams.forEach((param) => {
+            if (param.key) {
+                formatted[param.key] = parseIfJson(param.value);
+            }
+        });
+    }
+
+    return formatted;
+};
+
 export const formatGenericPluginConfigAndSignature = (
     resources: {
         cpu: number;
@@ -295,10 +350,10 @@ export const formatGenericPluginConfigAndSignature = (
 
     const pluginConfig: any = {
         CONTAINER_RESOURCES: resources,
-        PORT: formatPort(plugin.port),
         // Tunneling
+        PORT: formatPort(plugin.port),
         TUNNEL_ENGINE: 'cloudflare',
-        CLOUDFLARE_TOKEN: plugin.tunnelingToken || null,
+        CLOUDFLARE_TOKEN: plugin.tunnelingToken ?? null,
         TUNNEL_ENGINE_ENABLED: plugin.enableTunneling === 'True',
         // Variables
         ENV: envVars,
@@ -347,7 +402,7 @@ const formatNativePlugin = (plugin: NativePlugin) => {
 
         // Tunneling
         PORT: formatPort(plugin.port),
-        CLOUDFLARE_TOKEN: plugin.tunnelingToken || null,
+        CLOUDFLARE_TOKEN: plugin.tunnelingToken ?? null,
         TUNNEL_ENGINE_ENABLED: plugin.enableTunneling === 'True',
 
         // Custom Parameters
@@ -358,7 +413,7 @@ const formatNativePlugin = (plugin: NativePlugin) => {
 };
 
 export const formatGenericJobPayload = (
-    containerType: ContainerOrWorkerType,
+    containerType: BaseContainerOrWorkerType,
     specifications: GenericJobSpecifications,
     deployment: GenericJobDeployment,
 ) => {
@@ -371,6 +426,8 @@ export const formatGenericJobPayload = (
         formatContainerResources(containerType, deployment.ports),
         deployment,
     );
+
+    const customParams = formatGenericJobCustomParams(deployment.customParams);
 
     const nonce = generateDeeployNonce();
 
@@ -386,6 +443,7 @@ export const formatGenericJobPayload = (
             {
                 plugin_signature: pluginSignature,
                 ...pluginConfig,
+                ...customParams,
             },
         ],
         pipeline_input_type: 'void',
@@ -395,7 +453,7 @@ export const formatGenericJobPayload = (
 };
 
 export const formatNativeJobPayload = (
-    workerType: ContainerOrWorkerType,
+    workerType: BaseContainerOrWorkerType,
     specifications: NativeJobSpecifications,
     deployment: NativeJobDeployment,
 ) => {
@@ -419,16 +477,20 @@ export const formatNativeJobPayload = (
     // Build plugins array
     const plugins = deployment.plugins.map((plugin) => {
         if (plugin.basePluginType === BasePluginType.Generic) {
-            const secondaryPluginNodeResources = formatContainerResources(workerType, (plugin as GenericPlugin).ports);
+            const genericPlugin = plugin as GenericPlugin;
+            const secondaryPluginNodeResources = formatContainerResources(workerType, genericPlugin.ports);
 
             const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
                 secondaryPluginNodeResources,
-                plugin as GenericPlugin,
+                genericPlugin,
             );
+
+            const customParams = formatGenericJobCustomParams(genericPlugin.customParams);
 
             return {
                 plugin_signature: pluginSignature,
                 ...pluginConfig,
+                ...customParams,
             };
         }
 
@@ -440,16 +502,26 @@ export const formatNativeJobPayload = (
     });
 
     return {
-        app_alias: deployment.jobAlias,
         nonce,
+
+        // Deployment
+        app_alias: deployment.jobAlias,
         target_nodes: targetNodes,
         spare_nodes: spareNodes,
         allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
+
+        // Specifications
         target_nodes_count: targetNodesCount,
         job_tags: jobTags,
         node_res_req: nodeResources,
+
+        // Tunneling
         TUNNEL_ENGINE: 'cloudflare',
+
+        // Plugins
         plugins,
+
+        // Pipeline
         pipeline_input_type: deployment.pipelineInputType,
         pipeline_input_uri: deployment.pipelineInputUri || null,
         pipeline_params: !_.isEmpty(pipelineParams) ? pipelineParams : {},
@@ -458,64 +530,85 @@ export const formatNativeJobPayload = (
 };
 
 export const formatServiceJobPayload = (
-    containerType: Service,
+    serviceContainerType: BaseContainerOrWorkerType,
+    service: Service,
     specifications: ServiceJobSpecifications,
     deployment: ServiceJobDeployment,
 ) => {
     const jobTags = formatJobTags(specifications);
-    const containerResources = formatContainerResources(containerType, []);
+    const containerResources = formatContainerResources(
+        serviceContainerType,
+        deployment.isPublicService ? [] : deployment.ports,
+    );
     const targetNodes = formatNodes(deployment.targetNodes);
     const spareNodes = formatNodes(deployment.spareNodes);
 
-    const envVars = formatEnvVars(deployment.inputs);
+    const envVars = {
+        ...formatEnvVars(deployment.inputs),
+        ...(service.envVars ? formatEnvVars(service.envVars) : {}),
+    };
+
+    const dynamicEnvVars = service.dynamicEnvVars ? formatDynamicEnvVars(service.dynamicEnvVars) : {};
+    const volumes = service.volumes ? formatVolumes(service.volumes) : {};
+    const fileVolumes = service.fileVolumes ? formatFileVolumes(service.fileVolumes) : {};
 
     const nonce = generateDeeployNonce();
 
+    const plugin = {
+        plugin_signature: service.pluginSignature,
+        IMAGE: service.image,
+        CONTAINER_RESOURCES: containerResources,
+
+        // Tunneling
+        PORT: formatPort(service.port),
+        TUNNEL_ENGINE_ENABLED: deployment.isPublicService,
+        TUNNEL_ENGINE: service.tunnelEngine,
+
+        // Variables
+        ENV: envVars,
+        DYNAMIC_ENV: dynamicEnvVars,
+        VOLUMES: volumes,
+        FILE_VOLUMES: fileVolumes,
+        BUILD_AND_RUN_COMMANDS: service.buildAndRunCommands ?? [],
+
+        // Policies
+        RESTART_POLICY: 'always',
+        IMAGE_PULL_POLICY: 'always',
+
+        // Other
+        ...(service.pluginParams ? service.pluginParams : {}),
+    };
+
+    if (service.tunnelEngine === 'ngrok') {
+        plugin.NGROK_AUTH_TOKEN = deployment.tunnelingToken ?? null;
+        plugin.NGROK_EDGE_LABEL = deployment.tunnelingLabel ?? null;
+    } else if (service.tunnelEngine === 'cloudflare') {
+        plugin.CLOUDFLARE_TOKEN = deployment.tunnelingToken ?? null;
+    }
+
     return {
         nonce,
+
+        // Deployment
         app_alias: deployment.jobAlias,
         target_nodes: targetNodes,
         spare_nodes: spareNodes,
         allow_replication_in_the_wild: deployment.allowReplicationInTheWild,
+        service_replica: deployment.serviceReplica,
+
+        // Specifications
         target_nodes_count: 1, // Service jobs are always single-node
         job_tags: jobTags,
-        service_replica: deployment.serviceReplica,
-        plugins: [
-            {
-                plugin_signature: 'CONTAINER_APP_RUNNER',
-                IMAGE: containerType.image,
-                CONTAINER_RESOURCES: containerResources,
-                PORT: formatPort(containerType.port),
-                TUNNEL_ENGINE: 'ngrok',
-                NGROK_AUTH_TOKEN: deployment.tunnelingToken ?? null,
-                NGROK_EDGE_LABEL: deployment.tunnelingLabel ?? null,
-                TUNNEL_ENGINE_ENABLED: deployment.enableTunneling === 'True',
-                ENV: envVars,
-                RESTART_POLICY: 'always',
-                IMAGE_PULL_POLICY: 'always',
-            },
-        ],
+
+        // Plugins
+        plugins: [plugin],
+
+        // Pipeline
         pipeline_input_type: 'void',
         pipeline_input_uri: null,
+        pipeline_params: !_.isEmpty(service.pipelineParams) ? service.pipelineParams : {},
         chainstore_response: true,
     };
-};
-
-// Helper function to get minimal balancing for a container/worker type
-export const getMinimalBalancing = (type: string, containerOrWorkerType: string | undefined): number => {
-    if (type === 'Generic' && containerOrWorkerType) {
-        const found = genericContainerTypes.find((t) => t.name === containerOrWorkerType);
-        return found?.minimalBalancing || 1;
-    }
-    if (type === 'Native' && containerOrWorkerType) {
-        const found = nativeWorkerTypes.find((t) => t.name === containerOrWorkerType);
-        return found?.minimalBalancing || 1;
-    }
-    if (type === 'Service' && containerOrWorkerType) {
-        const found = serviceContainerTypes.find((t) => t.name === containerOrWorkerType);
-        return found?.minimalBalancing || 1;
-    }
-    return 1;
 };
 
 export function buildDeeployMessage(data: Record<string, any>, prefix: string = ''): string {

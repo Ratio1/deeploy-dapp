@@ -6,7 +6,18 @@ import { forwardRef, useImperativeHandle, useState } from 'react';
 import { RiCheckDoubleLine, RiCheckLine, RiCloseLine } from 'react-icons/ri';
 
 export const DeeployFlowModal = forwardRef(
-    ({ actions, type }: { actions: DEEPLOY_FLOW_ACTION_KEYS[]; type: 'update' | 'deploy' | 'extend' }, ref) => {
+    (
+        {
+            actions,
+            type,
+            onUserClose,
+        }: {
+            actions: DEEPLOY_FLOW_ACTION_KEYS[];
+            type: 'update' | 'deploy' | 'extend';
+            onUserClose?: () => void;
+        },
+        ref,
+    ) => {
         const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
 
         const [currentAction, setCurrentAction] = useState<DEEPLOY_FLOW_ACTION_KEYS>(actions[0]);
@@ -14,12 +25,14 @@ export const DeeployFlowModal = forwardRef(
         const [messagesCount, setMessagesCount] = useState<number>(0);
 
         const [error, setError] = useState<boolean>(false);
+        const [isFlowInProgress, setIsFlowInProgress] = useState<boolean>(false);
 
         const open = (jobsCount: number, messagesToSign: number) => {
             setJobsCount(jobsCount);
             setMessagesCount(messagesToSign);
             setCurrentAction(actions[0]);
             setError(false);
+            setIsFlowInProgress(true);
             onOpen();
         };
 
@@ -28,14 +41,23 @@ export const DeeployFlowModal = forwardRef(
         };
 
         const close = () => {
+            setIsFlowInProgress(false);
             onClose();
         };
 
         const displayError = () => {
             setError(true);
+            setIsFlowInProgress(false);
             setTimeout(() => {
                 onClose();
             }, 2000);
+        };
+
+        const handleOpenChange = (open: boolean) => {
+            if (!open && isFlowInProgress) {
+                onUserClose?.();
+                onOpenChange();
+            }
         };
 
         useImperativeHandle(ref, () => ({
@@ -108,7 +130,7 @@ export const DeeployFlowModal = forwardRef(
         return (
             <Modal
                 isOpen={isOpen}
-                onOpenChange={onOpenChange}
+                onOpenChange={handleOpenChange}
                 size="sm"
                 backdrop="blur"
                 shouldBlockScroll={true}

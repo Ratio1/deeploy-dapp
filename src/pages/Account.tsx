@@ -1,22 +1,23 @@
 import BurnReport from '@components/account/BurnReport';
 import Invoicing from '@components/account/invoicing/Invoicing';
+import EscrowDelegates from '@components/account/delegates/EscrowDelegates';
 import Profile from '@components/account/profile/Profile';
 import { routePath } from '@lib/routes/route-paths';
 import CustomTabs from '@shared/CustomTabs';
 import { useEffect, useState } from 'react';
 import { CgProfile } from 'react-icons/cg';
-import { RiBillLine, RiFireLine } from 'react-icons/ri';
+import { RiBillLine, RiFireLine, RiUserSettingsLine } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
 
 function Account() {
-    const [selectedTab, setSelectedTab] = useState<'invoicing' | 'profile' | 'burn-report'>('invoicing');
+    const [selectedTab, setSelectedTab] = useState<'invoicing' | 'profile' | 'delegates' | 'burn-report'>('invoicing');
     const navigate = useNavigate();
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
 
-        if (tab && (tab === 'invoicing' || tab === 'profile' || tab === 'burn-report')) {
+        if (tab && (tab === 'invoicing' || tab === 'profile' || tab === 'delegates' || tab === 'burn-report')) {
             setSelectedTab(tab);
         }
     }, [window.location.search]);
@@ -36,6 +37,11 @@ function Account() {
                         icon: <CgProfile />,
                     },
                     {
+                        key: 'delegates',
+                        title: 'Delegates',
+                        icon: <RiUserSettingsLine />,
+                    },
+                    {
                         key: 'burn-report',
                         title: 'Burn Report',
                         icon: (
@@ -53,6 +59,7 @@ function Account() {
 
             {selectedTab === 'invoicing' && <Invoicing />}
             {selectedTab === 'profile' && <Profile />}
+            {selectedTab === 'delegates' && <EscrowDelegates />}
             {selectedTab === 'burn-report' && <BurnReport />}
         </div>
     );

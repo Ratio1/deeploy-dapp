@@ -33,6 +33,18 @@ function TargetNodesCard({ isEditingRunningJob }: { isEditingRunningJob?: boolea
                 );
 
                 setValue('deployment.spareNodes', []);
+            } else {
+                // When auto-assign is disabled, resize array to match targetNodesCount
+                if (targetNodes.length < targetNodesCount) {
+                    // Add empty entries if count increased
+                    setValue('deployment.targetNodes', [
+                        ...targetNodes,
+                        ...Array.from({ length: targetNodesCount - targetNodes.length }, () => ({ address: '' })),
+                    ]);
+                } else if (targetNodes.length > targetNodesCount) {
+                    // Trim entries if count decreased
+                    setValue('deployment.targetNodes', targetNodes.slice(0, targetNodesCount));
+                }
             }
         }
     }, [autoAssign, targetNodesCount]);
@@ -49,7 +61,7 @@ function TargetNodesCard({ isEditingRunningJob }: { isEditingRunningJob?: boolea
                         }}
                         size="sm"
                     >
-                        <SmallTag variant={autoAssign ? 'blue' : 'default'}>Auto-Assignment</SmallTag>
+                        <SmallTag variant={autoAssign ? 'blue' : 'slate'}>Auto-Assignment</SmallTag>
                     </Switch>
                 ) : null
             }

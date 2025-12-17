@@ -1,0 +1,239 @@
+import { ColorVariant } from '@shared/SmallTag';
+import {
+    DynamicEnvVarsEntry,
+    FileVolumesEntry,
+    KeyLabelEntry,
+    KeyValueEntry,
+    VolumesEntry,
+} from '@typedefs/steps/deploymentStepTypes';
+import { BaseContainerOrWorkerType } from './containerResources';
+
+type Service = {
+    id: number;
+    name: string;
+    description: string;
+    image: string;
+    port: number;
+    inputs: KeyLabelEntry[];
+    logo: string;
+    color: ColorVariant;
+    pluginSignature: 'CONTAINER_APP_RUNNER' | 'WORKER_APP_RUNNER';
+    tunnelEngine: 'cloudflare' | 'ngrok';
+    envVars?: KeyValueEntry[];
+    dynamicEnvVars?: DynamicEnvVarsEntry[];
+    volumes?: VolumesEntry[];
+    fileVolumes?: FileVolumesEntry[];
+    buildAndRunCommands?: string[];
+    pipelineParams?: any; // JSON format
+    pluginParams?: any; // JSON format
+};
+
+export const serviceContainerTypes: BaseContainerOrWorkerType[] = [
+    {
+        id: 1,
+        name: 'S_ENTRY',
+        jobType: 50,
+        monthlyBudgetPerWorker: 13.5,
+        pricePerEpoch: 450_000n,
+        cores: 1,
+        ram: 2,
+        storage: 8,
+    },
+    {
+        id: 2,
+        name: 'S_MED1',
+        jobType: 51,
+        monthlyBudgetPerWorker: 69,
+        pricePerEpoch: 2_300_000n,
+        cores: 3,
+        ram: 12,
+        storage: 48,
+    },
+    {
+        id: 3,
+        name: 'S_HIGH1',
+        jobType: 52,
+        monthlyBudgetPerWorker: 135,
+        pricePerEpoch: 4_500_000n,
+        cores: 8,
+        ram: 22,
+        storage: 88,
+    },
+];
+
+const services: Service[] = [
+    {
+        id: 1,
+        name: 'PostgreSQL',
+        description: 'Relational database management system',
+        image: 'postgres:17',
+        port: 5432,
+        inputs: [
+            {
+                key: 'POSTGRES_PASSWORD',
+                label: 'PostgreSQL Password',
+                description: 'Password for the default postgres superuser account',
+                placeholder: 'my-secure-password',
+            },
+        ],
+        logo: 'postgresql.svg',
+        color: 'blue',
+        pluginSignature: 'CONTAINER_APP_RUNNER',
+        tunnelEngine: 'ngrok',
+        volumes: [{ key: 'postgres_data', value: '/var/lib/postgresql/data' }],
+    },
+    {
+        id: 2,
+        name: 'MySQL',
+        description: 'Relational database management system',
+        image: 'mysql',
+        port: 3306,
+        inputs: [
+            {
+                key: 'MYSQL_ROOT_PASSWORD',
+                label: 'MySQL Root Password',
+                description: 'Password for the MySQL root administrator account',
+                placeholder: 'my-secure-password',
+            },
+        ],
+        logo: 'mysql.svg',
+        color: 'orange',
+        pluginSignature: 'CONTAINER_APP_RUNNER',
+        tunnelEngine: 'ngrok',
+        volumes: [{ key: 'mysql_data', value: '/var/lib/mysql' }],
+    },
+    {
+        id: 3,
+        name: 'MongoDB',
+        description: 'NoSQL database management system',
+        image: 'mongo',
+        port: 27017,
+        inputs: [
+            {
+                key: 'MONGO_INITDB_ROOT_USERNAME',
+                label: 'MongoDB Root Username',
+                description: 'Username for the MongoDB root administrator account',
+                placeholder: 'admin',
+            },
+            {
+                key: 'MONGO_INITDB_ROOT_PASSWORD',
+                label: 'MongoDB Root Password',
+                description: 'Password for the MongoDB root administrator account',
+                placeholder: 'my-secure-password',
+            },
+        ],
+        logo: 'mongodb.svg',
+        color: 'green',
+        pluginSignature: 'CONTAINER_APP_RUNNER',
+        tunnelEngine: 'ngrok',
+        volumes: [{ key: 'mongo_data', value: '/data/db' }],
+    },
+    // {
+    //     id: 4,
+    //     name: 'EMQX',
+    //     description: 'Scalable MQTT message broker for IoT applications',
+    //     image: 'emqx',
+    //     port: 1883,
+    //     inputs: [],
+    //     logo: 'emqx.svg',
+    //     color: 'emerald',
+    //     pluginSignature: 'CONTAINER_APP_RUNNER',
+    //     tunnelEngine: 'ngrok',
+    // },
+    {
+        id: 5,
+        name: 'n8n',
+        description: 'Workflow automation platform',
+        image: 'n8nio/n8n',
+        port: 5678,
+        inputs: [
+            {
+                key: 'N8N_ENCRYPTION_KEY',
+                label: 'n8n Encryption Key',
+                description: 'Secret key used to encrypt credentials stored in the database',
+                placeholder: 'a1b2c3d4e5f6g7h8i9j0',
+            },
+        ],
+        logo: 'n8n.svg',
+        color: 'pink',
+        pluginSignature: 'CONTAINER_APP_RUNNER',
+        tunnelEngine: 'cloudflare',
+        volumes: [{ key: 'n8n_data', value: '/home/node/.n8n' }],
+    },
+    {
+        id: 6,
+        name: 'vdo_ninja',
+        description: 'Peer to peer video streaming',
+        image: 'caddy:alpine',
+        port: 80,
+        inputs: [],
+        logo: 'vdo.ninja.svg',
+        color: 'gray',
+        pluginSignature: 'WORKER_APP_RUNNER',
+        buildAndRunCommands: ['cp -r /app/* /usr/share/caddy'],
+        tunnelEngine: 'cloudflare',
+        pluginParams: {
+            VCS_DATA: {
+                REPO_URL: 'https://github.com/steveseguin/vdo.ninja',
+            },
+            CONTAINER_START_COMMAND: null,
+        },
+    },
+    {
+        id: 7,
+        name: 'Docker Registry',
+        description: 'Private container image registry',
+        image: 'registry:2',
+        port: 5000,
+        inputs: [
+            {
+                key: 'REGISTRY_HTTP_SECRET',
+                label: 'Registry HTTP Secret',
+                description: 'Secret key for signing session state and securing upload operations',
+                placeholder: 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6',
+            },
+        ],
+        logo: 'docker.svg',
+        color: 'blue',
+        pluginSignature: 'CONTAINER_APP_RUNNER',
+        tunnelEngine: 'cloudflare',
+        volumes: [{ key: 'registry_data', value: '/var/lib/registry' }],
+    },
+    // TODO: @vitalii check the configuration
+    // {
+    //     id: 8,
+    //     name: 'GitLab',
+    //     description: 'Self-hosted Git repository and DevOps platform',
+    //     image: 'gitlab/gitlab-ce:latest',
+    //     port: 80,
+    //     inputs: [
+    //         {
+    //             key: 'GITLAB_ROOT_PASSWORD',
+    //             label: 'GitLab Root Password',
+    //             description: 'Initial password for the root administrator account (min 8 characters)',
+    //             placeholder: 'my-secure-password',
+    //         },
+    //         {
+    //             key: 'GITLAB_OMNIBUS_CONFIG',
+    //             label: 'GitLab External URL Config',
+    //             description: 'Paste your tunnel URL inside the quotes',
+    //             placeholder: "external_url 'https://your-tunnel-url.com'",
+    //             defaultValue: "external_url ''",
+    //         },
+    //     ],
+    //     logo: 'gitlab.svg',
+    //     color: 'orange',
+    //     pluginSignature: 'CONTAINER_APP_RUNNER',
+    //     tunnelEngine: 'cloudflare',
+    //     volumes: [
+    //         { key: 'gitlab_config', value: '/etc/gitlab' },
+    //         { key: 'gitlab_logs', value: '/var/log/gitlab' },
+    //         { key: 'gitlab_data', value: '/var/opt/gitlab' },
+    //     ],
+    // },
+
+];
+
+export type { Service };
+
+export default services;

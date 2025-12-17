@@ -1,4 +1,4 @@
-import { ContainerOrWorkerType, GpuType } from '@data/containerResources';
+import { BaseContainerOrWorkerType, GpuType } from '@data/containerResources';
 import { environment } from '@lib/config';
 import { formatUsdc, getContainerOrWorkerType, getGpuType, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
 import CardWithItems from '@shared/jobs/projects/CardWithItems';
@@ -11,7 +11,7 @@ export default function DraftStats({ jobs }: { jobs: DraftJob[] | undefined }) {
     }
 
     const getJobMonthlyCost = (job: DraftJob) => {
-        const containerOrWorkerType: ContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+        const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
         const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
 
         const targetNodesCount: bigint = BigInt(job.specifications.targetNodesCount);

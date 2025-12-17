@@ -34,6 +34,7 @@ export default function StyledInput({ showsWarning, ...props }: Props) {
                 }`,
                 input: 'font-medium placeholder:text-slate-400',
                 errorMessage: 'text-sm',
+                description: 'text-[13px]',
             }}
             variant="bordered"
             {...props}

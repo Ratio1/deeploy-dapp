@@ -48,7 +48,7 @@ export default function RunningCard({
         return allJobsPaidInFull ? (
             <SmallTag variant="green">Paid in full</SmallTag>
         ) : (
-            <SmallTag variant={minDaysLeftUntilNextPayment > 15 ? 'default' : 'red'}>
+            <SmallTag variant={minDaysLeftUntilNextPayment > 15 ? 'slate' : 'red'}>
                 {formatDistanceStrict(addDays(new Date(), minDaysLeftUntilNextPayment), new Date())}
             </SmallTag>
         );
@@ -116,7 +116,13 @@ export default function RunningCard({
                         const resources: RunningJobResources | undefined = getRunningJobResources(job.jobType);
 
                         if (!resources) {
-                            return <div className="compact">Unknown job type</div>;
+                            console.error('Unknown job type', job);
+
+                            return (
+                                <div key={`${job.id}-${index}`} className="compact px-3.5 py-1">
+                                    Unknown job type
+                                </div>
+                            );
                         }
 
                         const { jobType } = resources;
@@ -195,7 +201,7 @@ export default function RunningCard({
                                     {daysLeftUntilNextPayment >= daysLeftUntilExpiration ? (
                                         <SmallTag variant="green">Paid in full</SmallTag>
                                     ) : (
-                                        <SmallTag variant={daysLeftUntilNextPayment > 15 ? 'default' : 'red'}>
+                                        <SmallTag variant={daysLeftUntilNextPayment > 15 ? 'slate' : 'red'}>
                                             {formatDistanceStrict(addDays(new Date(), daysLeftUntilNextPayment), new Date())}
                                         </SmallTag>
                                     )}

@@ -160,6 +160,25 @@ export const PoAIManagerAbi = [
                 type: 'address',
             },
         ],
+        name: 'JobDeregistered',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+            {
+                indexed: true,
+                internalType: 'address',
+                name: 'escrow',
+                type: 'address',
+            },
+        ],
         name: 'JobRegistered',
         type: 'event',
     },
@@ -330,6 +349,25 @@ export const PoAIManagerAbi = [
         type: 'function',
     },
     {
+        inputs: [
+            {
+                internalType: 'address',
+                name: '',
+                type: 'address',
+            },
+        ],
+        name: 'delegatedAddressToEscrow',
+        outputs: [
+            {
+                internalType: 'address',
+                name: '',
+                type: 'address',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
         inputs: [],
         name: 'deployCspEscrow',
         outputs: [],
@@ -350,6 +388,128 @@ export const PoAIManagerAbi = [
                 internalType: 'address',
                 name: '',
                 type: 'address',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'getActiveJobsCount',
+        outputs: [
+            {
+                internalType: 'uint256',
+                name: 'totalActiveJobs',
+                type: 'uint256',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'address',
+                name: 'account',
+                type: 'address',
+            },
+        ],
+        name: 'getAddressRegistration',
+        outputs: [
+            {
+                internalType: 'bool',
+                name: 'isActive',
+                type: 'bool',
+            },
+            {
+                internalType: 'address',
+                name: 'escrowAddress',
+                type: 'address',
+            },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'getAllActiveJobs',
+        outputs: [
+            {
+                components: [
+                    {
+                        internalType: 'uint256',
+                        name: 'id',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'bytes32',
+                        name: 'projectHash',
+                        type: 'bytes32',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'requestTimestamp',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'startTimestamp',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'lastNodesChangeTimestamp',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'jobType',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'pricePerEpoch',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'lastExecutionEpoch',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'numberOfNodesRequested',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'int256',
+                        name: 'balance',
+                        type: 'int256',
+                    },
+                    {
+                        internalType: 'uint256',
+                        name: 'lastAllocatedEpoch',
+                        type: 'uint256',
+                    },
+                    {
+                        internalType: 'address[]',
+                        name: 'activeNodes',
+                        type: 'address[]',
+                    },
+                    {
+                        internalType: 'address',
+                        name: 'escrowAddress',
+                        type: 'address',
+                    },
+                    {
+                        internalType: 'address',
+                        name: 'escrowOwner',
+                        type: 'address',
+                    },
+                ],
+                internalType: 'struct JobWithAllDetails[]',
+                name: '',
+                type: 'tuple[]',
             },
         ],
         stateMutability: 'view',
@@ -910,7 +1070,27 @@ export const PoAIManagerAbi = [
     },
     {
         inputs: [],
+        name: 'reconcileAllJobsAcrossEscrows',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [],
         name: 'reconcileAllJobsBalance',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'address',
+                name: 'delegatedAddress',
+                type: 'address',
+            },
+        ],
+        name: 'registerDelegatedAddress',
         outputs: [],
         stateMutability: 'nonpayable',
         type: 'function',
@@ -924,6 +1104,19 @@ export const PoAIManagerAbi = [
             },
         ],
         name: 'registerNodeWithRewards',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'uint256',
+                name: 'jobId',
+                type: 'uint256',
+            },
+        ],
+        name: 'removeJob',
         outputs: [],
         stateMutability: 'nonpayable',
         type: 'function',
@@ -1003,6 +1196,19 @@ export const PoAIManagerAbi = [
             },
         ],
         stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'address',
+                name: 'delegatedAddress',
+                type: 'address',
+            },
+        ],
+        name: 'unregisterDelegatedAddress',
+        outputs: [],
+        stateMutability: 'nonpayable',
         type: 'function',
     },
     {

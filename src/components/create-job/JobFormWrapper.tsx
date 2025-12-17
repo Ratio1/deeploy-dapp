@@ -1,39 +1,33 @@
 import JobFormButtons from '@components/create-job/JobFormButtons';
 import JobFormHeader from '@components/create-job/JobFormHeader';
-import CostAndDuration from '@components/create-job/steps/CostAndDuration';
-import Deployment from '@components/create-job/steps/Deployment';
-import Specifications from '@components/create-job/steps/Specifications';
-import { APPLICATION_TYPES } from '@data/applicationTypes';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { genericContainerTypes, nativeWorkerTypes, serviceContainerTypes } from '@data/containerResources';
+import { genericContainerTypes, nativeWorkerTypes } from '@data/containerResources';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
+import { serviceContainerTypes } from '@data/services';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { KYB_TAG } from '@lib/deeploy-utils';
+import { MAIN_STEPS, Step, STEPS } from '@lib/steps/steps';
 import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
-import { DraftJob, JobType } from '@typedefs/deeploys';
+import { DraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import { z } from 'zod';
-import Plugins from './steps/Plugins';
 
-const DEFAULT_STEPS: {
-    title: string;
-    validationName?: string;
-}[] = [
-    { title: 'Specifications', validationName: 'specifications' },
-    { title: 'Cost & Duration', validationName: 'costAndDuration' },
-    { title: 'Deployment', validationName: 'deployment' },
-];
+const JOB_TYPE_STEPS: Record<JobType, Step[]> = {
+    [JobType.Generic]: [...MAIN_STEPS],
+    [JobType.Native]: [...MAIN_STEPS, Step.PLUGINS],
+    [JobType.Service]: [Step.SERVICES, ...MAIN_STEPS],
+};
 
 function JobFormWrapper({ projectName, draftJobsCount }) {
     const { projectHash } = useParams();
@@ -41,7 +35,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
     const { step, jobType, setJobType, setProjectOverviewTab } = useDeploymentContext() as DeploymentContextType;
     const { account } = useAuthenticationContext() as AuthenticationContextType;
 
-    const [steps, setSteps] = useState(DEFAULT_STEPS);
+    const steps: Step[] = useMemo(() => (jobType ? JOB_TYPE_STEPS[jobType] : []), [jobType]);
 
     const getBaseSchemaDeploymentDefaults = () => ({
         autoAssign: true,
@@ -57,7 +51,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
 
     const getBaseSchemaDefaults = () => ({
         specifications: {
-            applicationType: APPLICATION_TYPES[0],
+            // applicationType: APPLICATION_TYPES[0],
             targetNodesCount: jobType === JobType.Generic || jobType === JobType.Native ? 2 : 1, // Generic and Native jobs always have a minimal balancing of 2 nodes, Services are locked to 1 node
             jobTags: [...(account?.applicantType === 'company' ? [KYB_TAG] : [])],
             nodesCountries: [],
@@ -90,6 +84,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             },
             restartPolicy: POLICY_TYPES[0],
             imagePullPolicy: POLICY_TYPES[0],
+            customParams: [],
         },
     });
 
@@ -120,13 +115,15 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         ...getBaseSchemaDefaults(),
         specifications: {
             ...getBaseSchemaDefaults().specifications,
-            containerType: serviceContainerTypes[0].name,
+            serviceContainerType: serviceContainerTypes[0].name,
             targetNodesCount: 1, // Service jobs are always single-node
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
-            port: serviceContainerTypes[0].port,
+            ports: [],
+            isPublicService: true,
             envVars: [],
+            inputs: [],
         },
     });
 
@@ -165,12 +162,6 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         }
     }, [jobType, form]);
 
-    useEffect(() => {
-        if (jobType === JobType.Native) {
-            setSteps([...DEFAULT_STEPS, { title: 'Plugins' }]);
-        }
-    }, [jobType]);
-
     const setDefaultJobAlias = (jobType: JobType) => {
         if (jobType === JobType.Service) {
             // Service jobs already set their own alias using the selected db system
@@ -202,7 +193,13 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             };
 
             if (data.jobType === JobType.Native) {
-                job.deployment.plugins = data.plugins;
+                (job as unknown as NativeDraftJob).deployment.plugins = data.plugins;
+            }
+
+            if (data.jobType === JobType.Service) {
+                const serviceJob = job as unknown as ServiceDraftJob;
+                serviceJob.serviceId = data.serviceId;
+                serviceJob.tunnelURL = data.tunnelURL;
             }
 
             console.log('[JobFormWrapper] onSubmit', job);
@@ -226,20 +223,25 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         console.log('[JobFormWrapper] Form values:', form.getValues());
     };
 
+    const ActiveStep = useMemo(() => {
+        return STEPS[steps[step]].component;
+    }, [step, steps]);
+
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit, onError)} key={jobType || 'no-type'}>
                 <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
-                            <JobFormHeader steps={steps.map((step) => step.title)} />
+                            <JobFormHeader steps={steps.map((step) => STEPS[step].title)} />
 
-                            {step === 0 && <Specifications />}
-                            {step === 1 && <CostAndDuration />}
-                            {step === 2 && <Deployment />}
-                            {step === 3 && <Plugins />}
+                            <ActiveStep />
 
-                            <JobFormButtons steps={steps} cancelLabel="Project" />
+                            <JobFormButtons
+                                steps={steps.map((step) => STEPS[step])}
+                                cancelLabel="Project"
+                                disableNextStep={jobType === JobType.Service && step === 0 && !form.watch('serviceId')}
+                            />
                         </div>
                     </div>
                 </div>

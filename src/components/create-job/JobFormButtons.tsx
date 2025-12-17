@@ -22,7 +22,7 @@ function JobFormButtons({
     isEditingRunningJob,
     disableNextStep = false,
 }: Props) {
-    const { step, setStep, setJobType } = useDeploymentContext() as DeploymentContextType;
+    const { step, setStep, setJobType, isFormSubmissionDisabled } = useDeploymentContext() as DeploymentContextType;
 
     const { trigger, getValues, formState } = useFormContext();
 
@@ -99,7 +99,7 @@ function JobFormButtons({
             ) : customSubmitButton ? (
                 customSubmitButton
             ) : (
-                <SubmitButton label="Add Job" />
+                <SubmitButton label="Add Job" isDisabled={isFormSubmissionDisabled} />
             )}
         </div>
     );

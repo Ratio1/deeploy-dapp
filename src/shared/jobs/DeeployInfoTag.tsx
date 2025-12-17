@@ -4,7 +4,7 @@ import { RiInformationLine } from 'react-icons/ri';
 
 export default function DeeployInfoTag({ text }: { text: string | ReactNode }) {
     return (
-        <SmallTag variant="soft" isLarge>
+        <SmallTag variant="lightslate" isLarge>
             <div className="flex items-start gap-1 py-1 text-slate-500">
                 <div className="row h-5">
                     <RiInformationLine className="text-lg" />

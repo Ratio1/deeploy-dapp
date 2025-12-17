@@ -1,8 +1,13 @@
 import { PoAIManagerAbi } from '@blockchain/PoAIManager';
 import { Button } from '@heroui/button';
-import { config, isUsingDevAddress } from '@lib/config';
+import { getApps } from '@lib/api/deeploy';
+import { getSecrets } from '@lib/api/tunnels';
+import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
+import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
+import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import { getShortAddressOrHash, isZeroAddress } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
@@ -12,17 +17,22 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiFileTextLine, RiPencilLine } from 'react-icons/ri';
 import { decodeEventLog } from 'viem';
-import { usePublicClient, useWalletClient } from 'wagmi';
+import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wagmi';
 
 export default function LoginCard({ hasOracles }: { hasOracles: boolean }) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
-    const { escrowContractAddress, isFetchingApps, fetchApps, setEscrowContractAddress } =
+    const { escrowContractAddress, setEscrowContractAddress, setFetchAppsRequired, setApps } =
         useDeploymentContext() as DeploymentContextType;
+    const { openSignMessageModal, closeSignMessageModal } = useInteractionContext() as InteractionContextType;
+    const { setTunnelingSecrets } = useTunnelsContext() as TunnelsContextType;
 
     const { data: walletClient } = useWalletClient();
     const publicClient = usePublicClient();
+    const { signMessageAsync } = useSignMessage();
+    const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
 
-    const [isDeploying, setDeploying] = useState(false);
+    const [isDeploying, setDeploying] = useState<boolean>(false);
+    const [isFetching, setFetching] = useState<boolean>(false);
 
     const hasContract = !!escrowContractAddress && !isZeroAddress(escrowContractAddress);
 
@@ -79,6 +89,96 @@ export default function LoginCard({ hasOracles }: { hasOracles: boolean }) {
         }
     };
 
+    const signAndBuildDeeployRequest = async () => {
+        if (!address) {
+            toast.error('Please connect your wallet.');
+            return null;
+        }
+
+        const nonce = generateDeeployNonce();
+
+        const message = buildDeeployMessage(
+            {
+                nonce,
+            },
+            'Please sign this message for Deeploy: ',
+        );
+
+        openSignMessageModal();
+
+        try {
+            const signature = await signMessageAsync({
+                account: address,
+                message,
+            });
+
+            const request = {
+                nonce,
+                EE_ETH_SIGN: signature,
+                EE_ETH_SENDER: address,
+            };
+
+            return request;
+        } catch (error: any) {
+            if (error?.message.includes('User rejected the request')) {
+                toast.error('Please sign the message to continue.');
+            }
+            return null;
+        } finally {
+            closeSignMessageModal();
+        }
+    };
+
+    const handleLogin = async () => {
+        if (!hasContract && !isUsingDevAddress) {
+            toast.error('Please deploy a contract first.');
+            return;
+        }
+
+        const request = await signAndBuildDeeployRequest();
+        if (!request) {
+            return;
+        }
+
+        setFetching(true);
+
+        try {
+            const [appsResult, secretsResult] = await Promise.allSettled([getApps(request), getSecrets(request)]);
+
+            console.log('Login', { appsResult, secretsResult });
+
+            if (appsResult.status === 'rejected') {
+                throw appsResult.reason;
+            }
+
+            const appsResponse = appsResult.value;
+            if (!appsResponse.apps || appsResponse.status === 'fail') {
+                console.error(appsResponse);
+                throw new Error(`Failed to fetch running jobs: ${appsResponse.error || 'Unknown error'}`);
+            }
+
+            setApps(appsResponse.apps);
+            setFetchAppsRequired(false);
+
+            if (secretsResult.status === 'fulfilled' && secretsResult.value?.result) {
+                const secrets = secretsResult.value.result;
+                setTunnelingSecrets({
+                    cloudflareAccountId: secrets.cloudflare_account_id,
+                    cloudflareApiKey: secrets.cloudflare_api_key,
+                    cloudflareZoneId: secrets.cloudflare_zone_id,
+                    cloudflareDomain: secrets.cloudflare_domain,
+                });
+            } else if (secretsResult.status === 'rejected') {
+                console.warn('Login without secrets');
+            }
+        } catch (error: any) {
+            console.error(error);
+            toast.error('Failed to fetch data. Please try again.');
+        } finally {
+            setFetching(false);
+        }
+    };
+
     return (
         <div className="center-all">
             <BorderedCard>
@@ -127,18 +227,9 @@ export default function LoginCard({ hasOracles }: { hasOracles: boolean }) {
                         <Button
                             color="primary"
                             onPress={() => {
-                                // if (isUsingDevAddress) {
-                                //     console.log(
-                                //         `Using dev address ${getShortAddressOrHash(getDevAddress().address, 4, true)}, bypassing login`,
-                                //     );
-                                //     setFetchAppsRequired(false); // Bypass
-                                // } else {
-                                //     fetchApps();
-                                // }
-
-                                fetchApps();
+                                handleLogin();
                             }}
-                            isLoading={isFetchingApps}
+                            isLoading={isFetching}
                             isDisabled={!hasContract && !isUsingDevAddress}
                         >
                             <div className="row gap-1.5">

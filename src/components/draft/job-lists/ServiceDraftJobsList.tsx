@@ -1,4 +1,5 @@
-import { Service, formatResourcesSummary } from '@data/containerResources';
+import { BaseContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
+import services, { Service } from '@data/services';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { applyWidthClasses } from '@lib/utils';
@@ -10,7 +11,7 @@ import { RiDatabase2Line } from 'react-icons/ri';
 const widthClasses = [
     'min-w-[138px]', // alias
     'min-w-[80px]', // duration
-    'min-w-[90px]', // targetNodes
+    'min-w-[120px]', // type
     'min-w-[310px]', // container type
 ];
 
@@ -25,11 +26,15 @@ export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[]
                     <div className="compact">Services</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Container Type'], widthClasses)}</>}
+            tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Type', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
             renderJob={(job) => {
                 const serviceJob = job as ServiceDraftJob;
-                const containerOrWorkerType: Service = getContainerOrWorkerType(serviceJob.jobType, serviceJob.specifications);
+                const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(
+                    serviceJob.jobType,
+                    serviceJob.specifications,
+                );
+                const service: Service = services.find((service) => service.id === serviceJob.serviceId)!;
 
                 return (
                     <>
@@ -44,7 +49,9 @@ export default function ServiceDraftJobsList({ jobs }: { jobs: ServiceDraftJob[]
                             </SmallTag>
                         </div>
 
-                        <div className={widthClasses[2]}>{serviceJob.specifications.targetNodesCount}</div>
+                        <div className={widthClasses[2]}>
+                            <SmallTag variant={service.color}>{service.name}</SmallTag>
+                        </div>
 
                         <div className={widthClasses[3]}>
                             {containerOrWorkerType.name} ({formatResourcesSummary(containerOrWorkerType)})

@@ -7,6 +7,7 @@ import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';
 import EnvVariablesCard from '@shared/jobs/EnvVariablesCard';
 import FileVolumesSection from '@shared/jobs/FileVolumesSection';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
+import CustomParametersSection from '@shared/jobs/native/CustomParametersSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import PortMappingSection from '@shared/PortMappingSection';
 
@@ -15,7 +16,12 @@ function GenericDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
         <div className="col gap-6">
             <SlateCard title="App Identity">
                 <div className="flex gap-4">
-                    <InputWithLabel name="deployment.jobAlias" label="Alias" placeholder="My App" />
+                    <InputWithLabel
+                        name="deployment.jobAlias"
+                        label="Alias"
+                        placeholder="My App"
+                        isDisabled={isEditingRunningJob}
+                    />
                 </div>
             </SlateCard>
 
@@ -52,6 +58,10 @@ function GenericDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
 
             <SlateCard title="Policies">
                 <PoliciesSection />
+            </SlateCard>
+
+            <SlateCard title="Custom Parameters">
+                <CustomParametersSection baseName="deployment" />
             </SlateCard>
         </div>
     );

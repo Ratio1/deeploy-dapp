@@ -33,8 +33,8 @@ export default function ProjectOverview({
     draftJobs: DraftJob[] | undefined;
     projectIdentity: React.ReactNode;
     fetchRunningJobs: (appsOverride?: Apps) => Promise<void>;
-    successfulJobs: { text: string; serverAlias: string }[];
-    setSuccessfulJobs: (successfulJobs: { text: string; serverAlias: string }[]) => void;
+    successfulJobs: { text: string; serverAlias: string; tunnelURL?: string }[];
+    setSuccessfulJobs: (successfulJobs: { text: string; serverAlias: string; tunnelURL?: string }[]) => void;
 }) {
     const { fetchApps, projectOverviewTab, setProjectOverviewTab } = useDeploymentContext() as DeploymentContextType;
     const [runningJobsWithResources, setRunningJobsWithResources] = useState<RunningJobWithResources[]>([]);

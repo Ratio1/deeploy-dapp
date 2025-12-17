@@ -5,7 +5,7 @@ import db from '@lib/storage/db';
 import { jobSchema } from '@schemas/index';
 import ActionButton from '@shared/ActionButton';
 import SupportFooter from '@shared/SupportFooter';
-import { DraftJob, JobType } from '@typedefs/deeploys';
+import { DraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
@@ -36,7 +36,7 @@ export default function EditJobDraft() {
         }
 
         try {
-            const updatedJob = {
+            const job = {
                 ...draftJob,
                 specifications: data.specifications,
                 costAndDuration: data.costAndDuration,
@@ -47,12 +47,18 @@ export default function EditJobDraft() {
             };
 
             if (data.jobType === JobType.Native) {
-                updatedJob.deployment.plugins = data.plugins;
+                (job as NativeDraftJob).deployment.plugins = data.plugins;
             }
 
-            console.log('[EditJobDraft] onSubmit', updatedJob);
+            if (data.jobType === JobType.Service) {
+                const serviceJob = job as unknown as ServiceDraftJob;
+                serviceJob.serviceId = data.serviceId;
+                serviceJob.tunnelURL = data.tunnelURL;
+            }
 
-            const jobId = await db.jobs.update(draftJob.id, updatedJob as DraftJob);
+            console.log('[EditJobDraft] onSubmit', job);
+
+            const jobId = await db.jobs.put(job as DraftJob);
 
             console.log('[EditJobDraft] Job draft updated successfully', jobId);
             toast.success('Job draft updated successfully.');

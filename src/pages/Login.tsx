@@ -1,13 +1,12 @@
 import Logo from '@assets/logo.svg';
-import { PoAIManagerAbi } from '@blockchain/PoAIManager';
 import { ReaderContractAbi } from '@blockchain/ReaderContract';
 import LoginCard from '@components/auth/LoginCard';
 import RestrictedAccess from '@components/auth/RestrictedAccess';
 import { Spinner } from '@heroui/spinner';
 import { config, environment, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
-import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { EscrowAccess } from '@lib/contexts/deployment/context';
 import { EthAddress } from '@typedefs/blockchain';
 import { ConnectKitButton, useModal } from 'connectkit';
 import { useEffect, useState } from 'react';
@@ -16,8 +15,7 @@ import { useAccount, usePublicClient } from 'wagmi';
 
 function Login() {
     const { isSignedIn } = useAuthenticationContext() as AuthenticationContextType;
-    const { fetchLicenses } = useBlockchainContext() as BlockchainContextType;
-    const { setEscrowContractAddress } = useDeploymentContext() as DeploymentContextType;
+    const { fetchEscrowAccess } = useDeploymentContext() as DeploymentContextType;
 
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const publicClient = usePublicClient();
@@ -26,6 +24,7 @@ function Login() {
 
     const [isLoading, setLoading] = useState(false);
     const [hasOracles, setHasOracles] = useState<boolean | undefined>();
+    const [escrowAccess, setEscrowAccess] = useState<EscrowAccess | undefined>();
 
     const isConnected: boolean = isSignedIn && address !== undefined && publicClient !== undefined;
 
@@ -38,11 +37,7 @@ function Login() {
 
     useEffect(() => {
         if (isConnected) {
-            if (isUsingDevAddress) {
-                bypassAccess();
-            } else {
-                checkAccess();
-            }
+            checkAccess();
         }
     }, [isConnected]);
 
@@ -55,52 +50,15 @@ function Login() {
         setLoading(true);
 
         try {
-            const [hasOracles, escrowScAddress] = await Promise.all([
-                fetchHasOracles(),
-                publicClient.readContract({
-                    address: config.poAIManagerContractAddress,
-                    abi: PoAIManagerAbi,
-                    functionName: 'ownerToEscrow',
-                    args: [address],
-                }),
-            ]);
+            const [hasOracles, escrowAccess] = await Promise.all([fetchHasOracles(), fetchEscrowAccess(address)]);
 
             setHasOracles(process.env.NODE_ENV === 'development' ? true : hasOracles);
-            setEscrowContractAddress(escrowScAddress as EthAddress);
+            setEscrowAccess(escrowAccess);
         } catch (error) {
             console.error('Error checking oracle ownership', error);
             toast.error('Error checking oracle ownership.');
         } finally {
             console.log('Finished checking oracle ownership');
-            setLoading(false);
-        }
-    };
-
-    const bypassAccess = async () => {
-        if (!publicClient || !address) {
-            toast.error('Unexpected error, please refresh this page.');
-            return;
-        }
-
-        setLoading(true);
-
-        console.log('Bypassing oracle ownership...');
-
-        try {
-            const escrowScAddress = await publicClient.readContract({
-                address: config.poAIManagerContractAddress,
-                abi: PoAIManagerAbi,
-                functionName: 'ownerToEscrow',
-                args: [address],
-            });
-
-            setHasOracles(true);
-            setEscrowContractAddress(escrowScAddress as EthAddress);
-        } catch (error) {
-            console.error('Error bypassing oracle ownership', error);
-            toast.error('Error bypassing oracle ownership.');
-        } finally {
-            console.log('Finished bypassing oracle ownership');
             setLoading(false);
         }
     };
@@ -143,7 +101,13 @@ function Login() {
                             <div className="font-medium">Authenticating</div>
                         </div>
                     ) : (
-                        <>{!hasOracles ? <RestrictedAccess /> : <LoginCard hasOracles={hasOracles} />}</>
+                        <>
+                            {!hasOracles && !escrowAccess?.escrowAddress ? (
+                                <RestrictedAccess />
+                            ) : (
+                                <LoginCard hasOracles={hasOracles ?? false} />
+                            )}
+                        </>
                     )}
                 </div>
             )}

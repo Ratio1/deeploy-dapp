@@ -39,7 +39,7 @@ function NativeRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
                 return (
                     <>
                         <div className={widthClasses[1]}>
-                            <div className="font-medium">
+                            <div className="text-[13px]">
                                 {targetNodes} node
                                 {targetNodes > 1 ? 's' : ''}
                             </div>
@@ -52,7 +52,9 @@ function NativeRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
                             </div>
                         </div>
 
-                        <div className={widthClasses[3]}>{`${containerOrWorkerType.name} (${formatResourcesSummary(containerOrWorkerType)})`}</div>
+                        <div
+                            className={`${widthClasses[3]} text-[13px]`}
+                        >{`${containerOrWorkerType.name} (${formatResourcesSummary(containerOrWorkerType)})`}</div>
                     </>
                 );
             }}

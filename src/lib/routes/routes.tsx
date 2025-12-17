@@ -14,7 +14,7 @@ import Home from '@pages/Home';
 import TunnelPage from '@pages/tunnels/TunnelPage';
 import Tunnels from '@pages/tunnels/Tunnels';
 import { JSX } from 'react';
-import { RiBox3Line, RiCodeBoxLine, RiHomeLine, RiUser3Line } from 'react-icons/ri';
+import { RiBox3Line, RiCodeSSlashLine, RiHomeLine, RiUser3Line } from 'react-icons/ri';
 import { routePath } from './route-paths';
 
 export type BaseRoute = {
@@ -138,7 +138,7 @@ export const routes: AppRoute[] = [
     {
         path: routePath.tunnels,
         page: () => <Tunnels />,
-        icon: <RiCodeBoxLine />,
+        icon: <RiCodeSSlashLine />,
     },
     {
         path: routePath.account,

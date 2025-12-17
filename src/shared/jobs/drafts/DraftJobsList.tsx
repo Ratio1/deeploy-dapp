@@ -127,7 +127,7 @@ export default function DraftJobsList({
                     {renderJob(job)}
 
                     <div className="min-w-[60px]">
-                        <SmallTag variant={job.paid ? 'green' : 'default'}>{job.paid ? 'Paid' : 'Unpaid'}</SmallTag>
+                        <SmallTag variant={job.paid ? 'green' : 'slate'}>{job.paid ? 'Paid' : 'Unpaid'}</SmallTag>
                     </div>
 
                     <ContextMenuWithTrigger

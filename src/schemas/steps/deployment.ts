@@ -322,6 +322,7 @@ const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend
     fileVolumes: validations.fileVolumes,
     restartPolicy: validations.restartPolicy,
     imagePullPolicy: validations.imagePullPolicy,
+    customParams: validations.customParams,
 });
 
 export const genericAppDeploymentSchema = applyDeploymentTypeRefinements(
@@ -352,6 +353,9 @@ const genericPluginSchema = z.object({
     // Policies
     restartPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
     imagePullPolicy: z.enum(POLICY_TYPES, { required_error: 'Value is required' }),
+
+    // Custom Parameters
+    customParams: validations.customParams,
 });
 
 const nativePluginSchema = z.object({
@@ -393,10 +397,10 @@ export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(
 );
 
 const serviceAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
-    enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
-    tunnelingToken: getOptionalStringSchema(512),
     inputs: validations.envVars,
-    serviceReplica: nodeSchema.shape.address.optional(),
+    ports: validations.ports,
+    isPublicService: z.boolean().default(true),
+    // serviceReplica: nodeSchema.shape.address.optional(),
 });
 
 export const serviceAppDeploymentSchema = applyTunnelingRefinements(serviceAppDeploymentSchemaWihtoutRefinements);

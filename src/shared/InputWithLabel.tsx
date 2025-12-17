@@ -16,6 +16,7 @@ interface Props extends InputProps {
     customLabel?: React.ReactNode;
     endContent?: 'copy' | 'paste';
     hasSecretValue?: boolean;
+    description?: string;
 }
 
 export default function InputWithLabel({
@@ -26,6 +27,7 @@ export default function InputWithLabel({
     customLabel,
     endContent,
     hasSecretValue,
+    description,
     ...props
 }: Props) {
     const { control } = useFormContext();
@@ -58,6 +60,7 @@ export default function InputWithLabel({
                         return (
                             <StyledInput
                                 placeholder={placeholder}
+                                description={description}
                                 value={field.value ?? ''}
                                 onChange={(e) => {
                                     const value = e.target.value;

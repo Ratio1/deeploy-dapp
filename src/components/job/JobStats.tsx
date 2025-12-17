@@ -1,3 +1,5 @@
+import { getRunningService } from '@data/containerResources';
+import { Service } from '@data/services';
 import { config, environment } from '@lib/config';
 import { addTimeFn, diffTimeFn } from '@lib/deeploy-utils';
 import { fBI } from '@lib/utils';
@@ -20,6 +22,8 @@ export default function JobStats({
     const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
 
     const costPerEpoch = job.pricePerEpoch * job.numberOfNodesRequested;
+
+    const service: Service | undefined = getRunningService(job.config.IMAGE);
 
     const items = [
         {
@@ -65,10 +69,22 @@ export default function JobStats({
     return (
         <CardWithItems
             header={
-                <div className="row gap-1.5">
-                    {!!jobTypeOption && <div className={`text-xl ${jobTypeOption.textColorClass}`}>{jobTypeOption.icon}</div>}
+                <div className="row justify-between">
+                    <div className="row gap-1.5">
+                        {!!jobTypeOption && (
+                            <div className={`text-xl ${jobTypeOption.textColorClass}`}>{jobTypeOption.icon}</div>
+                        )}
 
-                    <div className="text-lg font-semibold">{jobTypeOption?.title}</div>
+                        <div className="text-lg font-semibold">{jobTypeOption?.title}</div>
+
+                        {!!service && (
+                            <div className="ml-0.5">
+                                <SmallTag variant={service.color} isLarge>
+                                    {service.name}
+                                </SmallTag>
+                            </div>
+                        )}
+                    </div>
                 </div>
             }
             items={items}

@@ -58,7 +58,13 @@ export default function DraftCard({ project }: { project: DraftProject }) {
                         </div>
                     </div>
 
-                    <div className="min-w-[110px]">{!!jobs && <div className="font-medium">{jobs.length} jobs</div>}</div>
+                    <div className="min-w-[110px]">
+                        {!!jobs && (
+                            <div className="font-medium">
+                                {jobs.length} job{jobs.length > 1 ? 's' : ''}
+                            </div>
+                        )}
+                    </div>
 
                     <div className="min-w-[212px]">
                         <SmallTag>

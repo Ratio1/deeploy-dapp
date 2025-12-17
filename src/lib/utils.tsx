@@ -110,7 +110,7 @@ export function generateSecurePassword(length: number = 24): string {
     const lowercase = 'abcdefghijklmnopqrstuvwxyz';
     const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const numbers = '0123456789';
-    const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+    const symbols = '!@#$%^&*_=';
 
     const allChars = lowercase + uppercase + numbers + symbols;
 
@@ -181,4 +181,13 @@ export function resizeImage(file: File, maxWidth = 512, maxHeight = 512, quality
         img.onerror = reject;
         img.src = URL.createObjectURL(file);
     });
+}
+
+/**
+ * Strips all non-alphanumeric characters from a string, leaving only letters and numbers
+ * @param str - The input string to process
+ * @returns A string containing only letters and numbers
+ */
+export function stripToAlphanumeric(str: string): string {
+    return str.replace(/[^a-zA-Z0-9]/g, '');
 }

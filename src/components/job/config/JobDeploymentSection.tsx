@@ -1,24 +1,69 @@
+import { Skeleton } from '@heroui/skeleton';
+import { getTunnelByToken } from '@lib/api/tunnels';
+import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import { CopyableValue } from '@shared/CopyableValue';
 import ItemWithBoldValue from '@shared/jobs/ItemWithBoldValue';
+import { useQuery } from '@tanstack/react-query';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { isEmpty } from 'lodash';
+import { RiExternalLinkLine } from 'react-icons/ri';
+import { Link } from 'react-router-dom';
 import JobKeyValueSection from '../JobKeyValueSection';
 import JobSimpleTagsSection from '../JobSimpleTagsSection';
 import ConfigSectionTitle from './ConfigSectionTitle';
 
 export default function JobDeploymentSection({ job }: { job: RunningJobWithResources }) {
+    const { tunnelingSecrets } = useTunnelsContext() as TunnelsContextType;
+
     const tags = !job.jobTags ? [] : job.jobTags.filter((tag) => tag !== '');
 
     const config = job.config;
 
     const pipelineData = job.pipelineData;
 
+    const shouldFetchTunnel = !!tunnelingSecrets && !!config.TUNNEL_ENGINE_ENABLED && !!config.CLOUDFLARE_TOKEN;
+
+    const {
+        data: tunnelUrl,
+        isLoading: isLoadingTunnel,
+        isFetching: isFetchingTunnel,
+    } = useQuery({
+        queryKey: ['tunnelByToken', config.CLOUDFLARE_TOKEN],
+        queryFn: async () => {
+            if (!tunnelingSecrets || !config.CLOUDFLARE_TOKEN) {
+                return null;
+            }
+            const response = await getTunnelByToken(config.CLOUDFLARE_TOKEN, tunnelingSecrets);
+            return response?.result?.metadata?.dns_name || null;
+        },
+        enabled: shouldFetchTunnel,
+        retry: false,
+        refetchOnWindowFocus: false,
+    });
+
+    const isTunnelLoading = isLoadingTunnel || isFetchingTunnel;
+
     return (
         <BorderedCard isLight={false} disableWrapper>
             <div className="col gap-3 p-4">
-                <div className="text-lg font-semibold">Deployment</div>
+                <div className="row justify-between">
+                    <div className="text-lg font-semibold">Deployment</div>
+
+                    {shouldFetchTunnel && isTunnelLoading ? (
+                        <Skeleton className="min-h-[28px] w-[224px] rounded-lg" />
+                    ) : tunnelUrl ? (
+                        <CopyableValue value={tunnelUrl}>
+                            <Link to={`https://${tunnelUrl}`} target="_blank" className="hover:opacity-70">
+                                <div className="row text-primary gap-1">
+                                    <div className="font-roboto-mono text-sm font-medium">{tunnelUrl}</div>
+                                    <RiExternalLinkLine className="mb-px text-[17px]" />
+                                </div>
+                            </Link>
+                        </CopyableValue>
+                    ) : null}
+                </div>
 
                 <div className="col gap-4">
                     {/* Nodes */}

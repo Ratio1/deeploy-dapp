@@ -64,7 +64,7 @@ type JobConfig = {
     BUILD_AND_RUN_COMMANDS?: string[];
     CHAINSTORE_PEERS: string[];
     CHAINSTORE_RESPONSE_KEY: string;
-    CLOUDFLARE_TOKEN: string | null;
+    CLOUDFLARE_TOKEN: string | undefined;
     CONTAINER_RESOURCES: {
         cpu: number;
         memory: string;

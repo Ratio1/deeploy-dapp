@@ -42,7 +42,7 @@ function DeploymentTypeSectionCard({ isEditingRunningJob }: { isEditingRunningJo
             title={pluginType === PluginType.Worker ? 'Worker App Runner' : 'Container App Runner'}
             label={
                 <div className="row gap-2">
-                    <SmallTag variant={pluginType === PluginType.Worker ? 'yellow' : 'default'}>Worker</SmallTag>
+                    <SmallTag variant={pluginType === PluginType.Worker ? 'yellow' : 'slate'}>Worker</SmallTag>
 
                     <Switch
                         isSelected={pluginType === PluginType.Container}
@@ -52,7 +52,7 @@ function DeploymentTypeSectionCard({ isEditingRunningJob }: { isEditingRunningJo
                             wrapper: 'bg-yellow-200 group-data-[selected=true]:bg-pink-300',
                         }}
                     >
-                        <SmallTag variant={pluginType === PluginType.Container ? 'pink' : 'default'}>Container</SmallTag>
+                        <SmallTag variant={pluginType === PluginType.Container ? 'pink' : 'slate'}>Container</SmallTag>
                     </Switch>
                 </div>
             }

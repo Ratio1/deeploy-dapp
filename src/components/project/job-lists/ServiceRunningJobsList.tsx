@@ -1,4 +1,5 @@
-import { Service, formatResourcesSummary } from '@data/containerResources';
+import { formatResourcesSummary, getRunningService } from '@data/containerResources';
+import { Service } from '@data/services';
 import { applyWidthClasses } from '@lib/utils';
 import RunningJobsList from '@shared/jobs/projects/RunningJobsList';
 import { SmallTag } from '@shared/SmallTag';
@@ -7,8 +8,7 @@ import { RiDatabase2Line } from 'react-icons/ri';
 
 const widthClasses = [
     'min-w-[194px]', // alias
-    'min-w-[90px]', // targetNodes
-    'min-w-[100px]', // database
+    'min-w-[200px]', // type
     'min-w-[310px]', // resources
 ];
 
@@ -21,7 +21,7 @@ function ServiceRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
                     <div className="compact">Services</div>
                 </div>
             }
-            tableHeader={<>{applyWidthClasses(['Alias', 'Target Nodes', 'Database', 'Container Type'], widthClasses)}</>}
+            tableHeader={<>{applyWidthClasses(['Alias', 'Type', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
             renderAlias={(job) => {
                 return (
@@ -34,24 +34,20 @@ function ServiceRunningJobsList({ jobs }: { jobs: RunningJobWithResources[] }) {
             }}
             renderJob={(job) => {
                 const { containerOrWorkerType } = job.resources;
-                const service: Service = containerOrWorkerType as Service;
-                const targetNodes = Number(job.numberOfNodesRequested);
+                const service: Service | undefined = getRunningService(job.config.IMAGE);
 
                 return (
                     <>
                         <div className={widthClasses[1]}>
-                            <div className="font-medium">
-                                {targetNodes} node
-                                {targetNodes > 1 ? 's' : ''}
-                            </div>
-                        </div>
-
-                        <div className={widthClasses[2]}>
-                            <SmallTag variant={service.notesColor}>{service.serviceName}</SmallTag>
+                            {!service ? (
+                                <SmallTag>Unknown</SmallTag>
+                            ) : (
+                                <SmallTag variant={service.color}>{service.name}</SmallTag>
+                            )}
                         </div>
 
                         <div
-                            className={widthClasses[3]}
+                            className={`${widthClasses[2]} text-[13px]`}
                         >{`${containerOrWorkerType.name} (${formatResourcesSummary(containerOrWorkerType)})`}</div>
                     </>
                 );

@@ -62,21 +62,30 @@ export default function WorkerSection({
         try {
             const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
 
-            if (!response.ok) {
-                throw new Error(`GitHub repository lookup failed with status ${response.status}`);
+            if (response.ok) {
+                // 200 - Repository is public
+                setValue(`${baseName}.deploymentType.repositoryVisibility`, 'public');
+                REPOS_CACHE[trimmedUrl] = 'public';
+            } else if (response.status === 404) {
+                // 404 - Repository is private or doesn't exist
+                setValue(`${baseName}.deploymentType.repositoryVisibility`, 'private');
+                REPOS_CACHE[trimmedUrl] = 'private';
+            } else {
+                // Other errors (e.g., 403 rate limit) - default to public (credentials optional)
+                // If it's actually private, user will get an error during deployment
+                console.warn(`GitHub API returned status ${response.status}, defaulting to public`);
+                setValue(`${baseName}.deploymentType.repositoryVisibility`, 'public');
+                // Don't cache rate-limited results
             }
-
-            // console.log('Repository visibility is: public');
-            setValue(`${baseName}.deploymentType.repositoryVisibility`, 'public');
-            REPOS_CACHE[trimmedUrl] = 'public';
         } catch (error: any) {
             if (error?.name === 'AbortError') {
                 return;
             }
 
-            // console.log('Repository visibility is: private');
-            setValue(`${baseName}.deploymentType.repositoryVisibility`, 'private');
-            REPOS_CACHE[trimmedUrl] = 'private';
+            // Network error - default to public (credentials optional)
+            console.error('Failed to check repository visibility:', error);
+            setValue(`${baseName}.deploymentType.repositoryVisibility`, 'public');
+            // Don't cache network errors
         }
     };
 

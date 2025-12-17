@@ -21,10 +21,11 @@ const Running = forwardRef<
     RunningRef,
     {
         setProjectsCount: (count: number) => void;
-        successfulJobs: { text: string; serverAlias: string }[];
-        setSuccessfulJobs: (successfulJobs: { text: string; serverAlias: string }[]) => void;
+        successfulJobs: { text: string; serverAlias: string; tunnelURL?: string }[];
+        setSuccessfulJobs: (successfulJobs: { text: string; serverAlias: string; tunnelURL?: string }[]) => void;
+        clearSuccessfulJobsFromLocation: () => void;
     }
->(({ setProjectsCount, successfulJobs, setSuccessfulJobs }, ref) => {
+>(({ setProjectsCount, successfulJobs, setSuccessfulJobs, clearSuccessfulJobsFromLocation }, ref) => {
     const { apps, fetchRunningJobsWithDetails, fetchApps } = useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
@@ -111,7 +112,13 @@ const Running = forwardRef<
                 <div className="min-w-[124px]">Next payment due</div>
             </ListHeader>
 
-            <DeeploySuccessAlert items={successfulJobs} onClose={() => setSuccessfulJobs([])} />
+            <DeeploySuccessAlert
+                items={successfulJobs}
+                onClose={() => {
+                    setSuccessfulJobs([]);
+                    clearSuccessfulJobsFromLocation();
+                }}
+            />
 
             <RefreshRequiredAlert
                 customCallback={async () => {
