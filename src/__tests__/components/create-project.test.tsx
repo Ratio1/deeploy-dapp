@@ -4,19 +4,11 @@ import { keccak256, toBytes } from 'viem';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { COLOR_TYPES } from '@data/colorTypes';
 import { routePath } from '@lib/routes/route-paths';
+import db from '@lib/storage/db';
 import CreateProject from '../../../app/(protected)/deeploys/create-project/page';
 
 const mocks = vi.hoisted(() => ({
-    addProject: vi.fn(),
     push: vi.fn(),
-}));
-
-vi.mock('@lib/storage/db', () => ({
-    default: {
-        projects: {
-            add: mocks.addProject,
-        },
-    },
 }));
 
 vi.mock('next/navigation', () => ({
@@ -26,9 +18,8 @@ vi.mock('next/navigation', () => ({
 }));
 
 describe('CreateProject', () => {
-    beforeEach(() => {
-        mocks.addProject.mockReset();
-        mocks.addProject.mockResolvedValue(1);
+    beforeEach(async () => {
+        await db.projects.clear();
         mocks.push.mockReset();
     });
 
@@ -45,19 +36,18 @@ describe('CreateProject', () => {
         const submitButton = await screen.findByRole('button', { name: /create project/i });
         await user.click(submitButton);
 
-        await waitFor(() => {
-            expect(mocks.addProject).toHaveBeenCalled();
-        });
-
         const projectHash = keccak256(toBytes(uuid));
 
-        expect(mocks.addProject).toHaveBeenCalledWith(
-            expect.objectContaining({
-                name: 'MyProject',
-                color: COLOR_TYPES[0].hex,
-                projectHash,
-            }),
-        );
+        await waitFor(async () => {
+            const savedProject = await db.projects.get(projectHash);
+            expect(savedProject).toEqual(
+                expect.objectContaining({
+                    name: 'MyProject',
+                    color: COLOR_TYPES[0].hex,
+                    projectHash,
+                }),
+            );
+        });
 
         expect(mocks.push).toHaveBeenCalledWith(`${routePath.deeploys}/${routePath.projectDraft}/${projectHash}`);
     });
