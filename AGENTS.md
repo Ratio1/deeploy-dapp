@@ -28,7 +28,7 @@ Prettier (`.prettierrc`) enforces four-space indentation, single quotes, semicol
 
 ## Testing Guidelines
 
-Automated tests are not yet wired into `package.json`. Place specs alongside source as `*.test.ts(x)` or under `src/__tests__/`. Stub Deeploy API calls and blockchain providers to keep tests deterministic, and document manual QA steps in your PR until the suite matures.
+Automated tests run with Vitest (`npm test`). Place specs alongside source as `*.test.ts(x)` or under `src/__tests__/`. When adding new functions, include coverage for the expected behavior and edge cases. Run the test suite (or targeted tests) before completing implementations. Stub Deeploy API calls and blockchain providers to keep tests deterministic, and document manual QA steps in your PR until the suite matures.
 
 ## Commit & Pull Request Guidelines
 
