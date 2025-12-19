@@ -45,7 +45,10 @@ export function useRunningJob(jobId?: string, options?: UseRunningJobOptions) {
                 }
 
                 const resources: RunningJobResources | undefined = getRunningJobResources(runningJob.jobType);
-                const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails([runningJob], appsOverride);
+                const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(
+                    [runningJob],
+                    appsOverride,
+                );
 
                 if (!resources || runningJobsWithDetails.length !== 1) {
                     console.error({ resources, runningJobsWithDetails });
@@ -68,7 +71,7 @@ export function useRunningJob(jobId?: string, options?: UseRunningJobOptions) {
                 setLoading(false);
             }
         },
-        [escrowContractAddress, formatRunningJobsWithDetails, jobId, publicClient],
+        [escrowContractAddress, jobId, publicClient],
     );
 
     useEffect(() => {
