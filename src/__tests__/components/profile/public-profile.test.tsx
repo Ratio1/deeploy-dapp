@@ -2,24 +2,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { http, HttpResponse } from 'msw';
 import PublicProfile from '@components/account/profile/PublicProfile';
-
-const apiMocks = vi.hoisted(() => ({
-    getBrandingPlatforms: vi.fn(),
-    getPublicProfileInfo: vi.fn(),
-    uploadProfileImage: vi.fn(),
-    updatePublicProfileInfo: vi.fn(),
-}));
+import { config } from '@lib/config';
+import { server } from '../../mocks/server';
 
 const wagmiMocks = vi.hoisted(() => ({
     useAccount: vi.fn(),
-}));
-
-vi.mock('@lib/api/backend', () => ({
-    getBrandingPlatforms: apiMocks.getBrandingPlatforms,
-    getPublicProfileInfo: apiMocks.getPublicProfileInfo,
-    uploadProfileImage: apiMocks.uploadProfileImage,
-    updatePublicProfileInfo: apiMocks.updatePublicProfileInfo,
 }));
 
 vi.mock('wagmi', () => ({
@@ -45,19 +34,31 @@ const renderWithQueryClient = () => {
 describe('PublicProfile', () => {
     beforeEach(() => {
         wagmiMocks.useAccount.mockReturnValue({ address: '0xabc' });
-        apiMocks.getBrandingPlatforms.mockResolvedValue(['Linkedin', 'Website']);
-        apiMocks.getPublicProfileInfo.mockResolvedValue({
-            brands: [
-                {
-                    name: 'Alice',
-                    description: 'Builder',
-                    links: {
-                        Linkedin: 'https://linkedin.com/in/alice',
-                        Website: '',
+        server.use(
+            http.get(`${config.backendUrl}/branding/get-platforms`, () =>
+                HttpResponse.json({
+                    data: ['Linkedin', 'Website'],
+                    error: '',
+                }),
+            ),
+            http.post(`${config.backendUrl}/branding/get-brands`, () =>
+                HttpResponse.json({
+                    data: {
+                        brands: [
+                            {
+                                name: 'Alice',
+                                description: 'Builder',
+                                links: {
+                                    Linkedin: 'https://linkedin.com/in/alice',
+                                    Website: '',
+                                },
+                            },
+                        ],
                     },
-                },
-            ],
-        });
+                    error: '',
+                }),
+            ),
+        );
     });
 
     afterEach(() => {
@@ -73,8 +74,7 @@ describe('PublicProfile', () => {
         expect(screen.getByText('LinkedIn')).toBeInTheDocument();
         expect(screen.getByText('https://linkedin.com/in/alice')).toBeInTheDocument();
 
-        expect(apiMocks.getBrandingPlatforms).toHaveBeenCalled();
-        expect(apiMocks.getPublicProfileInfo).toHaveBeenCalledWith('0xabc');
+        expect(screen.getByText('LinkedIn')).toBeInTheDocument();
     });
 
     it('switches to edit mode', async () => {

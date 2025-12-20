@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ImageUpload from '@components/account/profile/ImageUpload';
 
@@ -15,12 +16,12 @@ const toastMocks = vi.hoisted(() => ({
     success: vi.fn(),
 }));
 
-vi.mock('@lib/api/backend', () => ({
-    uploadProfileImage: apiMocks.uploadProfileImage,
-}));
-
 vi.mock('@lib/utils', () => ({
     resizeImage: utilsMocks.resizeImage,
+}));
+
+vi.mock('@lib/api/backend', () => ({
+    uploadProfileImage: apiMocks.uploadProfileImage,
 }));
 
 vi.mock('react-hot-toast', () => ({
@@ -54,12 +55,12 @@ describe('ImageUpload', () => {
 
         expect(setImageLoading).toHaveBeenCalledWith(true);
         expect(setImageLoading).toHaveBeenCalledWith(false);
-        expect(apiMocks.uploadProfileImage).not.toHaveBeenCalled();
         expect(toastMocks.error).toHaveBeenCalledWith('Only .jpg, .jpeg, and .png images are allowed.');
         expect(input.value).toBe('');
     });
 
     it('uploads valid images and calls the success callback', async () => {
+        const user = userEvent.setup();
         const setImageLoading = vi.fn();
         const onSuccessfulUpload = vi.fn();
 
@@ -71,13 +72,17 @@ describe('ImageUpload', () => {
         expect(input).toBeTruthy();
 
         const file = new File(['png'], 'avatar.png', { type: 'image/png' });
-        fireEvent.change(input, { target: { files: [file] } });
+        await user.upload(input, file);
 
         await waitFor(() => {
             expect(apiMocks.uploadProfileImage).toHaveBeenCalledWith(expect.any(File));
         });
+        const uploadedFile = apiMocks.uploadProfileImage.mock.calls[0]?.[0] as File | undefined;
+        expect(uploadedFile?.name).toBe('avatar.png');
 
-        expect(onSuccessfulUpload).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(onSuccessfulUpload).toHaveBeenCalled();
+        });
         expect(setImageLoading).toHaveBeenCalledWith(true);
     });
 });

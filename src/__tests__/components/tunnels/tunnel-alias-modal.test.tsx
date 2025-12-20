@@ -2,19 +2,10 @@ import React, { createRef } from 'react';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { http, HttpResponse } from 'msw';
 import TunnelAliasModal from '@components/tunnels/TunnelAliasModal';
 import { TunnelsContext } from '@lib/contexts/tunnels/context';
-import { createTunnel, renameTunnel } from '@lib/api/tunnels';
-
-const apiMocks = vi.hoisted(() => ({
-    createTunnel: vi.fn(),
-    renameTunnel: vi.fn(),
-}));
-
-vi.mock('@lib/api/tunnels', () => ({
-    createTunnel: apiMocks.createTunnel,
-    renameTunnel: apiMocks.renameTunnel,
-}));
+import { server } from '../../mocks/server';
 
 const tunnelingSecrets = {
     cloudflareAccountId: 'acc',
@@ -36,6 +27,25 @@ describe('TunnelAliasModal', () => {
         const user = userEvent.setup();
         const ref = createRef<{ trigger: (callback: () => any) => void }>();
         const callback = vi.fn();
+        let receivedBody: Record<string, string> | null = null;
+
+        server.use(
+            http.post('https://1f8b266e9dbf.ratio1.link/new_tunnel', async ({ request }) => {
+                receivedBody = (await request.json()) as Record<string, string>;
+                return HttpResponse.json({
+                    result: {
+                        id: 'tunnel-1',
+                        metadata: {
+                            alias: 'New Tunnel',
+                            dns_name: 'app.example.com',
+                            tunnel_token: 'token',
+                            custom_hostnames: [],
+                            aliases: [],
+                        },
+                    },
+                });
+            }),
+        );
 
         render(
             <TunnelsContext.Provider
@@ -60,7 +70,15 @@ describe('TunnelAliasModal', () => {
         const submitButton = await screen.findByRole('button', { name: 'Create' });
         await user.click(submitButton);
 
-        expect(apiMocks.createTunnel).toHaveBeenCalledWith('New Tunnel', tunnelingSecrets);
+        expect(receivedBody).toEqual(
+            expect.objectContaining({
+                alias: 'New Tunnel',
+                cloudflare_account_id: 'acc',
+                cloudflare_zone_id: 'zone',
+                cloudflare_api_key: 'key',
+                cloudflare_domain: 'example.com',
+            }),
+        );
         expect(callback).toHaveBeenCalled();
     });
 
@@ -68,6 +86,16 @@ describe('TunnelAliasModal', () => {
         const user = userEvent.setup();
         const ref = createRef<{ trigger: (callback: () => any, tunnel?: { id: string; alias: string }) => void }>();
         const callback = vi.fn();
+        let receivedBody: Record<string, string> | null = null;
+
+        server.use(
+            http.post('https://1f8b266e9dbf.ratio1.link/rename_tunnel', async ({ request }) => {
+                receivedBody = (await request.json()) as Record<string, string>;
+                return HttpResponse.json({
+                    result: { success: true },
+                });
+            }),
+        );
 
         render(
             <TunnelsContext.Provider
@@ -93,7 +121,14 @@ describe('TunnelAliasModal', () => {
         const submitButton = await screen.findByRole('button', { name: 'Rename' });
         await user.click(submitButton);
 
-        expect(apiMocks.renameTunnel).toHaveBeenCalledWith('tunnel-1', 'Updated Tunnel', tunnelingSecrets);
+        expect(receivedBody).toEqual(
+            expect.objectContaining({
+                tunnel_id: 'tunnel-1',
+                new_alias: 'Updated Tunnel',
+                cloudflare_account_id: 'acc',
+                cloudflare_api_key: 'key',
+            }),
+        );
         expect(callback).toHaveBeenCalled();
     });
 });

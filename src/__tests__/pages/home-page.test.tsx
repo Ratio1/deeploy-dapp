@@ -22,10 +22,14 @@ vi.mock('@lib/contexts/deployment', () => ({
     }),
 }));
 
-vi.mock('@lib/config', () => ({
-    getCurrentEpoch: () => 42,
-    getNextEpochTimestamp: () => new Date('2025-01-01T00:00:00Z'),
-}));
+vi.mock('@lib/config', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@lib/config')>();
+    return {
+        ...actual,
+        getCurrentEpoch: () => 42,
+        getNextEpochTimestamp: () => new Date('2025-01-01T00:00:00Z'),
+    };
+});
 
 describe('Home page', () => {
     afterEach(() => {

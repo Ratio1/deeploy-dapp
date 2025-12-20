@@ -1,18 +1,12 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { http, HttpResponse } from 'msw';
 import TunnelCard from '@components/tunnels/TunnelCard';
 import { InteractionContext } from '@lib/contexts/interaction/context';
 import { TunnelsContext } from '@lib/contexts/tunnels/context';
 import { Tunnel } from '@typedefs/tunnels';
-
-const mocks = vi.hoisted(() => ({
-    deleteTunnel: vi.fn(),
-}));
-
-vi.mock('@lib/api/tunnels', () => ({
-    deleteTunnel: mocks.deleteTunnel,
-}));
+import { server } from '../../mocks/server';
 
 vi.mock('@shared/ContextMenuWithTrigger', () => ({
     default: ({ items }: { items: { key: string; label: string; onPress: () => void }[] }) => (
@@ -104,6 +98,16 @@ describe('TunnelCard', () => {
             await options?.onConfirm?.();
             return true;
         });
+        let receivedParams: URLSearchParams | null = null;
+
+        server.use(
+            http.delete('https://1f8b266e9dbf.ratio1.link/delete_tunnel', ({ request }) => {
+                receivedParams = new URL(request.url).searchParams;
+                return HttpResponse.json({
+                    result: { success: true },
+                });
+            }),
+        );
 
         render(
             <InteractionContext.Provider
@@ -131,7 +135,8 @@ describe('TunnelCard', () => {
         await userEvent.click(screen.getAllByRole('button', { name: 'Delete' })[0]);
 
         await waitFor(() => {
-            expect(mocks.deleteTunnel).toHaveBeenCalledWith('tunnel-1', tunnelingSecrets);
+            expect(receivedParams?.get('tunnel_id')).toBe('tunnel-1');
+            expect(receivedParams?.get('cloudflare_account_id')).toBe('acc');
             expect(fetchTunnels).toHaveBeenCalled();
         });
     });

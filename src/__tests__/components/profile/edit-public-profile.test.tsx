@@ -1,16 +1,11 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { http, HttpResponse } from 'msw';
 import EditPublicProfile from '@components/account/profile/EditPublicProfile';
 import { PublicProfileInfo } from '@typedefs/general';
-
-const apiMocks = vi.hoisted(() => ({
-    updatePublicProfileInfo: vi.fn(),
-}));
-
-vi.mock('@lib/api/backend', () => ({
-    updatePublicProfileInfo: apiMocks.updatePublicProfileInfo,
-}));
+import { config } from '@lib/config';
+import { server } from '../../mocks/server';
 
 vi.mock('react-hot-toast', () => ({
     default: {
@@ -29,7 +24,14 @@ describe('EditPublicProfile', () => {
     };
 
     beforeEach(() => {
-        apiMocks.updatePublicProfileInfo.mockResolvedValue({});
+        server.use(
+            http.post(`${config.backendUrl}/branding/edit`, () =>
+                HttpResponse.json({
+                    data: {},
+                    error: '',
+                }),
+            ),
+        );
     });
 
     afterEach(() => {
@@ -40,6 +42,18 @@ describe('EditPublicProfile', () => {
     it('submits updated values', async () => {
         const user = userEvent.setup();
         const onEdit = vi.fn();
+        let receivedBody: PublicProfileInfo | null = null;
+
+        server.use(
+            http.post(`${config.backendUrl}/branding/edit`, async ({ request }) => {
+                const json = (await request.json()) as PublicProfileInfo;
+                receivedBody = json;
+                return HttpResponse.json({
+                    data: {},
+                    error: '',
+                });
+            }),
+        );
 
         render(
             <EditPublicProfile
@@ -65,7 +79,7 @@ describe('EditPublicProfile', () => {
         await user.click(screen.getByRole('button', { name: /update profile/i }));
 
         await waitFor(() => {
-            expect(apiMocks.updatePublicProfileInfo).toHaveBeenCalledWith({
+            expect(receivedBody).toEqual({
                 name: 'Alice Updated',
                 description: 'New bio',
                 links: {

@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { http, HttpResponse } from 'msw';
 import { DeploymentProvider } from '@lib/contexts/deployment/deployment-provider';
 import { useDeploymentContext } from '@lib/contexts/deployment/hook';
 import { JobType, ProjectPage } from '@typedefs/deeploys';
+import { config } from '@lib/config';
+import { server } from '../mocks/server';
 
-const apiMocks = vi.hoisted(() => ({
-    getApps: vi.fn(),
-}));
+let getAppsRequest: any = null;
 
 const wagmiMocks = vi.hoisted(() => ({
     account: {
@@ -25,10 +26,6 @@ const modalMocks = vi.hoisted(() => ({
 
 const toastMocks = vi.hoisted(() => ({
     error: vi.fn(),
-}));
-
-vi.mock('@lib/api/deeploy', () => ({
-    getApps: apiMocks.getApps,
 }));
 
 vi.mock('wagmi', () => ({
@@ -103,16 +100,24 @@ describe('DeploymentProvider', () => {
         vi.clearAllMocks();
         wagmiMocks.account = { address: '0xabc' };
         wagmiMocks.signMessageAsync.mockResolvedValue('0xsig');
-        apiMocks.getApps.mockResolvedValue({
-            status: 'success',
-            apps: {
-                node1: {
-                    alias1: {
-                        is_deeployed: true,
+        getAppsRequest = null;
+        server.use(
+            http.post(`${config.deeployUrl}/get_apps`, async ({ request }) => {
+                getAppsRequest = await request.json();
+                return HttpResponse.json({
+                    result: {
+                        status: 'success',
+                        apps: {
+                            node1: {
+                                alias1: {
+                                    is_deeployed: true,
+                                },
+                            },
+                        },
                     },
-                },
-            },
-        });
+                });
+            }),
+        );
     });
 
     afterEach(() => {
@@ -149,14 +154,16 @@ describe('DeploymentProvider', () => {
         await user.click(screen.getByRole('button', { name: 'FetchApps' }));
 
         await waitFor(() => {
-            expect(apiMocks.getApps).toHaveBeenCalled();
+            expect(getAppsRequest).not.toBeNull();
         });
 
-        expect(apiMocks.getApps).toHaveBeenCalledWith(
+        expect(getAppsRequest).toEqual(
             expect.objectContaining({
-                EE_ETH_SENDER: '0xabc',
-                EE_ETH_SIGN: '0xsig',
-                nonce: expect.any(String),
+                request: expect.objectContaining({
+                    EE_ETH_SENDER: '0xabc',
+                    EE_ETH_SIGN: '0xsig',
+                    nonce: expect.any(String),
+                }),
             }),
         );
 
@@ -168,7 +175,7 @@ describe('DeploymentProvider', () => {
 
     it('shows an error when fetching apps without a wallet', async () => {
         const user = userEvent.setup();
-        wagmiMocks.account = { address: undefined };
+        wagmiMocks.account = { address: '0x0000000000000000000000000000000000000000' };
 
         render(
             <DeploymentProvider>
@@ -182,7 +189,7 @@ describe('DeploymentProvider', () => {
             expect(toastMocks.error).toHaveBeenCalledWith('Please connect your wallet.');
         });
 
-        expect(apiMocks.getApps).not.toHaveBeenCalled();
+        expect(getAppsRequest).toBeNull();
         expect(modalMocks.open).not.toHaveBeenCalled();
     });
 
@@ -203,7 +210,7 @@ describe('DeploymentProvider', () => {
             expect(toastMocks.error).toHaveBeenCalledWith('Please sign the message to continue.');
         });
 
-        expect(apiMocks.getApps).not.toHaveBeenCalled();
+        expect(getAppsRequest).toBeNull();
         expect(modalMocks.open).toHaveBeenCalled();
         expect(modalMocks.close).toHaveBeenCalled();
 

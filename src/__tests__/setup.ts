@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import '@testing-library/jest-dom/vitest';
-import { vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, vi } from 'vitest';
 
 process.env.NEXT_PUBLIC_ENVIRONMENT ??= 'testnet';
 process.env.NEXT_PUBLIC_API_URL ??= 'http://localhost';
@@ -71,3 +71,13 @@ Object.defineProperty(navigator, 'clipboard', {
     },
     configurable: true,
 });
+
+let server: typeof import('./mocks/server').server;
+
+beforeAll(async () => {
+    const mod = await import('./mocks/server');
+    server = mod.server;
+    server.listen({ onUnhandledRequest: 'error' });
+});
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());

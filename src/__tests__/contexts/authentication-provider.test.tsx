@@ -2,15 +2,13 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { http, HttpResponse } from 'msw';
 import { AuthenticationProvider } from '@lib/contexts/authentication/authentication-provider';
 import { useAuthenticationContext } from '@lib/contexts/authentication/hook';
 import { ApiAccount } from '@typedefs/blockchain';
 import { KycStatus } from '@/typedefs/profile';
 import { config } from '@lib/config';
-
-const apiMocks = vi.hoisted(() => ({
-    getAccount: vi.fn(),
-}));
+import { server } from '../mocks/server';
 
 const accountMocks = vi.hoisted(() => ({
     state: {
@@ -23,10 +21,6 @@ const connectKitMocks = vi.hoisted(() => ({
     isSignedIn: false,
     modalOpen: false,
     openSIWE: vi.fn(),
-}));
-
-vi.mock('@lib/api/backend', () => ({
-    getAccount: apiMocks.getAccount,
 }));
 
 vi.mock('wagmi', () => ({
@@ -84,7 +78,6 @@ describe('AuthenticationProvider', () => {
             address: '0xabc',
             isConnected: true,
         };
-        apiMocks.getAccount.mockReset();
         connectKitMocks.openSIWE.mockReset();
     });
 
@@ -120,15 +113,20 @@ describe('AuthenticationProvider', () => {
         };
 
         connectKitMocks.isSignedIn = true;
-        apiMocks.getAccount.mockResolvedValue(account);
+        server.use(
+            http.get(`${config.backendUrl}/accounts/account`, () =>
+                HttpResponse.json({
+                    data: account,
+                    error: '',
+                }),
+            ),
+        );
 
         renderWithClient();
 
         await waitFor(() => {
-            expect(apiMocks.getAccount).toHaveBeenCalled();
+            expect(screen.getByTestId('account-email').textContent).toBe('user@example.com');
         });
-
-        expect(screen.getByTestId('account-email').textContent).toBe('user@example.com');
     });
 
     it('skips SIWE when connected to the safe address', async () => {
@@ -146,7 +144,16 @@ describe('AuthenticationProvider', () => {
 
     it('exposes errors when fetching the account fails', async () => {
         connectKitMocks.isSignedIn = true;
-        apiMocks.getAccount.mockRejectedValue(new Error('Account fetch failed'));
+        server.use(
+            http.get(`${config.backendUrl}/accounts/account`, () =>
+                HttpResponse.json(
+                    {
+                        data: null,
+                        error: 'Account fetch failed',
+                    },
+                ),
+            ),
+        );
 
         renderWithClient();
 

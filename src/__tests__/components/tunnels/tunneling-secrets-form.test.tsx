@@ -1,19 +1,13 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { http, HttpResponse } from 'msw';
 import TunnelingSecretsForm from '@components/tunnels/TunnelingSecretsForm';
 import { InteractionContext } from '@lib/contexts/interaction/context';
-
-const apiMocks = vi.hoisted(() => ({
-    addSecrets: vi.fn(),
-}));
+import { server } from '../../mocks/server';
 
 const wagmiMocks = vi.hoisted(() => ({
     signMessageAsync: vi.fn().mockResolvedValue('signature'),
-}));
-
-vi.mock('@lib/api/tunnels', () => ({
-    addSecrets: apiMocks.addSecrets,
 }));
 
 vi.mock('wagmi', () => ({
@@ -31,8 +25,17 @@ describe('TunnelingSecretsForm', () => {
         const onSuccess = vi.fn();
         const openSignMessageModal = vi.fn();
         const closeSignMessageModal = vi.fn();
+        let receivedPayload: Record<string, string> | null = null;
 
-        apiMocks.addSecrets.mockResolvedValue({ result: { success: true } });
+        server.use(
+            http.post('https://1f8b266e9dbf.ratio1.link/add_secrets', async ({ request }) => {
+                const json = (await request.json()) as { payload?: Record<string, string> };
+                receivedPayload = json.payload ?? null;
+                return HttpResponse.json({
+                    result: { success: true },
+                });
+            }),
+        );
 
         render(
             <InteractionContext.Provider
@@ -56,7 +59,7 @@ describe('TunnelingSecretsForm', () => {
         await user.click(submitButton);
 
         await waitFor(() => {
-            expect(apiMocks.addSecrets).toHaveBeenCalledWith(
+            expect(receivedPayload).toEqual(
                 expect.objectContaining({
                     EE_ETH_SIGN: 'signature',
                     EE_ETH_SENDER: '0xabc',

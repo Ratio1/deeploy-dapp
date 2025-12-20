@@ -2,25 +2,15 @@ import React from 'react';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { http, HttpResponse } from 'msw';
 import Tunnels from '../../../app/(protected)/tunnels/page';
 import { InteractionContext } from '@lib/contexts/interaction/context';
 import { TunnelsContext } from '@lib/contexts/tunnels/context';
 import { TunnelingSecrets } from '@typedefs/general';
-
-const apiMocks = vi.hoisted(() => ({
-    checkSecrets: vi.fn(),
-    getSecrets: vi.fn(),
-    getTunnels: vi.fn(),
-}));
+import { server } from '../mocks/server';
 
 const wagmiMocks = vi.hoisted(() => ({
     signMessageAsync: vi.fn().mockResolvedValue('signature'),
-}));
-
-vi.mock('@lib/api/tunnels', () => ({
-    checkSecrets: apiMocks.checkSecrets,
-    getSecrets: apiMocks.getSecrets,
-    getTunnels: apiMocks.getTunnels,
 }));
 
 vi.mock('next/navigation', () => ({
@@ -88,14 +78,26 @@ const renderWithProviders = ({
 describe('Tunnels page', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        apiMocks.getTunnels.mockResolvedValue({ result: {} });
+        server.use(
+            http.get('https://1f8b266e9dbf.ratio1.link/get_tunnels', () =>
+                HttpResponse.json({
+                    result: {},
+                }),
+            ),
+        );
     });
     afterEach(() => {
         cleanup();
     });
 
     it('shows missing secrets state when none exist', async () => {
-        apiMocks.checkSecrets.mockResolvedValueOnce({ result: { exists: false } });
+        server.use(
+            http.get('https://1f8b266e9dbf.ratio1.link/check_secrets_exist', () =>
+                HttpResponse.json({
+                    result: { exists: false },
+                }),
+            ),
+        );
 
         renderWithProviders({});
 
@@ -106,16 +108,28 @@ describe('Tunnels page', () => {
     it('fetches secrets when they exist on the server', async () => {
         const setSecretsSpy = vi.fn();
 
-        apiMocks.checkSecrets.mockResolvedValueOnce({ result: { exists: true } });
-        apiMocks.getSecrets.mockResolvedValueOnce({
-            result: {
-                cloudflare_account_id: 'acc',
-                cloudflare_api_key: 'key',
-                cloudflare_zone_id: 'zone',
-                cloudflare_domain: 'example.com',
-            },
-        });
-        apiMocks.getTunnels.mockResolvedValueOnce({ result: {} });
+        server.use(
+            http.get('https://1f8b266e9dbf.ratio1.link/check_secrets_exist', () =>
+                HttpResponse.json({
+                    result: { exists: true },
+                }),
+            ),
+            http.post('https://1f8b266e9dbf.ratio1.link/get_secrets', () =>
+                HttpResponse.json({
+                    result: {
+                        cloudflare_account_id: 'acc',
+                        cloudflare_api_key: 'key',
+                        cloudflare_zone_id: 'zone',
+                        cloudflare_domain: 'example.com',
+                    },
+                }),
+            ),
+            http.get('https://1f8b266e9dbf.ratio1.link/get_tunnels', () =>
+                HttpResponse.json({
+                    result: {},
+                }),
+            ),
+        );
 
         const { interactionMocks } = renderWithProviders({ onSetSecrets: setSecretsSpy });
 
@@ -123,39 +137,42 @@ describe('Tunnels page', () => {
         await userEvent.click(getSecretsButton);
 
         await waitFor(() => {
-            expect(apiMocks.getSecrets).toHaveBeenCalled();
+            expect(setSecretsSpy).toHaveBeenCalledWith({
+                cloudflareAccountId: 'acc',
+                cloudflareApiKey: 'key',
+                cloudflareZoneId: 'zone',
+                cloudflareDomain: 'example.com',
+            });
         });
 
         expect(interactionMocks.openSignMessageModal).toHaveBeenCalled();
         expect(interactionMocks.closeSignMessageModal).toHaveBeenCalled();
-        expect(setSecretsSpy).toHaveBeenCalledWith({
-            cloudflareAccountId: 'acc',
-            cloudflareApiKey: 'key',
-            cloudflareZoneId: 'zone',
-            cloudflareDomain: 'example.com',
-        });
     });
 
     it('renders tunnels list when secrets are available', async () => {
         const openTunnelCreateModal = vi.fn();
 
-        apiMocks.getTunnels.mockResolvedValueOnce({
-            result: {
-                'tunnel-1': {
-                    id: 'tunnel-1',
-                    status: 'healthy',
-                    connections: [],
-                    metadata: {
-                        alias: 'app-tunnel',
-                        creator: 'ratio1',
-                        dns_name: 'app.example.com',
-                        tunnel_token: 'token',
-                        custom_hostnames: [],
-                        aliases: [],
+        server.use(
+            http.get('https://1f8b266e9dbf.ratio1.link/get_tunnels', () =>
+                HttpResponse.json({
+                    result: {
+                        'tunnel-1': {
+                            id: 'tunnel-1',
+                            status: 'healthy',
+                            connections: [],
+                            metadata: {
+                                alias: 'app-tunnel',
+                                creator: 'ratio1',
+                                dns_name: 'app.example.com',
+                                tunnel_token: 'token',
+                                custom_hostnames: [],
+                                aliases: [],
+                            },
+                        },
                     },
-                },
-            },
-        });
+                }),
+            ),
+        );
 
         renderWithProviders({
             initialSecrets: {
