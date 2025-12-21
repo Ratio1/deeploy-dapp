@@ -5,8 +5,10 @@ import JobTags from '@shared/jobs/target-nodes/JobTags';
 import SelectServiceContainerType from '../SelectServiceContainerType';
 
 export default function ServiceSpecifications({
+    isEditingRunningJob = false,
     disablePaymentAffectingControls = false,
 }: {
+    isEditingRunningJob?: boolean;
     disablePaymentAffectingControls?: boolean;
 }) {
     return (
@@ -16,7 +18,7 @@ export default function ServiceSpecifications({
                     name="specifications.serviceContainerType"
                     label="Container Type"
                     options={serviceContainerTypes}
-                    isDisabled={disablePaymentAffectingControls}
+                    isDisabled={isEditingRunningJob || disablePaymentAffectingControls}
                 />
 
                 <ContainerResourcesInfo name="specifications.serviceContainerType" options={serviceContainerTypes} />

@@ -24,10 +24,10 @@ export default function GenericSpecifications({
                     name="specifications.containerType"
                     label="Container Type"
                     options={genericContainerTypes}
-                    isDisabled={disablePaymentAffectingControls}
+                    isDisabled={isEditingRunningJob || disablePaymentAffectingControls}
                 />
 
-                <SelectGPU jobType={JobType.Generic} isDisabled={disablePaymentAffectingControls} />
+                <SelectGPU jobType={JobType.Generic} isDisabled={isEditingRunningJob || disablePaymentAffectingControls} />
 
                 <ContainerResourcesInfo name="specifications.containerType" options={genericContainerTypes} />
             </SlateCard>
