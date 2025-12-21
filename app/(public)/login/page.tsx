@@ -20,7 +20,7 @@ import { useRouter } from 'next/navigation';
 export default function Login() {
     const { isSignedIn } = useAuthenticationContext() as AuthenticationContextType;
     const { fetchEscrowAccess } = useDeploymentContext() as DeploymentContextType;
-    const { isFetchAppsRequired, setEscrowContractAddress } = useDeploymentContext() as DeploymentContextType;
+    const { isFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
 
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const publicClient = usePublicClient();
