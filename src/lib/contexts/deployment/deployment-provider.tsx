@@ -1,23 +1,20 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { PoAIManagerAbi } from '@blockchain/PoAIManager';
-import { getApps } from '@lib/api/deeploy';
+import { getCashApps } from '@lib/cash/api';
 import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
-import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import { ALL_DELEGATE_PERMISSIONS_MASK, DelegatePermissionKey, hasDelegatePermission } from '@lib/permissions/delegates';
 import { isZeroAddress } from '@lib/utils';
-import { SigningModal } from '@shared/SigningModal';
 import { EthAddress, R1Address } from '@typedefs/blockchain';
 import { Apps, AppsPlugin, DeeploySpecs, JobConfig, PipelineData } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 import _ from 'lodash';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
+import { useAccount, usePublicClient } from 'wagmi';
 import { DeploymentContext, EscrowAccess, ProjectOverviewTab } from './context';
 
 export const DeploymentProvider = ({ children }) => {
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
-    const { signMessageAsync } = useSignMessage();
     const publicClient = usePublicClient();
 
     // Only 'undefined' if never fetched
@@ -39,77 +36,23 @@ export const DeploymentProvider = ({ children }) => {
     const [escrowOwner, setEscrowOwner] = useState<EthAddress | undefined>();
     const [currentUserPermissions, setCurrentUserPermissions] = useState<bigint | undefined>();
 
-    const signMessageModalRef = useRef<{
-        open: () => void;
-        close: () => void;
-    }>(null);
-
     const fetchApps = async (): Promise<Apps | undefined> => {
-        if (!address) {
-            toast.error('Please connect your wallet.');
-            return;
-        }
-
         setFetchingApps(true);
 
         try {
-            const request = await signAndBuildDeeployRequest(address);
-            const response = await getApps(request);
-
-            console.log('[DeploymentProvider] fetchApps', response);
-
-            if (!response.apps || response.status === 'fail') {
-                console.error(response);
-                throw new Error(`Failed to fetch running jobs: ${response.error || 'Unknown error'}`);
-            }
-
-            setApps(response.apps);
+            const appsResponse = await getCashApps();
+            setApps(appsResponse);
 
             // Setting this to false will trigger a re-render of the App component which in turn will navigate the user to the home page
             setFetchAppsRequired(false);
 
-            return response.apps;
+            return appsResponse;
         } catch (error: any) {
             console.error(error.message);
-
-            if (error?.message.includes('User rejected the request')) {
-                toast.error('Please sign the message to continue.');
-            } else {
-                toast.error('Failed to fetch running jobs.');
-            }
-
-            signMessageModalRef.current?.close();
+            toast.error('Failed to fetch running jobs.');
         } finally {
             setFetchingApps(false);
         }
-    };
-
-    const signAndBuildDeeployRequest = async (address: EthAddress) => {
-        const nonce = generateDeeployNonce();
-
-        const message = buildDeeployMessage(
-            {
-                nonce,
-            },
-            'Please sign this message for Deeploy: ',
-        );
-
-        signMessageModalRef.current?.open();
-
-        const signature = await signMessageAsync({
-            account: address,
-            message,
-        });
-
-        signMessageModalRef.current?.close();
-
-        const request = {
-            nonce,
-            EE_ETH_SIGN: signature,
-            EE_ETH_SENDER: address,
-        };
-
-        return request;
     };
 
     const getProjectName = (projectHash: string): string | undefined => {
@@ -399,8 +342,6 @@ export const DeploymentProvider = ({ children }) => {
             }}
         >
             {children}
-
-            <SigningModal ref={signMessageModalRef} type="message" />
         </DeploymentContext.Provider>
     );
 };

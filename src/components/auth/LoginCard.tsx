@@ -1,6 +1,5 @@
 import { PoAIManagerAbi } from '@blockchain/PoAIManager';
 import { Button } from '@heroui/button';
-import { getApps } from '@lib/api/deeploy';
 import { getSecrets } from '@lib/api/tunnels';
 import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
@@ -21,8 +20,7 @@ import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wa
 
 export default function LoginCard({ hasOracles }: { hasOracles: boolean }) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
-    const { escrowContractAddress, setEscrowContractAddress, setFetchAppsRequired, setApps } =
-        useDeploymentContext() as DeploymentContextType;
+    const { escrowContractAddress, setEscrowContractAddress, fetchApps } = useDeploymentContext() as DeploymentContextType;
     const { openSignMessageModal, closeSignMessageModal } = useInteractionContext() as InteractionContextType;
     const { setTunnelingSecrets } = useTunnelsContext() as TunnelsContextType;
 
@@ -135,42 +133,10 @@ export default function LoginCard({ hasOracles }: { hasOracles: boolean }) {
             return;
         }
 
-        const request = await signAndBuildDeeployRequest();
-        if (!request) {
-            return;
-        }
-
         setFetching(true);
 
         try {
-            const [appsResult, secretsResult] = await Promise.allSettled([getApps(request), getSecrets(request)]);
-
-            console.log('Login', { appsResult, secretsResult });
-
-            if (appsResult.status === 'rejected') {
-                throw appsResult.reason;
-            }
-
-            const appsResponse = appsResult.value;
-            if (!appsResponse.apps || appsResponse.status === 'fail') {
-                console.error(appsResponse);
-                throw new Error(`Failed to fetch running jobs: ${appsResponse.error || 'Unknown error'}`);
-            }
-
-            setApps(appsResponse.apps);
-            setFetchAppsRequired(false);
-
-            if (secretsResult.status === 'fulfilled' && secretsResult.value?.result) {
-                const secrets = secretsResult.value.result;
-                setTunnelingSecrets({
-                    cloudflareAccountId: secrets.cloudflare_account_id,
-                    cloudflareApiKey: secrets.cloudflare_api_key,
-                    cloudflareZoneId: secrets.cloudflare_zone_id,
-                    cloudflareDomain: secrets.cloudflare_domain,
-                });
-            } else if (secretsResult.status === 'rejected') {
-                console.warn('Login without secrets');
-            }
+            const apps = await fetchApps();
         } catch (error: any) {
             console.error(error);
             toast.error('Failed to fetch data. Please try again.');

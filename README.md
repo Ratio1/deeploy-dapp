@@ -28,10 +28,12 @@ NEXT_PUBLIC_ENVIRONMENT=devnet         # devnet | testnet | mainnet
 NEXT_PUBLIC_API_URL=http://localhost:5000  # Deeploy edge_node base URL
 NEXT_PUBLIC_DEV_ADDRESS=0xYourDevWallet    # optional; forces this address in dev
 NEXT_PUBLIC_APP_VERSION=local              # optional; shown in the UI footer
+DEEPLOY_CASH_WALLET_PRIVATE_KEY=0xYourBackendWalletKey # server wallet for Deeploy Cash API routes
 ```
 
 - `NEXT_PUBLIC_API_URL` should point to your running [edge_node](https://github.com/Ratio1/edge_node) instance or the hosted Deeploy API.
 - `NEXT_PUBLIC_ENVIRONMENT` selects the chain and backend/oracle endpoints defined in `src/lib/config.ts`.
+- `DEEPLOY_CASH_WALLET_PRIVATE_KEY` is required for server-side Deeploy Cash endpoints (e.g. `/api/cash/apps`).
 
 3. Start the dev server (HTTPS by default):
 
