@@ -1,35 +1,121 @@
 # Repository Guidelines
 
+## Project Context
+
+This repository contains the Deeploy frontend, built with Next.js App Router. In addition to the core Deeploy application, this codebase hosts "Deeploy Cash" features: a server-mediated, fiat-based flow where end users do not interact directly with wallets or on-chain signing.
+
+The goal is to preserve the existing Deeploy UI and UX as much as possible, while optionally routing sensitive actions (signing, payments, provisioning) through server-side endpoints instead of client-side blockchain calls.
+
+When in doubt:
+
+- UI structure and presentational components should remain unchanged.
+- Privileged actions should move from client-side to server-side.
+- New functionality should be added in isolated modules rather than modifying upstream code.
+
+---
+
 ## Project Structure & Module Organization
 
-This is a Next.js App Router project. Routes and layouts live in `app/` (file-based routing via `page.tsx`, `layout.tsx`, `not-found.tsx`, and dynamic segments like `[id]`). The codebase uses route groups for organization, e.g. `app/(public)` and `app/(protected)` (the protected group is gated by `app/(protected)/protected-layout.tsx`).
+This is a Next.js App Router project. Routes and layouts live in `app/` (file-based routing via `page.tsx`, `layout.tsx`, `not-found.tsx`, and dynamic segments like `[id]`).
 
-Most feature UI remains in `src/`: feature-specific components are grouped under `src/components` (e.g., `create-project`, `deeploys`, `tunnels`), shared UI/logic in `src/shared`, hooks/utilities/contexts/providers in `src/lib`, smart-contract adapters in `src/blockchain`, and schema/types in `src/schemas`, `src/data`, and `src/typedefs`. Static assets live in `public/` and `src/assets/`. Next build output is `.next/` (a legacy `dist/` directory may exist from pre-Next builds and should not be treated as the Next build output).
+Route groups are used for separation of concerns:
+
+- `app/(public)` for public pages
+- `app/(protected)` for authenticated dashboards
+
+Most feature UI remains in `src/`:
+
+- Feature-specific components in `src/components` (e.g. `deeploys`, `tunnels`)
+- Shared UI and logic in `src/shared`
+- Hooks, utilities, contexts, and providers in `src/lib`
+- Deeploy API wrappers in `src/lib/api`
+- Blockchain adapters in `src/blockchain`
+- Schemas and types in `src/schemas`, `src/data`, `src/typedefs`
+
+Cash-specific logic should be added in clearly separated modules
+(e.g. `src/lib/cash`, `src/components/cash`) rather than altering upstream code.
+
+Static assets live in `public/` and `src/assets/`.
+
+---
+
+## Client vs Server Responsibilities
+
+Because this is a Next.js app, client/server boundaries matter.
+
+### Client-side
+
+- UI rendering
+- User interaction
+- Data fetching from internal API routes
+- No private keys, no signing, no privileged blockchain calls
+
+### Server-side (in this fork, with the relevant parts being moved from client-side to server-side)
+
+- Calls to Deeploy API that require privileged context
+- Message or transaction signing using a CSP wallet
+- Payment verification (e.g. Stripe webhooks)
+- Service provisioning and lifecycle management
+
+---
+
+## Deeploy API Integration
+
+Core Deeploy workflows interact with the edge node API through wrappers in
+`src/lib/api/deeploy.ts`.
+
+Environment configuration:
+
+- `NEXT_PUBLIC_API_URL`
+- `NEXT_PUBLIC_ENVIRONMENT`
+- optional `NEXT_PUBLIC_DEV_ADDRESS`
+
+Requests are routed via `src/lib/config.ts` to devnet/testnet/mainnet.
+Client-side Axios interceptors rely on `accessToken` and `refreshToken`
+stored in local storage.
+
+For Deeploy Cash flows, direct client-to-Deeploy API calls may be replaced
+by internal server routes (`app/api/*`) that proxy or orchestrate requests.
+
+---
 
 ## Build, Test, and Development Commands
 
 Run all commands from the repo root:
 
-- `npm run dev` launches the Next.js dev server (`next dev --turbo --experimental-https`).
-- `npm run dev:logs` enables verbose Next.js diagnostics (`NEXT_DEBUG=1 next dev --turbo --experimental-https`).
-- `npm run build` creates a production build (`next build`, outputs to `.next/`).
-- `npm run start` serves the production build locally (`next start`).
-- `npm run lint` executes ESLint with the project’s React/TypeScript rules.
+- `npm run dev` – start Next.js dev server
+- `npm run dev:logs` – verbose Next.js diagnostics
+- `npm run build` – production build (outputs to `.next/`)
+- `npm run start` – serve production build locally
+- `npm run lint` – run ESLint
 
-## Deeploy API Integration
+---
 
-Deeploy workflows talk to the [edge_node](https://github.com/Ratio1/edge_node) API through wrappers in `src/lib/api/deeploy.ts`. Configure the base URL by setting `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_ENVIRONMENT` (and optionally `NEXT_PUBLIC_DEV_ADDRESS`) in your env file (prefer `.env.local`); `src/lib/config.ts` routes requests across devnet/testnet/mainnet. Local storage must expose `accessToken`/`refreshToken` to satisfy the Axios interceptors. When working against a local edge node, run its server first, then point `NEXT_PUBLIC_API_URL` to the exposed port (e.g., `http://localhost:5000`).
+## Coding Style & Conventions
 
-Because this is Next.js, be mindful of client/server boundaries: modules that access `localStorage` (like `src/lib/api/deeploy.ts`) must only run in client components/hooks (files with `'use client'`) and should not be imported/executed from server components.
+Prettier (`.prettierrc`) enforces formatting rules.
+Use:
 
-## Coding Style & Naming Conventions
+- PascalCase for components
+- camelCase for functions and state
+- kebab-case for feature folders
 
-Prettier (`.prettierrc`) enforces four-space indentation, single quotes, semicolons, and Tailwind class sorting—format before committing. Use PascalCase for components, camelCase for functions and state, and kebab-case for feature folders. Respect path aliases from `tsconfig.json` (such as `@components/...`) to avoid brittle relative imports. In the `app/` router, add `'use client'` to components that use hooks, browser APIs, or context providers.
+Respect path aliases from `tsconfig.json` (e.g. `@components/...`).
+Add `'use client'` only when required (hooks, browser APIs, context).
 
-## Testing Guidelines
+Prefer composition and extension over modifying existing upstream components.
 
-Automated tests are not yet wired into `package.json`. Place specs alongside source as `*.test.ts(x)` or under `src/__tests__/`. Stub Deeploy API calls and blockchain providers to keep tests deterministic, and document manual QA steps in your PR until the suite matures.
+---
 
-## Commit & Pull Request Guidelines
+## Testing & Changes
 
-History follows Conventional Commit prefixes (`fix:`, `feat:`, etc.); keep summaries concise and imperative (<72 chars). Separate logical changes—UI tweaks, contract bindings, and config updates should ship in distinct commits. PRs need a clear problem statement, bullet summary of changes, evidence for UI updates (screenshots/GIFs), linked work items, and callouts for required env/config shifts.
+Automated tests run with Vitest.
+Stub Deeploy API and blockchain providers when testing.
+
+Commits follow Conventional Commits (`feat:`, `fix:`, etc.).
+PRs should clearly state whether changes are:
+
+- upstream-neutral (safe for core Deeploy)
+- Cash-specific (isolated and additive)
+
+Avoid mixing refactors, features, and config changes in a single commit.
