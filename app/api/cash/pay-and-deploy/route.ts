@@ -3,6 +3,7 @@ import { createPipeline } from '@lib/api/deeploy';
 import { signDeeployPayload } from '@lib/cash/backend-wallet';
 import { getCashPublicClient, getCashWalletClient } from '@lib/cash/chain';
 import { CashDraftJob, CashPayAndDeployPayload, CashPayAndDeployResponse } from '@lib/cash/types';
+import { config, getCurrentEpoch } from '@lib/config';
 import {
     diffTimeFn,
     formatGenericDraftJobPayload,
@@ -10,11 +11,11 @@ import {
     formatServiceDraftJobPayload,
     getContainerOrWorkerType,
 } from '@lib/deeploy-utils';
+import { isZeroAddress } from '@lib/utils';
 import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, PaidDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { addDays } from 'date-fns';
 import { decodeEventLog } from 'viem';
 import { NextResponse } from 'next/server';
-import { getCurrentEpoch } from '@/lib/config';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -111,18 +112,24 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
     }
 
-    if (!payload?.projectHash || !payload?.escrowContractAddress || !Array.isArray(payload.jobs)) {
+    if (!payload?.projectHash || !Array.isArray(payload.jobs)) {
         return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
     }
 
     try {
+        const escrowContractAddress = config.escrowContractAddress;
+
+        if (!escrowContractAddress || isZeroAddress(escrowContractAddress)) {
+            return NextResponse.json({ error: 'Missing escrow contract address configuration.' }, { status: 500 });
+        }
+
         const parsedJobs = payload.jobs.map((job) => parseCashDraftJob(job));
         const unpaidJobs = parsedJobs.filter((job) => !job.paid);
 
         let paidJobs: PaidDraftJob[] = parsedJobs.filter((job) => job.paid) as PaidDraftJob[];
 
         if (unpaidJobs.length > 0) {
-            const jobIds = await payUnpaidJobs(unpaidJobs, payload.escrowContractAddress, payload.projectHash);
+            const jobIds = await payUnpaidJobs(unpaidJobs, escrowContractAddress, payload.projectHash);
             let jobIndex = 0;
 
             const updatedJobs = parsedJobs.map((job) => {

@@ -8,7 +8,6 @@ export type CashDraftJob = Omit<DraftJob, 'runningJobId'> & {
 export type CashPayAndDeployPayload = {
     projectHash: `0x${string}`;
     projectName?: string;
-    escrowContractAddress: string;
     jobs: CashDraftJob[];
 };
 

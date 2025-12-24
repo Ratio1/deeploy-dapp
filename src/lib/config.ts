@@ -7,6 +7,8 @@ type Config = {
     deeployUrl: string;
     backendUrl: string;
     oraclesUrl: string;
+    escrowContractAddress?: EthAddress;
+    cspOwner?: EthAddress;
     poAIManagerContractAddress: EthAddress;
     ndContractAddress: EthAddress;
     mndContractAddress: EthAddress;
@@ -56,6 +58,8 @@ const configs: {
         deeployUrl: process.env.NEXT_PUBLIC_API_URL as string,
         backendUrl: 'https://devnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://devnet-oracle.ratio1.ai',
+        escrowContractAddress: '0x882130F66C4Bc83130Bc05104A64Ae4C899500e3',
+        cspOwner: '0x07F460c8C41cBf309422BFBC6EfDBBd6f4415298',
         poAIManagerContractAddress: '0xCc7C4e0f4f25b57807F34227Fb446E68c8c36ce5',
         ndContractAddress: '0x90025B92240E3070d5CdcB3f44D6411855c55a73',
         mndContractAddress: '0x17B8934dc5833CdBa1eF42D13D65D677C4727748',

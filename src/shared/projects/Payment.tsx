@@ -113,7 +113,6 @@ export default function Payment({
             const cashPayload = {
                 projectHash,
                 projectName,
-                escrowContractAddress,
                 jobs: jobs.map(serializeDraftJob),
             };
 

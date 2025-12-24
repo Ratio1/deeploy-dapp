@@ -1,5 +1,4 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
-import { PoAIManagerAbi } from '@blockchain/PoAIManager';
 import { getCashApps } from '@lib/cash/api';
 import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { ALL_DELEGATE_PERMISSIONS_MASK, DelegatePermissionKey, hasDelegatePermission } from '@lib/permissions/delegates';
@@ -32,8 +31,8 @@ export const DeploymentProvider = ({ children }) => {
     const [projectPage, setProjectPage] = useState<ProjectPage>(ProjectPage.Overview);
     const [projectOverviewTab, setProjectOverviewTab] = useState<ProjectOverviewTab>('runningJobs');
 
-    const [escrowContractAddress, setEscrowContractAddress] = useState<EthAddress | undefined>();
-    const [escrowOwner, setEscrowOwner] = useState<EthAddress | undefined>();
+    const [escrowContractAddress, setEscrowContractAddress] = useState<EthAddress | undefined>(config.escrowContractAddress);
+    const [escrowOwner, setEscrowOwner] = useState<EthAddress | undefined>(config.cspOwner);
     const [currentUserPermissions, setCurrentUserPermissions] = useState<bigint | undefined>();
 
     const fetchApps = async (): Promise<Apps | undefined> => {
@@ -80,14 +79,9 @@ export const DeploymentProvider = ({ children }) => {
         }
 
         try {
-            const [isActive, escrowAddress] = await publicClient.readContract({
-                address: config.poAIManagerContractAddress,
-                abi: PoAIManagerAbi,
-                functionName: 'getAddressRegistration',
-                args: [userAddress],
-            });
+            const escrowAddress = config.escrowContractAddress;
 
-            if (!isActive || !escrowAddress || isZeroAddress(escrowAddress)) {
+            if (!escrowAddress || isZeroAddress(escrowAddress)) {
                 setEscrowContractAddress(undefined);
                 setEscrowOwner(undefined);
                 setCurrentUserPermissions(undefined);
@@ -96,11 +90,7 @@ export const DeploymentProvider = ({ children }) => {
 
             setEscrowContractAddress(escrowAddress);
 
-            const ownerAddress = await publicClient.readContract({
-                address: escrowAddress,
-                abi: CspEscrowAbi,
-                functionName: 'cspOwner',
-            });
+            const ownerAddress = config.cspOwner;
 
             setEscrowOwner(ownerAddress);
 
