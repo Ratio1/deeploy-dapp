@@ -148,6 +148,9 @@ export async function POST(request: Request) {
             paidJobs = updatedJobs as PaidDraftJob[];
         }
 
+        //wait 2 seconds to ensure blockchain finality
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
         const results = await Promise.all(
             paidJobs.map(async (job) => {
                 const draftJobId = job.id;

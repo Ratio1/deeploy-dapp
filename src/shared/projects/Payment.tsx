@@ -13,7 +13,6 @@ import { BorderedCard } from '@shared/cards/BorderedCard';
 import EmptyData from '@shared/EmptyData';
 import DeeployErrors from '@shared/jobs/DeeployErrors';
 import DeeployInfoAlert from '@shared/jobs/DeeployInfoAlert';
-import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';

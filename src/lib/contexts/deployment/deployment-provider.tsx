@@ -6,7 +6,7 @@ import { isZeroAddress } from '@lib/utils';
 import { EthAddress, R1Address } from '@typedefs/blockchain';
 import { Apps, AppsPlugin, DeeploySpecs, JobConfig, PipelineData } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
-import _ from 'lodash';
+import _, { set } from 'lodash';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAccount, usePublicClient } from 'wagmi';
@@ -310,7 +310,19 @@ export const DeploymentProvider = ({ children }) => {
                 setProjectOverviewTab,
                 // Apps
                 isFetchAppsRequired,
-                setFetchAppsRequired,
+                setFetchAppsRequired: (isFetchAppsRequired: boolean | undefined) => {
+                    // Instead of prompting the user to refresh, we automatically fetch apps from the backend
+                    //wait 2 seconds to ensure job is correctly started.
+                    /*
+                    TODO check it does not work correctly
+                    console.log('setFetchAppsRequired');
+                    new Promise((resolve) => setTimeout(resolve, 2000)).then(() => {
+                        console.log('setFetchAppsRequired timeout ended, fetching apps');
+                        fetchApps();
+                    });
+                    */
+                    setFetchAppsRequired(isFetchAppsRequired);
+                },
                 isFetchingApps,
                 setFetchingApps,
                 fetchApps,
