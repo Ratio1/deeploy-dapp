@@ -21,3 +21,13 @@ export type CashPayAndDeployResult = {
 export type CashPayAndDeployResponse = {
     results: CashPayAndDeployResult[];
 };
+
+export type CashExtendJobDurationPayload = {
+    jobId: string;
+    lastExecutionEpoch: string;
+    durationMonths: number;
+};
+
+export type CashExtendJobDurationResponse = {
+    status: 'success' | 'reverted';
+};

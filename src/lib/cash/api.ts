@@ -1,7 +1,12 @@
 import { Apps } from '@typedefs/deeployApi';
 import { toApiError } from '@lib/api/apiError';
 import axios from 'axios';
-import { CashPayAndDeployPayload, CashPayAndDeployResponse } from './types';
+import {
+    CashExtendJobDurationPayload,
+    CashExtendJobDurationResponse,
+    CashPayAndDeployPayload,
+    CashPayAndDeployResponse,
+} from './types';
 
 type CashAppsResponse = {
     apps: Apps;
@@ -49,4 +54,23 @@ export const payAndDeployCash = async (payload: CashPayAndDeployPayload): Promis
     }
 
     return data as CashPayAndDeployResponse;
+};
+
+export const extendJobDurationCash = async (
+    payload: CashExtendJobDurationPayload,
+): Promise<CashExtendJobDurationResponse> => {
+    const { data } = await axiosCash.post<CashExtendJobDurationResponse | { error?: string }>(
+        'extend-job-duration',
+        payload,
+    );
+
+    const errorMessage = data && typeof data === 'object' ? (data as { error?: string }).error : undefined;
+    if (errorMessage !== undefined) {
+        throw new Error(errorMessage || 'Failed to extend job duration from backend.');
+    }
+    if (!data || typeof data !== 'object' || !('status' in data)) {
+        throw new Error('Missing extend job duration status from backend response.');
+    }
+
+    return data as CashExtendJobDurationResponse;
 };

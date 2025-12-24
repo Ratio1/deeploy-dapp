@@ -1,28 +1,22 @@
 'use client';
 
-import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { DeeployFlowModal } from '@components/draft/DeeployFlowModal';
 import { formatResourcesSummary } from '@data/containerResources';
 import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
-import { config, environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
-import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
-import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { addTimeFn, diffTimeFn, formatUsdc, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
+import { extendJobDurationCash } from '@lib/cash/api';
+import { config, environment } from '@lib/config';
+import { addTimeFn, formatUsdc, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import CostAndDurationInterface from '@shared/jobs/CostAndDurationInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import { SmallTag } from '@shared/SmallTag';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
-import { addDays, differenceInHours, max } from 'date-fns';
+import { max } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 
 export default function JobExtension({ job }: { job: RunningJobWithResources }) {
-    const { watchTx } = useBlockchainContext() as BlockchainContextType;
-    const { escrowContractAddress } = useDeploymentContext() as DeploymentContextType;
-
     const router = useRouter();
 
     const costPerEpoch: bigint = useMemo(() => {
@@ -35,10 +29,6 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
     const [totalCost, setTotalCost] = useState<bigint>(0n);
     const [isLoading, setLoading] = useState<boolean>(false);
 
-    const { data: walletClient } = useWalletClient();
-    const publicClient = usePublicClient();
-    const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
-
     const deeployFlowModalRef = useRef<{
         open: (jobsCount: number, messagesToSign: number) => void;
         progress: (action: DEEPLOY_FLOW_ACTION_KEYS) => void;
@@ -47,11 +37,6 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
     }>(null);
 
     const onSubmit = async () => {
-        if (!walletClient || !publicClient || !address || !escrowContractAddress) {
-            toast.error('Please refresh this page and try again.');
-            return;
-        }
-
         setLoading(true);
 
         try {
@@ -80,31 +65,13 @@ export default function JobExtension({ job }: { job: RunningJobWithResources }) 
     };
 
     const extendJob = async (): Promise<'success' | 'reverted'> => {
-        const expiryDate = addDays(new Date(), duration * 30);
-        const durationInEpochs = diffTimeFn(expiryDate, new Date());
-
-        const lastExecutionEpoch: bigint = BigInt(
-            Math.max(getCurrentEpoch(), Number(job.lastExecutionEpoch)) + durationInEpochs,
-        );
-
-        console.log('[JobExtension]', {
-            lastExecutionEpoch,
-            durationInEpochs,
-            expiryDate,
-            diffInHours: differenceInHours(expiryDate, new Date(), {
-                roundingMethod: 'ceil',
-            }),
+        const response = await extendJobDurationCash({
+            jobId: job.id.toString(),
+            lastExecutionEpoch: job.lastExecutionEpoch.toString(),
+            durationMonths: duration,
         });
 
-        const txHash = await walletClient!.writeContract({
-            address: escrowContractAddress!,
-            abi: CspEscrowAbi,
-            functionName: 'extendJobDuration',
-            args: [job.id, lastExecutionEpoch],
-        });
-
-        const receipt = await watchTx(txHash, publicClient);
-        return receipt.status;
+        return response.status;
     };
 
     const summaryItems: { label: string; value: string | number; tag?: React.ReactNode }[] = useMemo(
