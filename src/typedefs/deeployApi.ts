@@ -119,6 +119,7 @@ type GetAppsResponse = DeeployDefaultResponse & {
 
 type DeeployDefaultResponse = {
     status: 'success' | 'fail' | string;
+    app_id: string;
     request?: Record<string, any>;
     error?: string;
     EE_SIGN: string;
