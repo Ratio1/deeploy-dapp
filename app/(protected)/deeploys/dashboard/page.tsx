@@ -2,18 +2,17 @@
 
 import Drafts from '@components/deeploys/Drafts';
 import Running, { RunningRef } from '@components/deeploys/Running';
+import { useDraftProjects } from '@lib/drafts/queries';
 import { routePath } from '@lib/routes/route-paths';
-import db from '@lib/storage/db';
 import ActionButton from '@shared/ActionButton';
 import CustomTabs from '@shared/CustomTabs';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { RiBox2Line, RiFileTextLine } from 'react-icons/ri';
 
 export default function Dashboard() {
     const [selectedTab, setSelectedTab] = useState<'running' | 'drafts'>('running');
-    const drafts = useLiveQuery(() => db.projects.toArray());
+    const { data: drafts } = useDraftProjects();
     const runningRef = useRef<RunningRef>(null);
 
     const [projectsCount, setProjectsCount] = useState(0);

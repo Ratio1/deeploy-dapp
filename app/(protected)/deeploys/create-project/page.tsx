@@ -3,8 +3,8 @@
 import ProjectForm from '@components/create-project/ProjectForm';
 import { COLOR_TYPES } from '@data/colorTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useCreateDraftProject } from '@lib/drafts/queries';
 import { routePath } from '@lib/routes/route-paths';
-import db from '@lib/storage/db';
 import { projectSchema } from '@schemas/project';
 import SupportFooter from '@shared/SupportFooter';
 import { useRouter } from 'next/navigation';
@@ -15,6 +15,7 @@ import { z } from 'zod';
 
 function CreateProject() {
     const router = useRouter();
+    const { mutateAsync: createDraftProject } = useCreateDraftProject();
 
     const form = useForm<z.infer<typeof projectSchema>>({
         resolver: zodResolver(projectSchema),
@@ -35,7 +36,7 @@ function CreateProject() {
         };
 
         try {
-            await db.projects.add(project);
+            await createDraftProject(project);
             router.push(`${routePath.deeploys}/${routePath.projectDraft}/${projectHash}`);
         } catch (error) {
             console.error('[CreateProject] Error adding project:', error);

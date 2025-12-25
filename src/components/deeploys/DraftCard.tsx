@@ -1,22 +1,18 @@
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
+import { useDeleteDraftProject, useDraftJobs } from '@lib/drafts/queries';
 import { routePath } from '@lib/routes/route-paths';
-import db from '@lib/storage/db';
 import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { SmallTag } from '@shared/SmallTag';
-import { DraftJob, DraftProject } from '@typedefs/deeploys';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { DraftProject } from '@typedefs/deeploys';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 
 export default function DraftCard({ project }: { project: DraftProject }) {
     const { confirm } = useInteractionContext() as InteractionContextType;
-
-    const jobs: DraftJob[] | undefined = useLiveQuery(
-        () => db.jobs.where('projectHash').equals(project.projectHash).toArray(),
-        [project],
-    );
+    const { data: jobs } = useDraftJobs(project.projectHash);
+    const { mutateAsync: deleteDraftProject } = useDeleteDraftProject();
 
     const onDeleteProject = async () => {
         try {
@@ -35,7 +31,7 @@ export default function DraftCard({ project }: { project: DraftProject }) {
                 return;
             }
 
-            await db.projects.delete(project.projectHash);
+            await deleteDraftProject(project.projectHash);
             toast.success('Project draft deleted successfully.');
         } catch (error) {
             console.error('Error deleting project draft:', error);

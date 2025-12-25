@@ -1,12 +1,11 @@
 'use client';
 
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { useDraftProject } from '@lib/drafts/queries';
 import { routePath } from '@lib/routes/route-paths';
-import db from '@lib/storage/db';
 import { SmallTag } from '@shared/SmallTag';
-import { DraftJob, DraftProject } from '@typedefs/deeploys';
+import { DraftJob } from '@typedefs/deeploys';
 import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
-import { useLiveQuery } from 'dexie-react-hooks';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,11 +16,7 @@ export default function JobDraftBreadcrumbs({ jobDraft }: { jobDraft: DraftJob }
 
     const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
 
-    const projectDraft: DraftProject | undefined | null = useLiveQuery(
-        () => db.projects.get(jobDraft.projectHash),
-        [jobDraft],
-        null, // Default value returned while data is loading
-    );
+    const { data: projectDraft, isLoading: isProjectLoading } = useDraftProject(jobDraft.projectHash, true);
 
     useEffect(() => {
         if (jobDraft) {
@@ -29,7 +24,7 @@ export default function JobDraftBreadcrumbs({ jobDraft }: { jobDraft: DraftJob }
         }
     }, [jobDraft]);
 
-    if (projectDraft === null) {
+    if (isProjectLoading) {
         return <></>;
     }
 

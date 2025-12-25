@@ -1,33 +1,24 @@
 'use client';
 
 import { Skeleton } from '@heroui/skeleton';
+import { useDraftProject } from '@lib/drafts/queries';
 import { routePath } from '@lib/routes/route-paths';
-import db from '@lib/storage/db';
 import { getShortAddressOrHash } from '@lib/utils';
 import { SmallTag } from '@shared/SmallTag';
-import { DraftProject } from '@typedefs/deeploys';
 import { useParams, usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
 
 // To be used only inside a project/projectDraft route
 export default function ProjectIdentity({ projectName }: { projectName?: string }) {
     const pathname = usePathname() ?? '';
     const { projectHash } = useParams<{ projectHash?: string }>();
 
-    const [draft, setDraft] = useState<DraftProject | undefined>();
+    const isDraftRoute = pathname.includes(routePath.projectDraft);
+    const { data: draft, isLoading: isDraftLoading } = useDraftProject(
+        isDraftRoute ? projectHash : undefined,
+        isDraftRoute,
+    );
 
-    useEffect(() => {
-        if (projectHash && pathname.includes(routePath.projectDraft)) {
-            fetchDraft(projectHash);
-        }
-    }, [pathname, projectHash]);
-
-    const fetchDraft = async (projectHash: string) => {
-        const draft = await db.projects.get(projectHash);
-        setDraft(draft);
-    };
-
-    if (!projectHash) {
+    if (!projectHash || isDraftLoading) {
         return <Skeleton className="min-h-10 w-40 rounded-lg" />;
     }
 

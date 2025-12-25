@@ -1,19 +1,20 @@
 'use client';
 
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
+import { useDeleteDraftJob, useUpdateDraftJob } from '@lib/drafts/queries';
 import { downloadDataAsJson } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
-import db from '@lib/storage/db';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { SmallTag } from '@shared/SmallTag';
-import { PaidDraftJob } from '@typedefs/deeploys';
+import { DraftJob, PaidDraftJob } from '@typedefs/deeploys';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { RiAddLine } from 'react-icons/ri';
 
 interface Job {
     id: number;
+    projectHash: string;
     [key: string]: any;
 }
 
@@ -33,6 +34,8 @@ export default function DraftJobsList({
     const router = useRouter();
 
     const { confirm } = useInteractionContext() as InteractionContextType;
+    const { mutateAsync: deleteDraftJob } = useDeleteDraftJob();
+    const { mutateAsync: updateDraftJob } = useUpdateDraftJob();
 
     const onDownloadJson = (job: Job) => {
         downloadDataAsJson(job, `Deeploy-${job.jobType}-job-${job.id}.json`);
@@ -50,7 +53,7 @@ export default function DraftJobsList({
                 return;
             }
 
-            await db.jobs.delete(job.id);
+            await deleteDraftJob({ id: job.id, projectHash: job.projectHash });
             toast.success('Job draft deleted successfully.');
         } catch (error) {
             console.error('[DraftJobsList] Error deleting job:', error);
@@ -85,7 +88,7 @@ export default function DraftJobsList({
             const { runningJobId, ...other } = job as PaidDraftJob;
             const updatedjob = { ...other, paid: false };
 
-            await db.jobs.put(updatedjob);
+            await updateDraftJob({ id: updatedjob.id, payload: updatedjob as DraftJob });
             toast.success('Payment unlinked successfully.');
         } catch (error) {
             console.error('[DraftJobsList] Error unlinking payment:', error);

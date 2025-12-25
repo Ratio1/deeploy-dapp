@@ -1,8 +1,8 @@
 'use client';
 
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
+import { useDeleteDraftProject } from '@lib/drafts/queries';
 import { routePath } from '@lib/routes/route-paths';
-import db from '@lib/storage/db';
 import ActionButton from '@shared/ActionButton';
 import AddJobCard from '@shared/projects/AddJobCard';
 import CancelButton from '@shared/projects/buttons/CancelButton';
@@ -28,6 +28,7 @@ export default function DraftOverview({
 }) {
     const { confirm } = useInteractionContext() as InteractionContextType;
     const router = useRouter();
+    const { mutateAsync: deleteDraftProject } = useDeleteDraftProject();
 
     const onDeleteProject = async () => {
         try {
@@ -37,7 +38,7 @@ export default function DraftOverview({
                 return;
             }
 
-            await db.projects.delete(project.projectHash);
+            await deleteDraftProject(project.projectHash);
             toast.success('Project draft deleted successfully.');
             router.push(`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`);
         } catch (error) {

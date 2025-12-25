@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model DraftProject {
+  projectHash String   @id
+  name        String
+  color       String
+  createdAt   DateTime
+  updatedAt   DateTime @updatedAt
+  jobs        DraftJob[]
+
+  @@map("draft_projects")
+}
+
+model DraftJob {
+  id           Int          @id @default(autoincrement())
+  projectHash  String
+  name         String
+  jobType      String
+  paid         Boolean      @default(false)
+  runningJobId String?
+  details      Json
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  project DraftProject @relation(fields: [projectHash], references: [projectHash], onDelete: Cascade)
+
+  @@index([projectHash])
+  @@map("draft_jobs")
+}

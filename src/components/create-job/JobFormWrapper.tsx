@@ -12,12 +12,13 @@ import { serviceContainerTypes } from '@data/services';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { useCreateDraftJob } from '@lib/drafts/queries';
+import { DraftJobCreatePayload } from '@lib/drafts/types';
 import { KYB_TAG } from '@lib/deeploy-utils';
 import { MAIN_STEPS, Step, STEPS } from '@lib/steps/steps';
-import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
-import { DraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
+import { JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
@@ -36,6 +37,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
 
     const { step, jobType, setJobType, setProjectOverviewTab } = useDeploymentContext() as DeploymentContextType;
     const { account } = useAuthenticationContext() as AuthenticationContextType;
+    const { mutateAsync: createDraftJob } = useCreateDraftJob();
 
     const steps: Step[] = useMemo(() => (jobType ? JOB_TYPE_STEPS[jobType] : []), [jobType]);
 
@@ -206,9 +208,9 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
 
             console.log('[JobFormWrapper] onSubmit', job);
 
-            const jobId = await db.jobs.add(job as DraftJob);
+            const createdJob = await createDraftJob(job as DraftJobCreatePayload);
 
-            console.log('[JobFormWrapper] Job draft added successfully', jobId);
+            console.log('[JobFormWrapper] Job draft added successfully', createdJob.id);
             toast.success('Job draft added successfully.');
 
             // Navigate back to the project overview

@@ -3,12 +3,11 @@
 import DraftEditFormWrapper from '@components/draft/DraftEditFormWrapper';
 import JobDraftBreadcrumbs from '@components/draft/JobDraftBreadcrumbs';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import db from '@lib/storage/db';
+import { useDraftJob, useUpdateDraftJob } from '@lib/drafts/queries';
 import { jobSchema } from '@schemas/index';
 import ActionButton from '@shared/ActionButton';
 import SupportFooter from '@shared/SupportFooter';
 import { DraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
@@ -20,11 +19,11 @@ export default function EditJobDraft() {
 
     const router = useRouter();
     const { draftId } = useParams<{ draftId?: string }>();
+    const { mutateAsync: updateDraftJob } = useUpdateDraftJob();
 
-    const draftJob: DraftJob | undefined | null = useLiveQuery(
-        draftId ? () => db.jobs.get(parseInt(draftId)) : () => undefined,
-        [draftId],
-        null, // Default value returned while data is loading
+    const parsedId = draftId ? Number.parseInt(draftId, 10) : undefined;
+    const { data: draftJob, isLoading: isDraftJobLoading } = useDraftJob(
+        Number.isNaN(parsedId) ? undefined : parsedId,
     );
 
     // Init
@@ -60,9 +59,9 @@ export default function EditJobDraft() {
 
             console.log('[EditJobDraft] onSubmit', job);
 
-            const jobId = await db.jobs.put(job as DraftJob);
+            const updatedJob = await updateDraftJob({ id: draftJob.id, payload: job as DraftJob });
 
-            console.log('[EditJobDraft] Job draft updated successfully', jobId);
+            console.log('[EditJobDraft] Job draft updated successfully', updatedJob.id);
             toast.success('Job draft updated successfully.');
 
             router.back();
@@ -72,7 +71,7 @@ export default function EditJobDraft() {
         }
     };
 
-    if (!draftJob) {
+    if (isDraftJobLoading || !draftJob) {
         return <></>;
     }
 

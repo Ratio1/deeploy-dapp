@@ -2,12 +2,11 @@
 
 import { Skeleton } from '@heroui/skeleton';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import db from '@lib/storage/db';
+import { useDraftProject } from '@lib/drafts/queries';
 import { getShortAddressOrHash, isValidProjectHash } from '@lib/utils';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import { SmallTag } from '@shared/SmallTag';
-import { DraftProject, JobType } from '@typedefs/deeploys';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { JobType } from '@typedefs/deeploys';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -15,23 +14,19 @@ function JobFormHeader({ steps }: { steps: string[] }) {
     const { jobType, getProjectName } = useDeploymentContext() as DeploymentContextType;
 
     const { projectHash } = useParams<{ projectHash?: string }>();
+    const isValidHash = isValidProjectHash(projectHash);
 
     const [projectName, setProjectName] = useState<string | undefined>();
 
-    // Only run the query if we have a valid ID
-    const draft: DraftProject | undefined | null = useLiveQuery(
-        isValidProjectHash(projectHash) ? () => db.projects.get(projectHash) : () => undefined,
-        [isValidProjectHash, projectHash],
-        null, // Default value returned while data is loading
-    );
+    const { data: draft, isLoading: isDraftLoading } = useDraftProject(projectHash, isValidHash);
 
     useEffect(() => {
         if (projectHash) {
             setProjectName(getProjectName(projectHash));
         }
-    }, [projectHash]);
+    }, [getProjectName, projectHash]);
 
-    if (draft === null || !isValidProjectHash(projectHash)) {
+    if (isDraftLoading || !draft || !isValidHash) {
         return (
             <div className="col w-full gap-8">
                 <Skeleton className="min-h-[82.5px] w-full rounded-lg" />

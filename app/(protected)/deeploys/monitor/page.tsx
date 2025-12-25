@@ -7,8 +7,8 @@ import { environment } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
+import { useDraftJobs, useUpdateDraftJob } from '@lib/drafts/queries';
 import { routePath } from '@lib/routes/route-paths';
-import db from '@lib/storage/db';
 import { applyWidthClasses, fBI } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
@@ -21,7 +21,6 @@ import { Timer } from '@shared/Timer';
 import { UsdcValue } from '@shared/UsdcValue';
 import { DraftJob, PaidDraftJob, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
-import { useLiveQuery } from 'dexie-react-hooks';
 import _ from 'lodash';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -60,7 +59,8 @@ export default function Monitor() {
     const publicClient = usePublicClient();
     const { data: walletClient } = useWalletClient();
 
-    const draftJobs: DraftJob[] | undefined = useLiveQuery(() => db.jobs.toArray(), []);
+    const { data: draftJobs } = useDraftJobs();
+    const { mutateAsync: updateDraftJob } = useUpdateDraftJob();
 
     const paidDraftJobsRef = useRef<PaidDraftJob[]>([]);
     const signTxModalRef = useRef<{
@@ -164,7 +164,7 @@ export default function Monitor() {
                 const { runningJobId, ...other } = job.draftJob as PaidDraftJob;
                 const updatedjob = { ...other, paid: false };
 
-                await db.jobs.put(updatedjob);
+                await updateDraftJob({ id: updatedjob.id, payload: updatedjob as DraftJob });
                 console.log('Unlinked payment for job draft', updatedjob);
             }
 

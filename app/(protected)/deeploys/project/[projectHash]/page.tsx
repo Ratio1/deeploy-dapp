@@ -4,15 +4,14 @@ import JobFormWrapper from '@components/create-job/JobFormWrapper';
 import ProjectPageLoading from '@components/loading/ProjectPageLoading';
 import ProjectOverview from '@components/project/ProjectOverview';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { useDraftJobs } from '@lib/drafts/queries';
 import { routePath } from '@lib/routes/route-paths';
-import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import { DetailedAlert } from '@shared/DetailedAlert';
 import ProjectIdentity from '@shared/jobs/projects/ProjectIdentity';
 import Payment from '@shared/projects/Payment';
 import { Apps } from '@typedefs/deeployApi';
-import { DraftJob, ProjectPage, RunningJobWithDetails } from '@typedefs/deeploys';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { ProjectPage, RunningJobWithDetails } from '@typedefs/deeploys';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -39,16 +38,13 @@ export default function Project() {
 
     const publicClient = usePublicClient();
 
-    const { projectHash } = useParams<{ projectHash?: string }>();
+    const { projectHash } = useParams<{ projectHash?: `0x${string}` }>();
+    const isValidHash = isValidProjectHash(projectHash);
 
     // Used to display a message with the successfully deployed jobs right after deployment
     const [successfulJobs, setSuccessfulJobs] = useState<{ text: string; serverAlias: string }[]>([]);
 
-    const draftJobs: DraftJob[] | undefined | null = useLiveQuery(
-        isValidProjectHash(projectHash) ? () => db.jobs.where('projectHash').equals(projectHash).toArray() : () => undefined,
-        [projectHash],
-        null,
-    );
+    const { data: draftJobs, isLoading: isDraftJobsLoading } = useDraftJobs(isValidHash ? projectHash : undefined, isValidHash);
 
     // Init
     useEffect(() => {
@@ -91,7 +87,7 @@ export default function Project() {
         }
     };
 
-    if (isLoading || draftJobs === null) {
+    if (isLoading || isDraftJobsLoading) {
         return <ProjectPageLoading />;
     }
 
@@ -109,7 +105,7 @@ export default function Project() {
         );
     }
 
-    if (!projectHash || !projectName || draftJobs === undefined) {
+    if (!projectHash || !projectName || !draftJobs) {
         return <></>;
     }
 

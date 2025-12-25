@@ -7,8 +7,8 @@ import { payAndDeployCash } from '@lib/cash/api';
 import { CashDraftJob } from '@lib/cash/types';
 import { environment } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { useDeleteDraftJob, useDeleteDraftProject, useUpdateDraftJob } from '@lib/drafts/queries';
 import { formatUsdc, getJobsTotalCost } from '@lib/deeploy-utils';
-import db from '@lib/storage/db';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import EmptyData from '@shared/EmptyData';
 import DeeployErrors from '@shared/jobs/DeeployErrors';
@@ -38,6 +38,9 @@ export default function Payment({
 }) {
     const { escrowContractAddress, setFetchAppsRequired, setProjectOverviewTab } =
         useDeploymentContext() as DeploymentContextType;
+    const { mutateAsync: updateDraftJob } = useUpdateDraftJob();
+    const { mutateAsync: deleteDraftJob } = useDeleteDraftJob();
+    const { mutateAsync: deleteDraftProject } = useDeleteDraftProject();
 
     const [totalCost, setTotalCost] = useState<bigint>(0n);
     const [isLoading, setLoading] = useState<boolean>(false);
@@ -133,9 +136,13 @@ export default function Payment({
                         return;
                     }
 
-                    await db.jobs.update(draftJob.id, {
+                    const updatedDraftJob = {
+                        ...draftJob,
                         paid: true,
-                    });
+                        runningJobId: BigInt(result.runningJobId),
+                    };
+
+                    await updateDraftJob({ id: draftJob.id, payload: updatedDraftJob });
                 }),
             );
 
@@ -207,14 +214,22 @@ export default function Payment({
 
                 // Delete only successfully deployed job drafts
                 console.log('Deleting successful draft job IDs:', successfulDraftJobIds);
-                await Promise.all(successfulDraftJobIds.map((id) => db.jobs.delete(id)));
+                await Promise.all(
+                    successfulDraftJobIds.map((id) => {
+                        const draftJob = jobs.find((job) => job.id === id);
+                        if (!draftJob) {
+                            return Promise.resolve();
+                        }
+                        return deleteDraftJob({ id, projectHash: draftJob.projectHash });
+                    }),
+                );
             }
 
             if (successfulJobs.length === jobs.length) {
                 deeployFlowModalRef.current?.progress('done');
                 setProjectOverviewTab('runningJobs');
 
-                setTimeout(() => {
+                setTimeout(async () => {
                     deeployFlowModalRef.current?.close();
 
                     // Add tunneling URLs to items for service jobs
@@ -237,7 +252,7 @@ export default function Payment({
                     callback(items);
 
                     // If all jobs were deployed successfully, delete the project draft
-                    db.projects.delete(projectHash);
+                    await deleteDraftProject(projectHash);
                 }, 1000);
             } else {
                 deeployFlowModalRef.current?.displayError();
