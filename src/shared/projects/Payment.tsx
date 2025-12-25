@@ -4,10 +4,9 @@ import NativeJobsCostRundown from '@components/draft/job-rundowns/NativeJobsCost
 import ServiceJobsCostRundown from '@components/draft/job-rundowns/ServiceJobsCostRundown';
 import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
 import { payAndDeployCash } from '@lib/cash/api';
-import { CashDraftJob } from '@lib/cash/types';
 import { environment } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { useDeleteDraftJob, useDeleteDraftProject, useUpdateDraftJob } from '@lib/drafts/queries';
+import { draftQueryKeys } from '@lib/drafts/queries';
 import { formatUsdc, getJobsTotalCost } from '@lib/deeploy-utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import EmptyData from '@shared/EmptyData';
@@ -18,6 +17,7 @@ import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
 import { UsdcValue } from '@shared/UsdcValue';
 import { DraftJob, JobType, ServiceDraftJob } from '@typedefs/deeploys';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiBox3Line, RiDraftLine, RiInformation2Line } from 'react-icons/ri';
@@ -36,11 +36,8 @@ export default function Payment({
     callback: (items: { text: string; serverAlias: string }[]) => void;
     projectIdentity: React.ReactNode;
 }) {
-    const { escrowContractAddress, setFetchAppsRequired, setProjectOverviewTab } =
-        useDeploymentContext() as DeploymentContextType;
-    const { mutateAsync: updateDraftJob } = useUpdateDraftJob();
-    const { mutateAsync: deleteDraftJob } = useDeleteDraftJob();
-    const { mutateAsync: deleteDraftProject } = useDeleteDraftProject();
+    const { setFetchAppsRequired, setProjectOverviewTab } = useDeploymentContext() as DeploymentContextType;
+    const queryClient = useQueryClient();
 
     const [totalCost, setTotalCost] = useState<bigint>(0n);
     const [isLoading, setLoading] = useState<boolean>(false);
@@ -83,24 +80,8 @@ export default function Payment({
         }
     }, [isPaymentRequired]);
 
-    const serializeDraftJob = (job: DraftJob): CashDraftJob => {
-        if (job.paid) {
-            return {
-                ...job,
-                runningJobId: job.runningJobId.toString(),
-            };
-        }
-
-        return job;
-    };
-
     const onPayAndDeploy = async () => {
         if (!jobs) {
-            return;
-        }
-
-        if (!escrowContractAddress) {
-            toast.error('Please refresh this page and try again.');
             return;
         }
 
@@ -115,7 +96,7 @@ export default function Payment({
             const cashPayload = {
                 projectHash,
                 projectName,
-                jobs: jobs.map(serializeDraftJob),
+                jobIds: jobs.map((job) => job.id),
             };
 
             const cashResponse = await payAndDeployCash(cashPayload);
@@ -124,27 +105,6 @@ export default function Payment({
             if (results.length !== jobs.length) {
                 throw new Error('Unexpected response from backend.');
             }
-
-            await Promise.all(
-                results.map(async (result) => {
-                    const draftJob = jobs.find((job) => job.id === result.draftJobId);
-                    if (!draftJob || draftJob.paid) {
-                        return;
-                    }
-
-                    if (!result.runningJobId) {
-                        return;
-                    }
-
-                    const updatedDraftJob = {
-                        ...draftJob,
-                        paid: true,
-                        runningJobId: BigInt(result.runningJobId),
-                    };
-
-                    await updateDraftJob({ id: draftJob.id, payload: updatedDraftJob });
-                }),
-            );
 
             const failedJobs = results.filter((result) => {
                 if (result.error) {
@@ -211,19 +171,10 @@ export default function Payment({
                 }
 
                 console.log('Tunnel URLs:', tunnelURLs);
-
-                // Delete only successfully deployed job drafts
-                console.log('Deleting successful draft job IDs:', successfulDraftJobIds);
-                await Promise.all(
-                    successfulDraftJobIds.map((id) => {
-                        const draftJob = jobs.find((job) => job.id === id);
-                        if (!draftJob) {
-                            return Promise.resolve();
-                        }
-                        return deleteDraftJob({ id, projectHash: draftJob.projectHash });
-                    }),
-                );
             }
+
+            await queryClient.invalidateQueries({ queryKey: draftQueryKeys.jobs(projectHash) });
+            await queryClient.invalidateQueries({ queryKey: draftQueryKeys.projects() });
 
             if (successfulJobs.length === jobs.length) {
                 deeployFlowModalRef.current?.progress('done');
@@ -250,9 +201,6 @@ export default function Payment({
 
                     console.log('Items:', items);
                     callback(items);
-
-                    // If all jobs were deployed successfully, delete the project draft
-                    await deleteDraftProject(projectHash);
                 }, 1000);
             } else {
                 deeployFlowModalRef.current?.displayError();

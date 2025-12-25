@@ -1,14 +1,9 @@
 import { DeeployDefaultResponse } from '@typedefs/deeployApi';
-import { DraftJob } from '@typedefs/deeploys';
-
-export type CashDraftJob = Omit<DraftJob, 'runningJobId'> & {
-    runningJobId?: string;
-};
 
 export type CashPayAndDeployPayload = {
     projectHash: `0x${string}`;
     projectName?: string;
-    jobs: CashDraftJob[];
+    jobIds: number[];
 };
 
 export type CashPayAndDeployResult = {

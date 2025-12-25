@@ -2,7 +2,7 @@ import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { createPipeline } from '@lib/api/deeploy';
 import { signDeeployPayload } from '@lib/cash/backend-wallet';
 import { getCashPublicClient, getCashWalletClient } from '@lib/cash/chain';
-import { CashDraftJob, CashPayAndDeployPayload, CashPayAndDeployResponse } from '@lib/cash/types';
+import { CashPayAndDeployPayload, CashPayAndDeployResponse } from '@lib/cash/types';
 import { config, getCurrentEpoch } from '@lib/config';
 import {
     diffTimeFn,
@@ -11,6 +11,9 @@ import {
     formatServiceDraftJobPayload,
     getContainerOrWorkerType,
 } from '@lib/deeploy-utils';
+import { prisma } from '@lib/prisma';
+import { toJobPayload } from '@lib/drafts/server';
+import { deserializeDraftJob } from '@lib/drafts/serialization';
 import { isZeroAddress } from '@lib/utils';
 import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, PaidDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { addDays } from 'date-fns';
@@ -19,20 +22,6 @@ import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-const parseCashDraftJob = (job: CashDraftJob): DraftJob => {
-    if (job.paid) {
-        if (!job.runningJobId) {
-            throw new Error('Missing runningJobId for paid job.');
-        }
-        return {
-            ...job,
-            runningJobId: BigInt(job.runningJobId),
-        } as DraftJob;
-    }
-
-    return job as DraftJob;
-};
 
 const getDraftJobPayload = (job: DraftJob) => {
     switch (job.jobType) {
@@ -112,7 +101,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
     }
 
-    if (!payload?.projectHash || !Array.isArray(payload.jobs)) {
+    if (!payload?.projectHash || !Array.isArray(payload.jobIds)) {
         return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
     }
 
@@ -123,10 +112,26 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing escrow contract address configuration.' }, { status: 500 });
         }
 
-        const parsedJobs = payload.jobs.map((job) => parseCashDraftJob(job));
+        if (payload.jobIds.length === 0) {
+            return NextResponse.json({ error: 'No job ids provided.' }, { status: 400 });
+        }
+
+        const draftJobs = await prisma.draftJob.findMany({
+            where: {
+                id: { in: payload.jobIds },
+                projectHash: payload.projectHash,
+            },
+        });
+
+        if (draftJobs.length !== payload.jobIds.length) {
+            return NextResponse.json({ error: 'Some job drafts were not found.' }, { status: 404 });
+        }
+
+        const parsedJobs = draftJobs.map((job) => deserializeDraftJob(toJobPayload(job)));
         const unpaidJobs = parsedJobs.filter((job) => !job.paid);
 
         let paidJobs: PaidDraftJob[] = parsedJobs.filter((job) => job.paid) as PaidDraftJob[];
+        const newlyPaidAssignments: { id: number; runningJobId: bigint }[] = [];
 
         if (unpaidJobs.length > 0) {
             const jobIds = await payUnpaidJobs(unpaidJobs, escrowContractAddress, payload.projectHash);
@@ -138,6 +143,7 @@ export async function POST(request: Request) {
                 }
 
                 const jobId = jobIds[jobIndex++];
+                newlyPaidAssignments.push({ id: job.id, runningJobId: jobId });
                 return {
                     ...job,
                     paid: true,
@@ -146,6 +152,20 @@ export async function POST(request: Request) {
             });
 
             paidJobs = updatedJobs as PaidDraftJob[];
+        }
+
+        if (newlyPaidAssignments.length > 0) {
+            await Promise.all(
+                newlyPaidAssignments.map(({ id, runningJobId }) =>
+                    prisma.draftJob.update({
+                        where: { id },
+                        data: {
+                            paid: true,
+                            runningJobId: runningJobId.toString(),
+                        },
+                    }),
+                ),
+            );
         }
 
         //wait 2 seconds to ensure blockchain finality
@@ -176,6 +196,25 @@ export async function POST(request: Request) {
         const responseBody: CashPayAndDeployResponse = {
             results,
         };
+
+        const successfulJobIds = results
+            .filter((result) => result.response?.status === 'success' || result.response?.status === 'command_delivered')
+            .map((result) => result.draftJobId);
+
+        if (successfulJobIds.length > 0) {
+            await prisma.draftJob.deleteMany({
+                where: {
+                    id: { in: successfulJobIds },
+                    projectHash: payload.projectHash,
+                },
+            });
+        }
+
+        if (successfulJobIds.length === paidJobs.length) {
+            await prisma.draftProject.delete({
+                where: { projectHash: payload.projectHash },
+            });
+        }
 
         return NextResponse.json(responseBody);
     } catch (error) {
