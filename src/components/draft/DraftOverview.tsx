@@ -8,7 +8,7 @@ import AddJobCard from '@shared/projects/AddJobCard';
 import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
 import SupportFooter from '@shared/SupportFooter';
-import { DraftJob, JobType, type DraftProject } from '@typedefs/deeploys';
+import { Job, JobType, type Project } from '@typedefs/deeploys';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { RiDeleteBin2Line } from 'react-icons/ri';
@@ -22,8 +22,8 @@ export default function DraftOverview({
     draftJobs,
     projectIdentity,
 }: {
-    project: DraftProject;
-    draftJobs: DraftJob[] | undefined;
+    project: Project;
+    draftJobs: Job[] | undefined;
     projectIdentity: React.ReactNode;
 }) {
     const { confirm } = useInteractionContext() as InteractionContextType;

@@ -5,7 +5,7 @@ import { prisma } from '@lib/prisma';
 import { toJobPayload } from '@lib/drafts/server';
 import { deserializeDraftJob } from '@lib/drafts/serialization';
 import { isZeroAddress } from '@lib/utils';
-import type { DraftJob as DraftJobRecord } from '@prisma/client';
+import type { Job as JobRecord } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 
@@ -41,11 +41,11 @@ const resolveDraftJobsByMetadata = async (
 ) => {
     const jobIds = parseJobIdsFromMetadata(metadata);
     if (!jobIds.length) {
-        return [] as DraftJobRecord[];
+        return [] as JobRecord[];
     }
 
     const projectHash = metadata?.projectHash;
-    const draftJobs = await prisma.draftJob.findMany({
+    const draftJobs = await prisma.job.findMany({
         where: {
             id: { in: jobIds },
             ...(projectHash ? { projectHash } : {}),
@@ -53,10 +53,10 @@ const resolveDraftJobsByMetadata = async (
     });
 
     if (!draftJobs.length) {
-        return [] as DraftJobRecord[];
+        return [] as JobRecord[];
     }
 
-    await prisma.draftJob.updateMany({
+    await prisma.job.updateMany({
         where: { id: { in: jobIds } },
         data: {
             stripeSubscriptionId: subscriptionId,
@@ -90,7 +90,7 @@ const handleInvoicePaid = async (invoice: Stripe.Invoice) => {
     }
 
     const invoiceCustomerId = typeof invoice.customer === 'string' ? invoice.customer : (invoice.customer?.id ?? null);
-    let draftJobs: DraftJobRecord[] = await prisma.draftJob.findMany({
+    let draftJobs: JobRecord[] = await prisma.job.findMany({
         where: { stripeSubscriptionId: subscriptionId },
     });
     console.log(`Found ${draftJobs.length} draft jobs for subscription ${subscriptionId}.`);
@@ -112,7 +112,7 @@ const handleInvoicePaid = async (invoice: Stripe.Invoice) => {
         return;
     }
 
-    await prisma.draftJob.updateMany({
+    await prisma.job.updateMany({
         where: {
             id: { in: eligibleJobs.map((job) => job.id) },
             status: { in: ['freezed_for_payment', 'payment_received'] },

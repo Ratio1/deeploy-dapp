@@ -1,14 +1,14 @@
-import type { DraftJob as DraftJobRecord, DraftProject as DraftProjectRecord } from '@prisma/client';
+import type { Job as JobRecord, Project as ProjectRecord } from '@prisma/client';
 import type { DraftJobPayload, DraftProjectPayload } from './types';
 
-const getDetails = <T>(details: DraftJobRecord['details']): T => {
+const getDetails = <T>(details: JobRecord['details']): T => {
     if (details && typeof details === 'object' && !Array.isArray(details)) {
         return details as T;
     }
     return {} as T;
 };
 
-export const toProjectPayload = (record: DraftProjectRecord): DraftProjectPayload => {
+export const toProjectPayload = (record: ProjectRecord): DraftProjectPayload => {
     return {
         projectHash: record.projectHash,
         name: record.name,
@@ -17,7 +17,7 @@ export const toProjectPayload = (record: DraftProjectRecord): DraftProjectPayloa
     };
 };
 
-export const toJobPayload = (record: DraftJobRecord): DraftJobPayload => {
+export const toJobPayload = (record: JobRecord): DraftJobPayload => {
     const details = getDetails<DraftJobPayload>(record.details);
     const payload: DraftJobPayload = {
         ...details,

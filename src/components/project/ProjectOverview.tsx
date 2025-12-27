@@ -12,7 +12,7 @@ import CancelButton from '@shared/projects/buttons/CancelButton';
 import PaymentButton from '@shared/projects/buttons/PaymentButton';
 import SupportFooter from '@shared/SupportFooter';
 import { Apps } from '@typedefs/deeployApi';
-import { DraftJob, JobType, RunningJobWithDetails, RunningJobWithResources } from '@typedefs/deeploys';
+import { Job, JobType, RunningJobWithDetails, RunningJobWithResources } from '@typedefs/deeploys';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { RiBox2Line, RiDraftLine, RiFileTextLine } from 'react-icons/ri';
@@ -30,7 +30,7 @@ export default function ProjectOverview({
     setSuccessfulJobs,
 }: {
     runningJobs: RunningJobWithDetails[] | undefined;
-    draftJobs: DraftJob[] | undefined;
+    draftJobs: Job[] | undefined;
     projectIdentity: React.ReactNode;
     fetchRunningJobs: (appsOverride?: Apps) => Promise<void>;
     successfulJobs: { text: string; serverAlias: string; tunnelURL?: string }[];

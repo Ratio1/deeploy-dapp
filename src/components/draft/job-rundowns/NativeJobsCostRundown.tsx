@@ -1,10 +1,10 @@
 import { ContainerOrWorkerType, GpuType, formatResourcesSummary, gpuTypes, nativeWorkerTypes } from '@data/containerResources';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
-import { NativeDraftJob } from '@typedefs/deeploys';
+import { NativeJob } from '@typedefs/deeploys';
 import { BasePluginType, GenericPlugin, Plugin, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
-export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[] }) {
+export default function NativeJobsCostRundown({ jobs }: { jobs: NativeJob[] }) {
     return (
         <JobsCostRundown
             cardHeader={
@@ -15,7 +15,7 @@ export default function NativeJobsCostRundown({ jobs }: { jobs: NativeDraftJob[]
             }
             jobs={jobs}
             renderJob={(job) => {
-                const nativeJob = job as NativeDraftJob;
+                const nativeJob = job as NativeJob;
                 const workerType = nativeWorkerTypes.find(
                     (type) => type.name === nativeJob.specifications.workerType,
                 ) as ContainerOrWorkerType;

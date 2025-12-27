@@ -5,11 +5,11 @@ import { getShortAddressOrHash } from '@lib/utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { SmallTag } from '@shared/SmallTag';
-import { DraftProject } from '@typedefs/deeploys';
+import { Project } from '@typedefs/deeploys';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 
-export default function DraftCard({ project }: { project: DraftProject }) {
+export default function DraftCard({ project }: { project: Project }) {
     const { confirm } = useInteractionContext() as InteractionContextType;
     const { data: jobs } = useDraftJobs(project.projectHash);
     const { mutateAsync: deleteDraftProject } = useDeleteDraftProject();

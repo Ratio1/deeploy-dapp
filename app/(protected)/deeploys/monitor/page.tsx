@@ -19,7 +19,7 @@ import { SigningModal } from '@shared/SigningModal';
 import { SmallTag } from '@shared/SmallTag';
 import { Timer } from '@shared/Timer';
 import { UsdcValue } from '@shared/UsdcValue';
-import { DraftJob, PaidDraftJob, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
+import { Job, PaidJob, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import _ from 'lodash';
 import Link from 'next/link';
@@ -31,7 +31,7 @@ import { usePublicClient, useWalletClient } from 'wagmi';
 import { DetailedAlert } from '@shared/DetailedAlert';
 
 type RunningJobWithDraft = RunningJob & {
-    draftJob: DraftJob;
+    draftJob: Job;
 };
 
 type MonitoredJob = RunningJob | RunningJobWithDraft | RunningJobWithDetails;
@@ -62,14 +62,14 @@ export default function Monitor() {
     const { data: draftJobs } = useDraftJobs();
     const { mutateAsync: updateDraftJob } = useUpdateDraftJob();
 
-    const paidDraftJobsRef = useRef<PaidDraftJob[]>([]);
+    const paidDraftJobsRef = useRef<PaidJob[]>([]);
     const signTxModalRef = useRef<{
         open: () => void;
         close: () => void;
     }>(null);
 
     const getJobs = useCallback(
-        async (paidDraftJobs: PaidDraftJob[]) => {
+        async (paidDraftJobs: PaidJob[]) => {
             if (!publicClient || !escrowContractAddress) {
                 toast.error('Please connect your wallet.');
                 return;
@@ -137,7 +137,7 @@ export default function Monitor() {
                     return;
                 }
 
-                const paidDraftJob = job.draftJob as PaidDraftJob;
+                const paidDraftJob = job.draftJob as PaidJob;
                 jobId = paidDraftJob.runningJobId;
             } else {
                 jobId = job.id;
@@ -161,10 +161,10 @@ export default function Monitor() {
             }
 
             if ('draftJob' in job) {
-                const { runningJobId, ...other } = job.draftJob as PaidDraftJob;
-                const updatedjob = { ...other, paid: false };
+                const { runningJobId, ...other } = job.draftJob as PaidJob;
+                const updatedjob = { ...other, status: 'draft' };
 
-                await updateDraftJob({ id: updatedjob.id, payload: updatedjob as DraftJob });
+                await updateDraftJob({ id: updatedjob.id, payload: updatedjob as Job });
                 console.log('Unlinked payment for job draft', updatedjob);
             }
 
@@ -180,13 +180,20 @@ export default function Monitor() {
         }
     };
 
+    const isPaidJob = (job: Job): job is PaidJob => {
+        return (
+            (job.status === 'paid_on_chain' || job.status === 'deployed' || job.status === 'deploy_failed') &&
+            job.runningJobId !== undefined
+        );
+    };
+
     useEffect(() => {
         if (draftJobs === undefined) {
             paidDraftJobsRef.current = [];
             return;
         }
 
-        paidDraftJobsRef.current = draftJobs.filter((job): job is PaidDraftJob => job.paid);
+        paidDraftJobsRef.current = draftJobs.filter(isPaidJob);
     }, [draftJobs]);
 
     useEffect(() => {

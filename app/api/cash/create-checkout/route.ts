@@ -4,14 +4,14 @@ import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { prisma } from '@lib/prisma';
 import { toJobPayload } from '@lib/drafts/server';
 import { deserializeDraftJob } from '@lib/drafts/serialization';
-import { DraftJob } from '@typedefs/deeploys';
+import { Job } from '@typedefs/deeploys';
 import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const getStripePriceId = (job: DraftJob) => {
+const getStripePriceId = (job: Job) => {
     const containerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
 
     if (!containerOrWorkerType.stripePriceId) {
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
 
     try {
         const { parsedJobs, jobIds } = await prisma.$transaction(async (tx) => {
-            const draftJobs = await tx.draftJob.findMany({
+            const draftJobs = await tx.job.findMany({
                 where: {
                     id: { in: payload.jobIds },
                     projectHash: payload.projectHash,
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
                 throw new DraftJobsNotEditableError();
             }
 
-            const updateResult = await tx.draftJob.updateMany({
+            const updateResult = await tx.job.updateMany({
                 where: {
                     id: { in: payload.jobIds },
                     projectHash: payload.projectHash,
@@ -141,7 +141,7 @@ export async function POST(request: Request) {
             cancel_url: cancelUrl.toString(),
         });
 
-        await prisma.draftJob.updateMany({
+        await prisma.job.updateMany({
             where: { id: { in: jobIds } },
             data: { stripeCheckoutSessionId: session.id },
         });
@@ -162,7 +162,7 @@ export async function POST(request: Request) {
         const message = error instanceof Error ? error.message : 'Failed to create Stripe checkout.';
 
         if (payload?.jobIds?.length) {
-            await prisma.draftJob.updateMany({
+            await prisma.job.updateMany({
                 where: {
                     id: { in: payload.jobIds },
                     status: 'freezed_for_payment',

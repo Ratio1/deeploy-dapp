@@ -1,7 +1,7 @@
 import { formatUsdc, getJobCost, getJobsTotalCost } from '@lib/deeploy-utils';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import { SmallTag } from '@shared/SmallTag';
-import { DraftJob, DraftJobStatus } from '@typedefs/deeploys';
+import { Job, JobStatus } from '@typedefs/deeploys';
 
 export default function JobsCostRundown({
     cardHeader,
@@ -9,10 +9,10 @@ export default function JobsCostRundown({
     renderJob,
 }: {
     cardHeader: React.ReactNode;
-    jobs: DraftJob[];
-    renderJob: (job: DraftJob) => React.ReactNode;
+    jobs: Job[];
+    renderJob: (job: Job) => React.ReactNode;
 }) {
-    const statusCopy: Record<DraftJobStatus, { label: string; variant: 'green' | 'slate' | 'blue' | 'orange' | 'red' }> = {
+    const statusCopy: Record<JobStatus, { label: string; variant: 'green' | 'slate' | 'blue' | 'orange' | 'red' }> = {
         draft: { label: 'Draft', variant: 'slate' },
         freezed_for_payment: { label: 'Frozen', variant: 'blue' },
         payment_received: { label: 'Payment Received', variant: 'green' },

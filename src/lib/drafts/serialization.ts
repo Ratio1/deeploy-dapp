@@ -1,7 +1,7 @@
-import { DraftJob } from '@typedefs/deeploys';
+import { Job } from '@typedefs/deeploys';
 import { DraftJobPayload } from './types';
 
-export const serializeDraftJob = (job: DraftJob): DraftJobPayload => {
+export const serializeDraftJob = (job: Job): DraftJobPayload => {
     const payload = { ...job } as DraftJobPayload;
     payload.name = job.deployment?.jobAlias ?? payload.name;
 
@@ -14,17 +14,17 @@ export const serializeDraftJob = (job: DraftJob): DraftJobPayload => {
     return payload;
 };
 
-export const serializeDraftJobs = (jobs: DraftJob[]): DraftJobPayload[] => jobs.map(serializeDraftJob);
+export const serializeDraftJobs = (jobs: Job[]): DraftJobPayload[] => jobs.map(serializeDraftJob);
 
-export const deserializeDraftJob = (job: DraftJobPayload): DraftJob => {
+export const deserializeDraftJob = (job: DraftJobPayload): Job => {
     if (job.runningJobId) {
         return {
             ...job,
             runningJobId: BigInt(job.runningJobId),
-        } as DraftJob;
+        } as Job;
     }
 
-    return job as DraftJob;
+    return job as Job;
 };
 
-export const deserializeDraftJobs = (jobs: DraftJobPayload[]): DraftJob[] => jobs.map(deserializeDraftJob);
+export const deserializeDraftJobs = (jobs: DraftJobPayload[]): Job[] => jobs.map(deserializeDraftJob);

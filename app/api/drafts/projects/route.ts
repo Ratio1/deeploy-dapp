@@ -8,7 +8,19 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        const projects = await prisma.draftProject.findMany({
+        const projects = await prisma.project.findMany({
+            where: {
+                OR: [
+                    { jobs: { none: {} } },
+                    {
+                        jobs: {
+                            some: {
+                                status: { not: 'deployed' },
+                            },
+                        },
+                    },
+                ],
+            },
             orderBy: { createdAt: 'desc' },
         });
 
@@ -35,7 +47,7 @@ export async function POST(request: Request) {
     }
 
     try {
-        const project = await prisma.draftProject.create({
+        const project = await prisma.project.create({
             data: buildProjectData(payload),
         });
 

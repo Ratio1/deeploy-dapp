@@ -49,7 +49,7 @@ type JobCostAndDuration = {
     paymentMonthsCount: number;
 };
 
-type DraftJobStatus =
+type JobStatus =
     | 'draft'
     | 'freezed_for_payment'
     | 'payment_received'
@@ -57,15 +57,15 @@ type DraftJobStatus =
     | 'deployed'
     | 'deploy_failed';
 
-// Draft Job
-type BaseDraftJob = {
+// Job (stored record; drafts are non-deployed statuses)
+type BaseJob = {
     id: number;
     projectHash: string;
     jobType: JobType;
     specifications: JobSpecifications;
     costAndDuration: JobCostAndDuration;
     deployment: JobDeployment;
-    status: DraftJobStatus;
+    status: JobStatus;
     runningJobId?: bigint;
     stripeSubscriptionId?: string;
     stripeSubscriptionItemId?: string;
@@ -76,19 +76,19 @@ type BaseDraftJob = {
     deployError?: string;
 };
 
-type GenericDraftJob = BaseDraftJob & {
+type GenericJob = BaseJob & {
     jobType: JobType.Generic;
     specifications: GenericJobSpecifications;
     deployment: GenericJobDeployment;
 };
 
-type NativeDraftJob = BaseDraftJob & {
+type NativeJob = BaseJob & {
     jobType: JobType.Native;
     specifications: NativeJobSpecifications;
     deployment: NativeJobDeployment;
 };
 
-type ServiceDraftJob = BaseDraftJob & {
+type ServiceJob = BaseJob & {
     jobType: JobType.Service;
     serviceId: number;
     specifications: ServiceJobSpecifications;
@@ -96,11 +96,11 @@ type ServiceDraftJob = BaseDraftJob & {
     tunnelURL?: string;
 };
 
-type DraftJob = GenericDraftJob | NativeDraftJob | ServiceDraftJob;
+type Job = GenericJob | NativeJob | ServiceJob;
 
-type PaidDraftJob = DraftJob & { status: 'paid_on_chain' | 'deployed' | 'deploy_failed'; runningJobId: bigint };
+type PaidJob = Job & { status: 'paid_on_chain' | 'deployed' | 'deploy_failed'; runningJobId: bigint };
 
-type DraftProject = {
+type Project = {
     projectHash: string;
     name: string;
     color: string;
@@ -152,23 +152,23 @@ export interface KeyValueEntryWithId {
 export { JobType, ProjectPage };
 export type {
     BaseJobSpecifications,
-    DraftJob,
-    DraftJobStatus,
-    DraftProject,
-    GenericDraftJob,
+    Job,
+    JobStatus,
+    Project,
+    GenericJob,
     GenericJobDeployment,
     GenericJobSpecifications,
     JobCostAndDuration,
     JobDeployment,
     JobSpecifications,
-    NativeDraftJob,
+    NativeJob,
     NativeJobDeployment,
     NativeJobSpecifications,
-    PaidDraftJob,
+    PaidJob,
     RunningJob,
     RunningJobWithDetails,
     RunningJobWithResources,
-    ServiceDraftJob,
+    ServiceJob,
     ServiceJobDeployment,
     ServiceJobSpecifications,
 };

@@ -7,18 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model DraftProject {
+model Project {
   projectHash String   @id
   name        String
   color       String
   createdAt   DateTime
   updatedAt   DateTime @updatedAt
-  jobs        DraftJob[]
+  jobs        Job[]
 
-  @@map("draft_projects")
+  @@map("projects")
 }
 
-model DraftJob {
+model Job {
   id           Int          @id @default(autoincrement())
   projectHash  String
   name         String
@@ -36,10 +36,10 @@ model DraftJob {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
-  project DraftProject @relation(fields: [projectHash], references: [projectHash], onDelete: Cascade)
+  project Project @relation(fields: [projectHash], references: [projectHash], onDelete: Cascade)
 
   @@index([projectHash])
   @@index([stripeSubscriptionId])
   @@index([stripeCheckoutSessionId])
-  @@map("draft_jobs")
+  @@map("jobs")
 }

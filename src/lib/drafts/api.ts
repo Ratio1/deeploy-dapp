@@ -1,4 +1,4 @@
-import { DraftJob, DraftProject } from '@typedefs/deeploys';
+import { Job, Project } from '@typedefs/deeploys';
 import { toApiError } from '@lib/api/apiError';
 import axios from 'axios';
 import { deserializeDraftJob, deserializeDraftJobs, serializeDraftJob } from './serialization';
@@ -30,17 +30,17 @@ const request = async <T>(path: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE
     }
 };
 
-export const getDraftProjects = async (): Promise<DraftProject[]> => {
+export const getDraftProjects = async (): Promise<Project[]> => {
     const data = await request<DraftProjectsResponse>('projects', 'GET');
     return data.projects;
 };
 
-export const getDraftProject = async (projectHash: string): Promise<DraftProject | null> => {
+export const getDraftProject = async (projectHash: string): Promise<Project | null> => {
     const data = await request<DraftProjectResponse>(`projects/${projectHash}`, 'GET');
     return data.project;
 };
 
-export const createDraftProject = async (payload: DraftProjectCreatePayload): Promise<DraftProject> => {
+export const createDraftProject = async (payload: DraftProjectCreatePayload): Promise<Project> => {
     const data = await request<DraftProjectResponse>('projects', 'POST', payload);
 
     if (!data.project) {
@@ -50,7 +50,7 @@ export const createDraftProject = async (payload: DraftProjectCreatePayload): Pr
     return data.project;
 };
 
-export const updateDraftProject = async (projectHash: string, payload: DraftProject): Promise<DraftProject> => {
+export const updateDraftProject = async (projectHash: string, payload: Project): Promise<Project> => {
     const data = await request<DraftProjectResponse>(`projects/${projectHash}`, 'PUT', payload);
 
     if (!data.project) {
@@ -64,18 +64,18 @@ export const deleteDraftProject = async (projectHash: string): Promise<void> => 
     await request<{ ok: true }>(`projects/${projectHash}`, 'DELETE');
 };
 
-export const getDraftJobs = async (projectHash?: string): Promise<DraftJob[]> => {
+export const getDraftJobs = async (projectHash?: string): Promise<Job[]> => {
     const query = projectHash ? `?projectHash=${encodeURIComponent(projectHash)}` : '';
     const data = await request<DraftJobsResponse>(`jobs${query}`, 'GET');
     return deserializeDraftJobs(data.jobs);
 };
 
-export const getDraftJob = async (id: number): Promise<DraftJob | null> => {
+export const getDraftJob = async (id: number): Promise<Job | null> => {
     const data = await request<DraftJobResponse>(`jobs/${id}`, 'GET');
     return data.job ? deserializeDraftJob(data.job) : null;
 };
 
-export const createDraftJob = async (payload: DraftJobCreatePayload): Promise<DraftJob> => {
+export const createDraftJob = async (payload: DraftJobCreatePayload): Promise<Job> => {
     const data = await request<DraftJobResponse>('jobs', 'POST', payload);
 
     if (!data.job) {
@@ -85,7 +85,7 @@ export const createDraftJob = async (payload: DraftJobCreatePayload): Promise<Dr
     return deserializeDraftJob(data.job);
 };
 
-export const updateDraftJob = async (id: number, payload: DraftJob): Promise<DraftJob> => {
+export const updateDraftJob = async (id: number, payload: Job): Promise<Job> => {
     const serialized = serializeDraftJob(payload);
     const data = await request<DraftJobResponse>(`jobs/${id}`, 'PUT', serialized);
 

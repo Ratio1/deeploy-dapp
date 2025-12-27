@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { DraftJob, DraftProject } from '@typedefs/deeploys';
+import { Job, Project } from '@typedefs/deeploys';
 import {
     createDraftJob,
     createDraftProject,
@@ -61,7 +61,7 @@ export const useCreateDraftProject = () => {
 export const useUpdateDraftProject = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ projectHash, payload }: { projectHash: string; payload: DraftProject }) =>
+        mutationFn: ({ projectHash, payload }: { projectHash: string; payload: Project }) =>
             updateDraftProject(projectHash, payload),
         onSuccess: (project) => {
             queryClient.invalidateQueries({ queryKey: draftQueryKeys.projects() });
@@ -97,7 +97,7 @@ export const useCreateDraftJob = () => {
 export const useUpdateDraftJob = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, payload }: { id: number; payload: DraftJob }) => updateDraftJob(id, payload),
+        mutationFn: ({ id, payload }: { id: number; payload: Job }) => updateDraftJob(id, payload),
         onSuccess: (job) => {
             queryClient.invalidateQueries({ queryKey: draftQueryKeys.job(job.id) });
             queryClient.invalidateQueries({ queryKey: draftQueryKeys.jobs(job.projectHash) });

@@ -3,14 +3,14 @@ import { environment } from '@lib/config';
 import { formatUsdc, getContainerOrWorkerType, getGpuType, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
 import CardWithItems from '@shared/jobs/projects/CardWithItems';
 import { UsdcValue } from '@shared/UsdcValue';
-import { DraftJob, JobType } from '@typedefs/deeploys';
+import { Job, JobType } from '@typedefs/deeploys';
 
-export default function DraftStats({ jobs }: { jobs: DraftJob[] | undefined }) {
+export default function DraftStats({ jobs }: { jobs: Job[] | undefined }) {
     if (!jobs || jobs.length === 0) {
         return null;
     }
 
-    const getJobMonthlyCost = (job: DraftJob) => {
+    const getJobMonthlyCost = (job: Job) => {
         const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
         const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
 

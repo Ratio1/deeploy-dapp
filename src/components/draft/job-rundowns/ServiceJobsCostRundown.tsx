@@ -2,10 +2,10 @@ import { BaseContainerOrWorkerType, formatResourcesSummary } from '@data/contain
 import services, { Service } from '@data/services';
 import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import JobsCostRundown from '@shared/jobs/drafts/JobsCostRundown';
-import { ServiceDraftJob } from '@typedefs/deeploys';
+import { ServiceJob } from '@typedefs/deeploys';
 import { RiDatabase2Line } from 'react-icons/ri';
 
-export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceDraftJob[] }) {
+export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceJob[] }) {
     return (
         <JobsCostRundown
             cardHeader={
@@ -16,7 +16,7 @@ export default function ServiceJobsCostRundown({ jobs }: { jobs: ServiceDraftJob
             }
             jobs={jobs}
             renderJob={(job) => {
-                const serviceJob = job as ServiceDraftJob;
+                const serviceJob = job as ServiceJob;
                 const containerType: BaseContainerOrWorkerType = getContainerOrWorkerType(
                     serviceJob.jobType,
                     serviceJob.specifications,

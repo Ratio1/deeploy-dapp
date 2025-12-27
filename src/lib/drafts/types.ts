@@ -1,9 +1,9 @@
-import { DraftJob, DraftProject } from '@typedefs/deeploys';
+import { Job, Project } from '@typedefs/deeploys';
 
-export type DraftProjectPayload = DraftProject;
-export type DraftProjectCreatePayload = DraftProject;
+export type DraftProjectPayload = Project;
+export type DraftProjectCreatePayload = Project;
 
-export type DraftJobPayload = Omit<DraftJob, 'runningJobId'> & {
+export type DraftJobPayload = Omit<Job, 'runningJobId'> & {
     runningJobId?: string;
     name?: string;
 };

@@ -26,11 +26,11 @@ export async function GET(_request: Request, context: RouteContext) {
     }
 
     try {
-        const job = await prisma.draftJob.findUnique({
+        const job = await prisma.job.findUnique({
             where: { id },
         });
 
-        if (!job) {
+        if (!job || job.status === 'deployed') {
             return NextResponse.json({ job: null });
         }
 
@@ -66,7 +66,7 @@ export async function PUT(request: Request, context: RouteContext) {
     }
 
     try {
-        const existingJob = await prisma.draftJob.findUnique({ where: { id } });
+        const existingJob = await prisma.job.findUnique({ where: { id } });
 
         if (!existingJob) {
             return NextResponse.json({ job: null }, { status: 404 });
@@ -80,7 +80,7 @@ export async function PUT(request: Request, context: RouteContext) {
             return NextResponse.json({ error: 'Draft job status cannot be changed from this endpoint.' }, { status: 409 });
         }
 
-        const job = await prisma.draftJob.update({
+        const job = await prisma.job.update({
             where: { id },
             data: buildJobData({ ...payload, status: 'draft' }, payload.projectHash),
         });
@@ -101,7 +101,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     }
 
     try {
-        const existingJob = await prisma.draftJob.findUnique({ where: { id } });
+        const existingJob = await prisma.job.findUnique({ where: { id } });
 
         if (!existingJob) {
             return NextResponse.json({ ok: true });
@@ -111,7 +111,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
             return NextResponse.json({ error: 'Draft job is not deletable.' }, { status: 409 });
         }
 
-        await prisma.draftJob.delete({ where: { id } });
+        await prisma.job.delete({ where: { id } });
 
         return NextResponse.json({ ok: true });
     } catch (error) {

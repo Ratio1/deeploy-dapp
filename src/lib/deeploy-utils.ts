@@ -9,17 +9,17 @@ import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import services, { Service, serviceContainerTypes } from '@data/services';
 import { JobConfig } from '@typedefs/deeployApi';
 import {
-    DraftJob,
-    GenericDraftJob,
+    Job,
+    GenericJob,
     GenericJobDeployment,
     GenericJobSpecifications,
     JobSpecifications,
     JobType,
     KeyValueEntryWithId,
-    NativeDraftJob,
+    NativeJob,
     NativeJobDeployment,
     NativeJobSpecifications,
-    ServiceDraftJob,
+    ServiceJob,
     ServiceJobDeployment,
     ServiceJobSpecifications,
 } from '@typedefs/deeploys';
@@ -105,7 +105,7 @@ export const getResourcesCostPerEpoch = (
     return containerOrWorkerType.pricePerEpoch + (gpuType?.pricePerEpoch ?? 0n);
 };
 
-export const getJobCost = (job: DraftJob): bigint => {
+export const getJobCost = (job: Job): bigint => {
     if (job.status !== 'draft') {
         return 0n;
     }
@@ -131,7 +131,7 @@ export const getJobCost = (job: DraftJob): bigint => {
     return totalCost;
 };
 
-export const getJobsTotalCost = (jobs: DraftJob[]): bigint => {
+export const getJobsTotalCost = (jobs: Job[]): bigint => {
     return jobs.reduce((acc, job) => {
         return acc + getJobCost(job);
     }, 0n);
@@ -286,17 +286,17 @@ export const formatJobTags = (specifications: JobSpecifications) => {
     return [...specifications.jobTags, countries].filter((tag) => tag !== '');
 };
 
-export const formatGenericDraftJobPayload = (job: GenericDraftJob) => {
+export const formatGenericDraftJobPayload = (job: GenericJob) => {
     const containerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
     return formatGenericJobPayload(containerType, job.specifications, job.deployment);
 };
 
-export const formatNativeDraftJobPayload = (job: NativeDraftJob) => {
+export const formatNativeDraftJobPayload = (job: NativeJob) => {
     const workerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
     return formatNativeJobPayload(workerType, job.specifications, job.deployment);
 };
 
-export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
+export const formatServiceDraftJobPayload = (job: ServiceJob) => {
     const serviceContainerType: BaseContainerOrWorkerType = getContainerOrWorkerType(JobType.Service, job.specifications);
     const service: Service = services.find((service) => service.id === job.serviceId)!;
     return formatServiceJobPayload(serviceContainerType, service, job.specifications, job.deployment);

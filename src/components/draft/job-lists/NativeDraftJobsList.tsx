@@ -4,7 +4,7 @@ import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { applyWidthClasses } from '@lib/utils';
 import DraftJobsList from '@shared/jobs/drafts/DraftJobsList';
 import { SmallTag } from '@shared/SmallTag';
-import { JobType, NativeDraftJob } from '@typedefs/deeploys';
+import { JobType, NativeJob } from '@typedefs/deeploys';
 import { RiTerminalBoxLine } from 'react-icons/ri';
 
 const widthClasses = [
@@ -14,7 +14,7 @@ const widthClasses = [
     'min-w-[310px]', // worker type
 ];
 
-export default function NativeDraftJobsList({ jobs }: { jobs: NativeDraftJob[] }) {
+export default function NativeDraftJobsList({ jobs }: { jobs: NativeJob[] }) {
     const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
@@ -28,7 +28,7 @@ export default function NativeDraftJobsList({ jobs }: { jobs: NativeDraftJob[] }
             tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Worker Type'], widthClasses)}</>}
             jobs={jobs}
             renderJob={(job) => {
-                const nativeJob = job as NativeDraftJob;
+                const nativeJob = job as NativeJob;
                 const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(
                     nativeJob.jobType,
                     nativeJob.specifications,

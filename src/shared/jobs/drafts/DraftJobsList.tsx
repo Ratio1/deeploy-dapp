@@ -7,7 +7,7 @@ import { routePath } from '@lib/routes/route-paths';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { SmallTag } from '@shared/SmallTag';
-import { DraftJobStatus } from '@typedefs/deeploys';
+import { JobStatus } from '@typedefs/deeploys';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { RiAddLine } from 'react-icons/ri';
@@ -15,7 +15,7 @@ import { RiAddLine } from 'react-icons/ri';
 interface Job {
     id: number;
     projectHash: string;
-    status: DraftJobStatus;
+    status: JobStatus;
     [key: string]: any;
 }
 
@@ -61,7 +61,7 @@ export default function DraftJobsList({
         }
     };
 
-    const statusCopy: Record<DraftJobStatus, { label: string; variant: 'green' | 'slate' | 'blue' | 'orange' | 'red' }> = {
+    const statusCopy: Record<JobStatus, { label: string; variant: 'green' | 'slate' | 'blue' | 'orange' | 'red' }> = {
         draft: { label: 'Draft', variant: 'slate' },
         freezed_for_payment: { label: 'Frozen', variant: 'blue' },
         payment_received: { label: 'Payment Received', variant: 'green' },

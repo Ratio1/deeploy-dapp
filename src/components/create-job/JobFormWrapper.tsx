@@ -18,7 +18,7 @@ import { KYB_TAG } from '@lib/deeploy-utils';
 import { MAIN_STEPS, Step, STEPS } from '@lib/steps/steps';
 import { isValidProjectHash } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
-import { JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
+import { JobType, NativeJob, ServiceJob } from '@typedefs/deeploys';
 import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
@@ -197,11 +197,11 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             };
 
             if (data.jobType === JobType.Native) {
-                (job as unknown as NativeDraftJob).deployment.plugins = data.plugins;
+                (job as unknown as NativeJob).deployment.plugins = data.plugins;
             }
 
             if (data.jobType === JobType.Service) {
-                const serviceJob = job as unknown as ServiceDraftJob;
+                const serviceJob = job as unknown as ServiceJob;
                 serviceJob.serviceId = data.serviceId;
                 serviceJob.tunnelURL = data.tunnelURL;
             }

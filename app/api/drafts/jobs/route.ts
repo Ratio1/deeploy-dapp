@@ -11,8 +11,11 @@ export async function GET(request: Request) {
     const projectHash = searchParams.get('projectHash') ?? undefined;
 
     try {
-        const jobs = await prisma.draftJob.findMany({
-            where: projectHash ? { projectHash } : undefined,
+        const jobs = await prisma.job.findMany({
+            where: {
+                status: { not: 'deployed' },
+                ...(projectHash ? { projectHash } : {}),
+            },
             orderBy: { createdAt: 'desc' },
         });
 
@@ -39,7 +42,7 @@ export async function POST(request: Request) {
     }
 
     try {
-        const job = await prisma.draftJob.create({
+        const job = await prisma.job.create({
             data: buildJobData({ ...(payload as DraftJobPayload), status: 'draft' }),
         });
 

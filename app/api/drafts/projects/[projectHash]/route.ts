@@ -16,8 +16,20 @@ export async function GET(_request: Request, context: RouteContext) {
     const { projectHash } = await context.params;
 
     try {
-        const project = await prisma.draftProject.findUnique({
-            where: { projectHash },
+        const project = await prisma.project.findFirst({
+            where: {
+                projectHash,
+                OR: [
+                    { jobs: { none: {} } },
+                    {
+                        jobs: {
+                            some: {
+                                status: { not: 'deployed' },
+                            },
+                        },
+                    },
+                ],
+            },
         });
 
         if (!project) {
@@ -50,7 +62,7 @@ export async function PUT(request: Request, context: RouteContext) {
     }
 
     try {
-        const project = await prisma.draftProject.update({
+        const project = await prisma.project.update({
             where: { projectHash },
             data: buildProjectData(payload),
         });
@@ -63,11 +75,22 @@ export async function PUT(request: Request, context: RouteContext) {
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {
-    //TODO do not allow deletion if there are frozen drafts associated with this project
     const { projectHash } = await context.params;
 
     try {
-        await prisma.draftProject.delete({
+        const frozenDraft = await prisma.job.findFirst({
+            where: {
+                projectHash,
+                status: { in: ['freezed_for_payment', 'payment_received', 'paid_on_chain'] },
+            },
+            select: { id: true },
+        });
+
+        if (frozenDraft) {
+            return NextResponse.json({ error: 'Cannot delete project with frozen job drafts.' }, { status: 409 });
+        }
+
+        await prisma.project.delete({
             where: { projectHash },
         });
 

@@ -11,24 +11,24 @@ import {
     getContainerOrWorkerType,
 } from '@lib/deeploy-utils';
 import { prisma } from '@lib/prisma';
-import { DraftJob, JobType, ServiceDraftJob } from '@typedefs/deeploys';
+import { Job, JobType, ServiceJob } from '@typedefs/deeploys';
 import { addDays } from 'date-fns';
 import { decodeEventLog } from 'viem';
 
-const getDraftJobPayload = (job: DraftJob) => {
+const getDraftJobPayload = (job: Job) => {
     switch (job.jobType) {
         case JobType.Generic:
             return formatGenericDraftJobPayload(job);
         case JobType.Native:
             return formatNativeDraftJobPayload(job);
         case JobType.Service:
-            return formatServiceDraftJobPayload(job as ServiceDraftJob);
+            return formatServiceDraftJobPayload(job as ServiceJob);
         default:
             return {};
     }
 };
 
-const payJobsOnChain = async (jobs: DraftJob[], escrowContractAddress: string, projectHash: string) => {
+const payJobsOnChain = async (jobs: Job[], escrowContractAddress: string, projectHash: string) => {
     const walletClient = getCashWalletClient();
     const publicClient = getCashPublicClient();
 
@@ -83,7 +83,7 @@ const payJobsOnChain = async (jobs: DraftJob[], escrowContractAddress: string, p
     return { jobIds, txHash };
 };
 
-export const provisionDraftJobs = async (jobs: DraftJob[], escrowContractAddress: string) => {
+export const provisionDraftJobs = async (jobs: Job[], escrowContractAddress: string) => {
     if (!jobs.length) {
         return;
     }
@@ -98,7 +98,7 @@ export const provisionDraftJobs = async (jobs: DraftJob[], escrowContractAddress
 
         await prisma.$transaction(
             jobsWithIds.map((job, index) =>
-                prisma.draftJob.update({
+                prisma.job.update({
                     where: { id: job.id },
                     data: {
                         runningJobId: jobIds[index].toString(),
@@ -138,7 +138,7 @@ export const provisionDraftJobs = async (jobs: DraftJob[], escrowContractAddress
                     result.response &&
                     (result.response.status === 'success' || result.response.status === 'command_delivered')
                 ) {
-                    await prisma.draftJob.update({
+                    await prisma.job.update({
                         where: { id: result.job.id },
                         data: {
                             status: 'deployed',
@@ -148,7 +148,7 @@ export const provisionDraftJobs = async (jobs: DraftJob[], escrowContractAddress
                     });
                 } else {
                     const errorMessage = result.error || result.response?.error || 'Deployment failed.';
-                    await prisma.draftJob.update({
+                    await prisma.job.update({
                         where: { id: result.job.id },
                         data: {
                             status: 'deploy_failed',
@@ -161,7 +161,7 @@ export const provisionDraftJobs = async (jobs: DraftJob[], escrowContractAddress
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to process payment.';
 
-        await prisma.draftJob.updateMany({
+        await prisma.job.updateMany({
             where: { id: { in: jobs.map((job) => job.id) } },
             data: {
                 status: 'deploy_failed',

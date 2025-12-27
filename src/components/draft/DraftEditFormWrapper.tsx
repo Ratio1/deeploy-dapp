@@ -12,7 +12,7 @@ import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import DeeployInfoAlert from '@shared/jobs/DeeployInfoAlert';
 import { SmallTag } from '@shared/SmallTag';
 import SubmitButton from '@shared/SubmitButton';
-import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
+import { Job, GenericJob, JobType, NativeJob, ServiceJob } from '@typedefs/deeploys';
 import { ContainerDeploymentType, DeploymentType, PluginType, WorkerDeploymentType } from '@typedefs/steps/deploymentStepTypes';
 import { cloneDeep } from 'lodash';
 import { useRouter } from 'next/navigation';
@@ -30,7 +30,7 @@ export default function DraftEditFormWrapper({
     job,
     onSubmit,
 }: {
-    job: DraftJob;
+    job: Job;
     onSubmit: (data: z.infer<typeof jobSchema>) => Promise<void>;
 }) {
     const { step } = useDeploymentContext() as DeploymentContextType;
@@ -40,7 +40,7 @@ export default function DraftEditFormWrapper({
     const steps: Step[] = useMemo(() => (job.jobType ? JOB_TYPE_STEPS[job.jobType] : []), [job.jobType]);
     const isLocked = job.status !== 'draft';
 
-    const serviceId = job.jobType === JobType.Service ? (job as ServiceDraftJob).serviceId : undefined;
+    const serviceId = job.jobType === JobType.Service ? (job as ServiceJob).serviceId : undefined;
 
     const getBaseSchemaDeploymentDefaults = () => ({
         jobAlias: job.deployment.jobAlias,
@@ -77,7 +77,7 @@ export default function DraftEditFormWrapper({
 
     const getGenericSchemaDefaults = () => {
         const baseDefaults = getBaseSchemaDefaults();
-        const genericJob = job as GenericDraftJob;
+        const genericJob = job as GenericJob;
         const deployment = genericJob.deployment;
 
         let deploymentType: DeploymentType;
@@ -134,7 +134,7 @@ export default function DraftEditFormWrapper({
 
     const getNativeSchemaDefaults = () => {
         const baseDefaults = getBaseSchemaDefaults();
-        const nativeJob = job as NativeDraftJob;
+        const nativeJob = job as NativeJob;
         const deployment = nativeJob.deployment;
 
         return {
@@ -158,7 +158,7 @@ export default function DraftEditFormWrapper({
 
     const getServiceSchemaDefaults = () => {
         const baseDefaults = getBaseSchemaDefaults();
-        const serviceJob = job as ServiceDraftJob;
+        const serviceJob = job as ServiceJob;
         const deployment = serviceJob.deployment;
 
         return {

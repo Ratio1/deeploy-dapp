@@ -14,7 +14,7 @@ import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
 import { UsdcValue } from '@shared/UsdcValue';
-import { DraftJob, DraftJobStatus, JobType, ServiceDraftJob } from '@typedefs/deeploys';
+import { Job, JobStatus, JobType, ServiceJob } from '@typedefs/deeploys';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -22,7 +22,7 @@ import { RiAlertLine, RiBox3Line, RiDraftLine, RiInformation2Line } from 'react-
 import { usePathname, useSearchParams } from 'next/navigation';
 import ActionButton from '../ActionButton';
 
-const statusCopy: Record<DraftJobStatus, { label: string; variant: 'green' | 'slate' | 'blue' | 'orange' | 'red' }> = {
+const statusCopy: Record<JobStatus, { label: string; variant: 'green' | 'slate' | 'blue' | 'orange' | 'red' }> = {
     draft: { label: 'Draft', variant: 'slate' },
     freezed_for_payment: { label: 'Frozen', variant: 'blue' },
     payment_received: { label: 'Payment Received', variant: 'green' },
@@ -40,7 +40,7 @@ export default function Payment({
 }: {
     projectHash: `0x${string}`;
     projectName?: string;
-    jobs: DraftJob[] | undefined;
+    jobs: Job[] | undefined;
     callback: (items: { text: string; serverAlias: string; tunnelURL?: string }[]) => void;
     projectIdentity: React.ReactNode;
 }) {
@@ -150,7 +150,7 @@ export default function Payment({
             setProjectOverviewTab('runningJobs');
 
             const items = successfulJobs.map((job) => {
-                const tunnelURL = job.jobType === JobType.Service ? (job as ServiceDraftJob).tunnelURL : undefined;
+                const tunnelURL = job.jobType === JobType.Service ? (job as ServiceJob).tunnelURL : undefined;
                 return {
                     text: job.deeployJobId || job.deployment.jobAlias,
                     serverAlias: 'Deeploy',

@@ -4,13 +4,13 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { useDraftProject } from '@lib/drafts/queries';
 import { routePath } from '@lib/routes/route-paths';
 import { SmallTag } from '@shared/SmallTag';
-import { DraftJob } from '@typedefs/deeploys';
+import { Job } from '@typedefs/deeploys';
 import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function JobDraftBreadcrumbs({ jobDraft }: { jobDraft: DraftJob }) {
+export default function JobDraftBreadcrumbs({ jobDraft }: { jobDraft: Job }) {
     const { getProjectName, setProjectOverviewTab } = useDeploymentContext() as DeploymentContextType;
     const router = useRouter();
 

@@ -4,7 +4,7 @@ import { getContainerOrWorkerType } from '@lib/deeploy-utils';
 import { applyWidthClasses } from '@lib/utils';
 import DraftJobsList from '@shared/jobs/drafts/DraftJobsList';
 import { SmallTag } from '@shared/SmallTag';
-import { GenericDraftJob, JobType } from '@typedefs/deeploys';
+import { GenericJob, JobType } from '@typedefs/deeploys';
 import { RiBox3Line } from 'react-icons/ri';
 
 const widthClasses = [
@@ -14,7 +14,7 @@ const widthClasses = [
     'min-w-[310px]', // container type
 ];
 
-export default function GenericDraftJobsList({ jobs }: { jobs: GenericDraftJob[] }) {
+export default function GenericDraftJobsList({ jobs }: { jobs: GenericJob[] }) {
     const { setJobType, setStep } = useDeploymentContext() as DeploymentContextType;
 
     return (
@@ -28,7 +28,7 @@ export default function GenericDraftJobsList({ jobs }: { jobs: GenericDraftJob[]
             tableHeader={<>{applyWidthClasses(['Alias', 'Duration', 'Target Nodes', 'Container Type'], widthClasses)}</>}
             jobs={jobs}
             renderJob={(job) => {
-                const genericJob = job as GenericDraftJob;
+                const genericJob = job as GenericJob;
                 const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(
                     genericJob.jobType,
                     genericJob.specifications,
