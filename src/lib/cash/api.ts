@@ -2,10 +2,10 @@ import { Apps } from '@typedefs/deeployApi';
 import { toApiError } from '@lib/api/apiError';
 import axios from 'axios';
 import {
+    CashCreateCheckoutPayload,
+    CashCreateCheckoutResponse,
     CashExtendJobDurationPayload,
     CashExtendJobDurationResponse,
-    CashPayAndDeployPayload,
-    CashPayAndDeployResponse,
 } from './types';
 
 type CashAppsResponse = {
@@ -42,18 +42,23 @@ export const getCashApps = async (): Promise<Apps> => {
     return data.apps;
 };
 
-export const payAndDeployCash = async (payload: CashPayAndDeployPayload): Promise<CashPayAndDeployResponse> => {
-    const { data } = await axiosCash.post<CashPayAndDeployResponse | { error?: string }>('pay-and-deploy', payload);
+export const createCheckoutSessionCash = async (
+    payload: CashCreateCheckoutPayload,
+): Promise<CashCreateCheckoutResponse> => {
+    const { data } = await axiosCash.post<CashCreateCheckoutResponse | { error?: string }>(
+        'create-checkout',
+        payload,
+    );
 
     const errorMessage = data && typeof data === 'object' ? (data as { error?: string }).error : undefined;
     if (errorMessage !== undefined) {
-        throw new Error(errorMessage || 'Failed to pay and deploy from backend.');
+        throw new Error(errorMessage || 'Failed to create checkout session from backend.');
     }
-    if (!data || typeof data !== 'object' || !('results' in data)) {
-        throw new Error('Missing pay and deploy results from backend response.');
+    if (!data || typeof data !== 'object' || !('checkoutUrl' in data)) {
+        throw new Error('Missing Stripe checkout data from backend response.');
     }
 
-    return data as CashPayAndDeployResponse;
+    return data as CashCreateCheckoutResponse;
 };
 
 export const extendJobDurationCash = async (

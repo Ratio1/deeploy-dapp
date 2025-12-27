@@ -49,6 +49,14 @@ type JobCostAndDuration = {
     paymentMonthsCount: number;
 };
 
+type DraftJobStatus =
+    | 'draft'
+    | 'freezed_for_payment'
+    | 'payment_received'
+    | 'paid_on_chain'
+    | 'deployed'
+    | 'deploy_failed';
+
 // Draft Job
 type BaseDraftJob = {
     id: number;
@@ -57,15 +65,16 @@ type BaseDraftJob = {
     specifications: JobSpecifications;
     costAndDuration: JobCostAndDuration;
     deployment: JobDeployment;
-} & (
-    | {
-          paid: false;
-      }
-    | {
-          paid: true;
-          runningJobId: bigint;
-      }
-);
+    status: DraftJobStatus;
+    runningJobId?: bigint;
+    stripeSubscriptionId?: string;
+    stripeSubscriptionItemId?: string;
+    stripeCheckoutSessionId?: string;
+    stripeCustomerId?: string;
+    txHash?: string;
+    deeployJobId?: string;
+    deployError?: string;
+};
 
 type GenericDraftJob = BaseDraftJob & {
     jobType: JobType.Generic;
@@ -89,7 +98,7 @@ type ServiceDraftJob = BaseDraftJob & {
 
 type DraftJob = GenericDraftJob | NativeDraftJob | ServiceDraftJob;
 
-type PaidDraftJob = Extract<DraftJob, { paid: true }>;
+type PaidDraftJob = DraftJob & { status: 'paid_on_chain' | 'deployed' | 'deploy_failed'; runningJobId: bigint };
 
 type DraftProject = {
     projectHash: string;
@@ -144,6 +153,7 @@ export { JobType, ProjectPage };
 export type {
     BaseJobSpecifications,
     DraftJob,
+    DraftJobStatus,
     DraftProject,
     GenericDraftJob,
     GenericJobDeployment,

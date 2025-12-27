@@ -36,6 +36,11 @@ export default function EditJobDraft() {
             return;
         }
 
+        if (draftJob.status !== 'draft') {
+            toast.error('This job draft is locked and cannot be edited.');
+            return;
+        }
+
         try {
             const job = {
                 ...draftJob,

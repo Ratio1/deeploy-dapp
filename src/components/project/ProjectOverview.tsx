@@ -70,7 +70,7 @@ export default function ProjectOverview({
                     <div className="row gap-2">
                         <CancelButton tab="running" />
 
-                        <PaymentButton isDisabled={draftJobs?.length === 0} />
+                        <PaymentButton isDisabled={!draftJobs?.some((job) => job.status === 'draft')} />
                     </div>
                 </div>
 

@@ -34,13 +34,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
     }
 
-    if (!payload?.projectHash || !payload?.jobType || payload?.paid === undefined) {
+    if (!payload?.projectHash || !payload?.jobType) {
         return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
     }
 
     try {
         const job = await prisma.draftJob.create({
-            data: buildJobData(payload as DraftJobPayload),
+            data: buildJobData({ ...(payload as DraftJobPayload), status: 'draft' }),
         });
 
         return NextResponse.json({ job: toJobPayload(job) }, { status: 201 });

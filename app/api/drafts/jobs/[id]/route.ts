@@ -57,7 +57,7 @@ export async function PUT(request: Request, context: RouteContext) {
         return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
     }
 
-    if (!payload?.projectHash || !payload?.jobType || payload?.paid === undefined) {
+    if (!payload?.projectHash || !payload?.jobType) {
         return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
     }
 
@@ -66,9 +66,23 @@ export async function PUT(request: Request, context: RouteContext) {
     }
 
     try {
+        const existingJob = await prisma.draftJob.findUnique({ where: { id } });
+
+        if (!existingJob) {
+            return NextResponse.json({ job: null }, { status: 404 });
+        }
+
+        if (existingJob.status !== 'draft') {
+            return NextResponse.json({ error: 'Draft job is not editable.' }, { status: 409 });
+        }
+
+        if (payload.status && payload.status !== 'draft') {
+            return NextResponse.json({ error: 'Draft job status cannot be changed from this endpoint.' }, { status: 409 });
+        }
+
         const job = await prisma.draftJob.update({
             where: { id },
-            data: buildJobData(payload, payload.projectHash),
+            data: buildJobData({ ...payload, status: 'draft' }, payload.projectHash),
         });
 
         return NextResponse.json({ job: toJobPayload(job) });
@@ -87,9 +101,17 @@ export async function DELETE(_request: Request, context: RouteContext) {
     }
 
     try {
-        await prisma.draftJob.delete({
-            where: { id },
-        });
+        const existingJob = await prisma.draftJob.findUnique({ where: { id } });
+
+        if (!existingJob) {
+            return NextResponse.json({ ok: true });
+        }
+
+        if (existingJob.status !== 'draft') {
+            return NextResponse.json({ error: 'Draft job is not deletable.' }, { status: 409 });
+        }
+
+        await prisma.draftJob.delete({ where: { id } });
 
         return NextResponse.json({ ok: true });
     } catch (error) {

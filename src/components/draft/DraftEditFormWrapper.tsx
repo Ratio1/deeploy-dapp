@@ -9,6 +9,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { MAIN_STEPS, Step, STEPS } from '@lib/steps/steps';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
+import DeeployInfoAlert from '@shared/jobs/DeeployInfoAlert';
 import { SmallTag } from '@shared/SmallTag';
 import SubmitButton from '@shared/SubmitButton';
 import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
@@ -37,6 +38,7 @@ export default function DraftEditFormWrapper({
     const router = useRouter();
 
     const steps: Step[] = useMemo(() => (job.jobType ? JOB_TYPE_STEPS[job.jobType] : []), [job.jobType]);
+    const isLocked = job.status !== 'draft';
 
     const serviceId = job.jobType === JobType.Service ? (job as ServiceDraftJob).serviceId : undefined;
 
@@ -240,12 +242,27 @@ export default function DraftEditFormWrapper({
                                 </div>
                             </JobFormHeaderInterface>
 
-                            <ActiveStep />
+                            {isLocked && (
+                                <DeeployInfoAlert
+                                    variant="green"
+                                    title={<div className="font-medium">Job locked</div>}
+                                    description={
+                                        <div>
+                                            This job draft is frozen for payment or deployment. Editing is disabled to preserve
+                                            billing details.
+                                        </div>
+                                    }
+                                />
+                            )}
+
+                            <fieldset disabled={isLocked} className="contents">
+                                <ActiveStep />
+                            </fieldset>
 
                             <JobFormButtons
                                 steps={steps.map((step) => STEPS[step])}
                                 cancelLabel="Project"
-                                customSubmitButton={<SubmitButton label="Update" />}
+                                customSubmitButton={<SubmitButton label="Update" isDisabled={isLocked} />}
                             />
                         </div>
                     </div>

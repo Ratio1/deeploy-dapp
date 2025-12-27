@@ -38,6 +38,7 @@ export const serviceContainerTypes: BaseContainerOrWorkerType[] = [
         cores: 1,
         ram: 2,
         storage: 8,
+        stripePriceId: 'price_1SiO97Rl3EwF2eXLGXJYKrMJ',
     },
     {
         id: 2,
@@ -48,6 +49,7 @@ export const serviceContainerTypes: BaseContainerOrWorkerType[] = [
         cores: 3,
         ram: 12,
         storage: 48,
+        stripePriceId: 'price_1SiO9lRl3EwF2eXL68eXwSvH',
     },
     {
         id: 3,
@@ -58,6 +60,7 @@ export const serviceContainerTypes: BaseContainerOrWorkerType[] = [
         cores: 8,
         ram: 22,
         storage: 88,
+        stripePriceId: 'price_1SiOAVRl3EwF2eXLFajPoYOl',
     },
 ];
 
@@ -231,7 +234,6 @@ const services: Service[] = [
     //         { key: 'gitlab_data', value: '/var/opt/gitlab' },
     //     ],
     // },
-
 ];
 
 export type { Service };

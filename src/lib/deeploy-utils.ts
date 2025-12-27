@@ -106,7 +106,7 @@ export const getResourcesCostPerEpoch = (
 };
 
 export const getJobCost = (job: DraftJob): bigint => {
-    if (job.paid) {
+    if (job.status !== 'draft') {
         return 0n;
     }
 

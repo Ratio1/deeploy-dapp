@@ -63,6 +63,7 @@ export async function PUT(request: Request, context: RouteContext) {
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {
+    //TODO do not allow deletion if there are frozen drafts associated with this project
     const { projectHash } = await context.params;
 
     try {

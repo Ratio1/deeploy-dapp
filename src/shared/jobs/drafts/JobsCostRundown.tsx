@@ -1,7 +1,7 @@
 import { formatUsdc, getJobCost, getJobsTotalCost } from '@lib/deeploy-utils';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import { SmallTag } from '@shared/SmallTag';
-import { DraftJob } from '@typedefs/deeploys';
+import { DraftJob, DraftJobStatus } from '@typedefs/deeploys';
 
 export default function JobsCostRundown({
     cardHeader,
@@ -12,6 +12,15 @@ export default function JobsCostRundown({
     jobs: DraftJob[];
     renderJob: (job: DraftJob) => React.ReactNode;
 }) {
+    const statusCopy: Record<DraftJobStatus, { label: string; variant: 'green' | 'slate' | 'blue' | 'orange' | 'red' }> = {
+        draft: { label: 'Draft', variant: 'slate' },
+        freezed_for_payment: { label: 'Frozen', variant: 'blue' },
+        payment_received: { label: 'Payment Received', variant: 'green' },
+        paid_on_chain: { label: 'Paid On-chain', variant: 'green' },
+        deployed: { label: 'Deployed', variant: 'green' },
+        deploy_failed: { label: 'Deploy Failed', variant: 'red' },
+    };
+
     return (
         <CompactCustomCard
             header={
@@ -55,7 +64,9 @@ export default function JobsCostRundown({
                                 </SmallTag>
                             </div>
                             <div className="compact min-w-[58px]">
-                                <SmallTag variant={job?.paid ? 'green' : 'slate'}>{job?.paid ? 'Paid' : 'Unpaid'}</SmallTag>
+                                <SmallTag variant={statusCopy[job.status].variant}>
+                                    {statusCopy[job.status].label}
+                                </SmallTag>
                             </div>
                             <div className="text-primary compact min-w-16 text-right">${formatUsdc(getJobCost(job))}</div>
                         </div>

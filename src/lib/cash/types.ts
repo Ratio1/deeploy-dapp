@@ -1,20 +1,14 @@
-import { DeeployDefaultResponse } from '@typedefs/deeployApi';
-
-export type CashPayAndDeployPayload = {
+export type CashCreateCheckoutPayload = {
     projectHash: `0x${string}`;
     projectName?: string;
     jobIds: number[];
+    successPath?: string;
+    cancelPath?: string;
 };
 
-export type CashPayAndDeployResult = {
-    draftJobId: number;
-    runningJobId: string;
-    response?: DeeployDefaultResponse;
-    error?: string;
-};
-
-export type CashPayAndDeployResponse = {
-    results: CashPayAndDeployResult[];
+export type CashCreateCheckoutResponse = {
+    checkoutUrl: string;
+    checkoutSessionId: string;
 };
 
 export type CashExtendJobDurationPayload = {

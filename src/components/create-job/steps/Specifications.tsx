@@ -8,12 +8,12 @@ import ServiceSpecifications from './specifications/ServiceSpecifications';
 
 function Specifications({
     isEditingRunningJob = false,
-    isJobPaid = false,
+    isJobLocked = false,
     initialTargetNodesCount,
     onTargetNodesCountDecrease,
 }: {
     isEditingRunningJob?: boolean;
-    isJobPaid?: boolean;
+    isJobLocked?: boolean;
     initialTargetNodesCount?: number;
     onTargetNodesCountDecrease?: (blocked: boolean) => void;
 }) {
@@ -31,7 +31,7 @@ function Specifications({
                 return (
                     <GenericSpecifications
                         isEditingRunningJob={isEditingRunningJob}
-                        disablePaymentAffectingControls={isJobPaid}
+                        disablePaymentAffectingControls={isJobLocked}
                         initialTargetNodesCount={initialTargetNodesCount}
                         onTargetNodesCountDecrease={onTargetNodesCountDecrease}
                     />
@@ -41,7 +41,7 @@ function Specifications({
                 return (
                     <NativeSpecifications
                         isEditingRunningJob={isEditingRunningJob}
-                        disablePaymentAffectingControls={isJobPaid}
+                        disablePaymentAffectingControls={isJobLocked}
                         initialTargetNodesCount={initialTargetNodesCount}
                         onTargetNodesCountDecrease={onTargetNodesCountDecrease}
                     />
@@ -51,7 +51,7 @@ function Specifications({
                 return (
                     <ServiceSpecifications
                         isEditingRunningJob={isEditingRunningJob}
-                        disablePaymentAffectingControls={isJobPaid}
+                        disablePaymentAffectingControls={isJobLocked}
                     />
                 );
 
@@ -62,14 +62,13 @@ function Specifications({
 
     return (
         <div className="col gap-6">
-            {isJobPaid && (
+            {isJobLocked && (
                 <DeeployInfoAlert
                     variant="green"
-                    title={<div className="font-medium">Job already paid</div>}
+                    title={<div className="font-medium">Job locked</div>}
                     description={
                         <div>
-                            This job draft has been <span className="font-medium">paid but not yet deployed</span>. Some fields
-                            cannot be edited after successful payment.
+                            This job draft is frozen for payment or deployment. Editing is disabled to preserve billing details.
                         </div>
                     }
                 />

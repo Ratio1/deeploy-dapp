@@ -23,8 +23,15 @@ model DraftJob {
   projectHash  String
   name         String
   jobType      String
-  paid         Boolean      @default(false)
+  status       String       @default("draft")
   runningJobId String?
+  stripeSubscriptionId     String?
+  stripeSubscriptionItemId String?
+  stripeCheckoutSessionId  String?
+  stripeCustomerId         String?
+  txHash       String?
+  deeployJobId String?
+  deployError  String?
   details      Json
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
@@ -32,5 +39,7 @@ model DraftJob {
   project DraftProject @relation(fields: [projectHash], references: [projectHash], onDelete: Cascade)
 
   @@index([projectHash])
+  @@index([stripeSubscriptionId])
+  @@index([stripeCheckoutSessionId])
   @@map("draft_jobs")
 }

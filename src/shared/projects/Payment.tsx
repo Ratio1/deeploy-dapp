@@ -1,27 +1,35 @@
-import { DeeployFlowModal } from '@components/draft/DeeployFlowModal';
 import GenericJobsCostRundown from '@components/draft/job-rundowns/GenericJobsCostRundown';
 import NativeJobsCostRundown from '@components/draft/job-rundowns/NativeJobsCostRundown';
 import ServiceJobsCostRundown from '@components/draft/job-rundowns/ServiceJobsCostRundown';
-import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
-import { payAndDeployCash } from '@lib/cash/api';
+import { createCheckoutSessionCash } from '@lib/cash/api';
 import { environment } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { draftQueryKeys } from '@lib/drafts/queries';
 import { formatUsdc, getJobsTotalCost } from '@lib/deeploy-utils';
 import { BorderedCard } from '@shared/cards/BorderedCard';
+import { DetailedAlert } from '@shared/DetailedAlert';
 import EmptyData from '@shared/EmptyData';
-import DeeployErrors from '@shared/jobs/DeeployErrors';
 import DeeployInfoAlert from '@shared/jobs/DeeployInfoAlert';
 import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
 import { UsdcValue } from '@shared/UsdcValue';
-import { DraftJob, JobType, ServiceDraftJob } from '@typedefs/deeploys';
+import { DraftJob, DraftJobStatus, JobType, ServiceDraftJob } from '@typedefs/deeploys';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiBox3Line, RiDraftLine, RiInformation2Line } from 'react-icons/ri';
+import { RiAlertLine, RiBox3Line, RiDraftLine, RiInformation2Line } from 'react-icons/ri';
+import { usePathname, useSearchParams } from 'next/navigation';
 import ActionButton from '../ActionButton';
+
+const statusCopy: Record<DraftJobStatus, { label: string; variant: 'green' | 'slate' | 'blue' | 'orange' | 'red' }> = {
+    draft: { label: 'Draft', variant: 'slate' },
+    freezed_for_payment: { label: 'Frozen', variant: 'blue' },
+    payment_received: { label: 'Payment Received', variant: 'green' },
+    paid_on_chain: { label: 'Paid On-chain', variant: 'green' },
+    deployed: { label: 'Deployed', variant: 'green' },
+    deploy_failed: { label: 'Deploy Failed', variant: 'red' },
+};
 
 export default function Payment({
     projectHash,
@@ -33,194 +41,159 @@ export default function Payment({
     projectHash: `0x${string}`;
     projectName?: string;
     jobs: DraftJob[] | undefined;
-    callback: (items: { text: string; serverAlias: string }[]) => void;
+    callback: (items: { text: string; serverAlias: string; tunnelURL?: string }[]) => void;
     projectIdentity: React.ReactNode;
 }) {
     const { setFetchAppsRequired, setProjectOverviewTab } = useDeploymentContext() as DeploymentContextType;
     const queryClient = useQueryClient();
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
 
     const [totalCost, setTotalCost] = useState<bigint>(0n);
     const [isLoading, setLoading] = useState<boolean>(false);
+    const [isProvisioning, setProvisioning] = useState<boolean>(false);
+    const [provisioningJobIds, setProvisioningJobIds] = useState<number[]>([]);
+    const [provisioningComplete, setProvisioningComplete] = useState<boolean>(false);
 
-    const [isPaymentRequired, setPaymentRequired] = useState<boolean>(false);
+    const handledCompletionRef = useRef(false);
 
-    const [errors, setErrors] = useState<
-        {
-            text: string;
-            serverAlias: string;
-            jobAlias?: string;
-        }[]
-    >([]);
+    const draftJobs = useMemo(() => jobs?.filter((job) => job.status === 'draft') ?? [], [jobs]);
+    const lockedJobs = useMemo(
+        () =>
+            jobs?.filter(
+                (job) =>
+                    job.status === 'freezed_for_payment' || job.status === 'payment_received' || job.status === 'paid_on_chain',
+            ) ?? [],
+        [jobs],
+    );
 
-    const [deeployModalActions, setDeeployModalActions] = useState<DEEPLOY_FLOW_ACTION_KEYS[]>([
-        'callDeeployApi',
-    ] as DEEPLOY_FLOW_ACTION_KEYS[]);
+    const trackedJobs = useMemo(() => {
+        if (!jobs || provisioningJobIds.length === 0) {
+            return [];
+        }
 
-    const deeployFlowModalRef = useRef<{
-        open: (jobsCount: number, messagesToSign: number) => void;
-        progress: (action: DEEPLOY_FLOW_ACTION_KEYS) => void;
-        close: () => void;
-        displayError: () => void;
-    }>(null);
+        return jobs.filter((job) => provisioningJobIds.includes(job.id));
+    }, [jobs, provisioningJobIds]);
 
-    const isFlowInProgressRef = useRef<boolean>(false);
+    const failedJobs = useMemo(() => trackedJobs.filter((job) => job.status === 'deploy_failed'), [trackedJobs]);
 
     useEffect(() => {
         if (jobs) {
             const jobsTotalCost = getJobsTotalCost(jobs);
             setTotalCost(jobsTotalCost);
-
-            setPaymentRequired(jobs.filter((job) => !job.paid).length > 0);
         }
     }, [jobs]);
 
     useEffect(() => {
-        if (isPaymentRequired) {
-            setDeeployModalActions((currentActions) => ['payment', ...currentActions]);
-        }
-    }, [isPaymentRequired]);
+        const checkoutStatus = searchParams?.get('checkout');
 
-    const onPayAndDeploy = async () => {
-        if (!jobs) {
+        if (checkoutStatus === 'success') {
+            const stored = sessionStorage.getItem('stripeDraftJobIds');
+            const parsed = stored ? (JSON.parse(stored) as number[]) : [];
+
+            setProvisioningJobIds(parsed);
+            setProvisioning(true);
+            setProvisioningComplete(false);
+            handledCompletionRef.current = false;
+            return;
+        }
+
+        if (checkoutStatus === 'cancel') {
+            toast.error('Payment cancelled.');
+        }
+    }, [searchParams]);
+
+    useEffect(() => {
+        if (!isProvisioning || provisioningJobIds.length > 0 || !jobs) {
+            return;
+        }
+
+        const fallbackIds = jobs.filter((job) => job.status !== 'draft').map((job) => job.id);
+
+        if (fallbackIds.length > 0) {
+            setProvisioningJobIds(fallbackIds);
+        }
+    }, [isProvisioning, provisioningJobIds.length, jobs]);
+
+    useEffect(() => {
+        if (!isProvisioning) {
+            return;
+        }
+
+        const interval = setInterval(() => {
+            queryClient.invalidateQueries({ queryKey: draftQueryKeys.jobs(projectHash) });
+        }, 4000);
+
+        return () => clearInterval(interval);
+    }, [isProvisioning, projectHash, queryClient]);
+
+    useEffect(() => {
+        if (!isProvisioning || trackedJobs.length === 0) {
+            return;
+        }
+
+        const allCompleted = trackedJobs.every((job) => job.status === 'deployed' || job.status === 'deploy_failed');
+
+        if (!allCompleted || handledCompletionRef.current) {
+            return;
+        }
+
+        handledCompletionRef.current = true;
+        setProvisioning(false);
+        setProvisioningComplete(true);
+        sessionStorage.removeItem('stripeDraftJobIds');
+
+        const successfulJobs = trackedJobs.filter((job) => job.status === 'deployed');
+
+        if (successfulJobs.length > 0) {
+            setFetchAppsRequired(true);
+            setProjectOverviewTab('runningJobs');
+
+            const items = successfulJobs.map((job) => {
+                const tunnelURL = job.jobType === JobType.Service ? (job as ServiceDraftJob).tunnelURL : undefined;
+                return {
+                    text: job.deeployJobId || job.deployment.jobAlias,
+                    serverAlias: 'Deeploy',
+                    ...(tunnelURL ? { tunnelURL } : {}),
+                };
+            });
+
+            callback(items);
+        }
+    }, [isProvisioning, trackedJobs, callback, setFetchAppsRequired, setProjectOverviewTab, provisioningJobIds]);
+
+    const onProceedToPayment = async () => {
+        if (draftJobs.length === 0) {
+            toast.error('No draft jobs available for payment.');
             return;
         }
 
         try {
-            setErrors([]);
             setLoading(true);
-            isFlowInProgressRef.current = true;
+            sessionStorage.setItem('stripeDraftJobIds', JSON.stringify(draftJobs.map((job) => job.id)));
 
-            deeployFlowModalRef.current?.open(jobs.length, 0);
-            deeployFlowModalRef.current?.progress('callDeeployApi');
-
-            const cashPayload = {
+            const payload = {
                 projectHash,
                 projectName,
-                jobIds: jobs.map((job) => job.id),
+                jobIds: draftJobs.map((job) => job.id),
+                successPath: pathname,
+                cancelPath: pathname,
             };
 
-            const cashResponse = await payAndDeployCash(cashPayload);
-            const results = cashResponse.results ?? [];
+            const response = await createCheckoutSessionCash(payload);
 
-            if (results.length !== jobs.length) {
-                throw new Error('Unexpected response from backend.');
+            if (!response.checkoutUrl) {
+                throw new Error('Missing checkout URL.');
             }
 
-            const failedJobs = results.filter((result) => {
-                if (result.error) {
-                    return true;
-                }
-
-                if (!result.response) {
-                    return true;
-                }
-
-                return result.response.status === 'fail' || result.response.status === 'timeout';
-            });
-
-            const successfulJobs = results.filter(
-                (result) =>
-                    result.response && (result.response.status === 'success' || result.response.status === 'command_delivered'),
-            );
-
-            if (failedJobs.length > 0) {
-                console.error('Some jobs failed to deploy:', failedJobs);
-                toast.error(`${failedJobs.length} job${failedJobs.length > 1 ? 's' : ''} failed to deploy.`);
-
-                setErrors(
-                    failedJobs.map((item) => {
-                        const draftJob = jobs.find((job) => job.id === item.draftJobId);
-                        if (item.response) {
-                            return {
-                                text: item.response.error || 'Request timed out',
-                                jobAlias: draftJob?.deployment.jobAlias || 'Unknown',
-                                serverAlias: item.response.server_info?.alias || 'Unknown',
-                            };
-                        }
-
-                        return {
-                            text: item.error || 'Request failed',
-                            jobAlias: draftJob?.deployment.jobAlias || 'Unknown',
-                            serverAlias: 'Unknown',
-                        };
-                    }),
-                );
-            }
-
-            const tunnelURLs: Record<number, string | undefined> = {}; // draftJobId -> tunnelURL
-
-            if (successfulJobs.length > 0) {
-                setFetchAppsRequired(true);
-
-                console.log(
-                    'Successfully deployed jobs:',
-                    successfulJobs.map((item) => item.response),
-                );
-                toast.success(`${successfulJobs.length} job${successfulJobs.length > 1 ? 's' : ''} deployed successfully.`);
-
-                // Obtain successful draft jobs before deletion
-                const successfulDraftJobIds = successfulJobs.map((item) => item.draftJobId);
-                const successfulDraftJobs = jobs.filter((job) => successfulDraftJobIds.includes(job.id));
-
-                // Get tunneling URLs for service jobs
-                for (const job of successfulDraftJobs) {
-                    if (job.jobType === JobType.Service) {
-                        const serviceJob = job as ServiceDraftJob;
-                        tunnelURLs[serviceJob.id] = serviceJob.tunnelURL;
-                    }
-                }
-
-                console.log('Tunnel URLs:', tunnelURLs);
-            }
-
-            await queryClient.invalidateQueries({ queryKey: draftQueryKeys.jobs(projectHash) });
-            await queryClient.invalidateQueries({ queryKey: draftQueryKeys.projects() });
-
-            if (successfulJobs.length === jobs.length) {
-                deeployFlowModalRef.current?.progress('done');
-                setProjectOverviewTab('runningJobs');
-
-                setTimeout(async () => {
-                    deeployFlowModalRef.current?.close();
-
-                    // Add tunneling URLs to items for service jobs
-                    const items = successfulJobs
-                        .map((item) => {
-                            if (!item.response?.app_id) {
-                                return null;
-                            }
-
-                            const tunnelURL = tunnelURLs[item.draftJobId];
-                            return {
-                                text: item.response.app_id as string,
-                                serverAlias: item.response.server_info?.alias as string,
-                                ...(tunnelURL && { tunnelURL }),
-                            };
-                        })
-                        .filter((item): item is { text: string; serverAlias: string; tunnelURL?: string } => item !== null);
-
-                    console.log('Items:', items);
-                    callback(items);
-                }, 1000);
-            } else {
-                deeployFlowModalRef.current?.displayError();
-            }
-
-            console.log('All deployment responses:', results);
+            window.location.href = response.checkoutUrl;
         } catch (error: any) {
             console.error(error.message);
-            toast.error('An error occurred, please try again.');
-            deeployFlowModalRef.current?.displayError();
+            toast.error('Failed to start payment.');
+            sessionStorage.removeItem('stripeDraftJobIds');
         } finally {
-            isFlowInProgressRef.current = false;
             setLoading(false);
         }
-    };
-
-    const handleModalClose = () => {
-        isFlowInProgressRef.current = false;
-        setLoading(false);
-        toast.error('Deployment flow cancelled.');
     };
 
     return (
@@ -237,13 +210,13 @@ export default function Payment({
                             type="button"
                             color="primary"
                             variant="solid"
-                            onPress={onPayAndDeploy}
-                            isDisabled={jobs?.length === 0}
+                            onPress={onProceedToPayment}
+                            isDisabled={draftJobs.length === 0 || isProvisioning}
                             isLoading={isLoading}
                         >
                             <div className="row gap-1.5">
                                 <RiBox3Line className="text-lg" />
-                                <div className="text-sm">Pay & Deploy</div>
+                                <div className="text-sm">Proceed to payment</div>
                             </div>
                         </ActionButton>
                     </div>
@@ -273,29 +246,61 @@ export default function Payment({
                     </BorderedCard>
                 )}
 
-                {/* Errors */}
-                <DeeployErrors type="deployment" errors={errors} />
-
-                {/* Paid Jobs Alert */}
-                {jobs?.some((job) => job.paid) && (
+                {lockedJobs.length > 0 && (
                     <DeeployInfoAlert
-                        variant="green"
-                        title={<div className="font-medium">Paid job drafts</div>}
+                        variant="blue"
+                        title={<div className="font-medium">Payment in progress</div>}
                         description={
                             <div className="col gap-1">
                                 <div>
-                                    This project might contain job drafts that were{' '}
-                                    <span className="font-medium">paid but not yet deployed</span>. You{' '}
-                                    <span className="font-medium">won't be charged again</span> when you deploy them.
+                                    Some job drafts are already frozen for payment or provisioning. They won&apos;t be charged
+                                    again in this checkout.
                                 </div>
-                                <div>
-                                    If any of these job drafts have already been successfully deployed, please delete them to
-                                    prevent further errors.
-                                </div>
+                                <div>Refresh this page if you recently completed a Stripe checkout.</div>
                             </div>
                         }
                         size="lg"
                     />
+                )}
+
+                {isProvisioning && trackedJobs.length > 0 && (
+                    <BorderedCard>
+                        <div className="col gap-3">
+                            <div className="text-sm font-medium">Provisioning in progress</div>
+
+                            {trackedJobs.map((job) => (
+                                <div key={job.id} className="row justify-between text-sm">
+                                    <div className="truncate">{job.deployment.jobAlias}</div>
+                                    <SmallTag variant={statusCopy[job.status].variant}>{statusCopy[job.status].label}</SmallTag>
+                                </div>
+                            ))}
+                        </div>
+                    </BorderedCard>
+                )}
+
+                {provisioningComplete && failedJobs.length > 0 && (
+                    <DetailedAlert
+                        variant="red"
+                        icon={<RiAlertLine />}
+                        title="Deployment failed"
+                        description={
+                            <div className="col gap-2">
+                                <div>Please contact support to retry provisioning.</div>
+                                <div className="col gap-1 text-xs text-slate-500">
+                                    {failedJobs.map((job) => (
+                                        <div key={job.id}>
+                                            {job.deployment.jobAlias}: {job.deployError || 'Unknown error'}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        }
+                        isCompact
+                    >
+                        <ActionButton color="danger" variant="bordered" isDisabled>
+                            <div className="compact">Retry provisioning (coming soon)</div>
+                        </ActionButton>
+                    </DetailedAlert>
                 )}
 
                 {/* Rundowns */}
@@ -327,13 +332,6 @@ export default function Payment({
             </div>
 
             <SupportFooter />
-
-            <DeeployFlowModal
-                ref={deeployFlowModalRef}
-                actions={deeployModalActions}
-                type="deploy"
-                onUserClose={handleModalClose}
-            />
         </div>
     );
 }

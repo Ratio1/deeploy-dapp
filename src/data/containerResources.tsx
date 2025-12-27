@@ -10,6 +10,7 @@ type BaseContainerOrWorkerType = {
     cores: number;
     ram: number;
     storage: number;
+    stripePriceId?: string;
 };
 
 type ContainerOrWorkerType = BaseContainerOrWorkerType & {

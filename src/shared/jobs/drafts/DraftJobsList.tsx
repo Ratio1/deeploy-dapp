@@ -1,13 +1,13 @@
 'use client';
 
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
-import { useDeleteDraftJob, useUpdateDraftJob } from '@lib/drafts/queries';
+import { useDeleteDraftJob } from '@lib/drafts/queries';
 import { downloadDataAsJson } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { SmallTag } from '@shared/SmallTag';
-import { DraftJob, PaidDraftJob } from '@typedefs/deeploys';
+import { DraftJobStatus } from '@typedefs/deeploys';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { RiAddLine } from 'react-icons/ri';
@@ -15,6 +15,7 @@ import { RiAddLine } from 'react-icons/ri';
 interface Job {
     id: number;
     projectHash: string;
+    status: DraftJobStatus;
     [key: string]: any;
 }
 
@@ -35,7 +36,6 @@ export default function DraftJobsList({
 
     const { confirm } = useInteractionContext() as InteractionContextType;
     const { mutateAsync: deleteDraftJob } = useDeleteDraftJob();
-    const { mutateAsync: updateDraftJob } = useUpdateDraftJob();
 
     const onDownloadJson = (job: Job) => {
         downloadDataAsJson(job, `Deeploy-${job.jobType}-job-${job.id}.json`);
@@ -61,39 +61,13 @@ export default function DraftJobsList({
         }
     };
 
-    const onUnlinkPayment = async (job: Job) => {
-        console.log('Unlinking payment for job', job);
-
-        try {
-            const confirmed = await confirm(
-                <div className="col gap-3">
-                    <div className="col gap-1.5">
-                        <div>Are you sure you want to unlink the payment from this job draft?</div>
-                        <div className="font-medium">{job.deployment.jobAlias}</div>
-                    </div>
-
-                    <div>After unlinking, all the job's fields will become editable again.</div>
-
-                    <div>
-                        The job's funds can be claimed back after <span className="text-primary font-medium">one hour</span> has
-                        passed since the payment was made.
-                    </div>
-                </div>,
-            );
-
-            if (!confirmed) {
-                return;
-            }
-
-            const { runningJobId, ...other } = job as PaidDraftJob;
-            const updatedjob = { ...other, paid: false };
-
-            await updateDraftJob({ id: updatedjob.id, payload: updatedjob as DraftJob });
-            toast.success('Payment unlinked successfully.');
-        } catch (error) {
-            console.error('[DraftJobsList] Error unlinking payment:', error);
-            toast.error('Failed to unlink payment.');
-        }
+    const statusCopy: Record<DraftJobStatus, { label: string; variant: 'green' | 'slate' | 'blue' | 'orange' | 'red' }> = {
+        draft: { label: 'Draft', variant: 'slate' },
+        freezed_for_payment: { label: 'Frozen', variant: 'blue' },
+        payment_received: { label: 'Payment Received', variant: 'green' },
+        paid_on_chain: { label: 'Paid On-chain', variant: 'green' },
+        deployed: { label: 'Deployed', variant: 'green' },
+        deploy_failed: { label: 'Deploy Failed', variant: 'red' },
     };
 
     return (
@@ -132,7 +106,7 @@ export default function DraftJobsList({
                     {renderJob(job)}
 
                     <div className="min-w-[60px]">
-                        <SmallTag variant={job.paid ? 'green' : 'slate'}>{job.paid ? 'Paid' : 'Unpaid'}</SmallTag>
+                        <SmallTag variant={statusCopy[job.status].variant}>{statusCopy[job.status].label}</SmallTag>
                     </div>
 
                     <ContextMenuWithTrigger
@@ -144,27 +118,17 @@ export default function DraftJobsList({
                                 onPress: () => onDownloadJson(job),
                             },
                             {
-                                key: 'edit',
-                                label: 'Edit',
-                                description: 'Edit the job draft',
+                                key: job.status === 'draft' ? 'edit' : 'view',
+                                label: job.status === 'draft' ? 'Edit' : 'View',
+                                description: job.status === 'draft' ? 'Edit the job draft' : 'View the job draft details',
                                 onPress: () => onEditJob(job),
                             },
-                            ...(job.paid
-                                ? [
-                                      {
-                                          key: 'unlink-payment',
-                                          label: 'Unlink Payment',
-                                          description: 'Disconnect the payment from the job draft',
-                                          isDangerous: true,
-                                          onPress: () => onUnlinkPayment(job),
-                                      },
-                                  ]
-                                : []),
                             {
                                 key: 'delete',
                                 label: 'Delete',
                                 description: 'Remove the job draft from storage',
                                 onPress: () => onDeleteJob(job),
+                                isDisabled: job.status !== 'draft',
                             },
                         ]}
                     />

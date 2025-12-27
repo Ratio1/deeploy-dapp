@@ -24,14 +24,17 @@ export const toJobPayload = (record: DraftJobRecord): DraftJobPayload => {
         id: record.id,
         projectHash: record.projectHash,
         jobType: record.jobType as DraftJobPayload['jobType'],
-        paid: record.paid,
+        status: record.status as DraftJobPayload['status'],
         name: record.name ?? details.name,
         ...(record.runningJobId ? { runningJobId: record.runningJobId } : {}),
+        ...(record.stripeSubscriptionId ? { stripeSubscriptionId: record.stripeSubscriptionId } : {}),
+        ...(record.stripeSubscriptionItemId ? { stripeSubscriptionItemId: record.stripeSubscriptionItemId } : {}),
+        ...(record.stripeCheckoutSessionId ? { stripeCheckoutSessionId: record.stripeCheckoutSessionId } : {}),
+        ...(record.stripeCustomerId ? { stripeCustomerId: record.stripeCustomerId } : {}),
+        ...(record.txHash ? { txHash: record.txHash } : {}),
+        ...(record.deeployJobId ? { deeployJobId: record.deeployJobId } : {}),
+        ...(record.deployError ? { deployError: record.deployError } : {}),
     };
-
-    if (!payload.paid) {
-        delete payload.runningJobId;
-    }
 
     return payload;
 };
@@ -51,8 +54,15 @@ export const buildJobData = (payload: DraftJobPayload, projectHashOverride?: str
         projectHash: projectHashOverride ?? payload.projectHash,
         name,
         jobType: payload.jobType,
-        paid: payload.paid,
-        runningJobId: payload.paid ? payload.runningJobId ?? null : null,
+        status: payload.status ?? 'draft',
+        runningJobId: payload.runningJobId ?? null,
+        stripeSubscriptionId: payload.stripeSubscriptionId ?? null,
+        stripeSubscriptionItemId: payload.stripeSubscriptionItemId ?? null,
+        stripeCheckoutSessionId: payload.stripeCheckoutSessionId ?? null,
+        stripeCustomerId: payload.stripeCustomerId ?? null,
+        txHash: payload.txHash ?? null,
+        deeployJobId: payload.deeployJobId ?? null,
+        deployError: payload.deployError ?? null,
         details: { ...payload, name },
     };
 };

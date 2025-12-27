@@ -9,7 +9,7 @@ import { isValidProjectHash } from '@lib/utils';
 import ProjectIdentity from '@shared/jobs/projects/ProjectIdentity';
 import Payment from '@shared/projects/Payment';
 import { ProjectPage } from '@typedefs/deeploys';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function ProjectDraft() {
@@ -17,6 +17,7 @@ export default function ProjectDraft() {
 
     const router = useRouter();
     const { projectHash } = useParams<{ projectHash?: `0x${string}` }>();
+    const searchParams = useSearchParams();
 
     const isValidHash = isValidProjectHash(projectHash);
 
@@ -25,9 +26,10 @@ export default function ProjectDraft() {
 
     // Init
     useEffect(() => {
-        setProjectPage(ProjectPage.Overview);
+        const checkoutStatus = searchParams?.get('checkout');
+        setProjectPage(checkoutStatus ? ProjectPage.Payment : ProjectPage.Overview);
         setJobType(undefined);
-    }, []);
+    }, [searchParams]);
 
     useEffect(() => {
         if (!isValidHash) {

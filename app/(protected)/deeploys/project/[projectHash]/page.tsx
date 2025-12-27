@@ -12,7 +12,7 @@ import ProjectIdentity from '@shared/jobs/projects/ProjectIdentity';
 import Payment from '@shared/projects/Payment';
 import { Apps } from '@typedefs/deeployApi';
 import { ProjectPage, RunningJobWithDetails } from '@typedefs/deeploys';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiAlertLine } from 'react-icons/ri';
@@ -37,6 +37,7 @@ export default function Project() {
     const [runningJobsWithDetails, setRunningJobsWithDetails] = useState<RunningJobWithDetails[]>([]);
 
     const publicClient = usePublicClient();
+    const searchParams = useSearchParams();
 
     const { projectHash } = useParams<{ projectHash?: `0x${string}` }>();
     const isValidHash = isValidProjectHash(projectHash);
@@ -48,9 +49,10 @@ export default function Project() {
 
     // Init
     useEffect(() => {
-        setProjectPage(ProjectPage.Overview);
+        const checkoutStatus = searchParams?.get('checkout');
+        setProjectPage(checkoutStatus ? ProjectPage.Payment : ProjectPage.Overview);
         setJobType(undefined);
-    }, []);
+    }, [searchParams]);
 
     useEffect(() => {
         if (publicClient && isValidProjectHash(projectHash)) {

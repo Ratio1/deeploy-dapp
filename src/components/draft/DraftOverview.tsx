@@ -64,7 +64,7 @@ export default function DraftOverview({
                             </div>
                         </ActionButton>
 
-                        <PaymentButton isDisabled={draftJobs?.length === 0} />
+                        <PaymentButton isDisabled={!draftJobs?.some((job) => job.status === 'draft')} />
                     </div>
                 </div>
 
