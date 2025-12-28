@@ -11,6 +11,9 @@ import type Stripe from 'stripe';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const taxId = 'txr_1SjLr2Rl3EwF2eXLEdqjmyOI';
+const applyTax = true; // TODO will depend on user's settings
+
 const getStripePriceId = (job: Job) => {
     const containerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
 
@@ -136,6 +139,7 @@ export async function POST(request: Request) {
                     projectHash: payload.projectHash,
                     draftJobIds: jobIds.join(','),
                 },
+                default_tax_rates: applyTax ? [taxId] : undefined,
             },
             success_url: successUrl.toString(),
             cancel_url: cancelUrl.toString(),
