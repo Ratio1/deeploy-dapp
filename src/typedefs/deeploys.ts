@@ -66,13 +66,13 @@ type BaseJob = {
     costAndDuration: JobCostAndDuration;
     deployment: JobDeployment;
     status: JobStatus;
-    runningJobId?: bigint;
+    jobId?: number;
     stripeSubscriptionId?: string;
     stripeSubscriptionItemId?: string;
     stripeCheckoutSessionId?: string;
     stripeCustomerId?: string;
     txHash?: string;
-    deeployJobId?: string;
+    deeployJobName?: string;
     deployError?: string;
 };
 
@@ -98,7 +98,7 @@ type ServiceJob = BaseJob & {
 
 type Job = GenericJob | NativeJob | ServiceJob;
 
-type PaidJob = Job & { status: 'paid_on_chain' | 'deployed' | 'deploy_failed'; runningJobId: bigint };
+type PaidJob = Job & { status: 'paid_on_chain' | 'deployed' | 'deploy_failed'; jobId: number };
 
 type Project = {
     projectHash: string;

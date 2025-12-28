@@ -24,13 +24,13 @@ model Job {
   name         String
   jobType      String
   status       String       @default("draft")
-  runningJobId String?
+  jobId        Int?
   stripeSubscriptionId     String?
   stripeSubscriptionItemId String?
   stripeCheckoutSessionId  String?
   stripeCustomerId         String?
   txHash       String?
-  deeployJobId String?
+  deeployJobName String?
   deployError  String?
   details      Json
   createdAt    DateTime     @default(now())

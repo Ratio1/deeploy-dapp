@@ -5,10 +5,10 @@ export const serializeDraftJob = (job: Job): DraftJobPayload => {
     const payload = { ...job } as DraftJobPayload;
     payload.name = job.deployment?.jobAlias ?? payload.name;
 
-    if (job.runningJobId) {
-        payload.runningJobId = job.runningJobId.toString();
+    if (job.jobId !== undefined) {
+        payload.jobId = job.jobId;
     } else {
-        delete payload.runningJobId;
+        delete payload.jobId;
     }
 
     return payload;
@@ -17,13 +17,6 @@ export const serializeDraftJob = (job: Job): DraftJobPayload => {
 export const serializeDraftJobs = (jobs: Job[]): DraftJobPayload[] => jobs.map(serializeDraftJob);
 
 export const deserializeDraftJob = (job: DraftJobPayload): Job => {
-    if (job.runningJobId) {
-        return {
-            ...job,
-            runningJobId: BigInt(job.runningJobId),
-        } as Job;
-    }
-
     return job as Job;
 };
 

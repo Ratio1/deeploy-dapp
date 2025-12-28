@@ -152,7 +152,7 @@ export default function Payment({
             const items = successfulJobs.map((job) => {
                 const tunnelURL = job.jobType === JobType.Service ? (job as ServiceJob).tunnelURL : undefined;
                 return {
-                    text: job.deeployJobId || job.deployment.jobAlias,
+                    text: job.deeployJobName || job.deployment.jobAlias,
                     serverAlias: 'Deeploy',
                     ...(tunnelURL ? { tunnelURL } : {}),
                 };

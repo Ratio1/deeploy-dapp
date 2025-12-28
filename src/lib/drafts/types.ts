@@ -3,8 +3,8 @@ import { Job, Project } from '@typedefs/deeploys';
 export type DraftProjectPayload = Project;
 export type DraftProjectCreatePayload = Project;
 
-export type DraftJobPayload = Omit<Job, 'runningJobId'> & {
-    runningJobId?: string;
+export type DraftJobPayload = Omit<Job, 'jobId'> & {
+    jobId?: number;
     name?: string;
 };
 

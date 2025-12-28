@@ -63,6 +63,12 @@ export default function EditJob() {
 
         console.log('[EditJob] onSubmit', data);
 
+        const jobId = Number(job.id);
+        if (!Number.isSafeInteger(jobId)) {
+            toast.error('Invalid job id, please refresh this page.');
+            return;
+        }
+
         const additionalNodesRequested: number = data.specifications.targetNodesCount - Number(job.numberOfNodesRequested);
         const increasingTargetNodes: boolean = additionalNodesRequested > 0;
 
@@ -81,7 +87,7 @@ export default function EditJob() {
             deeployFlowModalRef.current?.progress('callDeeployApi');
 
             const updatePipelineResponse = await updateJobCash({
-                jobId: job.id.toString(),
+                jobId: jobId,
                 projectHash: job.projectHash as `0x${string}`,
                 job: data,
             });

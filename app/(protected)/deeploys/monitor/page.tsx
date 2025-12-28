@@ -95,7 +95,9 @@ export default function Monitor() {
 
                 if (paidDraftJobs.length > 0) {
                     jobs = jobs.map((job) => {
-                        const draftJob = paidDraftJobs.find((draftJob) => draftJob.runningJobId === job.id);
+                        const draftJob = paidDraftJobs.find(
+                            (draftJob) => draftJob.jobId !== undefined && BigInt(draftJob.jobId) === job.id,
+                        );
 
                         if (!draftJob) {
                             return job;
@@ -138,7 +140,7 @@ export default function Monitor() {
                 }
 
                 const paidDraftJob = job.draftJob as PaidJob;
-                jobId = paidDraftJob.runningJobId;
+                jobId = BigInt(paidDraftJob.jobId);
             } else {
                 jobId = job.id;
             }
@@ -161,7 +163,7 @@ export default function Monitor() {
             }
 
             if ('draftJob' in job) {
-                const { runningJobId, ...other } = job.draftJob as PaidJob;
+                const { jobId, ...other } = job.draftJob as PaidJob;
                 const updatedjob = { ...other, status: 'draft' };
 
                 await updateDraftJob({ id: updatedjob.id, payload: updatedjob as Job });
@@ -183,7 +185,7 @@ export default function Monitor() {
     const isPaidJob = (job: Job): job is PaidJob => {
         return (
             (job.status === 'paid_on_chain' || job.status === 'deployed' || job.status === 'deploy_failed') &&
-            job.runningJobId !== undefined
+            job.jobId !== undefined
         );
     };
 

@@ -28,7 +28,7 @@ import { NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const resolveCurrentTargetNodesCount = async (jobId: string, existingCount?: number) => {
+const resolveCurrentTargetNodesCount = async (jobId: number, existingCount?: number) => {
     if (typeof existingCount === 'number' && Number.isFinite(existingCount)) {
         return existingCount;
     }
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
     }
 
-    if (!payload?.jobId || !payload.job) {
+    if (payload?.jobId === undefined || !payload.job) {
         return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
     }
 
@@ -73,15 +73,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid job data.' }, { status: 400 });
     }
 
-    const jobIdNumber = Number(payload.jobId);
-    if (!Number.isFinite(jobIdNumber)) {
+    const jobId = payload.jobId;
+    if (!Number.isSafeInteger(jobId)) {
         return NextResponse.json({ error: 'Invalid job id.' }, { status: 400 });
     }
 
     try {
         const jobRecord = await prisma.job.findFirst({
             where: {
-                runningJobId: payload.jobId,
+                jobId: jobId,
                 ...(payload.projectHash ? { projectHash: payload.projectHash } : {}),
             },
             include: {
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
         }
 
         const currentTargetNodesCount = await resolveCurrentTargetNodesCount(
-            payload.jobId,
+            jobId,
             existingPayload.specifications?.targetNodesCount,
         );
 
@@ -166,7 +166,7 @@ export async function POST(request: Request) {
                 return NextResponse.json({ error: 'Unknown job type.' }, { status: 400 });
         }
 
-        const appId = existingPayload.deeployJobId ?? existingPayload.deployment?.jobAlias;
+        const appId = existingPayload.deeployJobName ?? existingPayload.deployment?.jobAlias;
 
         if (!appId) {
             return NextResponse.json({ error: 'Missing Deeploy app id.' }, { status: 500 });
@@ -175,7 +175,7 @@ export async function POST(request: Request) {
         const requestPayload = {
             ...deeployPayload,
             app_id: appId,
-            job_id: jobIdNumber,
+            job_id: jobId,
             project_id: deeployCashProjectId,
             ...(jobRecord.project?.name ? { project_name: jobRecord.project.name } : {}),
         };
@@ -192,7 +192,7 @@ export async function POST(request: Request) {
                 costAndDuration: parsedJob.data.costAndDuration,
                 deployment: parsedJob.data.deployment,
                 name: parsedJob.data.deployment.jobAlias,
-                deeployJobId: updateResponse.app_id ?? existingPayload.deeployJobId,
+                deeployJobName: updateResponse.app_id ?? existingPayload.deeployJobName,
                 deployError: undefined,
                 ...(parsedJob.data.jobType === JobType.Native ? { plugins: parsedJob.data.plugins } : {}),
                 ...(parsedJob.data.jobType === JobType.Service

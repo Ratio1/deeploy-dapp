@@ -12,20 +12,20 @@ const mapAppsToProjectDetails = async (apps: Apps): Promise<Apps> => {
     const jobIds = Object.values(apps)
         .flatMap((nodeApps) => Object.values(nodeApps))
         .map((app) => app.deeploy_specs.job_id)
-        .filter((jobId) => Number.isFinite(jobId));
+        .filter((jobId) => Number.isSafeInteger(jobId));
 
     if (jobIds.length === 0) {
         return apps;
     }
 
-    const uniqueJobIds = Array.from(new Set(jobIds.map((jobId) => jobId.toString())));
+    const uniqueJobIds = Array.from(new Set(jobIds));
 
     const jobs = await prisma.job.findMany({
         where: {
-            runningJobId: { in: uniqueJobIds },
+            jobId: { in: uniqueJobIds },
         },
         select: {
-            runningJobId: true,
+            jobId: true,
             projectHash: true,
             project: {
                 select: {
@@ -39,20 +39,20 @@ const mapAppsToProjectDetails = async (apps: Apps): Promise<Apps> => {
         return apps;
     }
 
-    const projectByRunningJobId = new Map<string, { projectHash: string; projectName: string }>();
+    const projectByJobId = new Map<number, { projectHash: string; projectName: string }>();
 
     jobs.forEach((job) => {
-        if (!job.runningJobId || !job.project?.name) {
+        if (job.jobId === null || !job.project?.name) {
             return;
         }
 
-        projectByRunningJobId.set(job.runningJobId, {
+        projectByJobId.set(job.jobId, {
             projectHash: job.projectHash,
             projectName: job.project.name,
         });
     });
 
-    if (projectByRunningJobId.size === 0) {
+    if (projectByJobId.size === 0) {
         return apps;
     }
 
@@ -63,7 +63,7 @@ const mapAppsToProjectDetails = async (apps: Apps): Promise<Apps> => {
 
         Object.entries(nodeApps).forEach(([alias, app]) => {
             const jobId = app.deeploy_specs.job_id;
-            const mapping = projectByRunningJobId.get(jobId.toString());
+            const mapping = Number.isSafeInteger(jobId) ? projectByJobId.get(jobId) : undefined;
 
             if (!mapping) {
                 mappedNodeApps[alias] = app;

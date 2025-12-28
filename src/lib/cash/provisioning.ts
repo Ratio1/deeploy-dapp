@@ -77,7 +77,7 @@ const payJobsOnChain = async (jobs: Job[], escrowContractAddress: string, projec
         })
         .filter((log) => log !== null && log.eventName === 'JobCreated');
 
-    const jobIds = jobCreatedLogs.map((log) => log.args.jobId);
+    const jobIds = jobCreatedLogs.map((log) => Number(log.args.jobId));
 
     if (jobIds.length !== jobs.length) {
         throw new Error(`Payment error: expected ${jobs.length} jobs but received ${jobIds.length} confirmations.`);
@@ -96,7 +96,7 @@ export const provisionDraftJobs = async (jobs: Job[], escrowContractAddress: str
 
         const jobsWithIds = jobs.map((job, index) => ({
             ...job,
-            runningJobId: jobIds[index],
+            jobId: jobIds[index],
         }));
 
         await prisma.$transaction(
@@ -104,7 +104,7 @@ export const provisionDraftJobs = async (jobs: Job[], escrowContractAddress: str
                 prisma.job.update({
                     where: { id: job.id },
                     data: {
-                        runningJobId: jobIds[index].toString(),
+                        jobId: jobIds[index],
                         txHash: txHash,
                         status: 'paid_on_chain',
                         deployError: null,
@@ -120,7 +120,7 @@ export const provisionDraftJobs = async (jobs: Job[], escrowContractAddress: str
             jobsWithIds.map(async (job) => {
                 const payloadBody = {
                     ...getDraftJobPayload(job),
-                    job_id: Number(job.runningJobId),
+                    job_id: job.jobId,
                     project_name: deeployCashProjectName,
                     project_id: deeployCashProjectId,
                 };
@@ -146,7 +146,7 @@ export const provisionDraftJobs = async (jobs: Job[], escrowContractAddress: str
                         where: { id: result.job.id },
                         data: {
                             status: 'deployed',
-                            deeployJobId: result.response.app_id,
+                            deeployJobName: result.response.app_id,
                             deployError: null,
                         },
                     });
