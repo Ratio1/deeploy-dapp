@@ -273,7 +273,7 @@ export default function EditJob() {
             ...payload,
             app_id: job.alias,
             job_id: Number(job.id),
-            project_id: job.projectHash,
+            project_id: job.deeployProjectHash ?? job.projectHash,
         };
 
         if (job.projectName) {
@@ -299,7 +299,7 @@ export default function EditJob() {
             app_params: {
                 CONTAINER_RESOURCES: formatContainerResources(containerType, []),
             },
-            project_id: job.projectHash,
+            project_id: job.deeployProjectHash ?? job.projectHash,
             chainstore_response: true,
             nonce,
         };

@@ -260,7 +260,7 @@ export const DeploymentProvider = ({ children }) => {
                 const plugin: AppsPlugin & { signature: string } = appWithInstances.instances[0].plugins[0];
                 const config: JobConfig = plugin.instance_conf;
 
-                const job = runningJobs.find((job) => Number(job.id) === jobId && job.projectHash === specs.project_id);
+                const job = runningJobs.find((job) => Number(job.id) === jobId);
 
                 if (!job) {
                     return null;
@@ -277,6 +277,8 @@ export const DeploymentProvider = ({ children }) => {
                     config,
                     pipelineData,
                     ...job,
+                    deeployProjectHash: job.projectHash,
+                    projectHash: specs.project_id ?? job.projectHash,
                 };
 
                 if (specs.job_config?.pipeline_params) {

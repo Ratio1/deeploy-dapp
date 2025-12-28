@@ -151,7 +151,7 @@ export default function JobActions({
         const payload = {
             app_id: job.alias,
             job_id: Number(job.id),
-            project_id: job.projectHash,
+            project_id: job.deeployProjectHash ?? job.projectHash,
             nonce,
         };
 

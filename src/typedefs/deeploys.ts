@@ -127,6 +127,7 @@ type RunningJob = {
 type RunningJobWithDetails = RunningJob & {
     alias: string;
     projectName?: string;
+    deeployProjectHash?: string;
     allowReplicationInTheWild: boolean | undefined; // Older jobs might not have this field
     spareNodes: R1Address[] | undefined; // Older jobs might not have this field
     jobTags: string[];
