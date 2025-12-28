@@ -15,6 +15,9 @@ import { Job, JobType, ServiceJob } from '@typedefs/deeploys';
 import { addDays } from 'date-fns';
 import { decodeEventLog, keccak256, toBytes } from 'viem';
 
+export const deeployCashProjectName = 'Deeploy Cash'; //TODO to be changed with the name of the client
+export const deeployCashProjectId = keccak256(toBytes(deeployCashProjectName));
+
 const getDraftJobPayload = (job: Job) => {
     switch (job.jobType) {
         case JobType.Generic:
@@ -89,9 +92,7 @@ export const provisionDraftJobs = async (jobs: Job[], escrowContractAddress: str
     }
 
     try {
-        const project_name = 'Deeploy Cash'; //TODO to be changed with the name of the client
-        const project_id = keccak256(toBytes(project_name));
-        const { jobIds, txHash } = await payJobsOnChain(jobs, escrowContractAddress, project_id);
+        const { jobIds, txHash } = await payJobsOnChain(jobs, escrowContractAddress, deeployCashProjectId);
 
         const jobsWithIds = jobs.map((job, index) => ({
             ...job,
@@ -117,14 +118,11 @@ export const provisionDraftJobs = async (jobs: Job[], escrowContractAddress: str
 
         const deployResults = await Promise.all(
             jobsWithIds.map(async (job) => {
-                const project_name = 'Deeploy Cash'; //TODO to be changed with the name of the client
-                const project_id = keccak256(toBytes(project_name));
-
                 const payloadBody = {
                     ...getDraftJobPayload(job),
                     job_id: Number(job.runningJobId),
-                    project_name,
-                    project_id,
+                    project_name: deeployCashProjectName,
+                    project_id: deeployCashProjectId,
                 };
 
                 try {

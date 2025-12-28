@@ -88,6 +88,7 @@ export const getApps = (request: {
     EE_ETH_SIGN: EthAddress;
     EE_ETH_SENDER: EthAddress;
     nonce: string;
+    project_id?: EthAddress;
 }): Promise<GetAppsResponse> =>
     _doPostDeeploy('/get_apps', {
         request,

@@ -1,3 +1,4 @@
+import { deeployCashProjectId } from '@/lib/cash/provisioning';
 import { getApps } from '@lib/api/deeploy';
 import { signAndBuildDeeployRequest } from '@lib/cash/backend-wallet';
 import { prisma } from '@lib/prisma';
@@ -87,7 +88,7 @@ const mapAppsToProjectDetails = async (apps: Apps): Promise<Apps> => {
 
 export async function GET() {
     try {
-        const request = await signAndBuildDeeployRequest();
+        const request = await signAndBuildDeeployRequest(deeployCashProjectId);
         const response = await getApps(request);
 
         if (!response.apps || response.status === 'fail') {

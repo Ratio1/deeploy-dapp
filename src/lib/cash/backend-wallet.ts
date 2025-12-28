@@ -30,7 +30,7 @@ export const signDeeployPayload = async <T extends Record<string, any>>(
     };
 };
 
-export const signAndBuildDeeployRequest = async () => {
+export const signAndBuildDeeployRequest = async (project_id?: EthAddress) => {
     const nonce = generateDeeployNonce();
-    return signDeeployPayload({ nonce });
+    return signDeeployPayload({ nonce, project_id });
 };
