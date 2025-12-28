@@ -43,6 +43,8 @@ const configs: {
         deeployUrl: process.env.NEXT_PUBLIC_API_URL as string,
         backendUrl: 'https://testnet-dapp-api.ratio1.ai',
         oraclesUrl: 'https://testnet-oracle.ratio1.ai',
+        escrowContractAddress: '0xc811550698d0d91738EA35cE18f7EbfE47C4B076',
+        cspOwner: '0x07F460c8C41cBf309422BFBC6EfDBBd6f4415298',
         poAIManagerContractAddress: '0x68f825aA8fD4Af498c2998F4b165F103080574d4',
         ndContractAddress: '0x18E86a5829CA1F02226FA123f30d90dCd7cFd0ED',
         mndContractAddress: '0xa8d7FFCE91a888872A9f5431B4Dd6c0c135055c1',
