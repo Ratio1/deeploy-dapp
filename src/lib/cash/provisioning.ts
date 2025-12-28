@@ -13,7 +13,7 @@ import {
 import { prisma } from '@lib/prisma';
 import { Job, JobType, ServiceJob } from '@typedefs/deeploys';
 import { addDays } from 'date-fns';
-import { decodeEventLog } from 'viem';
+import { decodeEventLog, keccak256, toBytes } from 'viem';
 
 const getDraftJobPayload = (job: Job) => {
     switch (job.jobType) {
@@ -89,7 +89,9 @@ export const provisionDraftJobs = async (jobs: Job[], escrowContractAddress: str
     }
 
     try {
-        const { jobIds, txHash } = await payJobsOnChain(jobs, escrowContractAddress, jobs[0].projectHash);
+        const project_name = 'Deeploy Cash'; //TODO to be changed with the name of the client
+        const project_id = keccak256(toBytes(project_name));
+        const { jobIds, txHash } = await payJobsOnChain(jobs, escrowContractAddress, project_id);
 
         const jobsWithIds = jobs.map((job, index) => ({
             ...job,
@@ -115,10 +117,14 @@ export const provisionDraftJobs = async (jobs: Job[], escrowContractAddress: str
 
         const deployResults = await Promise.all(
             jobsWithIds.map(async (job) => {
+                const project_name = 'Deeploy Cash'; //TODO to be changed with the name of the client
+                const project_id = keccak256(toBytes(project_name));
+
                 const payloadBody = {
                     ...getDraftJobPayload(job),
                     job_id: Number(job.runningJobId),
-                    project_id: job.projectHash as `0x${string}`,
+                    project_name,
+                    project_id,
                 };
 
                 try {
