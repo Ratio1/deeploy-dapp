@@ -1,3 +1,6 @@
+import type { JobFormValues } from '@schemas/index';
+import type { DeeployDefaultResponse } from '@typedefs/deeployApi';
+
 export type CashCreateCheckoutPayload = {
     projectHash: `0x${string}`;
     projectName?: string;
@@ -20,3 +23,11 @@ export type CashExtendJobDurationPayload = {
 export type CashExtendJobDurationResponse = {
     status: 'success' | 'reverted';
 };
+
+export type CashUpdateJobPayload = {
+    jobId: string;
+    projectHash?: `0x${string}`;
+    job: JobFormValues;
+};
+
+export type CashUpdateJobResponse = DeeployDefaultResponse;

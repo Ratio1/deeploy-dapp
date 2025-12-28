@@ -6,6 +6,8 @@ import {
     CashCreateCheckoutResponse,
     CashExtendJobDurationPayload,
     CashExtendJobDurationResponse,
+    CashUpdateJobPayload,
+    CashUpdateJobResponse,
 } from './types';
 
 type CashAppsResponse = {
@@ -78,4 +80,14 @@ export const extendJobDurationCash = async (
     }
 
     return data as CashExtendJobDurationResponse;
+};
+
+export const updateJobCash = async (payload: CashUpdateJobPayload): Promise<CashUpdateJobResponse> => {
+    const { data } = await axiosCash.post<CashUpdateJobResponse>('update-job', payload);
+
+    if (!data || typeof data !== 'object' || !('status' in data)) {
+        throw new Error('Missing update job response from backend.');
+    }
+
+    return data;
 };

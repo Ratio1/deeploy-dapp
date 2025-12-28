@@ -21,7 +21,7 @@ import {
 import { Step, STEPS } from '@lib/steps/steps';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
-import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
+import SubmitButton from '@shared/SubmitButton';
 import { AppsPlugin, JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { BasePluginType, CustomParameterEntry, PluginType } from '@typedefs/steps/deploymentStepTypes';
@@ -45,18 +45,15 @@ export default function JobEditFormWrapper({
     job,
     onSubmit,
     isLoading,
-    setLoading,
 }: {
     job: RunningJobWithResources;
     onSubmit: (data: z.infer<typeof jobSchema>) => Promise<void>;
     isLoading: boolean;
-    setLoading: (isLoading: boolean) => void;
 }) {
     const { step } = useDeploymentContext() as DeploymentContextType;
     const router = useRouter();
 
     const hasModifiedStepsRef = useRef(false);
-    const payButtonRef = useRef<{ fetchAllowance: () => Promise<bigint | undefined> }>(null);
 
     const jobConfig: JobConfig = job.config;
 
@@ -414,18 +411,7 @@ export default function JobEditFormWrapper({
                                 onCancel={() => {
                                     router.back();
                                 }}
-                                customSubmitButton={
-                                    <div className="center-all gap-2">
-                                        <PayButtonWithAllowance
-                                            ref={payButtonRef}
-                                            totalCost={additionalCost}
-                                            isLoading={isLoading}
-                                            setLoading={setLoading}
-                                            buttonType="submit"
-                                            label={!additionalCost ? 'Update Job' : 'Pay & Update Job'}
-                                        />
-                                    </div>
-                                }
+                                customSubmitButton={<SubmitButton label="Update Job" isLoading={isLoading} />}
                                 isEditingRunningJob
                                 disableNextStep={isTargetNodesCountLower}
                             />
