@@ -54,6 +54,9 @@
       ],
       "@schemas/*": [
         "./src/schemas/*"
+      ],
+      "@prisma-generated/client": [
+        "./prisma/generated/prisma/client"
       ]
     },
     "types": [

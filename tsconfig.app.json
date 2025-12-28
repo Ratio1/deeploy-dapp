@@ -11,7 +11,8 @@
             "@data/*": ["data/*"],
             "@blockchain/*": ["blockchain/*"],
             "@typedefs/*": ["typedefs/*"],
-            "@schemas/*": ["schemas/*"]
+            "@schemas/*": ["schemas/*"],
+            "@prisma-generated/client": ["../prisma/generated/prisma/client"]
         },
 
         "target": "ES2021",

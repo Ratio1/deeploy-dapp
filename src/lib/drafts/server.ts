@@ -1,4 +1,4 @@
-import type { Job as JobRecord, Project as ProjectRecord } from '@prisma/client';
+import type { Job as JobRecord, Project as ProjectRecord } from '@prisma-generated/client';
 import type { DraftJobPayload, DraftProjectPayload } from './types';
 
 const getDetails = <T>(details: JobRecord['details']): T => {
