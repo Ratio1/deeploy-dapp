@@ -11,6 +11,7 @@ import type Stripe from 'stripe';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const stripeCustomerId = 'cus_TglUwyPlpnSkyG'; // TODO get from user's profile
 const taxId = 'txr_1SjLr2Rl3EwF2eXLEdqjmyOI';
 const applyTax = true; // TODO will depend on user's settings
 
@@ -130,6 +131,7 @@ export async function POST(request: Request) {
             mode: 'subscription',
             line_items: lineItems,
             client_reference_id: payload.projectHash,
+            customer: stripeCustomerId,
             metadata: {
                 projectHash: payload.projectHash,
                 draftJobIds: jobIds.join(','),
