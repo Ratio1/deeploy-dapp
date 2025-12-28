@@ -1,5 +1,6 @@
-import type { JobFormValues } from '@schemas/index';
+import type { jobSchema } from '@schemas/index';
 import type { DeeployDefaultResponse } from '@typedefs/deeployApi';
+import z from 'zod';
 
 export type CashCreateCheckoutPayload = {
     projectHash: `0x${string}`;
@@ -25,9 +26,9 @@ export type CashExtendJobDurationResponse = {
 };
 
 export type CashUpdateJobPayload = {
-    jobId: string;
+    jobId: number;
     projectHash?: `0x${string}`;
-    job: JobFormValues;
+    job: z.infer<typeof jobSchema>;
 };
 
 export type CashUpdateJobResponse = DeeployDefaultResponse;
