@@ -19,12 +19,13 @@ import {
     formatServiceJobPayload,
     generateDeeployNonce,
 } from '@lib/deeploy-utils';
+import { useRunningJob } from '@lib/hooks/useRunningJob';
 import { routePath } from '@lib/routes/route-paths';
 import { jobSchema } from '@schemas/index';
 import ActionButton from '@shared/ActionButton';
+import { DetailedAlert } from '@shared/DetailedAlert';
 import DeeployErrors from '@shared/jobs/DeeployErrors';
 import SupportFooter from '@shared/SupportFooter';
-import { useRunningJob } from '@lib/hooks/useRunningJob';
 import {
     GenericJobDeployment,
     GenericJobSpecifications,
@@ -36,12 +37,11 @@ import {
     ServiceJobSpecifications,
 } from '@typedefs/deeploys';
 import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { RiAlertLine, RiArrowLeftLine } from 'react-icons/ri';
-import { useParams, useRouter } from 'next/navigation';
 import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wagmi';
-import { DetailedAlert } from '@shared/DetailedAlert';
 import z from 'zod';
 
 export default function EditJob() {
@@ -227,23 +227,24 @@ export default function EditJob() {
 
                 const aggregatedErrors = responses
                     .map((response) => {
-                        if (!response) {
-                            return undefined;
-                        }
-
                         const serverAlias = response?.server_info?.alias ?? 'Unknown server';
+
                         let text: string | undefined;
 
-                        if (response.status === 'timeout') {
-                            text = 'Request timed out';
-                        } else if (response.error) {
-                            text = response.error;
-                        } else if (
-                            response.status &&
-                            response.status !== 'success' &&
-                            response.status !== 'command_delivered'
-                        ) {
-                            text = `Request failed with status: ${response.status}`;
+                        if (!response) {
+                            text = 'Request failed with status: 500';
+                        } else {
+                            if (response.status === 'timeout') {
+                                text = 'Request timed out';
+                            } else if (response.error) {
+                                text = response.error;
+                            } else if (
+                                response.status &&
+                                response.status !== 'success' &&
+                                response.status !== 'command_delivered'
+                            ) {
+                                text = `Request failed with status: ${response.status}`;
+                            }
                         }
 
                         if (!text) {

@@ -34,10 +34,10 @@ export function ProtectedLayout({ children }: { children: ReactNode }) {
 
     if (shouldRedirectToLogin) {
         return (
-            <div className="center-all w-full flex-1 py-24">
-                <div className="col items-center gap-3">
+            <div className="center-all h-screen w-full flex-1">
+                <div className="col items-center gap-2.5">
                     <Spinner />
-                    <div className="text-sm text-slate-500">Redirecting to login…</div>
+                    <div className="font-medium">Redirecting to login</div>
                 </div>
             </div>
         );
