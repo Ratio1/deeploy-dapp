@@ -5,7 +5,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-    { ignores: ['dist'] },
+    { ignores: ['dist', '.next'] },
     {
         extends: [js.configs.recommended, ...tseslint.configs.recommended],
         files: ['**/*.{ts,tsx}'],
@@ -19,7 +19,26 @@ export default tseslint.config(
         },
         rules: {
             ...reactHooks.configs.recommended.rules,
-            'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+            'react-refresh/only-export-components': [
+                'warn',
+                {
+                    allowConstantExport: true,
+                    allowExportNames: [
+                        'metadata',
+                        'generateMetadata',
+                        'viewport',
+                        'generateViewport',
+                        'revalidate',
+                        'fetchCache',
+                        'dynamic',
+                        'dynamicParams',
+                        'runtime',
+                        'preferredRegion',
+                        'maxDuration',
+                        'generateStaticParams',
+                    ],
+                },
+            ],
             'react-hooks/rules-of-hooks': 'off',
             'react-hooks/exhaustive-deps': 'off',
             'no-unused-vars': 'off',

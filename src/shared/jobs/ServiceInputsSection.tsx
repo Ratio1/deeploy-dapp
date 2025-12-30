@@ -53,18 +53,23 @@ export default function ServiceInputsSection({
         <SlateCard title="Service Inputs">
             <div className="col gap-4">
                 <div className="col gap-2">
-                    {typedFields.map((field, index) => (
-                        <div key={`${field.id}-${field.key}`}>
-                            <InputWithLabel
-                                name={`deployment.inputs.${index}.value`}
-                                label={inputs[index].label}
-                                placeholder={inputs[index].placeholder ?? 'None'}
-                                description={inputs[index].description}
-                                endContent={isKeySecret(field.key) ? 'copy' : undefined}
-                                hasSecretValue={isKeySecret(field.key)}
-                            />
-                        </div>
-                    ))}
+                    {typedFields.map((field, index) => {
+                        const input = inputs[index];
+                        if (!input) return null;
+
+                        return (
+                            <div key={`${field.id}-${field.key}`}>
+                                <InputWithLabel
+                                    name={`deployment.inputs.${index}.value`}
+                                    label={input.label}
+                                    placeholder={input.placeholder ?? 'None'}
+                                    description={input.description}
+                                    endContent={isKeySecret(field.key) ? 'copy' : undefined}
+                                    hasSecretValue={isKeySecret(field.key)}
+                                />
+                            </div>
+                        );
+                    })}
                 </div>
 
                 {hasGenerated && (

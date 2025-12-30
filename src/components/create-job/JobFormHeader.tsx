@@ -1,3 +1,5 @@
+'use client';
+
 import { Skeleton } from '@heroui/skeleton';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import db from '@lib/storage/db';
@@ -6,13 +8,13 @@ import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import { SmallTag } from '@shared/SmallTag';
 import { DraftProject, JobType } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 function JobFormHeader({ steps }: { steps: string[] }) {
     const { jobType, getProjectName } = useDeploymentContext() as DeploymentContextType;
 
-    const { projectHash } = useParams();
+    const { projectHash } = useParams<{ projectHash?: string }>();
 
     const [projectName, setProjectName] = useState<string | undefined>();
 

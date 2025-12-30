@@ -1,16 +1,18 @@
+'use client';
+
 import { Skeleton } from '@heroui/skeleton';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { getShortAddressOrHash } from '@lib/utils';
 import { SmallTag } from '@shared/SmallTag';
 import { DraftProject } from '@typedefs/deeploys';
+import { useParams, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
 
 // To be used only inside a project/projectDraft route
 export default function ProjectIdentity({ projectName }: { projectName?: string }) {
-    const { pathname } = useLocation();
-    const { projectHash } = useParams();
+    const pathname = usePathname() ?? '';
+    const { projectHash } = useParams<{ projectHash?: string }>();
 
     const [draft, setDraft] = useState<DraftProject | undefined>();
 

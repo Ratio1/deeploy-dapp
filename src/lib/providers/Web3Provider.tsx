@@ -6,6 +6,7 @@ import { EthAddress } from '@typedefs/blockchain';
 import { ConnectKitProvider, getDefaultConfig, SIWEConfig, SIWEProvider } from 'connectkit';
 import { generateNonce, SiweMessage } from 'siwe';
 import { createConfig, WagmiProvider } from 'wagmi';
+import { getAssetUrl } from '../assets/getAssetUrl';
 
 const siweConfig: SIWEConfig = {
     getNonce: async () => {
@@ -83,7 +84,7 @@ const wagmiConfig = createConfig(
         appDescription:
             'Experience the power of Ratio1 AI OS, built on Ratio1 Protocol and powered by blockchain, democratizing AI to empower limitless innovation.',
         appUrl: 'https://deeploy.ratio1.ai',
-        appIcon: Favicon,
+        appIcon: getAssetUrl(Favicon),
     }),
 );
 

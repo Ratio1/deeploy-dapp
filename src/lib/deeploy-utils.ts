@@ -236,9 +236,17 @@ export const formatContainerResources = (
     containerOrWorkerType: BaseContainerOrWorkerType,
     portsArray: Array<PortMappingEntry>,
 ) => {
+    const formatMemory = (ramGb: number) => {
+        if (Number.isInteger(ramGb)) {
+            return `${ramGb}g`;
+        }
+
+        return `${Math.round(ramGb * 1024)}m`;
+    };
+
     const baseResources: { cpu: number; memory: string; ports?: Record<string, number> } = {
         cpu: containerOrWorkerType.cores,
-        memory: `${containerOrWorkerType.ram}g`,
+        memory: formatMemory(containerOrWorkerType.ram),
     };
 
     if (portsArray.length > 0) {

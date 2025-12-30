@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@heroui/button';
 import { deletePipeline, sendJobCommand } from '@lib/api/deeploy';
 import { environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
@@ -7,10 +9,10 @@ import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { RunningJobWithResources } from '@typedefs/deeploys';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiArrowDownSLine } from 'react-icons/ri';
-import { useNavigate } from 'react-router-dom';
 import { useAccount, useSignMessage } from 'wagmi';
 
 export default function JobActions({
@@ -25,7 +27,7 @@ export default function JobActions({
     const { setFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
     const { confirm } = useInteractionContext() as InteractionContextType;
 
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const { signMessageAsync } = useSignMessage();
@@ -34,11 +36,11 @@ export default function JobActions({
     const [isActionOngoing, setActionOngoing] = useState(false);
 
     const onEdit = () => {
-        navigate(`${routePath.deeploys}/${routePath.job}/${job.id}/${routePath.edit}`, { state: { job } });
+        router.push(`${routePath.deeploys}/${routePath.job}/${job.id}/${routePath.edit}`);
     };
 
     const onExtendJob = () => {
-        navigate(`${routePath.deeploys}/${routePath.job}/${job.id}/${routePath.extend}`, { state: { job } });
+        router.push(`${routePath.deeploys}/${routePath.job}/${job.id}/${routePath.extend}`);
     };
 
     const onJobCommand = async (command: 'RESTART' | 'STOP') => {

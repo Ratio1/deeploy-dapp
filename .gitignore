@@ -10,6 +10,8 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.next
+next-env.d.ts
 *.local
 
 # Editor directories and files
@@ -31,3 +33,5 @@ scripts/deploy-vercel.sh
 .env
 
 tsconfig.app.tsbuildinfo
+tsconfig.tsbuildinfo
+certificates

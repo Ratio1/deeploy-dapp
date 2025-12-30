@@ -84,7 +84,14 @@ export const isKeySecret = (key: string | undefined) => {
         return false;
     }
 
-    return key.toLowerCase().includes('password') || key.toLowerCase().includes('secret');
+    const sanitizedKey = key.toLowerCase();
+
+    return (
+        sanitizedKey.includes('password') ||
+        sanitizedKey.includes('secret') ||
+        sanitizedKey.includes('pwd') ||
+        sanitizedKey.includes('key')
+    );
 };
 
 export function padNumber(value: number, size: number): string {

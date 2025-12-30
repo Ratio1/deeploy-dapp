@@ -24,10 +24,10 @@ export default function NativeSpecifications({
                     name="specifications.workerType"
                     label="Worker Type"
                     options={nativeWorkerTypes}
-                    isDisabled={disablePaymentAffectingControls}
+                    isDisabled={isEditingRunningJob || disablePaymentAffectingControls}
                 />
 
-                <SelectGPU jobType={JobType.Native} isDisabled={disablePaymentAffectingControls} />
+                <SelectGPU jobType={JobType.Native} isDisabled={isEditingRunningJob || disablePaymentAffectingControls} />
 
                 <ContainerResourcesInfo name="specifications.workerType" options={nativeWorkerTypes} />
             </SlateCard>

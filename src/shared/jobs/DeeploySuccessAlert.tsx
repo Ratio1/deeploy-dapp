@@ -1,6 +1,5 @@
 import clsx from 'clsx';
 import { RiCloseFill, RiExternalLinkLine } from 'react-icons/ri';
-import { Link } from 'react-router-dom';
 
 export default function DeeploySuccessAlert({
     items,
@@ -42,14 +41,15 @@ export default function DeeploySuccessAlert({
                                 <>
                                     <div>•</div>
 
-                                    <Link
-                                        to={`https://${item.tunnelURL}`}
+                                    <a
+                                        href={`https://${item.tunnelURL}`}
                                         target="_blank"
                                         className="row gap-1 text-[13px] text-green-500 hover:opacity-70"
+                                        rel="noreferrer noopener"
                                     >
                                         <span className="font-roboto-mono">{item.tunnelURL}</span>
                                         <RiExternalLinkLine className="mb-px text-[14px]" />
-                                    </Link>
+                                    </a>
                                 </>
                             )}
                         </div>

@@ -1,3 +1,5 @@
+'use client';
+
 import JobFormButtons from '@components/create-job/JobFormButtons';
 import Deployment from '@components/create-job/steps/Deployment';
 import Plugins from '@components/create-job/steps/Plugins';
@@ -27,7 +29,7 @@ import _ from 'lodash';
 import { JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import z from 'zod';
 import ReviewAndConfirm from './ReviewAndConfirm';
 
@@ -51,7 +53,7 @@ export default function JobEditFormWrapper({
     setLoading: (isLoading: boolean) => void;
 }) {
     const { step } = useDeploymentContext() as DeploymentContextType;
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const hasModifiedStepsRef = useRef(false);
     const payButtonRef = useRef<{ fetchAllowance: () => Promise<bigint | undefined> }>(null);
@@ -398,7 +400,7 @@ export default function JobEditFormWrapper({
                             <JobFormHeaderInterface
                                 steps={steps.map((step) => STEPS[step].title)}
                                 onCancel={() => {
-                                    navigate(-1);
+                                    router.back();
                                 }}
                             >
                                 <div className="big-title">Edit Job</div>
@@ -410,7 +412,7 @@ export default function JobEditFormWrapper({
                                 steps={steps.map((step) => STEPS[step])}
                                 cancelLabel="Job"
                                 onCancel={() => {
-                                    navigate(-1);
+                                    router.back();
                                 }}
                                 customSubmitButton={
                                     <div className="center-all gap-2">

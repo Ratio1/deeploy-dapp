@@ -56,6 +56,32 @@ type RunningJobResources = {
 
 export const genericContainerTypes: ContainerOrWorkerType[] = [
     {
+        id: 53,
+        name: 'MICRO',
+        jobType: 53,
+        notes: 'No GPU',
+        notesColor: 'red',
+        monthlyBudgetPerWorker: 3,
+        pricePerEpoch: 100_000n,
+        minimalBalancing: 2,
+        cores: 0.25,
+        ram: 0.5,
+        storage: 2,
+    },
+    {
+        id: 54,
+        name: 'LITE',
+        jobType: 54,
+        notes: 'No GPU',
+        notesColor: 'red',
+        monthlyBudgetPerWorker: 5,
+        pricePerEpoch: 166_666n,
+        minimalBalancing: 2,
+        cores: 0.5,
+        ram: 1,
+        storage: 4,
+    },
+    {
         id: 1,
         name: 'ENTRY',
         jobType: 1,
@@ -332,54 +358,49 @@ export const gpuMappings: {
 export const getRunningJobResources = (jobType: bigint): RunningJobResources | undefined => {
     const jobTypeN = Number(jobType);
 
-    if (jobTypeN <= 9) {
-        // Generic
-        const genericContainerType = genericContainerTypes.find((type) => type.jobType === jobTypeN);
+    const genericContainerType = genericContainerTypes.find((type) => type.jobType === jobTypeN);
 
-        if (genericContainerType) {
+    if (genericContainerType) {
+        return {
+            containerOrWorkerType: genericContainerType,
+            jobType: JobType.Generic,
+        };
+    }
+
+    const nativeWorkerType = nativeWorkerTypes.find((type) => type.jobType === jobTypeN);
+
+    if (nativeWorkerType) {
+        return {
+            containerOrWorkerType: nativeWorkerType,
+            jobType: JobType.Native,
+        };
+    }
+
+    const serviceContainerType = serviceContainerTypes.find((type) => type.jobType === jobTypeN);
+
+    if (serviceContainerType) {
+        return {
+            containerOrWorkerType: serviceContainerType,
+            jobType: JobType.Service,
+        };
+    }
+
+    const gpuMapping = gpuMappings[jobTypeN];
+
+    if (gpuMapping) {
+        const gpuType = gpuTypes.find((type) => type.id === gpuMapping.gpuTypeId);
+
+        const containerOrWorkerType =
+            gpuMapping.jobType === JobType.Generic
+                ? genericContainerTypes.find((type) => type.id === gpuMapping.containerOrWorkerTypeId)
+                : nativeWorkerTypes.find((type) => type.id === gpuMapping.containerOrWorkerTypeId);
+
+        if (gpuType && containerOrWorkerType) {
             return {
-                containerOrWorkerType: genericContainerType,
-                jobType: JobType.Generic,
+                containerOrWorkerType,
+                gpuType,
+                jobType: gpuMapping.jobType,
             };
-        }
-    } else if (jobTypeN >= 16 && jobTypeN <= 20) {
-        // Native
-        const nativeWorkerType = nativeWorkerTypes.find((type) => type.jobType === jobTypeN);
-
-        if (nativeWorkerType) {
-            return {
-                containerOrWorkerType: nativeWorkerType,
-                jobType: JobType.Native,
-            };
-        }
-    } else if (jobTypeN >= 50 && jobTypeN <= 52) {
-        // Service
-        const serviceContainerType = serviceContainerTypes.find((type) => type.jobType === jobTypeN);
-
-        if (serviceContainerType) {
-            return {
-                containerOrWorkerType: serviceContainerType,
-                jobType: JobType.Service,
-            };
-        }
-    } else {
-        const gpuMapping = gpuMappings[jobTypeN];
-
-        if (gpuMapping) {
-            const gpuType = gpuTypes.find((type) => type.id === gpuMapping.gpuTypeId);
-
-            const containerOrWorkerType =
-                gpuMapping.jobType === JobType.Generic
-                    ? genericContainerTypes.find((type) => type.id === gpuMapping.containerOrWorkerTypeId)
-                    : nativeWorkerTypes.find((type) => type.id === gpuMapping.containerOrWorkerTypeId);
-
-            if (gpuType && containerOrWorkerType) {
-                return {
-                    containerOrWorkerType,
-                    gpuType,
-                    jobType: gpuMapping.jobType,
-                };
-            }
         }
     }
 };

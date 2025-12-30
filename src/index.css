@@ -1,6 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&family=Roboto+Mono:wght@500&display=swap')
-layer(base);
-
 @import 'tailwindcss';
 
 @config '../tailwind.config.ts';
@@ -17,8 +14,8 @@ layer(base);
     --breakpoint-xl: 1300px;
     --breakpoint-xxl: 1400px;
 
-    --font-mona: Mona Sans, sans-serif;
-    --font-roboto-mono: Roboto Mono, serif;
+    --font-mona: var(--font-mona-sans), 'Mona Sans', sans-serif;
+    --font-roboto-mono: var(--font-roboto-mono), 'Roboto Mono', monospace;
 
     --flex-0: 0;
     --flex-2: 2 1 0%;
@@ -61,18 +58,29 @@ layer(base);
   color utility to any element that depends on these defaults.
 */
 @layer base {
+    :root {
+        color: var(--color-body);
+        background-color: var(--color-light);
+    }
+
+    body {
+        min-height: 100vh;
+        font-family: var(--font-mona), 'Mona Sans', sans-serif;
+        color: var(--color-body);
+        background-color: var(--color-light);
+    }
+
+    code,
+    pre {
+        font-family: var(--font-roboto-mono), 'Roboto Mono', monospace;
+    }
+
     *,
     ::after,
     ::before,
     ::backdrop,
     ::file-selector-button {
         border-color: var(--color-gray-200, currentcolor);
-    }
-}
-
-@layer utilities {
-    body {
-        @apply font-mona text-body h-screen w-screen;
     }
 }
 

@@ -48,7 +48,12 @@ function Specifications({
                 );
 
             case JobType.Service:
-                return <ServiceSpecifications disablePaymentAffectingControls={isJobPaid} />;
+                return (
+                    <ServiceSpecifications
+                        isEditingRunningJob={isEditingRunningJob}
+                        disablePaymentAffectingControls={isJobPaid}
+                    />
+                );
 
             default:
                 return <div>Error: Unknown specifications type</div>;

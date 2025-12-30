@@ -5,7 +5,7 @@ import services, { Service } from '../src/data/services';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const logosDir = path.resolve(__dirname, '../src/assets/services');
+const logosDir = path.resolve(__dirname, '../public/services');
 
 const errors: string[] = [];
 

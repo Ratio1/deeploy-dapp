@@ -3,9 +3,9 @@ import { MNDContractAbi } from '@blockchain/MNDContract';
 import { NDContractAbi } from '@blockchain/NDContract';
 import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { EthAddress } from '@typedefs/blockchain';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { RiExternalLinkLine } from 'react-icons/ri';
-import { Link } from 'react-router-dom';
 import { TransactionReceipt } from 'viem';
 import { useAccount, usePublicClient } from 'wagmi';
 import { BlockchainContext } from './context';
@@ -54,8 +54,9 @@ export const BlockchainProvider = ({ children }) => {
                         <div className="row gap-1 text-sm">
                             <div className="text-slate-500">View transaction details</div>
                             <Link
-                                to={`${config.explorerUrl}/tx/${receipt.transactionHash}`}
+                                href={`${config.explorerUrl}/tx/${receipt.transactionHash}`}
                                 target="_blank"
+                                rel="noreferrer"
                                 className="text-primary"
                             >
                                 <RiExternalLinkLine className="text-lg" />
@@ -69,7 +70,12 @@ export const BlockchainProvider = ({ children }) => {
                             <div className="font-medium text-red-600">Transaction failed</div>
                             <div className="row gap-1 text-sm">
                                 <div className="text-slate-500">View transaction details</div>
-                                <Link to={`${config.explorerUrl}/tx/${txHash}`} target="_blank" className="text-primary">
+                                <Link
+                                    href={`${config.explorerUrl}/tx/${txHash}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-primary"
+                                >
                                     <RiExternalLinkLine className="text-lg" />
                                 </Link>
                             </div>

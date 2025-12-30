@@ -7,7 +7,6 @@ import {
     RiTwitterXLine,
     RiYoutubeLine,
 } from 'react-icons/ri';
-import { Link } from 'react-router-dom';
 
 const socialLinks = [
     { url: 'https://discord.gg/ratio1ai', icon: <RiDiscordLine /> },
@@ -40,14 +39,15 @@ export default function RestrictedAccess() {
 
                     <div className="center-all w-full gap-2">
                         {socialLinks.map((link, index) => (
-                            <Link
+                            <a
                                 key={index}
-                                to={link.url}
+                                href={link.url}
                                 className="text-primary cursor-pointer p-2 text-3xl hover:opacity-60"
                                 target="_blank"
+                                rel="noreferrer"
                             >
                                 {link.icon}
-                            </Link>
+                            </a>
                         ))}
                     </div>
                 </div>
