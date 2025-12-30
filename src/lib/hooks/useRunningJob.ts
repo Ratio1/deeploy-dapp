@@ -50,7 +50,7 @@ export function useRunningJob(jobId?: string, options?: UseRunningJobOptions) {
                     appsOverride,
                 );
 
-                if (!resources || runningJobsWithDetails.length !== 1) {
+                if (!resources || !runningJobsWithDetails.length) {
                     console.error({ resources, runningJobsWithDetails });
                     throw new Error('Invalid job, unable to fetch resources.');
                 }
