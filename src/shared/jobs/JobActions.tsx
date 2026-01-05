@@ -207,7 +207,7 @@ export default function JobActions({
                 {
                     key: 'extend',
                     label: 'Extend',
-                    description: 'Increas the duration of the job',
+                    description: 'Increase the duration of the job',
                     isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
                     onPress: onExtendJob,
                 },
