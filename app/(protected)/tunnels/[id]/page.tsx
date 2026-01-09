@@ -98,18 +98,28 @@ export default function TunnelPage() {
                 throw new Error('Tunneling secrets not found.');
             }
 
-            await confirm(<div>Are you sure you want to delete this tunnel?</div>, {
-                onConfirm: async () => {
-                    try {
-                        await deleteTunnel(tunnel.id, tunnelingSecrets);
-                        toast.success('Tunnel deleted successfully.');
-                        router.push(routePath.tunnels);
-                    } catch (error: any) {
-                        console.error('Error deleting tunnel:', error);
-                        toast.error(error.message);
-                    }
+            await confirm(
+                <div className="col gap-3">
+                    Are you sure you want to delete this tunnel?
+                    {tunnel.status === 'healthy' && (
+                        <div className="text-sm text-red-500">
+                            Warning: Deleting an active tunnel will immediately stop all traffic routed through it.
+                        </div>
+                    )}
+                </div>,
+                {
+                    onConfirm: async () => {
+                        try {
+                            await deleteTunnel(tunnel.id, tunnelingSecrets);
+                            toast.success('Tunnel deleted successfully.');
+                            router.push(routePath.tunnels);
+                        } catch (error: any) {
+                            console.error('Error deleting tunnel:', error);
+                            toast.error(error.message);
+                        }
+                    },
                 },
-            });
+            );
         } catch (error) {
             console.error('Error deleting tunnel:', error);
             toast.error('Failed to delete tunnel.');
