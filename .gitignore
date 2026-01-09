@@ -35,3 +35,6 @@ scripts/deploy-vercel.sh
 tsconfig.app.tsbuildinfo
 tsconfig.tsbuildinfo
 certificates
+
+coverage
+test-results
