@@ -31,6 +31,11 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
                 <div className="col gap-3">
                     <div>Are you sure you want to delete the following tunnel?</div>
                     <div className="font-medium">{tunnel.alias}</div>
+                    {tunnel.status === 'healthy' && (
+                        <div className="text-sm text-red-500">
+                            Warning: Deleting an active tunnel will immediately stop all traffic routed through it.
+                        </div>
+                    )}
                 </div>,
                 {
                     onConfirm: async () => {
