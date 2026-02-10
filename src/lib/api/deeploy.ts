@@ -1,7 +1,7 @@
 import { config } from '@lib/config';
 import { toApiError } from '@lib/api/apiError';
 import { EthAddress } from '@typedefs/blockchain';
-import { DeeployDefaultResponse, GetAppsResponse } from '@typedefs/deeployApi';
+import { DeeployDefaultResponse, GetAppsResponse, GetR1fsJobPipelineResponse } from '@typedefs/deeployApi';
 import axios from 'axios';
 
 if (!config?.deeployUrl && process.env.NODE_ENV === 'development') {
@@ -90,6 +90,16 @@ export const getApps = (request: {
     nonce: string;
 }): Promise<GetAppsResponse> =>
     _doPostDeeploy('/get_apps', {
+        request,
+    });
+
+export const getR1fsJobPipeline = (request: {
+    EE_ETH_SIGN: string;
+    EE_ETH_SENDER: EthAddress;
+    nonce: string;
+    job_id: number;
+}): Promise<GetR1fsJobPipelineResponse> =>
+    _doPostDeeploy('/get_r1fs_job_pipeline', {
         request,
     });
 
