@@ -2,6 +2,7 @@ import { DelegatePermissionKey } from '@lib/permissions/delegates';
 import { EthAddress } from '@typedefs/blockchain';
 import { Apps } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
+import { RecoveredJobPrefill } from '@typedefs/recoveredDraft';
 import { createContext, Dispatch, SetStateAction } from 'react';
 
 export type ProjectOverviewTab = 'runningJobs' | 'draftJobs';
@@ -26,6 +27,9 @@ export interface DeploymentContextType {
     setProjectPage: (projectPage: ProjectPage) => void;
     projectOverviewTab: ProjectOverviewTab;
     setProjectOverviewTab: (projectOverviewTab: ProjectOverviewTab) => void;
+    pendingRecoveredJobPrefill?: RecoveredJobPrefill;
+    setPendingRecoveredJobPrefill: (prefill: RecoveredJobPrefill | undefined) => void;
+    clearPendingRecoveredJobPrefill: () => void;
 
     // Apps
     isFetchAppsRequired: boolean | undefined;

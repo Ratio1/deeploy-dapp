@@ -9,6 +9,7 @@ import { SigningModal } from '@shared/SigningModal';
 import { EthAddress, R1Address } from '@typedefs/blockchain';
 import { Apps, AppsPlugin, DeeploySpecs, JobConfig, PipelineData } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
+import { RecoveredJobPrefill } from '@typedefs/recoveredDraft';
 import _ from 'lodash';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -34,6 +35,7 @@ export const DeploymentProvider = ({ children }) => {
 
     const [projectPage, setProjectPage] = useState<ProjectPage>(ProjectPage.Overview);
     const [projectOverviewTab, setProjectOverviewTab] = useState<ProjectOverviewTab>('runningJobs');
+    const [pendingRecoveredJobPrefill, setPendingRecoveredJobPrefill] = useState<RecoveredJobPrefill | undefined>();
 
     const [escrowContractAddress, setEscrowContractAddress] = useState<EthAddress | undefined>();
     const [escrowOwner, setEscrowOwner] = useState<EthAddress | undefined>();
@@ -222,6 +224,10 @@ export const DeploymentProvider = ({ children }) => {
         return hasDelegatePermission(currentUserPermissions, permission);
     };
 
+    const clearPendingRecoveredJobPrefill = () => {
+        setPendingRecoveredJobPrefill(undefined);
+    };
+
     const formatRunningJobsWithDetails = (runningJobs: readonly RunningJob[], appsOverride?: Apps): RunningJobWithDetails[] => {
         const sourceApps = appsOverride ?? apps;
 
@@ -375,6 +381,9 @@ export const DeploymentProvider = ({ children }) => {
                 setProjectPage,
                 projectOverviewTab,
                 setProjectOverviewTab,
+                pendingRecoveredJobPrefill,
+                setPendingRecoveredJobPrefill,
+                clearPendingRecoveredJobPrefill,
                 // Apps
                 isFetchAppsRequired,
                 setFetchAppsRequired,

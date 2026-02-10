@@ -18,9 +18,11 @@ import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
 import { DraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
+import { RecoveredJobPrefill } from '@typedefs/recoveredDraft';
 import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes';
+import _ from 'lodash';
 import { useParams } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { z } from 'zod';
@@ -34,8 +36,10 @@ const JOB_TYPE_STEPS: Record<JobType, Step[]> = {
 function JobFormWrapper({ projectName, draftJobsCount }) {
     const { projectHash } = useParams<{ projectHash?: string }>();
 
-    const { step, jobType, setJobType, setProjectOverviewTab } = useDeploymentContext() as DeploymentContextType;
+    const { step, jobType, setJobType, setProjectOverviewTab, pendingRecoveredJobPrefill, clearPendingRecoveredJobPrefill } =
+        useDeploymentContext() as DeploymentContextType;
     const { account } = useAuthenticationContext() as AuthenticationContextType;
+    const previousJobTypeRef = useRef<JobType | undefined>(undefined);
 
     const steps: Step[] = useMemo(() => (jobType ? JOB_TYPE_STEPS[jobType] : []), [jobType]);
 
@@ -151,18 +155,58 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         defaultValues: getDefaultSchemaValues(),
     });
 
+    const mergeDefaults = (defaults: Record<string, any>, prefillDefaults?: Record<string, any>) => {
+        if (!prefillDefaults) {
+            return defaults;
+        }
+
+        return _.mergeWith({}, defaults, prefillDefaults, (_objValue, srcValue) => {
+            if (Array.isArray(srcValue)) {
+                return srcValue;
+            }
+        });
+    };
+
+    const getMatchingRecoveredPrefill = (): RecoveredJobPrefill | undefined => {
+        if (!jobType || !pendingRecoveredJobPrefill || pendingRecoveredJobPrefill.jobType !== jobType) {
+            return undefined;
+        }
+
+        if (!isValidProjectHash(projectHash) || pendingRecoveredJobPrefill.projectHash !== projectHash) {
+            return undefined;
+        }
+
+        return pendingRecoveredJobPrefill;
+    };
+
     // Reset form with correct defaults when jobType changes
     useEffect(() => {
-        if (jobType) {
-            const defaults = getDefaultSchemaValues();
-            form.reset(defaults);
-            form.setValue('jobType', jobType);
-
-            if (form) {
-                setDefaultJobAlias(jobType);
-            }
+        if (!jobType) {
+            previousJobTypeRef.current = undefined;
+            return;
         }
-    }, [jobType, form]);
+
+        if (previousJobTypeRef.current === jobType) {
+            return;
+        }
+
+        previousJobTypeRef.current = jobType;
+
+        const defaults = getDefaultSchemaValues();
+        const recoveredPrefill = getMatchingRecoveredPrefill();
+        const mergedDefaults = mergeDefaults(defaults, recoveredPrefill?.formValues as Record<string, any>);
+
+        form.reset(mergedDefaults);
+        form.setValue('jobType', jobType);
+
+        if (form && !recoveredPrefill?.formValues?.deployment?.jobAlias) {
+            setDefaultJobAlias(jobType);
+        }
+
+        if (recoveredPrefill) {
+            clearPendingRecoveredJobPrefill();
+        }
+    }, [jobType, form, projectHash, clearPendingRecoveredJobPrefill, pendingRecoveredJobPrefill]);
 
     const setDefaultJobAlias = (jobType: JobType) => {
         if (jobType === JobType.Service) {

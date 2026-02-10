@@ -22,7 +22,8 @@ function JobFormButtons({
     isEditingRunningJob,
     disableNextStep = false,
 }: Props) {
-    const { step, setStep, setJobType, isFormSubmissionDisabled } = useDeploymentContext() as DeploymentContextType;
+    const { step, setStep, setJobType, clearPendingRecoveredJobPrefill, isFormSubmissionDisabled } =
+        useDeploymentContext() as DeploymentContextType;
 
     const { trigger, getValues, formState } = useFormContext();
 
@@ -70,6 +71,7 @@ function JobFormButtons({
                             if (onCancel) {
                                 onCancel();
                             } else {
+                                clearPendingRecoveredJobPrefill();
                                 setJobType(undefined);
                             }
                         }
