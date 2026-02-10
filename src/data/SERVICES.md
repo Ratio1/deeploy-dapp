@@ -5,6 +5,7 @@ This document describes the pre-configured services available for deployment on 
 ## Table of Contents
 
 - [Overview](#overview)
+- [Using Codex Skill](#using-codex-skill)
 - [Available Services](#available-services)
   - [PostgreSQL](#postgresql)
   - [MySQL](#mysql)
@@ -32,6 +33,23 @@ Services are pre-configured containerized applications that can be deployed with
 - Tunnel configuration for external access
 
 Services are designed to be deployed quickly while still allowing customization through user inputs.
+
+---
+
+## Using Codex Skill
+
+You can use Codex with the repository skill to create new services:
+
+- Skill file: `.codex/skills/add-service/SKILL.md`
+- Skill name: `add-service`
+
+Example request in Codex:
+
+```text
+Use $add-service to add a new <SERVICE_NAME> service
+```
+
+The skill is designed to research official docs first, propose a full configuration, ask follow-up questions only for uncertain fields, and validate the result before finishing.
 
 ---
 
