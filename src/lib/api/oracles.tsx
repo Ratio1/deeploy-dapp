@@ -27,6 +27,41 @@ export const getNodeInfo = (
     node_is_online: boolean;
 }> => getNodeLastEpoch(nodeAddress).then(({ node_alias, node_is_online }) => ({ node_alias, node_is_online }));
 
+export const getNodeInfoByAddress = async (
+    nodeAddress: types.EthAddress | types.R1Address,
+): Promise<{
+    node_alias: string;
+    node_is_online: boolean;
+    node_eth_address: types.EthAddress;
+}> => {
+    // Some environments expose this lookup under different query params.
+    const endpoints = [
+        `/node_last_epoch?eth_node_addr=${nodeAddress}`,
+        `/node_last_epoch?node_addr=${nodeAddress}`,
+    ];
+
+    let lastError: unknown = undefined;
+
+    for (const endpoint of endpoints) {
+        try {
+            const result = await _doGet<types.OraclesAvailabilityResult>(endpoint);
+            if (!result || typeof (result as any).node_alias !== 'string') {
+                throw new Error('Node alias not found in response.');
+            }
+
+            return {
+                node_alias: result.node_alias,
+                node_is_online: result.node_is_online,
+                node_eth_address: result.node_eth_address,
+            };
+        } catch (error) {
+            lastError = error;
+        }
+    }
+
+    throw (lastError ?? new Error('Failed to fetch node info.'));
+};
+
 export const getMultiNodeEpochsRange = (nodesWithRanges: Record<types.EthAddress, [number, number]>) => {
     return _doPost<types.OraclesDefaultResult & Record<types.EthAddress, types.OraclesAvailabilityResult>>(
         '/multi_node_epochs_range',

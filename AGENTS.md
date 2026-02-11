@@ -1,35 +1,206 @@
-# Repository Guidelines
+# AGENTS.md
 
-## Project Structure & Module Organization
+This file is both:
+- The repository operating guide for contributors and coding agents.
+- The long-term memory ledger for meaningful discoveries, decisions, and changes.
 
-This is a Next.js App Router project. Routes and layouts live in `app/` (file-based routing via `page.tsx`, `layout.tsx`, `not-found.tsx`, and dynamic segments like `[id]`). The codebase uses route groups for organization, e.g. `app/(public)` and `app/(protected)` (the protected group is gated by `app/(protected)/protected-layout.tsx`).
+Every agent must treat this document as a living source of truth and keep it current.
 
-Most feature UI remains in `src/`: feature-specific components are grouped under `src/components` (e.g., `create-project`, `deeploys`, `tunnels`), shared UI/logic in `src/shared`, hooks/utilities/contexts/providers in `src/lib`, smart-contract adapters in `src/blockchain`, and schema/types in `src/schemas`, `src/data`, and `src/typedefs`. Static assets live in `public/` and `src/assets/`. Next build output is `.next/` (a legacy `dist/` directory may exist from pre-Next builds and should not be treated as the Next build output).
+## 1) Non-Negotiable Operating Protocol
 
-## Build, Test, and Development Commands
+### 1.1 Long-Term Memory Requirement
 
-Run all commands from the repo root:
+For every important discovery, change, risk, or insight, append a new entry to `## 9) Long-Term Memory Log`.
 
-- `npm run dev` launches the Next.js dev server (`next dev --turbo --experimental-https`).
-- `npm run dev:logs` enables verbose Next.js diagnostics (`NEXT_DEBUG=1 next dev --turbo --experimental-https`).
-- `npm run build` creates a production build (`next build`, outputs to `.next/`).
-- `npm run start` serves the production build locally (`next start`).
-- `npm run lint` executes ESLint with the project’s React/TypeScript rules.
+Important means:
+- Architectural behavior that is easy to forget and impacts future work.
+- Any change to behavior, contracts, APIs, configuration, CI/CD, or deployment.
+- Any bug root cause, recurring pitfall, or limitation discovered during work.
+- Any decision with tradeoffs that future agents should not rediscover from scratch.
 
-## Deeploy API Integration
+Memory rules:
+- Append-only by default.
+- Never silently rewrite or remove older entries.
+- If an old entry is wrong, add a correction entry referencing the older one.
+- Keep entries factual and verifiable (include file paths or commands when possible).
 
-Deeploy workflows talk to the [edge_node](https://github.com/Ratio1/edge_node) API through wrappers in `src/lib/api/deeploy.ts`. Configure the base URL by setting `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_ENVIRONMENT` (and optionally `NEXT_PUBLIC_DEV_ADDRESS`) in your env file (prefer `.env.local`); `src/lib/config.ts` routes requests across devnet/testnet/mainnet. Local storage must expose `accessToken`/`refreshToken` to satisfy the Axios interceptors. When working against a local edge node, run its server first, then point `NEXT_PUBLIC_API_URL` to the exposed port (e.g., `http://localhost:5000`).
+### 1.2 Mandatory BUILDER-CRITIC Iteration (Adversarial Check)
 
-Because this is Next.js, be mindful of client/server boundaries: modules that access `localStorage` (like `src/lib/api/deeploy.ts`) must only run in client components/hooks (files with `'use client'`) and should not be imported/executed from server components.
+For every modification, agents must run a BUILDER-CRITIC loop before marking work done.
 
-## Coding Style & Naming Conventions
+Process for each change set:
+1. `BUILDER`: Implement the intended change.
+2. `CRITIC (adversarial)`: Take the radical reverse position and try to break the change.
+3. `BUILDER`: Refine/fix based on critic findings.
+4. Repeat steps 2-3 until no high-severity criticism remains.
+5. Record the result in the Long-Term Memory Log.
 
-Prettier (`.prettierrc`) enforces four-space indentation, single quotes, semicolons, and Tailwind class sorting—format before committing. Use PascalCase for components, camelCase for functions and state, and kebab-case for feature folders. Respect path aliases from `tsconfig.json` (such as `@components/...`) to avoid brittle relative imports. In the `app/` router, add `'use client'` to components that use hooks, browser APIs, or context providers.
+Minimum critic checklist:
+- Does this introduce regressions in protected/public route flow?
+- Does this break client/server boundaries (for example `localStorage` usage on server)?
+- Does this violate existing API/auth/token assumptions?
+- Does this create hidden config/env coupling?
+- Does this reduce maintainability or observability?
 
-## Testing Guidelines
+Completion gate:
+- No unresolved high-severity critic findings.
+- All changed docs are internally consistent with repository reality.
+- Validation commands (at least `npm run lint` for non-trivial edits) completed or explicitly reported as not run.
 
-Automated tests are not yet wired into `package.json`. Place specs alongside source as `*.test.ts(x)` or under `src/__tests__/`. Stub Deeploy API calls and blockchain providers to keep tests deterministic, and document manual QA steps in your PR until the suite matures.
+## 2) Project Purpose Snapshot
 
-## Commit & Pull Request Guidelines
+Deeploy dApp is Ratio1's web control plane for:
+- Wallet-authenticated access (SIWE) to Ratio1 deployment capabilities.
+- Creating and managing project/job deployments against Deeploy edge APIs.
+- Monitoring running jobs, issuing commands, and adjusting resources.
+- Managing tunnel connectivity and account-level operational settings.
 
-History follows Conventional Commit prefixes (`fix:`, `feat:`, etc.); keep summaries concise and imperative (<72 chars). Separate logical changes—UI tweaks, contract bindings, and config updates should ship in distinct commits. PRs need a clear problem statement, bullet summary of changes, evidence for UI updates (screenshots/GIFs), linked work items, and callouts for required env/config shifts.
+## 3) Project Structure & Module Organization
+
+This is a Next.js App Router project.
+
+Routing:
+- `app/` contains routes/layouts (`page.tsx`, `layout.tsx`, `not-found.tsx`, dynamic segments).
+- Route groups separate access paths: `app/(public)` for public pages (for example login) and `app/(protected)` for authenticated pages gated by `app/(protected)/protected-layout.tsx`.
+
+Application code:
+- `src/components/` feature UI (account, create-job, create-project, deeploys, tunnels, etc.).
+- `src/shared/` shared UI primitives/utilities.
+- `src/lib/` API clients, contexts, providers, hooks, routes, config, storage.
+- `src/blockchain/` contract ABIs/helpers.
+- `src/data/`, `src/schemas/`, `src/typedefs/` typed data and schemas.
+- `public/` static assets (including service logos under `public/services`).
+
+Build output:
+- Next output is `.next/`.
+- Ignore legacy `dist/` as build target.
+
+## 4) Build, Test, and Development Commands
+
+Run from repository root:
+- `npm run dev` starts Next dev server with HTTPS (`next dev --turbo --experimental-https`).
+- `npm run dev:logs` starts dev with additional debug logs.
+- `npm run build` creates production build.
+- `npm run start` serves production build.
+- `npm run lint` runs ESLint.
+- `npm run add-service` interactive service catalog entry generator.
+- `npm run validate-services` validates service catalog and logos.
+
+## 5) Integrations & Runtime Constraints
+
+### 5.1 Deeploy / Backend / Oracles
+
+- Environment routing lives in `src/lib/config.ts` and depends on `NEXT_PUBLIC_ENVIRONMENT` (`devnet`, `testnet`, `mainnet`), `NEXT_PUBLIC_API_URL`, optional `NEXT_PUBLIC_DEV_ADDRESS`, and optional `NEXT_PUBLIC_APP_VERSION`.
+- Deeploy client: `src/lib/api/deeploy.ts`
+- Backend client: `src/lib/api/backend.tsx`
+- Oracles client: `src/lib/api/oracles.tsx`
+
+### 5.2 Auth & Session
+
+- Wallet auth uses ConnectKit + SIWE in `src/lib/providers/Web3Provider.tsx`.
+- Access/refresh tokens are read from `localStorage` by Axios interceptors.
+- Protected flow depends on signed-in state and fetched deployment context.
+
+### 5.3 Client/Server Boundaries
+
+Any module that reads `window` or `localStorage` is client-only. Do not import/execute those modules from server components.
+
+### 5.4 Local Draft Persistence
+
+Draft projects/jobs are stored in IndexedDB via Dexie (`src/lib/storage/db.ts`, DB name `ratio1-deeploy`).
+
+### 5.5 Tunnels
+
+Tunnel management uses `src/lib/api/tunnels.ts` plus signed payload flows in tunnels pages.
+
+## 6) Coding Style & Naming
+
+- Prettier (`.prettierrc`) enforces 4-space indentation, single quotes, semicolons, and Tailwind class sorting.
+- Use PascalCase for components, camelCase for vars/functions/state, kebab-case for feature folders.
+- Prefer path aliases from `tsconfig.json` (for example `@components/...`, `@lib/...`).
+- Add `'use client'` for components using hooks/browser APIs/context.
+
+## 7) Testing & Quality
+
+- Automated test scripts are not yet wired in `package.json`.
+- Add tests as `*.test.ts(x)` near source or in `src/__tests__/` when introducing non-trivial logic.
+- Stub Deeploy API/blockchain providers in tests.
+- Until broader tests exist, document manual QA steps in PRs.
+
+## 8) Commit & PR Guidelines
+
+- Use Conventional Commit prefixes (`feat:`, `fix:`, `chore:`, etc.).
+- Keep commit subjects imperative and concise (<72 chars).
+- Separate unrelated concerns into separate commits.
+- PRs should include problem statement, change summary, proof (screenshots/GIFs for UI), linked work items, and env/config changes.
+
+## 9) Long-Term Memory Log (Append-Only)
+
+Entry template:
+
+```
+### [UTC YYYY-MM-DD HH:MM] [TYPE] Short Title
+- Context:
+- Evidence:
+- Builder change:
+- Critic challenge:
+- Builder refinement:
+- Outcome:
+- Follow-up:
+```
+
+`TYPE` should be one of: `DISCOVERY`, `CHANGE`, `INSIGHT`, `RISK`, `DECISION`, `CORRECTION`.
+
+### [UTC 2026-02-11 00:00] [DISCOVERY] Baseline architecture and flows reviewed
+- Context: Full repository scan performed to seed long-term memory for future agents.
+- Evidence: `app/`, `src/lib/config.ts`, `src/lib/api/*`, `src/lib/contexts/*`, `scripts/*`, `.github/workflows/*`, Dockerfiles.
+- Builder change: None (discovery-only entry).
+- Critic challenge: Could the scan miss important runtime assumptions?
+- Builder refinement: Included auth/session, protected routing gate, Dexie draft persistence, tunnels flow, service scripts, and CI build behavior.
+- Outcome: Baseline snapshot considered sufficient for future documentation and onboarding.
+- Follow-up: Keep this log updated when architecture or environment assumptions change.
+
+### [UTC 2026-02-11 00:00] [DECISION] Adopt mandatory BUILDER-CRITIC iterative pattern
+- Context: User requested adversarial validation after every modification.
+- Evidence: This AGENTS policy section `1.2 Mandatory BUILDER-CRITIC Iteration`.
+- Builder change: Added explicit adversarial role-switch workflow and completion gates.
+- Critic challenge: Could this become performative and not actionable?
+- Builder refinement: Added concrete critic checklist and completion criteria tied to regressions, boundaries, config, and validation.
+- Outcome: Future agents must include an adversarial check before completion and record it in memory.
+- Follow-up: If future teams need stricter checks, extend critic checklist with security/performance-specific gates.
+
+### [UTC 2026-02-11 00:15] [CHANGE] AGENTS.md upgraded to operational memory system
+- Context: Repository instructions were guide-only and lacked durable project memory behavior.
+- Evidence: Sections `1) Non-Negotiable Operating Protocol` and `9) Long-Term Memory Log (Append-Only)`.
+- Builder change: Reworked AGENTS into a dual-purpose operating guide + append-only memory ledger with entry template.
+- Critic challenge: Could the policy be too abstract to enforce in real tasks?
+- Builder refinement: Added concrete update triggers, correction rules, and completion gates tied to verifiable checks.
+- Outcome: Future agents now have explicit requirements for preserving discoveries and documenting decisions.
+- Follow-up: Expand memory taxonomy if future workflows need security/performance-specific log categories.
+
+### [UTC 2026-02-11 00:25] [CHANGE] README reorganized to usability-first then technical reference
+- Context: README needed clearer articulation of need/objective/purpose and a user-journey-first structure.
+- Evidence: `README.md` sections `Need, Objective, Purpose`, `Usability and Features`, and `Technical Reference`.
+- Builder change: Rewrote README to lead with user value and workflows, then provide architecture/env/scripts/CI/CD details.
+- Critic challenge: Could the rewrite drift from actual implementation or hide operational constraints?
+- Builder refinement: Cross-checked claims against `app/`, `src/lib/config.ts`, `src/lib/api/*`, scripts, and GitHub workflows; tightened feature/architecture wording.
+- Outcome: Documentation now supports onboarding from user intent to technical implementation without losing precision.
+- Follow-up: Keep README synced with route additions, env variable changes, and new quality gates.
+
+### [UTC 2026-02-11 00:40] [CHANGE] Job instance tag now shows alias before node address
+- Context: Instance view previously displayed only the node address in the primary tag.
+- Evidence: `src/components/job/JobInstances.tsx`.
+- Builder change: Updated the instance tag format to render `<alias> <node-address>` using `jobAlias` followed by the existing copyable node address.
+- Critic challenge: Could "alias" refer to per-node/server alias instead of job alias?
+- Builder refinement: Used `jobAlias` because it is available in current instance view data and preserves zero-risk behavior; kept `CopyableValue` scoped to node address so copy action remains unchanged.
+- Outcome: UI now presents alias + node address while node address remains copyable.
+- Follow-up: If node/server alias is required, extend instance data model (oracles lookup/cache) and replace `jobAlias` in this tag.
+
+### [UTC 2026-02-11 00:55] [CHANGE] Instance view now uses node alias, not job alias
+- Context: Requirement clarified that displayed alias must be per-node alias.
+- Evidence: `src/components/job/JobInstances.tsx`, `src/lib/api/oracles.tsx`.
+- Builder change: Replaced displayed alias source with node alias fetched by node address; retained copy behavior for internal node address (`0xai...`).
+- Critic challenge: Oracles API environments may differ on expected lookup query parameter for node address.
+- Builder refinement: Added `getNodeInfoByAddress` with fallback queries (`eth_node_addr`, then `node_addr`) and graceful per-node fallback label (`Unknown node`) on fetch failure.
+- Outcome: Instance tags now render `<node-alias> <node-address>` while node-address copy support remains unchanged.
+- Follow-up: If available, cache node alias metadata at deployment-context level to avoid duplicate fetches across pages.

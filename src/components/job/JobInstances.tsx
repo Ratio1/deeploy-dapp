@@ -1,4 +1,5 @@
 import { sendInstanceCommand } from '@lib/api/deeploy';
+import { getNodeInfoByAddress } from '@lib/api/oracles';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import { getShortAddressOrHash } from '@lib/utils';
@@ -9,7 +10,7 @@ import { SmallTag } from '@shared/SmallTag';
 import { R1Address } from '@typedefs/blockchain';
 import { AppsPlugin } from '@typedefs/deeployApi';
 import clsx from 'clsx';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiTimeLine } from 'react-icons/ri';
 import { useAccount, useSignMessage } from 'wagmi';
@@ -31,9 +32,53 @@ export default function JobInstances({
     fetchJob: () => void;
 }) {
     const [isActionOngoing, setActionOngoing] = useState(false);
+    const [nodeAliases, setNodeAliases] = useState<Record<string, string>>({});
 
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const { signMessageAsync } = useSignMessage();
+
+    useEffect(() => {
+        const uniqueNodeAddresses = Array.from(new Set(instances.map((instance) => instance.nodeAddress)));
+        const missingNodeAddresses = uniqueNodeAddresses.filter((nodeAddress) => nodeAliases[nodeAddress] === undefined);
+
+        if (!missingNodeAddresses.length) {
+            return;
+        }
+
+        let cancelled = false;
+
+        const fetchNodeAliases = async () => {
+            const aliasEntries = await Promise.all(
+                missingNodeAddresses.map(async (nodeAddress) => {
+                    try {
+                        const { node_alias } = await getNodeInfoByAddress(nodeAddress);
+                        return [nodeAddress, node_alias] as const;
+                    } catch (error) {
+                        console.error(`[JobInstances] Failed to fetch alias for node ${nodeAddress}`, error);
+                        return [nodeAddress, 'Unknown node'] as const;
+                    }
+                }),
+            );
+
+            if (cancelled) {
+                return;
+            }
+
+            setNodeAliases((prev) => {
+                const next = { ...prev };
+                aliasEntries.forEach(([nodeAddress, nodeAlias]) => {
+                    next[nodeAddress] = nodeAlias;
+                });
+                return next;
+            });
+        };
+
+        fetchNodeAliases();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [instances, nodeAliases]);
 
     const onInstanceCommand = async (command: 'RESTART' | 'STOP', pluginSignature: string, instanceId: string) => {
         setActionOngoing(true);
@@ -136,9 +181,15 @@ export default function JobInstances({
                             <div className="col gap-2">
                                 <div className="row gap-2">
                                     <SmallTag isLarge>
-                                        <CopyableValue value={instance.nodeAddress}>
-                                            {getShortAddressOrHash(instance.nodeAddress, 8)}
-                                        </CopyableValue>
+                                        <div className="row gap-1">
+                                            <div className="max-w-[140px] truncate" title={nodeAliases[instance.nodeAddress]}>
+                                                {nodeAliases[instance.nodeAddress] ?? '...'}
+                                            </div>
+
+                                            <CopyableValue value={instance.nodeAddress}>
+                                                {getShortAddressOrHash(instance.nodeAddress, 8)}
+                                            </CopyableValue>
+                                        </div>
                                     </SmallTag>
                                 </div>
 
