@@ -204,3 +204,21 @@ Entry template:
 - Builder refinement: Added `getNodeInfoByAddress` with fallback queries (`eth_node_addr`, then `node_addr`) and graceful per-node fallback label (`Unknown node`) on fetch failure.
 - Outcome: Instance tags now render `<node-alias> <node-address>` while node-address copy support remains unchanged.
 - Follow-up: If available, cache node alias metadata at deployment-context level to avoid duplicate fetches across pages.
+
+### [UTC 2026-02-11 13:53] [CHANGE] Added Neo4j Community service (HTTP-only on 7474)
+- Context: User requested adding Neo4j Community Edition and explicitly asked to expose only HTTP on port `7474`.
+- Evidence: `src/data/services.ts`, `public/services/neo4j.svg`, `npm run validate-services`, `npm run lint`.
+- Builder change: Added service `id: 9` with `image: 'neo4j:2026.01.4'`, `port: 7474`, `tunnelEngine: 'cloudflare'`, `pluginSignature: 'CONTAINER_APP_RUNNER'`, `NEO4J_AUTH` input, and persistent `/data` volume; added `neo4j.svg` logo asset.
+- Critic challenge: Neo4j commonly uses Bolt (`7687`) for driver connections, so HTTP-only exposure could limit non-browser clients.
+- Builder refinement: Kept explicit HTTP-only configuration per user requirement and ensured persistence/auth defaults remain correct for browser-based administration use.
+- Outcome: Service catalog now supports deployable Neo4j Community Edition over HTTP with validated schema/lint compliance.
+- Follow-up: If driver access is needed later, add a dedicated Bolt-oriented service profile exposing `7687`.
+
+### [UTC 2026-02-11 14:34] [CHANGE] Added Moodle service with DB/bootstrap inputs and persistent storage
+- Context: User requested adding Moodle to the service catalog.
+- Evidence: `src/data/services.ts`, `public/services/moodle.svg`, `npm run validate-services`, `npm run lint`, `https://raw.githubusercontent.com/bitnami/containers/main/bitnami/moodle/README.md`, `https://registry.hub.docker.com/v2/repositories/bitnamilegacy/moodle/tags?page_size=100`, `https://moodle.com/wp-content/uploads/2024/02/Moodlelogo.svg`.
+- Builder change: Added service `id: 10` (`Moodle`) using `bitnamilegacy/moodle:5.0.2-debian-12-r2`, port `8080`, `CONTAINER_APP_RUNNER`, `cloudflare`, Moodle DB/admin inputs, env defaults for MariaDB + reverse proxy, persistent volumes (`/bitnami/moodle`, `/bitnami/moodledata`), and official Moodle logo asset.
+- Critic challenge: `bitnamilegacy` images are explicitly deprecated and may be removed, which can break future deployments if the image disappears.
+- Builder refinement: Pinned an immutable explicit tag (`5.0.2-debian-12-r2`) instead of floating tags and documented the registry deprecation risk for future migration planning.
+- Outcome: Moodle is now deployable as a catalog service with required runtime knobs and passes repo validation/lint gates.
+- Follow-up: Migrate to a maintained non-legacy Moodle image profile when a production-grade replacement is confirmed for this platform.
