@@ -241,6 +241,7 @@ export const DeploymentProvider = ({ children }) => {
 
         const uniqueAppsWithInstances: {
             initiator: R1Address;
+            node_alias?: string;
             owner: EthAddress;
             last_config: string;
             is_deeployed: boolean;
@@ -249,6 +250,7 @@ export const DeploymentProvider = ({ children }) => {
             alias: string;
             instances: {
                 nodeAddress: R1Address;
+                nodeAlias?: string;
                 plugins: (AppsPlugin & { signature: string })[];
             }[];
         }[] = [];
@@ -262,6 +264,7 @@ export const DeploymentProvider = ({ children }) => {
                 let appDetails:
                     | {
                           initiator: R1Address;
+                          node_alias?: string;
                           owner: EthAddress;
                           last_config: string;
                           is_deeployed: boolean;
@@ -273,6 +276,7 @@ export const DeploymentProvider = ({ children }) => {
 
                 const instances: {
                     nodeAddress: R1Address;
+                    nodeAlias?: string;
                     plugins: (AppsPlugin & { signature: string })[];
                 }[] = [];
 
@@ -280,14 +284,16 @@ export const DeploymentProvider = ({ children }) => {
                     return;
                 } else {
                     filteredInstances.forEach((instance) => {
-                        const { nodeAddress, plugins, ...details } = instance;
+                        const { nodeAddress, node_alias: nodeAlias, plugins, ...details } = instance;
                         appDetails = details;
 
                         const instanceWithDetails: {
                             nodeAddress: R1Address;
+                            nodeAlias?: string;
                             plugins: (AppsPlugin & { signature: string })[];
                         } = {
                             nodeAddress: nodeAddress as R1Address,
+                            nodeAlias,
                             plugins: _.flatten(
                                 Object.entries(plugins).map(([signature, array]) => {
                                     return array.map((plugin) => {

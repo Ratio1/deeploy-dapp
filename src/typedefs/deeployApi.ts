@@ -6,6 +6,7 @@ type Apps = {
     [nodeAddress: R1Address]: {
         [jobAlias: string]: {
             initiator: R1Address;
+            node_alias?: string;
             owner: EthAddress;
             last_config: string; // ISO-like timestamp string
             is_deeployed: boolean;

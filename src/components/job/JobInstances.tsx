@@ -23,6 +23,7 @@ export default function JobInstances({
 }: {
     instances: {
         nodeAddress: R1Address;
+        nodeAlias?: string;
         plugins: (AppsPlugin & { signature: string })[];
     }[];
     lastNodesChangeTimestamp: bigint;
@@ -136,9 +137,13 @@ export default function JobInstances({
                             <div className="col gap-2">
                                 <div className="row gap-2">
                                     <SmallTag isLarge>
-                                        <CopyableValue value={instance.nodeAddress}>
-                                            {getShortAddressOrHash(instance.nodeAddress, 8)}
-                                        </CopyableValue>
+                                        <div className="font-roboto-mono flex font-medium">
+                                            <span>{instance.nodeAlias && instance.nodeAlias}</span>&nbsp;(
+                                            <CopyableValue value={instance.nodeAddress}>
+                                                {getShortAddressOrHash(instance.nodeAddress, 8)}
+                                            </CopyableValue>
+                                            )
+                                        </div>
                                     </SmallTag>
                                 </div>
 
