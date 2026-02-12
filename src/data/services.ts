@@ -294,6 +294,42 @@ const services: Service[] = [
             { key: 'moodledata_data', value: '/bitnami/moodledata' },
         ],
     },
+    {
+        id: 11,
+        name: 'Matrix Synapse',
+        description: 'Matrix homeserver powered by Synapse',
+        image: 'matrixdotorg/synapse:v1.147.0',
+        port: 8008,
+        inputs: [
+            {
+                key: 'SYNAPSE_SERVER_NAME',
+                label: 'Server Name',
+                description: 'Public Matrix server name (domain clients identify with this homeserver)',
+                placeholder: 'matrix.example.com',
+            },
+            {
+                key: 'SYNAPSE_REPORT_STATS',
+                label: 'Report Anonymous Stats',
+                description: "Required by Synapse config generation ('yes' or 'no')",
+                placeholder: 'no',
+                defaultValue: 'no',
+            },
+        ],
+        logo: 'matrix.svg',
+        color: 'cyan',
+        pluginSignature: 'CONTAINER_APP_RUNNER',
+        tunnelEngine: 'cloudflare',
+        envVars: [
+            { key: 'SYNAPSE_CONFIG_DIR', value: '/data' },
+            { key: 'SYNAPSE_CONFIG_PATH', value: '/data/homeserver.yaml' },
+            { key: 'SYNAPSE_HTTP_PORT', value: '8008' },
+        ],
+        volumes: [{ key: 'synapse_data', value: '/data' }],
+        pluginParams: {
+            CONTAINER_START_COMMAND:
+                'sh -c "if [ ! -f /data/homeserver.yaml ]; then /start.py generate; fi; exec /start.py"',
+        },
+    },
     // TODO: @vitalii check the configuration
     // {
     //     id: 8,

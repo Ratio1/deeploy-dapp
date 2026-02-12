@@ -222,3 +222,12 @@ Entry template:
 - Builder refinement: Pinned an immutable explicit tag (`5.0.2-debian-12-r2`) instead of floating tags and documented the registry deprecation risk for future migration planning.
 - Outcome: Moodle is now deployable as a catalog service with required runtime knobs and passes repo validation/lint gates.
 - Follow-up: Migrate to a maintained non-legacy Moodle image profile when a production-grade replacement is confirmed for this platform.
+
+### [UTC 2026-02-12 06:58] [CHANGE] Added Matrix Synapse service with first-boot config bootstrap
+- Context: User requested adding Matrix/Synapse as a new deployable service.
+- Evidence: `src/data/services.ts`, `public/services/matrix.svg`, `npm run validate-services`, `npm run lint`, `https://hub.docker.com/v2/repositories/matrixdotorg/synapse/`, `https://api.github.com/repos/element-hq/synapse/releases/latest`, `https://raw.githubusercontent.com/element-hq/logos/master/matrix/matrix-logo.svg`.
+- Builder change: Added service `id: 11` (`Matrix Synapse`) using `matrixdotorg/synapse:v1.147.0`, port `8008`, required inputs `SYNAPSE_SERVER_NAME` + `SYNAPSE_REPORT_STATS`, persistent `/data` volume, and official Matrix logo; added `CONTAINER_START_COMMAND` to generate `/data/homeserver.yaml` on first boot when absent, then start Synapse.
+- Critic challenge: If backend ignores `CONTAINER_START_COMMAND` for `CONTAINER_APP_RUNNER`, Synapse may fail on first boot because modern images require an existing `homeserver.yaml`; also checked that no auth/token/client-server boundary behavior changed because edit is service-catalog only.
+- Builder refinement: Kept changes scoped to service metadata, added mandatory bootstrap inputs and explicit `/data` config paths (`SYNAPSE_CONFIG_DIR`, `SYNAPSE_CONFIG_PATH`, `SYNAPSE_HTTP_PORT`) to reduce startup ambiguity, and recorded the backend command-support assumption.
+- Outcome: Matrix Synapse is now present in the service catalog and passes repository validation/lint gates.
+- Follow-up: Verify runtime behavior on an actual Deeploy node; if `CONTAINER_START_COMMAND` is not honored for container services, add a dedicated bootstrap flow (or documented pre-seeded `homeserver.yaml` requirement).
