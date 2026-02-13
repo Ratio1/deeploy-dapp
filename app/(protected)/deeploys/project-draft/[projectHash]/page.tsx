@@ -8,16 +8,18 @@ import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import ProjectIdentity from '@shared/jobs/projects/ProjectIdentity';
 import Payment from '@shared/projects/Payment';
-import { DraftJob, ProjectPage, type DraftProject } from '@typedefs/deeploys';
+import { DraftJob, JobType, ProjectPage, type DraftProject } from '@typedefs/deeploys';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function ProjectDraft() {
-    const { jobType, setJobType, projectPage, setProjectPage } = useDeploymentContext() as DeploymentContextType;
+    const { jobType, setJobType, setStep, projectPage, setProjectPage, pendingRecoveredJobPrefill } =
+        useDeploymentContext() as DeploymentContextType;
 
     const router = useRouter();
     const { projectHash } = useParams<{ projectHash?: string }>();
+    const hasAutoOpenedRecoveredPrefillRef = useRef(false);
 
     const project: DraftProject | undefined | null = useLiveQuery(
         isValidProjectHash(projectHash) ? () => db.projects.get(projectHash) : () => undefined,
@@ -33,8 +35,21 @@ export default function ProjectDraft() {
     // Init
     useEffect(() => {
         setProjectPage(ProjectPage.Overview);
-        setJobType(undefined);
-    }, []);
+
+        const hasRecoveredPrefill =
+            !!pendingRecoveredJobPrefill && pendingRecoveredJobPrefill.projectHash === projectHash;
+
+        if (hasRecoveredPrefill && !hasAutoOpenedRecoveredPrefillRef.current) {
+            hasAutoOpenedRecoveredPrefillRef.current = true;
+            setJobType(pendingRecoveredJobPrefill.jobType);
+            setStep(pendingRecoveredJobPrefill.jobType === JobType.Service ? 1 : 0);
+            return;
+        }
+
+        if (!hasRecoveredPrefill && !hasAutoOpenedRecoveredPrefillRef.current) {
+            setJobType(undefined);
+        }
+    }, [pendingRecoveredJobPrefill, projectHash, setJobType, setProjectPage, setStep]);
 
     useEffect(() => {
         if (project === undefined) {

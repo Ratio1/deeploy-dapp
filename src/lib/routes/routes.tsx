@@ -35,6 +35,10 @@ export const routeInfo = {
         title: 'Dashboard',
         description: 'An organized view of your deployed projects',
     },
+    [`${routePath.deeploys}/${routePath.expired}`]: {
+        title: 'Expired Jobs',
+        description: 'View closed jobs and recover drafts for redeployment',
+    },
     [`${routePath.deeploys}/${routePath.monitor}`]: {
         title: 'Monitor',
         description: 'Monitor recent or failed deployments and claim funds',
@@ -99,10 +103,13 @@ export const routes: AppRoute[] = [
                 path: routePath.createProject,
             },
             {
-                path: routePath.legacyRequester,
+                path: routePath.monitor,
             },
             {
-                path: routePath.monitor,
+                path: routePath.expired,
+            },
+            {
+                path: routePath.legacyRequester,
             },
         ],
     },

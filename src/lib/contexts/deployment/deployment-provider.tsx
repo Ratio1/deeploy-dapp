@@ -9,6 +9,7 @@ import { SigningModal } from '@shared/SigningModal';
 import { EthAddress, R1Address } from '@typedefs/blockchain';
 import { Apps, AppsPlugin, DeeploySpecs, JobConfig, PipelineData } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
+import { RecoveredJobPrefill } from '@typedefs/recoveredDraft';
 import _ from 'lodash';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -34,6 +35,7 @@ export const DeploymentProvider = ({ children }) => {
 
     const [projectPage, setProjectPage] = useState<ProjectPage>(ProjectPage.Overview);
     const [projectOverviewTab, setProjectOverviewTab] = useState<ProjectOverviewTab>('runningJobs');
+    const [pendingRecoveredJobPrefill, setPendingRecoveredJobPrefill] = useState<RecoveredJobPrefill | undefined>();
 
     const [escrowContractAddress, setEscrowContractAddress] = useState<EthAddress | undefined>();
     const [escrowOwner, setEscrowOwner] = useState<EthAddress | undefined>();
@@ -222,6 +224,10 @@ export const DeploymentProvider = ({ children }) => {
         return hasDelegatePermission(currentUserPermissions, permission);
     };
 
+    const clearPendingRecoveredJobPrefill = () => {
+        setPendingRecoveredJobPrefill(undefined);
+    };
+
     const formatRunningJobsWithDetails = (runningJobs: readonly RunningJob[], appsOverride?: Apps): RunningJobWithDetails[] => {
         const sourceApps = appsOverride ?? apps;
 
@@ -241,6 +247,7 @@ export const DeploymentProvider = ({ children }) => {
 
         const uniqueAppsWithInstances: {
             initiator: R1Address;
+            node_alias?: string;
             owner: EthAddress;
             last_config: string;
             is_deeployed: boolean;
@@ -249,6 +256,7 @@ export const DeploymentProvider = ({ children }) => {
             alias: string;
             instances: {
                 nodeAddress: R1Address;
+                nodeAlias?: string;
                 plugins: (AppsPlugin & { signature: string })[];
             }[];
         }[] = [];
@@ -262,6 +270,7 @@ export const DeploymentProvider = ({ children }) => {
                 let appDetails:
                     | {
                           initiator: R1Address;
+                          node_alias?: string;
                           owner: EthAddress;
                           last_config: string;
                           is_deeployed: boolean;
@@ -273,6 +282,7 @@ export const DeploymentProvider = ({ children }) => {
 
                 const instances: {
                     nodeAddress: R1Address;
+                    nodeAlias?: string;
                     plugins: (AppsPlugin & { signature: string })[];
                 }[] = [];
 
@@ -280,14 +290,16 @@ export const DeploymentProvider = ({ children }) => {
                     return;
                 } else {
                     filteredInstances.forEach((instance) => {
-                        const { nodeAddress, plugins, ...details } = instance;
+                        const { nodeAddress, node_alias: nodeAlias, plugins, ...details } = instance;
                         appDetails = details;
 
                         const instanceWithDetails: {
                             nodeAddress: R1Address;
+                            nodeAlias?: string;
                             plugins: (AppsPlugin & { signature: string })[];
                         } = {
                             nodeAddress: nodeAddress as R1Address,
+                            nodeAlias,
                             plugins: _.flatten(
                                 Object.entries(plugins).map(([signature, array]) => {
                                     return array.map((plugin) => {
@@ -375,6 +387,9 @@ export const DeploymentProvider = ({ children }) => {
                 setProjectPage,
                 projectOverviewTab,
                 setProjectOverviewTab,
+                pendingRecoveredJobPrefill,
+                setPendingRecoveredJobPrefill,
+                clearPendingRecoveredJobPrefill,
                 // Apps
                 isFetchAppsRequired,
                 setFetchAppsRequired,

@@ -90,7 +90,8 @@ export const isKeySecret = (key: string | undefined) => {
         sanitizedKey.includes('password') ||
         sanitizedKey.includes('secret') ||
         sanitizedKey.includes('pwd') ||
-        sanitizedKey.includes('key')
+        sanitizedKey.includes('key') ||
+        sanitizedKey.includes('salt')
     );
 };
 

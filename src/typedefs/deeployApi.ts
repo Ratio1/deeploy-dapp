@@ -6,6 +6,7 @@ type Apps = {
     [nodeAddress: R1Address]: {
         [jobAlias: string]: {
             initiator: R1Address;
+            node_alias?: string;
             owner: EthAddress;
             last_config: string; // ISO-like timestamp string
             is_deeployed: boolean;
@@ -110,10 +111,21 @@ type GetAppsResponse = DeeployDefaultResponse & {
     apps: Apps;
     auth: {
         sender: EthAddress;
-        nonce: string; // ISO-like timestamp string
-        sender_oracles: EthAddress[];
-        sender_nodes_count: number;
-        sender_total_count: number;
+        nonce: string;
+        sender_escrow: EthAddress;
+        escrow_owner: EthAddress;
+    };
+};
+
+type GetR1fsJobPipelineResponse = DeeployDefaultResponse & {
+    job_id: number;
+    pipeline_cid?: string;
+    pipeline?: Record<string, any>;
+    auth: {
+        sender: EthAddress;
+        nonce: string;
+        sender_escrow: EthAddress;
+        escrow_owner: EthAddress;
     };
 };
 
@@ -141,6 +153,7 @@ export type {
     DeeployDefaultResponse,
     DeeploySpecs,
     GetAppsResponse,
+    GetR1fsJobPipelineResponse,
     JobConfig,
     JobConfigCRData,
     JobConfigVCSData,
