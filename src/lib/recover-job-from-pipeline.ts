@@ -136,6 +136,19 @@ const sanitizeAlias = (value: unknown, fallback: string) => {
     return fallback;
 };
 
+const normalizeNodeAddress = (value: unknown): string => {
+    const normalizedValue = toStringValue(value).trim();
+    if (!normalizedValue) {
+        return '';
+    }
+
+    if (normalizedValue.startsWith('0xai_')) {
+        return normalizedValue;
+    }
+
+    return `0xai_${normalizedValue.replace(/^0xai_?/, '')}`;
+};
+
 const parseJobTags = (jobTags: unknown) => {
     const rawJobTags = Array.isArray(jobTags) ? jobTags : [];
 
@@ -417,8 +430,12 @@ const getCommonDefaults = ({
     }
 
     const tagsData = parseJobTags(getKey<unknown[]>(deeploySpecs, 'job_tags'));
-    const targetNodes = getKey<string[]>(deeploySpecs, 'current_target_nodes') ?? [];
-    const spareNodes = getKey<string[]>(deeploySpecs, 'spare_nodes') ?? [];
+    const targetNodes = (getKey<unknown[]>(deeploySpecs, 'current_target_nodes') ?? [])
+        .map((node) => normalizeNodeAddress(node))
+        .filter((node) => !!node);
+    const spareNodes = (getKey<unknown[]>(deeploySpecs, 'spare_nodes') ?? [])
+        .map((node) => normalizeNodeAddress(node))
+        .filter((node) => !!node);
     const fallbackAlias = `recovered-job-${closedJob.id.toString()}`;
 
     return {
