@@ -40,6 +40,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         useDeploymentContext() as DeploymentContextType;
     const { account } = useAuthenticationContext() as AuthenticationContextType;
     const previousJobTypeRef = useRef<JobType | undefined>(undefined);
+    const previousRecoveredPrefillKeyRef = useRef<string | undefined>(undefined);
 
     const steps: Step[] = useMemo(() => (jobType ? JOB_TYPE_STEPS[jobType] : []), [jobType]);
 
@@ -179,21 +180,36 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         return pendingRecoveredJobPrefill;
     };
 
+    const getRecoveredPrefillKey = (prefill?: RecoveredJobPrefill) => {
+        if (!prefill) {
+            return undefined;
+        }
+
+        return `${prefill.sourceJobId}:${prefill.pipelineCid ?? ''}`;
+    };
+
     // Reset form with correct defaults when jobType changes
     useEffect(() => {
         if (!jobType) {
             previousJobTypeRef.current = undefined;
+            previousRecoveredPrefillKeyRef.current = undefined;
             return;
         }
 
-        if (previousJobTypeRef.current === jobType) {
+        const recoveredPrefill = getMatchingRecoveredPrefill();
+        const recoveredPrefillKey = getRecoveredPrefillKey(recoveredPrefill);
+        const hasSameJobType = previousJobTypeRef.current === jobType;
+        const hasNewRecoveredPrefill =
+            !!recoveredPrefill && previousRecoveredPrefillKeyRef.current !== recoveredPrefillKey;
+
+        if (hasSameJobType && !hasNewRecoveredPrefill) {
             return;
         }
 
         previousJobTypeRef.current = jobType;
+        previousRecoveredPrefillKeyRef.current = recoveredPrefillKey;
 
         const defaults = getDefaultSchemaValues();
-        const recoveredPrefill = getMatchingRecoveredPrefill();
         const mergedDefaults = mergeDefaults(defaults, recoveredPrefill?.formValues as Record<string, any>);
 
         form.reset(mergedDefaults);

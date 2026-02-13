@@ -3,7 +3,9 @@
 import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { COLOR_TYPES } from '@data/colorTypes';
 import { getRunningJobResources } from '@data/containerResources';
+import { Modal, ModalBody, ModalContent } from '@heroui/modal';
 import { Skeleton } from '@heroui/skeleton';
+import { Spinner } from '@heroui/spinner';
 import { getR1fsJobPipeline } from '@lib/api/deeploy';
 import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
@@ -39,6 +41,7 @@ export default function ExpiredJobsPage() {
     const [closedJobs, setClosedJobs] = useState<RunningJob[]>([]);
     const [isLoading, setLoading] = useState(true);
     const [loadingJobId, setLoadingJobId] = useState<bigint | null>(null);
+    const [isFetchingFromR1fs, setFetchingFromR1fs] = useState(false);
 
     const localProjects = useLiveQuery(() => db.projects.toArray(), [], []);
 
@@ -90,7 +93,7 @@ export default function ExpiredJobsPage() {
 
         await db.projects.put({
             projectHash: job.projectHash,
-            name: projectNameFromPipeline?.trim() ?? 'Recovered',
+            name: projectNameFromPipeline?.trim() || 'Recovered',
             color: COLOR_TYPES[0].hex,
             createdAt: new Date().toISOString(),
         });
@@ -133,10 +136,11 @@ export default function ExpiredJobsPage() {
                 EE_ETH_SENDER: address,
             };
 
-            const response = await getR1fsJobPipeline(request);
-
             closeSignMessageModal();
             signModalClosed = true;
+            setFetchingFromR1fs(true);
+
+            const response = await getR1fsJobPipeline(request);
 
             if (!response || response.status === 'fail' || !response.pipeline) {
                 throw new Error(response?.error || 'Failed to fetch pipeline.');
@@ -167,104 +171,121 @@ export default function ExpiredJobsPage() {
                 closeSignMessageModal();
             }
 
+            setFetchingFromR1fs(false);
             setLoadingJobId(null);
         }
     };
 
     return (
-        <div className="col gap-4">
-            <div className="list">
-                <ListHeader>
-                    <div className="row gap-6">
-                        <div className="w-[90px]">Job ID</div>
-                        <div className="w-[110px]">Job Type</div>
-                        <div className="w-[160px]">Project</div>
-                        <div className="w-[180px]">Requested</div>
-                        <div className="w-[180px]">Ended</div>
-                    </div>
+        <>
+            <div className="col gap-4">
+                <div className="list">
+                    <ListHeader>
+                        <div className="row gap-6">
+                            <div className="w-[90px]">Job ID</div>
+                            <div className="w-[110px]">Job Type</div>
+                            <div className="w-[160px]">Project</div>
+                            <div className="w-[180px]">Requested</div>
+                            <div className="w-[180px]">Ended</div>
+                        </div>
 
-                    <div className="w-[146px] text-right">Recover</div>
-                </ListHeader>
+                        <div className="w-[146px] text-right">Recover</div>
+                    </ListHeader>
 
-                {isLoading ? (
-                    <>
-                        {Array.from({ length: 4 }).map((_, index) => (
-                            <Skeleton key={index} className="min-h-[72px] w-full rounded-lg" />
-                        ))}
-                    </>
-                ) : (
-                    <>
-                        {closedJobs.map((job) => (
-                            <BorderedCard key={job.id.toString()}>
-                                <div className="row compact justify-between gap-6">
-                                    <div className="row gap-6">
-                                        <div className="w-[90px]">{job.id.toString()}</div>
+                    {isLoading ? (
+                        <>
+                            {Array.from({ length: 4 }).map((_, index) => (
+                                <Skeleton key={index} className="min-h-[72px] w-full rounded-lg" />
+                            ))}
+                        </>
+                    ) : (
+                        <>
+                            {closedJobs.map((job) => (
+                                <BorderedCard key={job.id.toString()}>
+                                    <div className="row compact justify-between gap-6">
+                                        <div className="row gap-6">
+                                            <div className="w-[90px]">{job.id.toString()}</div>
 
-                                        <div className="w-[110px]">{getClosedJobTypeLabel(job)}</div>
+                                            <div className="w-[110px]">{getClosedJobTypeLabel(job)}</div>
 
-                                        <div className="w-[160px]">
-                                            {localProjectNames.get(job.projectHash) ??
-                                                getProjectName(job.projectHash) ??
-                                                getShortAddressOrHash(job.projectHash, 6)}
+                                            <div className="w-[160px]">
+                                                {localProjectNames.get(job.projectHash) ??
+                                                    getProjectName(job.projectHash) ??
+                                                    getShortAddressOrHash(job.projectHash, 6)}
+                                            </div>
+
+                                            <div className="w-[180px]">
+                                                <SmallTag>
+                                                    <div className="row gap-1">
+                                                        <RiCalendarLine className="text-sm" />
+
+                                                        {new Date(Number(job.requestTimestamp) * 1000).toLocaleString(undefined, {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            year: 'numeric',
+                                                        })}
+                                                    </div>
+                                                </SmallTag>
+                                            </div>
+
+                                            <div className="w-[180px]">
+                                                <SmallTag>
+                                                    <div className="row gap-1">
+                                                        <RiHistoryLine className="text-sm" />
+
+                                                        {addTimeFn(
+                                                            config.genesisDate,
+                                                            Number(job.lastExecutionEpoch),
+                                                        ).toLocaleString(undefined, {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            year: 'numeric',
+                                                        })}
+                                                    </div>
+                                                </SmallTag>
+                                            </div>
                                         </div>
 
-                                        <div className="w-[180px]">
-                                            <SmallTag>
-                                                <div className="row gap-1">
-                                                    <RiCalendarLine className="text-sm" />
-
-                                                    {new Date(Number(job.requestTimestamp) * 1000).toLocaleString(undefined, {
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                        year: 'numeric',
-                                                    })}
-                                                </div>
-                                            </SmallTag>
-                                        </div>
-
-                                        <div className="w-[180px]">
-                                            <SmallTag>
-                                                <div className="row gap-1">
-                                                    <RiHistoryLine className="text-sm" />
-
-                                                    {addTimeFn(
-                                                        config.genesisDate,
-                                                        Number(job.lastExecutionEpoch),
-                                                    ).toLocaleString(undefined, {
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                        year: 'numeric',
-                                                    })}
-                                                </div>
-                                            </SmallTag>
+                                        <div className="w-[146px] text-right">
+                                            <ActionButton
+                                                className="slate-button"
+                                                onPress={() => recoverClosedJob(job)}
+                                                isLoading={loadingJobId === job.id}
+                                            >
+                                                Recover draft
+                                            </ActionButton>
                                         </div>
                                     </div>
+                                </BorderedCard>
+                            ))}
+                        </>
+                    )}
 
-                                    <div className="w-[146px] text-right">
-                                        <ActionButton
-                                            className="slate-button"
-                                            onPress={() => recoverClosedJob(job)}
-                                            isLoading={loadingJobId === job.id}
-                                        >
-                                            Recover draft
-                                        </ActionButton>
-                                    </div>
-                                </div>
-                            </BorderedCard>
-                        ))}
-                    </>
-                )}
-
-                {!isLoading && !closedJobs.length && (
-                    <div className="center-all w-full p-14">
-                        <EmptyData
-                            title="No expired jobs"
-                            description="Closed jobs will be displayed here"
-                            icon={<RiHistoryLine />}
-                        />
-                    </div>
-                )}
+                    {!isLoading && !closedJobs.length && (
+                        <div className="center-all w-full p-14">
+                            <EmptyData
+                                title="No expired jobs"
+                                description="Closed jobs will be displayed here"
+                                icon={<RiHistoryLine />}
+                            />
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
+
+            <Modal isOpen={isFetchingFromR1fs} isDismissable={false} hideCloseButton backdrop="blur">
+                <ModalContent>
+                    <ModalBody className="px-4 py-6">
+                        <div className="col items-center gap-3 text-center">
+                            <Spinner size="sm" />
+                            <div className="font-medium">Fetching jobs from R1FS</div>
+                            <div className="compact text-slate-500">
+                                Please wait, this operation may take a few minutes.
+                            </div>
+                        </div>
+                    </ModalBody>
+                </ModalContent>
+            </Modal>
+        </>
     );
 }

@@ -37,7 +37,7 @@ export const routeInfo = {
     },
     [`${routePath.deeploys}/${routePath.expired}`]: {
         title: 'Expired Jobs',
-        description: 'View closed jobs and restart them',
+        description: 'View closed jobs and recover drafts for redeployment',
     },
     [`${routePath.deeploys}/${routePath.monitor}`]: {
         title: 'Monitor',
