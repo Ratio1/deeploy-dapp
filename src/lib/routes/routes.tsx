@@ -24,7 +24,7 @@ export function isParentRoute(route: AppRoute): route is ParentRoute {
 export const routeInfo = {
     [routePath.home]: {
         title: 'Deeploy',
-        description: 'Fast app deployment & go-to-market',
+        description: 'The Ratio1 dApp for Cloud Service Providers to deploy, manage, and orchestrate applications and AI workloads across the Ratio1 network.',
         routeTitle: 'Home',
     },
     [routePath.deeploys]: {
