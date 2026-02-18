@@ -120,8 +120,7 @@ jobs:
 
           git add "$VERSION_FILE"
           if ! git diff --cached --quiet; then
-            # GitHub supports skipping workflow runs via commit message keywords 
-            git commit -m "chore(release): ${tag} [skip ci]"
+            git commit -m "chore(release): ${tag}"
           fi
 
           git tag -a "$tag" -m "Release $tag"
