@@ -3,6 +3,7 @@ import { ping } from '@lib/api/backend';
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 
+
 import pkg from '../../package.json';
 
 function NetworkAndStatus() {
