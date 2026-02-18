@@ -6,7 +6,7 @@ import Plugins from '@components/create-job/steps/Plugins';
 import Services from '@components/create-job/steps/Services';
 import Specifications from '@components/create-job/steps/Specifications';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
-import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
+import { CUSTOM_PLUGIN_SIGNATURE, PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { getRunningService } from '@data/containerResources';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -145,7 +145,7 @@ export default function JobEditFormWrapper({
             // Signature - if not in the predefined list, select CUSTOM and pre-fill customPluginSignature
             pluginSignature: isKnownSignature
                 ? pluginInfo.signature
-                : PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1],
+                : CUSTOM_PLUGIN_SIGNATURE,
             customPluginSignature: isKnownSignature ? undefined : pluginInfo.signature,
 
             // Tunneling

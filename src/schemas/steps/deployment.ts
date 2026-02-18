@@ -1,7 +1,7 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
-import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
+import { CUSTOM_PLUGIN_SIGNATURE, PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import {
     dynamicEnvEntrySchema,
@@ -204,7 +204,7 @@ export const applyDeploymentTypeRefinements = (schema) => {
 export const applyCustomPluginSignatureRefinements = (schema) => {
     return schema.refine(
         (data) => {
-            if (data.pluginSignature === PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1]) {
+            if (data.pluginSignature === CUSTOM_PLUGIN_SIGNATURE) {
                 return typeof data.customPluginSignature === 'string' && data.customPluginSignature.trim() !== '';
             }
             return true;

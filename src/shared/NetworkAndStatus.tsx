@@ -3,13 +3,16 @@ import { ping } from '@lib/api/backend';
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 
+
+import pkg from '../../package.json';
+
 function NetworkAndStatus() {
     const { data, error, isLoading } = useQuery({
         queryKey: ['ping'],
         queryFn: ping,
         retry: false,
     });
-    const appVersion = process.env.NEXT_PUBLIC_APP_VERSION ?? '';
+    const appVersion = pkg.version; //process.env.NEXT_PUBLIC_APP_VERSION ?? '';
 
     return (
         <div className="col gap-2">

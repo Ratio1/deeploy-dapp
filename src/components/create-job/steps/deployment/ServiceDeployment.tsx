@@ -28,7 +28,7 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
     const { setFormSubmissionDisabled, getProjectName } = useDeploymentContext() as DeploymentContextType;
     const { tunnelingSecrets } = useTunnelsContext() as TunnelsContextType;
 
-    const { watch, setValue } = useFormContext();
+    const { watch, setValue, clearErrors } = useFormContext();
     const { projectHash } = useParams<{ projectHash?: string }>();
 
     const serviceId: number = watch('serviceId');
@@ -73,6 +73,11 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
 
         if (isPublicService) {
             setValue('deployment.ports', [], { shouldDirty: true });
+        } else {
+            setValue('deployment.tunnelingToken', undefined);
+            setValue('deployment.tunnelingLabel', undefined);
+            clearErrors('deployment.tunnelingToken');
+            clearErrors('deployment.tunnelingLabel');
         }
     }, [isPublicService, setValue]);
 

@@ -1,5 +1,6 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import InputWithLabel from '@shared/InputWithLabel';
+import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
@@ -10,38 +11,54 @@ export default function AppParametersSection({
     enablePort = true,
     enableTunnelingLabel = false,
     forceTunnelingEnabled = false,
+    disableTunneling = false,
+    tunnelingDisabledNote,
 }: {
     baseName?: string;
     isCreatingTunnel?: boolean;
     enablePort?: boolean;
     enableTunnelingLabel?: boolean;
     forceTunnelingEnabled?: boolean;
+    disableTunneling?: boolean;
+    tunnelingDisabledNote?: string;
 }) {
-    const { watch, trigger } = useFormContext();
+    const { watch, trigger, setValue, clearErrors } = useFormContext();
 
     const enableTunneling: (typeof BOOLEAN_TYPES)[number] = watch(`${baseName}.enableTunneling`);
 
     return (
         <div className="col gap-4">
             {(!forceTunnelingEnabled || enablePort) && (
-                <div className="flex gap-4">
-                    {!forceTunnelingEnabled && (
-                        <SelectWithLabel
-                            name={`${baseName}.enableTunneling`}
-                            label="Enable Tunneling"
-                            options={BOOLEAN_TYPES}
-                            onSelect={() => {
-                                trigger(`${baseName}.port`);
-                            }}
-                        />
-                    )}
+                <div className="col gap-2">
+                    <div className="flex gap-4">
+                        {!forceTunnelingEnabled && (
+                            <SelectWithLabel
+                                name={`${baseName}.enableTunneling`}
+                                label="Enable Tunneling"
+                                options={BOOLEAN_TYPES}
+                                isDisabled={disableTunneling}
+                                onSelect={(value) => {
+                                    trigger(`${baseName}.port`);
 
-                    {enablePort && (
-                        <NumberInputWithLabel
-                            name={`${baseName}.port`}
-                            label="Port"
-                            isOptional={enableTunneling === BOOLEAN_TYPES[1]}
-                        />
+                                    if (value === BOOLEAN_TYPES[1]) {
+                                        setValue(`${baseName}.tunnelingToken`, undefined);
+                                        clearErrors(`${baseName}.tunnelingToken`);
+                                    }
+                                }}
+                            />
+                        )}
+
+                        {enablePort && (
+                            <NumberInputWithLabel
+                                name={`${baseName}.port`}
+                                label="Port"
+                                isOptional={enableTunneling === BOOLEAN_TYPES[1]}
+                            />
+                        )}
+                    </div>
+
+                    {disableTunneling && tunnelingDisabledNote && (
+                        <DeeployInfoTag text={tunnelingDisabledNote} />
                     )}
                 </div>
             )}

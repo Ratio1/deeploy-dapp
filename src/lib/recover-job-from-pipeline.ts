@@ -3,7 +3,7 @@ import { getRunningJobResources, getRunningService } from '@data/containerResour
 import services, { Service } from '@data/services';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
-import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
+import { CUSTOM_PLUGIN_SIGNATURE, PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import {
     boolToBooleanType,
@@ -462,7 +462,7 @@ const formatNativePlugin = (signature: string, config: JobConfig) => {
 
     return {
         basePluginType: BasePluginType.Native,
-        pluginSignature: knownSignature ?? PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1],
+        pluginSignature: knownSignature ?? CUSTOM_PLUGIN_SIGNATURE,
         customPluginSignature: knownSignature ? undefined : signature,
         enableTunneling: boolToBooleanType(toBooleanValue(config.TUNNEL_ENGINE_ENABLED, false)),
         port: config.PORT ?? '',

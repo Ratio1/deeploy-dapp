@@ -8,13 +8,15 @@ import ContainerSection from './ContainerSection';
 import WorkerSection from './WorkerSection';
 
 function DeploymentTypeSectionCard({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
-    const { setValue, watch } = useFormContext();
+    const { setValue, watch, clearErrors } = useFormContext();
 
     const deploymentType: DeploymentType = watch('deployment.deploymentType');
     const pluginType: PluginType = deploymentType.pluginType;
 
     const onDeploymentTypeChange = (isGenericPluginTypeSelected: boolean) => {
         const selectedPluginType: PluginType = isGenericPluginTypeSelected ? PluginType.Container : PluginType.Worker;
+
+        clearErrors('deployment.deploymentType');
 
         if (selectedPluginType === PluginType.Container) {
             setValue('deployment.deploymentType', {

@@ -112,7 +112,8 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
             {
                 basePluginType: BasePluginType.Native,
                 pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
-                ...getBaseSchemaTunnelingDefaults(),
+                enableTunneling: BOOLEAN_TYPES[1],
+                port: '',
                 customParams: [],
             },
         ],

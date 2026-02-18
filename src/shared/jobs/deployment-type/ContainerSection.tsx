@@ -4,7 +4,7 @@ import { useFormContext } from 'react-hook-form';
 import InputWithLabel from '../../InputWithLabel';
 
 export default function ContainerSection({ baseName = 'deployment' }: { baseName?: string }) {
-    const { watch } = useFormContext();
+    const { watch, setValue, clearErrors } = useFormContext();
 
     const crVisibility: 'Public' | 'Private' = watch(`${baseName}.deploymentType.crVisibility`);
 
@@ -28,6 +28,14 @@ export default function ContainerSection({ baseName = 'deployment' }: { baseName
                     name={`${baseName}.deploymentType.crVisibility`}
                     label="Registry Visibility"
                     options={CR_VISIBILITY_OPTIONS}
+                    onSelect={(value) => {
+                        if (value === 'Public') {
+                            setValue(`${baseName}.deploymentType.crUsername`, '');
+                            setValue(`${baseName}.deploymentType.crPassword`, '');
+                            clearErrors(`${baseName}.deploymentType.crUsername`);
+                            clearErrors(`${baseName}.deploymentType.crPassword`);
+                        }
+                    }}
                 />
             </div>
 

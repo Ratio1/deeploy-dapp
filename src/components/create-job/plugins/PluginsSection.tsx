@@ -25,6 +25,11 @@ const TUNNELING_DEFAULTS = {
     port: '',
 };
 
+const NATIVE_TUNNELING_DEFAULTS = {
+    enableTunneling: BOOLEAN_TYPES[1],
+    port: '',
+};
+
 const GENERIC_PLUGIN_DEFAULTS = {
     restartPolicy: POLICY_TYPES[0],
     imagePullPolicy: POLICY_TYPES[0],
@@ -123,7 +128,7 @@ export default function PluginsSection() {
                     basePluginType: BasePluginType.Native,
                     pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
                     customParams: [{ key: '', value: '', valueType: 'string' }],
-                    ...TUNNELING_DEFAULTS,
+                    ...NATIVE_TUNNELING_DEFAULTS,
                 });
                 break;
 
