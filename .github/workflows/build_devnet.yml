@@ -47,3 +47,4 @@ jobs:
             VERSION=${{ steps.vars.outputs.sha_short }}
           tags: |
             ratio1/deeploy_ui:devnet
+
