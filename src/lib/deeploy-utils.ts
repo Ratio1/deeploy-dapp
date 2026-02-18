@@ -5,7 +5,7 @@ import {
     gpuTypes,
     nativeWorkerTypes,
 } from '@data/containerResources';
-import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
+import { CUSTOM_PLUGIN_SIGNATURE, PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import services, { Service, serviceContainerTypes } from '@data/services';
 import { JobConfig } from '@typedefs/deeployApi';
 import {
@@ -312,7 +312,7 @@ const formatGenericJobVariables = (plugin: GenericPlugin) => {
 };
 
 const formatNativeJobPluginSignature = (plugin: NativePlugin) => {
-    return plugin.pluginSignature === PLUGIN_SIGNATURE_TYPES[PLUGIN_SIGNATURE_TYPES.length - 1]
+    return plugin.pluginSignature === CUSTOM_PLUGIN_SIGNATURE
         ? plugin.customPluginSignature
         : plugin.pluginSignature;
 };

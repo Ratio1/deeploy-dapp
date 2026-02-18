@@ -1,5 +1,6 @@
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import InputWithLabel from '@shared/InputWithLabel';
+import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import { useFormContext } from 'react-hook-form';
@@ -21,7 +22,7 @@ export default function AppParametersSection({
     disableTunneling?: boolean;
     tunnelingDisabledNote?: string;
 }) {
-    const { watch, trigger } = useFormContext();
+    const { watch, trigger, setValue, clearErrors } = useFormContext();
 
     const enableTunneling: (typeof BOOLEAN_TYPES)[number] = watch(`${baseName}.enableTunneling`);
 
@@ -36,8 +37,13 @@ export default function AppParametersSection({
                                 label="Enable Tunneling"
                                 options={BOOLEAN_TYPES}
                                 isDisabled={disableTunneling}
-                                onSelect={() => {
+                                onSelect={(value) => {
                                     trigger(`${baseName}.port`);
+
+                                    if (value === BOOLEAN_TYPES[1]) {
+                                        setValue(`${baseName}.tunnelingToken`, undefined);
+                                        clearErrors(`${baseName}.tunnelingToken`);
+                                    }
                                 }}
                             />
                         )}
@@ -52,7 +58,7 @@ export default function AppParametersSection({
                     </div>
 
                     {disableTunneling && tunnelingDisabledNote && (
-                        <p className="text-sm text-default-500">{tunnelingDisabledNote}</p>
+                        <DeeployInfoTag text={tunnelingDisabledNote} />
                     )}
                 </div>
             )}
