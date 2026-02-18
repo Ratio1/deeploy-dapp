@@ -125,6 +125,8 @@ type RunningJobWithDetails = RunningJob & {
     instances: {
         nodeAddress: R1Address;
         nodeAlias?: string;
+        appId?: string;
+        isOnline?: boolean;
         plugins: (AppsPlugin & { signature: string })[];
     }[];
     config: JobConfig;

@@ -6,7 +6,6 @@ import { getShortAddressOrHash } from '@lib/utils';
 import { BigCard } from '@shared/cards/BigCard';
 import { CopyableValue } from '@shared/CopyableValue';
 import { formatDistanceToNow } from 'date-fns';
-import { uniq } from 'lodash';
 import React from 'react';
 import { RiTimeLine } from 'react-icons/ri';
 
@@ -33,13 +32,7 @@ export default function Home() {
 
                 <Card
                     title="Running Jobs"
-                    value={
-                        uniq(
-                            Object.values(apps)
-                                .map((app) => Object.keys(app))
-                                .flat(),
-                        ).length
-                    }
+                    value={Object.keys(apps).length}
                 />
 
                 <Card
