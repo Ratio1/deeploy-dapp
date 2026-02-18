@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # fetch all history + tags 
+          fetch-depth: 0  # fetch all history + tags
 
       - name: Configure git
         run: |
@@ -71,7 +71,7 @@ jobs:
         uses: paulhatch/semantic-version@v5.4.0
         with:
           tag_prefix: "v"
-          # Conventional Commits defaults (major if !: or BREAKING CHANGE:, minor if feat:) 
+          # Conventional Commits defaults (major if !: or BREAKING CHANGE:, minor if feat:)
           major_pattern: "/!:|BREAKING CHANGE:/"
           minor_pattern: "/feat:/"
           search_commit_body: true
@@ -135,3 +135,4 @@ jobs:
           echo "Previous Version: ${{ steps.semver.outputs.previous_version }}"
           echo "New Tag:          ${{ steps.semver.outputs.version_tag }}"
           echo "Version Type:     ${{ steps.semver.outputs.version_type }}"
+
