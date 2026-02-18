@@ -127,7 +127,7 @@ jobs:
           git tag -a "$tag" -m "Release $tag"
 
           # Push commit (if any) and annotated tags together
-          git push origin HEAD:main --follow-tags
+          git push origin HEAD:develop --follow-tags
 
       - name: Summary
         if: steps.bootstrap.outputs.bootstrapped != 'true'
