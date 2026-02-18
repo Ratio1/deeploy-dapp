@@ -135,4 +135,3 @@ jobs:
           echo "Previous Version: ${{ steps.semver.outputs.previous_version }}"
           echo "New Tag:          ${{ steps.semver.outputs.version_tag }}"
           echo "Version Type:     ${{ steps.semver.outputs.version_type }}"
-
