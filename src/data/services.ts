@@ -362,6 +362,31 @@ const services: Service[] = [
             CONTAINER_START_COMMAND: 'sh -c "if [ ! -f /data/homeserver.yaml ]; then /start.py generate; fi; exec /start.py"',
         },
     },
+    {
+        id: 12,
+        name: 'OpenBao',
+        description: 'Identity-based secrets and encryption management system',
+        image: 'openbao/openbao:2.5.0',
+        port: 8200,
+        inputs: [],
+        logo: 'openbao-color.svg',
+        color: 'teal',
+        pluginSignature: 'CONTAINER_APP_RUNNER',
+        tunnelEngine: 'cloudflare',
+        envVars: [
+            {
+                key: 'BAO_LOCAL_CONFIG',
+                value: '{"ui":true,"disable_mlock":true,"storage":{"file":{"path":"/openbao/file"}},"listener":[{"tcp":{"address":"0.0.0.0:8200","tls_disable":true}}]}',
+            },
+        ],
+        volumes: [
+            { key: 'openbao_file', value: '/openbao/file' },
+            { key: 'openbao_logs', value: '/openbao/logs' },
+        ],
+        pluginParams: {
+            CONTAINER_START_COMMAND: 'server',
+        },
+    },
 ];
 
 export type { Service };
