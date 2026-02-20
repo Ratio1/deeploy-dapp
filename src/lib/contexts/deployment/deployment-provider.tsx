@@ -2,15 +2,15 @@ import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { PoAIManagerAbi } from '@blockchain/PoAIManager';
 import { getApps } from '@lib/api/deeploy';
 import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
+import { getProjectNameFromGetApps, normalizeGetAppsToRunningJobsWithDetails } from '@lib/deeploy/normalizeGetApps';
 import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import { ALL_DELEGATE_PERMISSIONS_MASK, DelegatePermissionKey, hasDelegatePermission } from '@lib/permissions/delegates';
 import { isZeroAddress } from '@lib/utils';
 import { SigningModal } from '@shared/SigningModal';
-import { EthAddress, R1Address } from '@typedefs/blockchain';
-import { Apps, AppsPlugin, DeeploySpecs, JobConfig, PipelineData } from '@typedefs/deeployApi';
+import { EthAddress } from '@typedefs/blockchain';
+import { Apps } from '@typedefs/deeployApi';
 import { JobType, ProjectPage, RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 import { RecoveredJobPrefill } from '@typedefs/recoveredDraft';
-import _ from 'lodash';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
@@ -115,15 +115,7 @@ export const DeploymentProvider = ({ children }) => {
     };
 
     const getProjectName = (projectHash: string): string | undefined => {
-        const sanitizedApps = _.flatten(Object.values(apps).map((app) => Object.values(app)));
-
-        const project = sanitizedApps.find(
-            (app) => app.deeploy_specs.project_id === projectHash && !!app.deeploy_specs.project_name,
-        );
-
-        if (project && project.deeploy_specs.project_name) {
-            return project.deeploy_specs.project_name;
-        }
+        return getProjectNameFromGetApps(apps, projectHash);
     };
 
     const fetchEscrowAccess = async (account?: EthAddress): Promise<EscrowAccess | undefined> => {
@@ -229,147 +221,10 @@ export const DeploymentProvider = ({ children }) => {
     };
 
     const formatRunningJobsWithDetails = (runningJobs: readonly RunningJob[], appsOverride?: Apps): RunningJobWithDetails[] => {
-        const sourceApps = appsOverride ?? apps;
-
-        const formattedApps = _(Object.entries(sourceApps))
-            .map(([nodeAddress, nodeApps]) => {
-                return Object.entries(nodeApps).map(([alias, app]) => {
-                    return {
-                        nodeAddress,
-                        alias,
-                        ...app,
-                    };
-                });
-            })
-            .flatten()
-            .filter((instance) => instance.is_deeployed)
-            .value();
-
-        const uniqueAppsWithInstances: {
-            initiator: R1Address;
-            node_alias?: string;
-            owner: EthAddress;
-            last_config: string;
-            is_deeployed: boolean;
-            deeploy_specs: DeeploySpecs;
-            pipeline_data: PipelineData;
-            alias: string;
-            instances: {
-                nodeAddress: R1Address;
-                nodeAlias?: string;
-                plugins: (AppsPlugin & { signature: string })[];
-            }[];
-        }[] = [];
-
-        _(formattedApps)
-            .map((instance) => instance.alias)
-            .uniq()
-            .forEach((alias) => {
-                const filteredInstances = formattedApps.filter((instance) => instance.alias === alias);
-
-                let appDetails:
-                    | {
-                          initiator: R1Address;
-                          node_alias?: string;
-                          owner: EthAddress;
-                          last_config: string;
-                          is_deeployed: boolean;
-                          deeploy_specs: DeeploySpecs;
-                          pipeline_data: PipelineData;
-                          alias: string;
-                      }
-                    | undefined;
-
-                const instances: {
-                    nodeAddress: R1Address;
-                    nodeAlias?: string;
-                    plugins: (AppsPlugin & { signature: string })[];
-                }[] = [];
-
-                if (!filteredInstances.length) {
-                    return;
-                } else {
-                    filteredInstances.forEach((instance) => {
-                        const { nodeAddress, node_alias: nodeAlias, plugins, ...details } = instance;
-                        appDetails = details;
-
-                        const instanceWithDetails: {
-                            nodeAddress: R1Address;
-                            nodeAlias?: string;
-                            plugins: (AppsPlugin & { signature: string })[];
-                        } = {
-                            nodeAddress: nodeAddress as R1Address,
-                            nodeAlias,
-                            plugins: _.flatten(
-                                Object.entries(plugins).map(([signature, array]) => {
-                                    return array.map((plugin) => {
-                                        return {
-                                            signature,
-                                            ...plugin,
-                                        };
-                                    });
-                                }),
-                            ),
-                        };
-
-                        instances.push(instanceWithDetails);
-                    });
-                }
-
-                if (appDetails) {
-                    uniqueAppsWithInstances.push({
-                        ...appDetails,
-                        instances,
-                    });
-                }
-            });
-
-        const runningJobsWithDetails: RunningJobWithDetails[] = _(uniqueAppsWithInstances)
-            .map((appWithInstances) => {
-                const alias: string = appWithInstances.alias;
-                const specs = appWithInstances.deeploy_specs;
-                const pipelineData = appWithInstances.pipeline_data;
-                const jobId = specs.job_id;
-
-                if (!appWithInstances.instances.length) {
-                    return null;
-                }
-
-                // Job Config is taken from the first plugin. This is subject to change in the future.
-                const plugin: AppsPlugin & { signature: string } = appWithInstances.instances[0].plugins[0];
-                const config: JobConfig = plugin.instance_conf;
-
-                const job = runningJobs.find((job) => Number(job.id) === jobId && job.projectHash === specs.project_id);
-
-                if (!job) {
-                    return null;
-                }
-
-                const jobWithDetails: RunningJobWithDetails = {
-                    alias,
-                    projectName: specs.project_name,
-                    allowReplicationInTheWild: specs.allow_replication_in_the_wild,
-                    spareNodes: specs.spare_nodes,
-                    jobTags: specs.job_tags,
-                    nodes: appWithInstances.instances.map((instance) => instance.nodeAddress),
-                    instances: appWithInstances.instances,
-                    config,
-                    pipelineData,
-                    ...job,
-                };
-
-                if (specs.job_config?.pipeline_params) {
-                    jobWithDetails.pipelineParams = specs.job_config.pipeline_params;
-                }
-
-                return jobWithDetails;
-            })
-            .filter((job) => job !== null)
-            .value();
-
-        // console.log('[DeploymentProvider] RunningJobWithDetails[]', runningJobsWithDetails);
-
-        return runningJobsWithDetails;
+        return normalizeGetAppsToRunningJobsWithDetails({
+            runningJobs,
+            apps: appsOverride ?? apps,
+        });
     };
 
     return (

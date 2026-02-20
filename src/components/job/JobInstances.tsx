@@ -24,6 +24,8 @@ export default function JobInstances({
     instances: {
         nodeAddress: R1Address;
         nodeAlias?: string;
+        appId?: string;
+        isOnline?: boolean;
         plugins: (AppsPlugin & { signature: string })[];
     }[];
     lastNodesChangeTimestamp: bigint;
@@ -36,11 +38,17 @@ export default function JobInstances({
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const { signMessageAsync } = useSignMessage();
 
-    const onInstanceCommand = async (command: 'RESTART' | 'STOP', pluginSignature: string, instanceId: string) => {
+    const onInstanceCommand = async (
+        command: 'RESTART' | 'STOP',
+        pluginSignature: string,
+        instanceId: string,
+        nodeAddress: R1Address,
+        appId?: string,
+    ) => {
         setActionOngoing(true);
 
         try {
-            await buildAndSendInstanceRequest(command, pluginSignature, instanceId);
+            await buildAndSendInstanceRequest(command, pluginSignature, instanceId, nodeAddress, appId);
             fetchJob();
         } catch (error) {
             console.error(error);
@@ -49,7 +57,13 @@ export default function JobInstances({
         }
     };
 
-    const buildAndSendInstanceRequest = async (command: 'RESTART' | 'STOP', pluginSignature: string, instanceId: string) => {
+    const buildAndSendInstanceRequest = async (
+        command: 'RESTART' | 'STOP',
+        pluginSignature: string,
+        instanceId: string,
+        nodeAddress: R1Address,
+        appId?: string,
+    ) => {
         if (!address) {
             toast.error('Please connect your wallet.');
             return;
@@ -58,8 +72,9 @@ export default function JobInstances({
         const nonce = generateDeeployNonce();
 
         const payload = {
-            app_id: jobAlias,
+            app_id: appId ?? jobAlias,
             job_id: Number(jobId),
+            target_nodes: [nodeAddress],
             nonce,
             plugin_signature: pluginSignature,
             instance_id: instanceId,
@@ -123,13 +138,14 @@ export default function JobInstances({
         >
             <div className="col gap-3 px-4 py-3">
                 {instances.map((instance) => {
+                    const isOnline = instance.isOnline === true;
                     return (
                         <div key={instance.nodeAddress} className="flex items-start gap-2">
                             <div className="center-all h-6">
                                 <div
                                     className={clsx('h-2.5 w-2.5 rounded-full', {
-                                        'bg-emerald-500': true,
-                                        'bg-red-500': false,
+                                        'bg-emerald-500': isOnline,
+                                        'bg-red-500': !isOnline,
                                     })}
                                 ></div>
                             </div>
@@ -152,7 +168,7 @@ export default function JobInstances({
                                         .sort((a, b) => a.instance.localeCompare(b.instance))
                                         .map((plugin, index, array) => {
                                             return (
-                                                <div key={plugin.signature} className="row gap-1.5">
+                                                <div key={`${plugin.signature}-${plugin.instance}`} className="row gap-1.5">
                                                     {/* Tree Line */}
                                                     <div className="row relative mr-2 ml-2.5">
                                                         <div className="h-10 w-0.5 bg-slate-300"></div>
@@ -172,27 +188,33 @@ export default function JobInstances({
                                                             {
                                                                 key: 'restart',
                                                                 label: 'Restart',
+                                                                isDisabled: !isOnline,
                                                                 onPress: () => {
                                                                     onInstanceCommand(
                                                                         'RESTART',
                                                                         plugin.signature,
                                                                         plugin.instance,
+                                                                        instance.nodeAddress,
+                                                                        instance.appId,
                                                                     );
                                                                 },
                                                             },
                                                             {
                                                                 key: 'stop',
                                                                 label: 'Stop',
+                                                                isDisabled: !isOnline,
                                                                 onPress: () => {
                                                                     onInstanceCommand(
                                                                         'STOP',
                                                                         plugin.signature,
                                                                         plugin.instance,
+                                                                        instance.nodeAddress,
+                                                                        instance.appId,
                                                                     );
                                                                 },
                                                             },
                                                         ]}
-                                                        isDisabled={isActionOngoing}
+                                                        isDisabled={isActionOngoing || !isOnline}
                                                     />
                                                 </div>
                                             );

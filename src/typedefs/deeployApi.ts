@@ -3,19 +3,30 @@ import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { EthAddress, R1Address } from './blockchain';
 
 type Apps = {
+    [jobId: string]: {
+        job_id: number;
+        pipeline_cid: string | null;
+        pipeline: Record<string, any> | null;
+        online: OnlineApps;
+    };
+};
+
+type OnlineApp = {
+    initiator: R1Address;
+    node_alias?: string;
+    owner: EthAddress;
+    last_config: string; // ISO-like timestamp string
+    is_deeployed: boolean;
+    deeploy_specs: DeeploySpecs;
+    pipeline_data: PipelineData;
+    plugins: {
+        [pluginName: string]: AppsPlugin[];
+    };
+};
+
+type OnlineApps = {
     [nodeAddress: R1Address]: {
-        [jobAlias: string]: {
-            initiator: R1Address;
-            node_alias?: string;
-            owner: EthAddress;
-            last_config: string; // ISO-like timestamp string
-            is_deeployed: boolean;
-            deeploy_specs: DeeploySpecs;
-            pipeline_data: PipelineData;
-            plugins: {
-                [pluginName: string]: AppsPlugin[];
-            };
-        };
+        [appId: string]: OnlineApp;
     };
 };
 
@@ -55,8 +66,8 @@ type PipelineData = {
 
 type AppsPlugin = {
     instance: string;
-    start: string; // ISO-like timestamp string
-    last_alive: string; // ISO-like timestamp string
+    start: string | null; // ISO-like timestamp string
+    last_alive: string | null; // ISO-like timestamp string
     last_error: string | null;
     instance_conf: JobConfig;
 };
@@ -157,5 +168,7 @@ export type {
     JobConfig,
     JobConfigCRData,
     JobConfigVCSData,
+    OnlineApp,
+    OnlineApps,
     PipelineData,
 };
