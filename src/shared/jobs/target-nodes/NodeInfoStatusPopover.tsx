@@ -44,7 +44,19 @@ export default function NodeInfoStatusPopover({
                         <div className="text-slate-500">Leave the field to query node info.</div>
                     )}
 
-                    {nodeInfoState?.status === 'error' && <div className="text-red-500">{nodeInfoState.errorMessage}</div>}
+                    {nodeInfoState?.status === 'error' && (
+                        <>
+                            <div>
+                                Recognized: <span className="font-medium">No</span>
+                            </div>
+                            <div>
+                                Online: <span className="font-medium">Unknown</span>
+                            </div>
+                            <div>
+                                Alias: <span className="font-medium">-</span>
+                            </div>
+                        </>
+                    )}
 
                     {nodeInfoState?.status === 'loaded' && (
                         <>
