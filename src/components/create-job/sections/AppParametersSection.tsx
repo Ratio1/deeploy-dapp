@@ -226,24 +226,20 @@ export default function AppParametersSection({
                 <div className="col gap-4">
                     {shouldShowTunnelAlternatives && (
                         <div className="col gap-2">
-                            <div className="col gap-2">
-                                <div className="row items-center justify-between gap-2">
-                                    <Label value="Tunnel" />
-
-                                    <Button
-                                        className="h-[34px]"
-                                        color="primary"
-                                        size="sm"
-                                        onPress={handleGenerateTunnel}
-                                        isLoading={isCreatingTunnel}
-                                        isDisabled={isTunnelGenerationDisabled || !tunnelingSecrets}
-                                    >
-                                        <div className="row gap-1.5">
-                                            <RiCodeSSlashLine className="text-base" />
-                                            <div className="compact">Generate Tunnel</div>
-                                        </div>
-                                    </Button>
-                                </div>
+                            <div className="row justify-end">
+                                <Button
+                                    className="h-[34px]"
+                                    color="primary"
+                                    size="sm"
+                                    onPress={handleGenerateTunnel}
+                                    isLoading={isCreatingTunnel}
+                                    isDisabled={isTunnelGenerationDisabled || !tunnelingSecrets}
+                                >
+                                    <div className="row gap-1.5">
+                                        <RiCodeSSlashLine className="text-base" />
+                                        <div className="compact">Generate Tunnel</div>
+                                    </div>
+                                </Button>
                             </div>
 
                             <div className="row items-end gap-2">
@@ -283,7 +279,7 @@ export default function AppParametersSection({
 
                                 {tunnelingSecrets && (
                                     <Button
-                                        className="h-[30px] min-w-[30px] px-2 text-slate-500"
+                                        className="h-10 min-w-10 px-2 text-slate-500"
                                         color="default"
                                         variant="light"
                                         onPress={() => fetchExistingTunnels()}
