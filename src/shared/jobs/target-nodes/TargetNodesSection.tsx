@@ -2,6 +2,7 @@ import { TARGET_NODES_REQUIRED_ERROR } from '@schemas/index';
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine, RiClipboardLine } from 'react-icons/ri';
+import { toast } from 'react-hot-toast';
 import NodeInfoStatusPopover from './NodeInfoStatusPopover';
 import DeeployInfoTag from '../DeeployInfoTag';
 import VariableSectionIndex from '../VariableSectionIndex';
@@ -93,8 +94,10 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                                                 ariaLabel="Show node info"
                                                             />
 
-                                                            <div
+                                                            <button
+                                                                type="button"
                                                                 className="cursor-pointer hover:opacity-60"
+                                                                aria-label="Paste target node address from clipboard"
                                                                 onClick={async () => {
                                                                     try {
                                                                         const clipboardText = await navigator.clipboard.readText();
@@ -109,11 +112,14 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                                                         await fetchNodeInfoForAddress(clipboardText);
                                                                     } catch (error) {
                                                                         console.error('Failed to read clipboard:', error);
+                                                                        toast.error(
+                                                                            'Unable to read from clipboard. Please paste the address manually.',
+                                                                        );
                                                                     }
                                                                 }}
                                                             >
                                                                 <RiClipboardLine className="text-lg text-slate-600" />
-                                                            </div>
+                                                            </button>
                                                         </div>
                                                     }
                                                 />

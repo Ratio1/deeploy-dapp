@@ -1,8 +1,8 @@
 import { getNodeInfo } from '@lib/api/oracles';
 import { R1Address } from '@typedefs/blockchain';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-export const NODE_ADDRESS_REGEX = /^0xai_[A-Za-z0-9_-]+$/;
+export const NODE_ADDRESS_REGEX = /^0xai_[a-z0-9_-]+$/;
 
 export type NodeInfoState = {
     status: 'idle' | 'loading' | 'loaded' | 'error';
@@ -33,10 +33,24 @@ export const getInfoIconClassName = (nodeInfoState: NodeInfoState | undefined) =
     return 'text-slate-500';
 };
 
-const normalizeNodeAddress = (rawAddress: string | null | undefined) => String(rawAddress || '').trim();
+const normalizeNodeAddress = (rawAddress: string | null | undefined) => String(rawAddress || '').trim().toLowerCase();
+
+const isAbortError = (error: unknown) => {
+    if (!error || typeof error !== 'object') {
+        return false;
+    }
+
+    const errorObj = error as {
+        name?: string;
+        code?: string;
+    };
+
+    return errorObj.name === 'AbortError' || errorObj.code === 'ERR_CANCELED';
+};
 
 export const useNodeInfoLookupByAddress = () => {
     const [nodeInfoByAddress, setNodeInfoByAddress] = useState<Record<string, NodeInfoState>>({});
+    const abortControllersRef = useRef<Record<string, AbortController>>({});
 
     const setNodeInfoToIdle = useCallback((rawAddress: string) => {
         const normalizedAddress = normalizeNodeAddress(rawAddress);
@@ -73,6 +87,10 @@ export const useNodeInfoLookupByAddress = () => {
             return;
         }
 
+        abortControllersRef.current[normalizedAddress]?.abort();
+        const controller = new AbortController();
+        abortControllersRef.current[normalizedAddress] = controller;
+
         setNodeInfoByAddress((prev) => ({
             ...prev,
             [normalizedAddress]: {
@@ -82,7 +100,13 @@ export const useNodeInfoLookupByAddress = () => {
         }));
 
         try {
-            const info = await getNodeInfo(normalizedAddress as R1Address);
+            const info = await getNodeInfo(normalizedAddress as R1Address, {
+                signal: controller.signal,
+            });
+
+            if (abortControllersRef.current[normalizedAddress] !== controller) {
+                return;
+            }
 
             setNodeInfoByAddress((prev) => {
                 return {
@@ -95,6 +119,14 @@ export const useNodeInfoLookupByAddress = () => {
                 };
             });
         } catch (error) {
+            if (abortControllersRef.current[normalizedAddress] !== controller) {
+                return;
+            }
+
+            if (isAbortError(error)) {
+                return;
+            }
+
             setNodeInfoByAddress((prev) => {
                 return {
                     ...prev,
@@ -105,7 +137,17 @@ export const useNodeInfoLookupByAddress = () => {
                     },
                 };
             });
+        } finally {
+            if (abortControllersRef.current[normalizedAddress] === controller) {
+                delete abortControllersRef.current[normalizedAddress];
+            }
         }
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            Object.values(abortControllersRef.current).forEach((controller) => controller.abort());
+        };
     }, []);
 
     return {
@@ -120,6 +162,8 @@ export const usePrefetchNodeInfoOnRender = (
     getNodeInfoState: (rawAddress: string | null | undefined) => NodeInfoState | undefined,
     fetchNodeInfoForAddress: (rawAddress: string) => Promise<void>,
 ) => {
+    const addressesSignature = (nodes ?? []).map((node) => normalizeNodeAddress(node?.address)).join('|');
+
     useEffect(() => {
         if (!nodes || nodes.length === 0) {
             return;
@@ -139,5 +183,5 @@ export const usePrefetchNodeInfoOnRender = (
                 void fetchNodeInfoForAddress(normalizedAddress);
             }
         });
-    }, [fetchNodeInfoForAddress, getNodeInfoState, nodes]);
+    }, [addressesSignature, fetchNodeInfoForAddress, getNodeInfoState]);
 };

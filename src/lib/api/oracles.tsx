@@ -5,6 +5,9 @@ import * as types from '@typedefs/blockchain';
 
 const oraclesUrl = config.oraclesUrl;
 type NodeAddress = types.EthAddress | types.R1Address;
+type RequestOptions = {
+    signal?: AbortSignal;
+};
 
 // *****
 // GET
@@ -18,17 +21,18 @@ export const getNodeEpochsRange = (nodeAddress: NodeAddress, startEpoch: number,
         `/node_epochs_range?${getNodeAddressQuery(nodeAddress)}&start_epoch=${startEpoch}&end_epoch=${endEpoch}`,
     );
 
-export const getNodeLastEpoch = (nodeAddress: NodeAddress) =>
-    _doGet<types.OraclesAvailabilityResult>(`/node_last_epoch?${getNodeAddressQuery(nodeAddress)}`);
+export const getNodeLastEpoch = (nodeAddress: NodeAddress, options?: RequestOptions) =>
+    _doGet<types.OraclesAvailabilityResult>(`/node_last_epoch?${getNodeAddressQuery(nodeAddress)}`, options);
 
 export const getNodeInfo = (
     nodeAddress: NodeAddress,
+    options?: RequestOptions,
 ): Promise<{
     node_alias: string | null;
     node_is_online: boolean | null;
     node_is_recognized: boolean;
 }> =>
-    getNodeLastEpoch(nodeAddress).then((result) => {
+    getNodeLastEpoch(nodeAddress, options).then((result) => {
         if (typeof result.node_is_online !== 'boolean') {
             return {
                 node_alias: null,
@@ -64,7 +68,7 @@ const getNodeAddressQuery = (nodeAddress: NodeAddress) => {
     return `${queryKey}=${encodeURIComponent(nodeAddress)}`;
 };
 
-async function _doGet<T>(endpoint: string) {
+async function _doGet<T>(endpoint: string, options?: RequestOptions) {
     const { data } = await axiosInstance.get<{
         result: (
             | {
@@ -74,7 +78,9 @@ async function _doGet<T>(endpoint: string) {
         ) &
             types.OraclesDefaultResult;
         node_addr: `0xai${string}`;
-    }>(endpoint);
+    }>(endpoint, {
+        signal: options?.signal,
+    });
     if ('error' in data.result) {
         if (data.result.error.includes('[No internal node address found]')) {
             console.warn(data.result.error);

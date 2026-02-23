@@ -1,6 +1,7 @@
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiClipboardLine } from 'react-icons/ri';
+import { toast } from 'react-hot-toast';
 import NodeInfoStatusPopover from './NodeInfoStatusPopover';
 import DeeployInfoTag from '../DeeployInfoTag';
 import VariableSectionControls from '../VariableSectionControls';
@@ -81,8 +82,10 @@ export default function SpareNodesSection() {
                                                             ariaLabel="Show spare node info"
                                                         />
 
-                                                        <div
+                                                        <button
+                                                            type="button"
                                                             className="cursor-pointer hover:opacity-60"
+                                                            aria-label="Paste spare node address from clipboard"
                                                             onClick={async () => {
                                                                 try {
                                                                     const clipboardText = await navigator.clipboard.readText();
@@ -97,11 +100,14 @@ export default function SpareNodesSection() {
                                                                     await fetchNodeInfoForAddress(clipboardText);
                                                                 } catch (error) {
                                                                     console.error('Failed to read clipboard:', error);
+                                                                    toast.error(
+                                                                        'Unable to read from clipboard. Please paste the address manually.',
+                                                                    );
                                                                 }
                                                             }}
                                                         >
                                                             <RiClipboardLine className="text-lg text-slate-600" />
-                                                        </div>
+                                                        </button>
                                                     </div>
                                                 }
                                             />
