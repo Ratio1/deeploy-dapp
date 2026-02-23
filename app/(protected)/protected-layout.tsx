@@ -5,12 +5,14 @@ import { Spinner } from '@heroui/spinner';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, type ReactNode } from 'react';
 import { useAccount } from 'wagmi';
 
 export function ProtectedLayout({ children }: { children: ReactNode }) {
     const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const { isSignedIn } = useAuthenticationContext() as AuthenticationContextType;
     const { isFetchAppsRequired, setFetchAppsRequired, setApps } = useDeploymentContext() as DeploymentContextType;
     const account = useAccount();
@@ -28,9 +30,12 @@ export function ProtectedLayout({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         if (shouldRedirectToLogin) {
-            router.replace('/login');
+            const search = searchParams.toString();
+            const requestedPath = search ? `${pathname}?${search}` : pathname;
+            const loginPath = `/login?next=${encodeURIComponent(requestedPath)}`;
+            router.replace(loginPath);
         }
-    }, [shouldRedirectToLogin, router]);
+    }, [pathname, router, searchParams, shouldRedirectToLogin]);
 
     if (shouldRedirectToLogin) {
         return (

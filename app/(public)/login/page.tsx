@@ -15,7 +15,17 @@ import { ConnectKitButton, useModal } from 'connectkit';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAccount, usePublicClient } from 'wagmi';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+const FALLBACK_REDIRECT = '/home';
+
+const getRedirectPath = (nextPath: string | null): string => {
+    if (!nextPath || !nextPath.startsWith('/') || nextPath.startsWith('//') || nextPath.startsWith('/login')) {
+        return FALLBACK_REDIRECT;
+    }
+
+    return nextPath;
+};
 
 export default function Login() {
     const { isSignedIn } = useAuthenticationContext() as AuthenticationContextType;
@@ -25,6 +35,7 @@ export default function Login() {
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const publicClient = usePublicClient();
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const { open: modalOpen, openSIWE } = useModal();
 
@@ -43,9 +54,9 @@ export default function Login() {
 
     useEffect(() => {
         if (isSignedIn && address !== undefined && isFetchAppsRequired !== undefined) {
-            router.replace('/home');
+            router.replace(getRedirectPath(searchParams.get('next')));
         }
-    }, [address, isFetchAppsRequired, isSignedIn, router]);
+    }, [address, isFetchAppsRequired, isSignedIn, router, searchParams]);
 
     useEffect(() => {
         if (isConnected) {
