@@ -29,7 +29,7 @@ export const getNodeInfo = (
     node_is_recognized: boolean;
 }> =>
     getNodeLastEpoch(nodeAddress).then((result) => {
-        if (typeof (result as types.OraclesAvailabilityResult).node_is_online !== 'boolean') {
+        if (typeof result.node_is_online !== 'boolean') {
             return {
                 node_alias: null,
                 node_is_online: null,
@@ -37,7 +37,7 @@ export const getNodeInfo = (
             };
         }
 
-        const { node_alias, node_is_online } = result as types.OraclesAvailabilityResult;
+        const { node_alias, node_is_online } = result;
 
         return {
             node_alias: node_alias || null,
