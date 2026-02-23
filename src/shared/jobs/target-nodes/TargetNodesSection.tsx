@@ -5,7 +5,7 @@ import { RiAddLine, RiClipboardLine } from 'react-icons/ri';
 import NodeInfoStatusPopover from './NodeInfoStatusPopover';
 import DeeployInfoTag from '../DeeployInfoTag';
 import VariableSectionIndex from '../VariableSectionIndex';
-import { useNodeInfoLookupByIndex } from './nodeInfo';
+import { useNodeInfoLookupByIndex, usePrefetchNodeInfoOnRender } from './nodeInfo';
 
 // This component assumes it's being used in the deployment step
 export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean }) {
@@ -18,9 +18,12 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
     });
 
     const targetNodesCount: number = watch('specifications.targetNodesCount');
+    const targetNodes: Array<{ address?: string | null }> = watch('deployment.targetNodes');
 
     // Get array-level errors
     const errors = (formState.errors.deployment as any)?.targetNodes;
+
+    usePrefetchNodeInfoOnRender(targetNodes, nodeInfoByIndex, fetchNodeInfoForAddress);
 
     return (
         <div className="col gap-4" key={fields.length}>

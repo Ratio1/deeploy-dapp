@@ -6,20 +6,23 @@ import DeeployInfoTag from '../DeeployInfoTag';
 import VariableSectionControls from '../VariableSectionControls';
 import VariableSectionIndex from '../VariableSectionIndex';
 import VariableSectionRemove from '../VariableSectionRemove';
-import { useNodeInfoLookupByIndex } from './nodeInfo';
+import { useNodeInfoLookupByIndex, usePrefetchNodeInfoOnRender } from './nodeInfo';
 
 // This component assumes it's being used in the deployment step
 export default function SpareNodesSection() {
-    const { control, formState, trigger, setValue } = useFormContext();
+    const { control, watch, formState, trigger, setValue } = useFormContext();
     const { nodeInfoByIndex, setNodeInfoToIdle, fetchNodeInfoForAddress } = useNodeInfoLookupByIndex();
 
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'deployment.spareNodes',
     });
+    const spareNodes: Array<{ address?: string | null }> = watch('deployment.spareNodes');
 
     // Get array-level errors
     const errors = (formState.errors.deployment as any)?.spareNodes;
+
+    usePrefetchNodeInfoOnRender(spareNodes, nodeInfoByIndex, fetchNodeInfoForAddress);
 
     return (
         <div className="col gap-4" key={fields.length}>

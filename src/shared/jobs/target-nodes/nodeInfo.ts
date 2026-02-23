@@ -1,6 +1,6 @@
 import { getNodeInfo } from '@lib/api/oracles';
 import { R1Address } from '@typedefs/blockchain';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export const NODE_ADDRESS_REGEX = /^0xai_[A-Za-z0-9_-]+$/;
 
@@ -108,4 +108,32 @@ export const useNodeInfoLookupByIndex = () => {
         setNodeInfoToIdle,
         fetchNodeInfoForAddress,
     };
+};
+
+export const usePrefetchNodeInfoOnRender = (
+    nodes: Array<{ address?: string | null }> | undefined,
+    nodeInfoByIndex: Record<number, NodeInfoState>,
+    fetchNodeInfoForAddress: (index: number, rawAddress: string) => Promise<void>,
+) => {
+    useEffect(() => {
+        if (!nodes || nodes.length === 0) {
+            return;
+        }
+
+        nodes.forEach((node, index) => {
+            const normalizedAddress = String(node?.address ?? '').trim();
+
+            if (!NODE_ADDRESS_REGEX.test(normalizedAddress)) {
+                return;
+            }
+
+            const nodeInfoState = nodeInfoByIndex[index];
+            const hasLookupForSameAddress =
+                !!nodeInfoState && nodeInfoState.lastCheckedAddress === normalizedAddress && nodeInfoState.status !== 'idle';
+
+            if (!hasLookupForSameAddress) {
+                void fetchNodeInfoForAddress(index, normalizedAddress);
+            }
+        });
+    }, [fetchNodeInfoForAddress, nodeInfoByIndex, nodes]);
 };
