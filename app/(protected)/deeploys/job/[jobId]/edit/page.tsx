@@ -20,6 +20,7 @@ import {
     generateDeeployNonce,
 } from '@lib/deeploy-utils';
 import { useRunningJob } from '@lib/hooks/useRunningJob';
+import useUnsavedChangesGuard from '@lib/hooks/useUnsavedChangesGuard';
 import { routePath } from '@lib/routes/route-paths';
 import { jobSchema } from '@schemas/index';
 import ActionButton from '@shared/ActionButton';
@@ -66,6 +67,7 @@ export default function EditJob() {
     }>(null);
 
     const [isSubmitting, setSubmitting] = useState<boolean>(false);
+    const [isFormDirty, setFormDirty] = useState<boolean>(false);
 
     const [errors, setErrors] = useState<{ text: string; serverAlias: string }[]>([]);
 
@@ -74,6 +76,7 @@ export default function EditJob() {
         'signXMessages',
         'callDeeployApi',
     ]);
+    const { runWithGuard } = useUnsavedChangesGuard({ isDirty: isFormDirty });
 
     // Init
     useEffect(() => {
@@ -362,6 +365,8 @@ export default function EditJob() {
         );
     }
 
+    const jobDetailsPath = `${routePath.deeploys}/${routePath.job}/${Number(job.id)}`;
+
     return (
         <div className="col flex-1 justify-between gap-12">
             <div className="col gap-6">
@@ -370,7 +375,13 @@ export default function EditJob() {
                     <JobBreadcrumbs job={job} jobTypeOption={jobTypeOption} />
 
                     <div className="row gap-2">
-                        <ActionButton className="slate-button" color="default" onPress={() => router.back()}>
+                        <ActionButton
+                            className="slate-button"
+                            color="default"
+                            onPress={() => {
+                                runWithGuard(() => router.push(jobDetailsPath));
+                            }}
+                        >
                             <div className="row gap-1.5">
                                 <RiArrowLeftLine className="text-lg" />
                                 <div className="compact">Cancel</div>
@@ -384,7 +395,16 @@ export default function EditJob() {
                     <DeeployErrors type="update" errors={errors} />
 
                     {/* Form */}
-                    <JobEditFormWrapper job={job} onSubmit={onSubmit} isLoading={isSubmitting} setLoading={setSubmitting} />
+                    <JobEditFormWrapper
+                        job={job}
+                        onSubmit={onSubmit}
+                        isLoading={isSubmitting}
+                        setLoading={setSubmitting}
+                        onDirtyChange={setFormDirty}
+                        onCancel={() => {
+                            runWithGuard(() => router.push(jobDetailsPath));
+                        }}
+                    />
                 </div>
             </div>
 

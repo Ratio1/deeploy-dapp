@@ -11,7 +11,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-function JobFormHeader({ steps }: { steps: string[] }) {
+function JobFormHeader({ steps, onCancel }: { steps: string[]; onCancel?: () => void }) {
     const { jobType, getProjectName } = useDeploymentContext() as DeploymentContextType;
 
     const { projectHash } = useParams<{ projectHash?: string }>();
@@ -41,7 +41,7 @@ function JobFormHeader({ steps }: { steps: string[] }) {
     }
 
     return (
-        <JobFormHeaderInterface steps={steps}>
+        <JobFormHeaderInterface steps={steps} onCancel={onCancel}>
             <div className="row justify-between">
                 {projectName ? (
                     <div className="big-title max-w-[280px] truncate">{projectName}</div>

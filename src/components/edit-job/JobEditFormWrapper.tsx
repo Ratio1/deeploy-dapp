@@ -46,11 +46,15 @@ export default function JobEditFormWrapper({
     onSubmit,
     isLoading,
     setLoading,
+    onCancel,
+    onDirtyChange,
 }: {
     job: RunningJobWithResources;
     onSubmit: (data: z.infer<typeof jobSchema>) => Promise<void>;
     isLoading: boolean;
     setLoading: (isLoading: boolean) => void;
+    onCancel?: () => void;
+    onDirtyChange?: (isDirty: boolean) => void;
 }) {
     const { step } = useDeploymentContext() as DeploymentContextType;
     const router = useRouter();
@@ -326,6 +330,7 @@ export default function JobEditFormWrapper({
         mode: 'onTouched',
         defaultValues,
     });
+    const isDirty = form.formState.isDirty;
 
     // Reset form
     useEffect(() => {
@@ -342,6 +347,14 @@ export default function JobEditFormWrapper({
             setTargetNodesCountLower(false);
         }
     }, [isTargetNodesCountLower, step]);
+
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+
+        return () => {
+            onDirtyChange?.(false);
+        };
+    }, [isDirty, onDirtyChange]);
 
     const onError = (errors: FieldErrors<z.infer<typeof jobSchema>>) => {
         console.log(errors);
@@ -391,6 +404,15 @@ export default function JobEditFormWrapper({
         [activeStep, stepRenderers],
     );
 
+    const handleCancel = () => {
+        if (onCancel) {
+            onCancel();
+            return;
+        }
+
+        router.back();
+    };
+
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit, onError)} key={`${job.resources.jobType}-edit`}>
@@ -399,9 +421,7 @@ export default function JobEditFormWrapper({
                         <div className="col gap-6">
                             <JobFormHeaderInterface
                                 steps={steps.map((step) => STEPS[step].title)}
-                                onCancel={() => {
-                                    router.back();
-                                }}
+                                onCancel={handleCancel}
                             >
                                 <div className="big-title">Edit Job</div>
                             </JobFormHeaderInterface>
@@ -411,9 +431,7 @@ export default function JobEditFormWrapper({
                             <JobFormButtons
                                 steps={steps.map((step) => STEPS[step])}
                                 cancelLabel="Job"
-                                onCancel={() => {
-                                    router.back();
-                                }}
+                                onCancel={handleCancel}
                                 customSubmitButton={
                                     <div className="center-all gap-2">
                                         <PayButtonWithAllowance
