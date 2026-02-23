@@ -19,12 +19,43 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 const FALLBACK_REDIRECT = '/home';
 
+const decodePathValue = (value: string): string => {
+    let decodedValue = value.trim();
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+            const nextDecodedValue = decodeURIComponent(decodedValue);
+
+            if (nextDecodedValue === decodedValue) {
+                break;
+            }
+
+            decodedValue = nextDecodedValue.trim();
+        } catch {
+            break;
+        }
+    }
+
+    return decodedValue;
+};
+
 const getRedirectPath = (nextPath: string | null): string => {
-    if (!nextPath || !nextPath.startsWith('/') || nextPath.startsWith('//') || nextPath.startsWith('/login')) {
+    if (!nextPath) {
         return FALLBACK_REDIRECT;
     }
 
-    return nextPath;
+    const decodedNextPath = decodePathValue(nextPath);
+    const normalizedPath = decodedNextPath.toLowerCase();
+
+    if (!decodedNextPath.startsWith('/') || decodedNextPath.startsWith('//')) {
+        return FALLBACK_REDIRECT;
+    }
+
+    if (normalizedPath === '/login' || normalizedPath.startsWith('/login?') || normalizedPath.startsWith('/login/')) {
+        return FALLBACK_REDIRECT;
+    }
+
+    return decodedNextPath;
 };
 
 export default function Login() {
