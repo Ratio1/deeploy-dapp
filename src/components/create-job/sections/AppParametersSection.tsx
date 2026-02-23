@@ -3,15 +3,12 @@ import { SelectItem } from '@heroui/select';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { getTunnels } from '@lib/api/tunnels';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
-import { routePath } from '@lib/routes/route-paths';
 import InputWithLabel from '@shared/InputWithLabel';
 import Label from '@shared/Label';
 import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
-import { SmallTag } from '@shared/SmallTag';
 import StyledSelect from '@shared/StyledSelect';
-import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { RiCodeSSlashLine, RiRefreshLine } from 'react-icons/ri';
@@ -27,6 +24,8 @@ type ExistingTunnelOption = {
     token: string;
     url: string;
 };
+
+const CUSTOM_TUNNEL_OPTION = 'custom';
 
 export default function AppParametersSection({
     baseName = 'deployment',
@@ -53,22 +52,22 @@ export default function AppParametersSection({
     isTunnelGenerationDisabled?: boolean;
     onTunnelUrlChange?: (url?: string) => void;
 }) {
-    const { watch, trigger, setValue, clearErrors, getValues } = useFormContext();
+    const { watch, trigger, setValue, clearErrors } = useFormContext();
     const { tunnelingSecrets } = useTunnelsContext() as TunnelsContextType;
 
     const enableTunneling: (typeof BOOLEAN_TYPES)[number] = watch(`${baseName}.enableTunneling`);
     const tunnelingToken: string | undefined = watch(`${baseName}.tunnelingToken`);
 
     const [existingTunnels, setExistingTunnels] = useState<ExistingTunnelOption[]>([]);
-    const [selectedTunnelId, setSelectedTunnelId] = useState<string | undefined>();
+    const [selectedTunnelId, setSelectedTunnelId] = useState<string>(CUSTOM_TUNNEL_OPTION);
     const [isFetchingTunnels, setFetchingTunnels] = useState<boolean>(false);
 
     const shouldShowTunnelAlternatives = enableTunnelSelector && enableTunneling === BOOLEAN_TYPES[0];
 
-    const fetchExistingTunnels = useCallback(async () => {
+    const fetchExistingTunnels = useCallback(async (): Promise<ExistingTunnelOption[]> => {
         if (!tunnelingSecrets) {
             setExistingTunnels([]);
-            return;
+            return [];
         }
 
         setFetchingTunnels(true);
@@ -88,18 +87,26 @@ export default function AppParametersSection({
                 .sort((a, b) => a.alias.localeCompare(b.alias));
 
             setExistingTunnels(tunnels);
+            return tunnels;
         } catch (error) {
             console.error('Error fetching existing tunnels:', error);
             setExistingTunnels([]);
+            return [];
         } finally {
             setFetchingTunnels(false);
         }
     }, [tunnelingSecrets]);
 
     useEffect(() => {
-        if (!shouldShowTunnelAlternatives || !tunnelingSecrets) {
+        if (!shouldShowTunnelAlternatives) {
             setExistingTunnels([]);
-            setSelectedTunnelId(undefined);
+            setSelectedTunnelId(CUSTOM_TUNNEL_OPTION);
+            return;
+        }
+
+        if (!tunnelingSecrets) {
+            setExistingTunnels([]);
+            setSelectedTunnelId(CUSTOM_TUNNEL_OPTION);
             return;
         }
 
@@ -107,16 +114,28 @@ export default function AppParametersSection({
     }, [shouldShowTunnelAlternatives, tunnelingSecrets, fetchExistingTunnels]);
 
     useEffect(() => {
-        if (!shouldShowTunnelAlternatives || !tunnelingToken || existingTunnels.length === 0) {
-            setSelectedTunnelId(undefined);
+        if (!shouldShowTunnelAlternatives) {
+            return;
+        }
+
+        if (!tunnelingToken) {
+            setSelectedTunnelId(CUSTOM_TUNNEL_OPTION);
             return;
         }
 
         const matchedTunnel = existingTunnels.find((tunnel) => tunnel.token === tunnelingToken);
-        setSelectedTunnelId(matchedTunnel?.id);
+        setSelectedTunnelId(matchedTunnel?.id || CUSTOM_TUNNEL_OPTION);
     }, [shouldShowTunnelAlternatives, tunnelingToken, existingTunnels]);
 
     const selectExistingTunnel = (tunnelId: string) => {
+        if (tunnelId === CUSTOM_TUNNEL_OPTION) {
+            setSelectedTunnelId(CUSTOM_TUNNEL_OPTION);
+            setValue(`${baseName}.tunnelingToken`, undefined, { shouldDirty: true, shouldValidate: true });
+            clearErrors(`${baseName}.tunnelingToken`);
+            onTunnelUrlChange?.(undefined);
+            return;
+        }
+
         const selectedTunnel = existingTunnels.find((tunnel) => tunnel.id === tunnelId);
 
         if (!selectedTunnel) {
@@ -140,14 +159,14 @@ export default function AppParametersSection({
             return;
         }
 
-        setSelectedTunnelId(undefined);
         setValue(`${baseName}.tunnelingToken`, generatedTunnel.token, { shouldDirty: true, shouldValidate: true });
         clearErrors(`${baseName}.tunnelingToken`);
-        onTunnelUrlChange?.(generatedTunnel.url);
 
-        if (tunnelingSecrets) {
-            await fetchExistingTunnels();
-        }
+        const refreshedTunnels = tunnelingSecrets ? await fetchExistingTunnels() : existingTunnels;
+        const matchedTunnel = refreshedTunnels.find((tunnel) => tunnel.token === generatedTunnel.token);
+
+        setSelectedTunnelId(matchedTunnel?.id || CUSTOM_TUNNEL_OPTION);
+        onTunnelUrlChange?.(matchedTunnel?.url || generatedTunnel.url);
     };
 
     return (
@@ -165,6 +184,7 @@ export default function AppParametersSection({
                                     trigger(`${baseName}.port`);
 
                                     if (value === BOOLEAN_TYPES[1]) {
+                                        setSelectedTunnelId(CUSTOM_TUNNEL_OPTION);
                                         setValue(`${baseName}.tunnelingToken`, undefined);
                                         clearErrors(`${baseName}.tunnelingToken`);
                                     }
@@ -190,128 +210,103 @@ export default function AppParametersSection({
             {enableTunneling === BOOLEAN_TYPES[0] && (
                 <div className="col gap-4">
                     {shouldShowTunnelAlternatives && (
-                        <div className="col gap-3 rounded-lg border border-slate-200 bg-light p-3">
-                            <div className="row items-center gap-2">
-                                <div className="font-medium">Tunnel Setup</div>
-                                <SmallTag variant="blue">3 Options</SmallTag>
+                        <div className="col gap-2">
+                            <div className="col gap-2">
+                                <div className="row items-center justify-between gap-2">
+                                    <Label value="Tunnel" />
+
+                                    <Button
+                                        className="h-[34px]"
+                                        color="primary"
+                                        size="sm"
+                                        onPress={handleGenerateTunnel}
+                                        isLoading={isCreatingTunnel}
+                                        isDisabled={isTunnelGenerationDisabled || !tunnelingSecrets}
+                                    >
+                                        <div className="row gap-1.5">
+                                            <RiCodeSSlashLine className="text-base" />
+                                            <div className="compact">Generate Tunnel</div>
+                                        </div>
+                                    </Button>
+                                </div>
                             </div>
 
-                            {!tunnelingSecrets && (
-                                <DeeployInfoTag
-                                    text={
-                                        <>
-                                            Please add your{' '}
-                                            <Link href={routePath.tunnels} className="text-primary font-medium hover:opacity-70">
-                                                Cloudflare secrets
-                                            </Link>{' '}
-                                            to generate or select tunnels.
-                                        </>
-                                    }
-                                />
-                            )}
-
-                            <div className="col gap-2">
-                                <div className="row flex-wrap items-center gap-2">
-                                    <Label value="1. Generate New Tunnel" />
-                                    <SmallTag variant="slate">Default</SmallTag>
+                            <div className="row items-end gap-2">
+                                <div className="col w-full gap-1.5">
+                                    <Label value="Select Existing Tunnel" />
+                                    <StyledSelect
+                                        selectedKeys={[selectedTunnelId]}
+                                        onSelectionChange={(keys) => {
+                                            const selectedKey = Array.from(keys)[0] as string;
+                                            selectExistingTunnel(selectedKey);
+                                        }}
+                                        placeholder={isFetchingTunnels ? 'Loading tunnels...' : 'Select an existing tunnel'}
+                                        isDisabled={isFetchingTunnels}
+                                    >
+                                        <SelectItem key={CUSTOM_TUNNEL_OPTION} textValue="Custom">
+                                            <div className="row items-center gap-2 py-1">
+                                                <div className="font-medium">Custom</div>
+                                                <div className="text-xs text-slate-500">Enter token manually</div>
+                                            </div>
+                                        </SelectItem>
+                                        {existingTunnels.map((tunnel) => (
+                                            <SelectItem key={tunnel.id} textValue={`${tunnel.alias} | ${tunnel.url}`}>
+                                                <div className="row items-center gap-2 py-1">
+                                                    <div className="font-medium">{tunnel.alias}</div>
+                                                    <div className="font-roboto-mono text-xs text-slate-500">
+                                                        {tunnel.url}
+                                                    </div>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </StyledSelect>
                                 </div>
 
-                                <Button
-                                    className="max-w-max"
-                                    color="primary"
-                                    size="sm"
-                                    onPress={handleGenerateTunnel}
-                                    isLoading={isCreatingTunnel}
-                                    isDisabled={isTunnelGenerationDisabled || !tunnelingSecrets}
-                                >
-                                    <div className="row gap-1.5">
-                                        <RiCodeSSlashLine className="text-base" />
-                                        <div className="compact">Generate Tunnel</div>
-                                    </div>
-                                </Button>
-                            </div>
-
-                            <div className="col gap-2">
-                                <div className="row flex-wrap items-center justify-between gap-2">
-                                    <Label value="2. Select Existing Tunnel" />
-
+                                {tunnelingSecrets && (
                                     <Button
                                         className="h-[30px] min-w-[30px] px-2 text-slate-500"
                                         color="default"
                                         variant="light"
                                         onPress={() => fetchExistingTunnels()}
-                                        isDisabled={!tunnelingSecrets || isFetchingTunnels}
+                                        isDisabled={isFetchingTunnels}
                                         isIconOnly
                                     >
                                         <RiRefreshLine className={isFetchingTunnels ? 'animate-spin' : ''} />
                                     </Button>
-                                </div>
-
-                                <StyledSelect
-                                    selectedKeys={selectedTunnelId ? [selectedTunnelId] : []}
-                                    onSelectionChange={(keys) => {
-                                        const selectedKey = Array.from(keys)[0] as string;
-                                        selectExistingTunnel(selectedKey);
-                                    }}
-                                    placeholder={
-                                        !tunnelingSecrets
-                                            ? 'Cloudflare secrets required'
-                                            : isFetchingTunnels
-                                              ? 'Loading tunnels...'
-                                              : existingTunnels.length === 0
-                                                ? 'No existing tunnels found'
-                                                : 'Select an existing tunnel'
-                                    }
-                                    isDisabled={!tunnelingSecrets || isFetchingTunnels || existingTunnels.length === 0}
-                                >
-                                    {existingTunnels.map((tunnel) => (
-                                        <SelectItem
-                                            key={tunnel.id}
-                                            textValue={`${tunnel.alias} | ${tunnel.url}`}
-                                            className="h-[52px]"
-                                        >
-                                            <div className="col py-0.5">
-                                                <div className="font-medium">{tunnel.alias}</div>
-                                                <div className="font-roboto-mono text-xs text-slate-500">{tunnel.url}</div>
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                </StyledSelect>
+                                )}
                             </div>
                         </div>
                     )}
 
-                    <div className="flex gap-4">
-                        <InputWithLabel
-                            name={`${baseName}.tunnelingToken`}
-                            label={shouldShowTunnelAlternatives ? '3. Tunnel Token (Manual)' : 'Tunnel Token'}
-                            placeholder="Starts with 'ey'"
-                            isDisabled={isCreatingTunnel}
-                            onBlur={() => {
-                                const selectedTunnel = existingTunnels.find((tunnel) => tunnel.id === selectedTunnelId);
+                    {(!shouldShowTunnelAlternatives || selectedTunnelId === CUSTOM_TUNNEL_OPTION) && (
+                        <div className="flex gap-4">
+                            <InputWithLabel
+                                name={`${baseName}.tunnelingToken`}
+                                label="Tunnel Token"
+                                placeholder="Starts with 'ey'"
+                                isDisabled={isCreatingTunnel}
+                            />
+                            {enableTunnelingLabel && (
+                                <InputWithLabel
+                                    name={`${baseName}.tunnelingLabel`}
+                                    label="Tunnel Label"
+                                    placeholder="My_Tunnel"
+                                    isOptional
+                                />
+                            )}
+                        </div>
+                    )}
 
-                                if (!selectedTunnel) {
-                                    return;
-                                }
-
-                                const currentToken = getValues(`${baseName}.tunnelingToken`);
-
-                                if (currentToken !== selectedTunnel.token) {
-                                    setSelectedTunnelId(undefined);
-                                    onTunnelUrlChange?.(undefined);
-                                }
-                            }}
-                        />
-
-                        {enableTunnelingLabel && (
+                    {shouldShowTunnelAlternatives && selectedTunnelId !== CUSTOM_TUNNEL_OPTION && enableTunnelingLabel && (
+                        <div className="flex gap-4">
                             <InputWithLabel
                                 name={`${baseName}.tunnelingLabel`}
                                 label="Tunnel Label"
                                 placeholder="My_Tunnel"
                                 isOptional
                             />
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
