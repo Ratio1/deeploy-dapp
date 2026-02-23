@@ -19,6 +19,28 @@ type NodeInfoState = {
     errorMessage?: string;
 };
 
+const getInfoIconClassName = (nodeInfoState: NodeInfoState | undefined) => {
+    if (nodeInfoState?.status === 'error') {
+        return 'text-red-500';
+    }
+
+    if (nodeInfoState?.status === 'loaded') {
+        if (!nodeInfoState.info?.node_is_recognized) {
+            return 'text-red-500';
+        }
+
+        if (nodeInfoState.info.node_is_online === false) {
+            return 'text-yellow-500';
+        }
+
+        if (nodeInfoState.info.node_is_online === true) {
+            return 'text-green-500';
+        }
+    }
+
+    return 'text-slate-500';
+};
+
 // This component assumes it's being used in the deployment step
 export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean }) {
     const { control, watch, formState, trigger, setValue } = useFormContext();
@@ -167,7 +189,7 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                                                     <PopoverTrigger>
                                                                         <button
                                                                             type="button"
-                                                                            className="cursor-pointer text-slate-500 transition-opacity hover:opacity-60"
+                                                                            className={`cursor-pointer transition-opacity hover:opacity-60 ${getInfoIconClassName(nodeInfoState)}`}
                                                                             aria-label="Show node info"
                                                                         >
                                                                             <RiInformationLine className="text-[18px]" />
