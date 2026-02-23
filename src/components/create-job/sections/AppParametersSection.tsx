@@ -9,7 +9,7 @@ import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import StyledSelect from '@shared/StyledSelect';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { RiCodeSSlashLine, RiRefreshLine } from 'react-icons/ri';
 
@@ -23,6 +23,10 @@ type ExistingTunnelOption = {
     alias: string;
     token: string;
     url: string;
+};
+
+type TunnelSelectOption = ExistingTunnelOption & {
+    isCustom?: boolean;
 };
 
 const CUSTOM_TUNNEL_OPTION = 'custom';
@@ -61,6 +65,19 @@ export default function AppParametersSection({
     const [existingTunnels, setExistingTunnels] = useState<ExistingTunnelOption[]>([]);
     const [selectedTunnelId, setSelectedTunnelId] = useState<string>(CUSTOM_TUNNEL_OPTION);
     const [isFetchingTunnels, setFetchingTunnels] = useState<boolean>(false);
+    const tunnelSelectOptions = useMemo<TunnelSelectOption[]>(
+        () => [
+            {
+                id: CUSTOM_TUNNEL_OPTION,
+                alias: 'Custom',
+                token: '',
+                url: 'Enter token manually',
+                isCustom: true,
+            },
+            ...existingTunnels,
+        ],
+        [existingTunnels],
+    );
 
     const shouldShowTunnelAlternatives = enableTunnelSelector && enableTunneling === BOOLEAN_TYPES[0];
 
@@ -233,6 +250,7 @@ export default function AppParametersSection({
                                 <div className="col w-full gap-1.5">
                                     <Label value="Select Existing Tunnel" />
                                     <StyledSelect
+                                        items={tunnelSelectOptions}
                                         selectedKeys={[selectedTunnelId]}
                                         onSelectionChange={(keys) => {
                                             const selectedKey = Array.from(keys)[0] as string;
@@ -241,20 +259,25 @@ export default function AppParametersSection({
                                         placeholder={isFetchingTunnels ? 'Loading tunnels...' : 'Select an existing tunnel'}
                                         isDisabled={isFetchingTunnels}
                                     >
-                                        <SelectItem key={CUSTOM_TUNNEL_OPTION} textValue="Custom">
-                                            <div className="row items-center gap-2 py-1">
-                                                <div className="font-medium">Custom</div>
-                                                <div className="text-xs text-slate-500">Enter token manually</div>
-                                            </div>
-                                        </SelectItem>
-                                        {existingTunnels.map((tunnel) => (
-                                            <SelectItem key={tunnel.id} textValue={`${tunnel.alias} | ${tunnel.url}`}>
-                                                <div className="row items-center gap-2 py-1">
-                                                    <div className="font-medium">{tunnel.alias}</div>
-                                                    <div className="font-roboto-mono text-xs text-slate-500">{tunnel.url}</div>
-                                                </div>
-                                            </SelectItem>
-                                        ))}
+                                        {(option: object) => {
+                                            const tunnel = option as TunnelSelectOption;
+
+                                            return (
+                                                <SelectItem
+                                                    key={tunnel.id}
+                                                    textValue={
+                                                        tunnel.isCustom ? tunnel.alias : `${tunnel.alias} | ${tunnel.url}`
+                                                    }
+                                                >
+                                                    <div className="row items-center gap-2 py-1">
+                                                        <div className="font-medium">{tunnel.alias}</div>
+                                                        <div className="font-roboto-mono text-xs text-slate-500">
+                                                            {tunnel.url}
+                                                        </div>
+                                                    </div>
+                                                </SelectItem>
+                                            );
+                                        }}
                                     </StyledSelect>
                                 </div>
 
