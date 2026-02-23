@@ -10,7 +10,6 @@ import { AuthenticationContextType, useAuthenticationContext } from '@lib/contex
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { EscrowAccess } from '@lib/contexts/deployment/context';
 import { getAssetUrl } from '@lib/assets/getAssetUrl';
-import { EthAddress } from '@typedefs/blockchain';
 import { ConnectKitButton, useModal } from 'connectkit';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
