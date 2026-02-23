@@ -15,7 +15,7 @@ import { ConnectKitButton, useModal } from 'connectkit';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAccount, usePublicClient } from 'wagmi';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 const FALLBACK_REDIRECT = '/home';
 
@@ -66,7 +66,6 @@ export default function Login() {
     const { address } = isUsingDevAddress ? getDevAddress() : useAccount();
     const publicClient = usePublicClient();
     const router = useRouter();
-    const searchParams = useSearchParams();
 
     const { open: modalOpen, openSIWE } = useModal();
 
@@ -85,9 +84,10 @@ export default function Login() {
 
     useEffect(() => {
         if (isSignedIn && address !== undefined && isFetchAppsRequired !== undefined) {
-            router.replace(getRedirectPath(searchParams.get('next')));
+            const nextPath = new URLSearchParams(window.location.search).get('next');
+            router.replace(getRedirectPath(nextPath));
         }
-    }, [address, isFetchAppsRequired, isSignedIn, router, searchParams]);
+    }, [address, isFetchAppsRequired, isSignedIn, router]);
 
     useEffect(() => {
         if (isConnected) {
