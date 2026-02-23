@@ -6,12 +6,12 @@ import DeeployInfoTag from '../DeeployInfoTag';
 import VariableSectionControls from '../VariableSectionControls';
 import VariableSectionIndex from '../VariableSectionIndex';
 import VariableSectionRemove from '../VariableSectionRemove';
-import { useNodeInfoLookupByIndex, usePrefetchNodeInfoOnRender } from './nodeInfo';
+import { useNodeInfoLookupByAddress, usePrefetchNodeInfoOnRender } from './nodeInfo';
 
 // This component assumes it's being used in the deployment step
 export default function SpareNodesSection() {
     const { control, watch, formState, trigger, setValue } = useFormContext();
-    const { nodeInfoByIndex, setNodeInfoToIdle, fetchNodeInfoForAddress } = useNodeInfoLookupByIndex();
+    const { getNodeInfoState, setNodeInfoToIdle, fetchNodeInfoForAddress } = useNodeInfoLookupByAddress();
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -22,7 +22,7 @@ export default function SpareNodesSection() {
     // Get array-level errors
     const errors = (formState.errors.deployment as any)?.spareNodes;
 
-    usePrefetchNodeInfoOnRender(spareNodes, nodeInfoByIndex, fetchNodeInfoForAddress);
+    usePrefetchNodeInfoOnRender(spareNodes, getNodeInfoState, fetchNodeInfoForAddress);
 
     return (
         <div className="col gap-4" key={fields.length}>
@@ -44,8 +44,8 @@ export default function SpareNodesSection() {
                                     render={({ field, fieldState }) => {
                                         const specificError = entryError?.address;
                                         const hasError = !!fieldState.error || !!specificError || !!errors?.root?.message;
-                                        const nodeInfoState = nodeInfoByIndex[index];
                                         const value = String(field.value ?? '');
+                                        const nodeInfoState = getNodeInfoState(value);
                                         const normalizedValue = value.trim();
 
                                         return (
@@ -55,7 +55,7 @@ export default function SpareNodesSection() {
                                                 onChange={(e) => {
                                                     const nextValue = e.target.value;
                                                     field.onChange(nextValue);
-                                                    setNodeInfoToIdle(index, nextValue);
+                                                    setNodeInfoToIdle(nextValue);
                                                 }}
                                                 onBlur={async () => {
                                                     field.onBlur();
@@ -65,7 +65,7 @@ export default function SpareNodesSection() {
                                                         await trigger('deployment.spareNodes');
                                                     }
 
-                                                    await fetchNodeInfoForAddress(index, value);
+                                                    await fetchNodeInfoForAddress(value);
                                                 }}
                                                 isInvalid={hasError}
                                                 errorMessage={
@@ -92,9 +92,9 @@ export default function SpareNodesSection() {
                                                                         `deployment.spareNodes.${index}.address`,
                                                                         clipboardText,
                                                                     );
-                                                                    setNodeInfoToIdle(index, clipboardText);
+                                                                    setNodeInfoToIdle(clipboardText);
 
-                                                                    await fetchNodeInfoForAddress(index, clipboardText);
+                                                                    await fetchNodeInfoForAddress(clipboardText);
                                                                 } catch (error) {
                                                                     console.error('Failed to read clipboard:', error);
                                                                 }

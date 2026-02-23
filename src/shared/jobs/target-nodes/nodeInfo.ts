@@ -33,36 +33,49 @@ export const getInfoIconClassName = (nodeInfoState: NodeInfoState | undefined) =
     return 'text-slate-500';
 };
 
-export const useNodeInfoLookupByIndex = () => {
-    const [nodeInfoByIndex, setNodeInfoByIndex] = useState<Record<number, NodeInfoState>>({});
+const normalizeNodeAddress = (rawAddress: string | null | undefined) => String(rawAddress || '').trim();
 
-    const setNodeInfoToIdle = useCallback((index: number, rawAddress: string) => {
-        setNodeInfoByIndex((prev) => ({
+export const useNodeInfoLookupByAddress = () => {
+    const [nodeInfoByAddress, setNodeInfoByAddress] = useState<Record<string, NodeInfoState>>({});
+
+    const setNodeInfoToIdle = useCallback((rawAddress: string) => {
+        const normalizedAddress = normalizeNodeAddress(rawAddress);
+
+        if (!normalizedAddress) {
+            return;
+        }
+
+        setNodeInfoByAddress((prev) => ({
             ...prev,
-            [index]: {
+            [normalizedAddress]: {
                 status: 'idle',
-                lastCheckedAddress: String(rawAddress || '').trim(),
+                lastCheckedAddress: normalizedAddress,
             },
         }));
     }, []);
 
-    const fetchNodeInfoForAddress = useCallback(async (index: number, rawAddress: string) => {
-        const normalizedAddress = String(rawAddress || '').trim();
+    const getNodeInfoState = useCallback(
+        (rawAddress: string | null | undefined) => {
+            const normalizedAddress = normalizeNodeAddress(rawAddress);
+            if (!normalizedAddress) {
+                return undefined;
+            }
+
+            return nodeInfoByAddress[normalizedAddress];
+        },
+        [nodeInfoByAddress],
+    );
+
+    const fetchNodeInfoForAddress = useCallback(async (rawAddress: string) => {
+        const normalizedAddress = normalizeNodeAddress(rawAddress);
 
         if (!NODE_ADDRESS_REGEX.test(normalizedAddress)) {
-            setNodeInfoByIndex((prev) => ({
-                ...prev,
-                [index]: {
-                    status: 'idle',
-                    lastCheckedAddress: normalizedAddress,
-                },
-            }));
             return;
         }
 
-        setNodeInfoByIndex((prev) => ({
+        setNodeInfoByAddress((prev) => ({
             ...prev,
-            [index]: {
+            [normalizedAddress]: {
                 status: 'loading',
                 lastCheckedAddress: normalizedAddress,
             },
@@ -71,14 +84,10 @@ export const useNodeInfoLookupByIndex = () => {
         try {
             const info = await getNodeInfo(normalizedAddress as R1Address);
 
-            setNodeInfoByIndex((prev) => {
-                if (prev[index]?.lastCheckedAddress !== normalizedAddress) {
-                    return prev;
-                }
-
+            setNodeInfoByAddress((prev) => {
                 return {
                     ...prev,
-                    [index]: {
+                    [normalizedAddress]: {
                         status: 'loaded',
                         lastCheckedAddress: normalizedAddress,
                         info,
@@ -86,14 +95,10 @@ export const useNodeInfoLookupByIndex = () => {
                 };
             });
         } catch (error) {
-            setNodeInfoByIndex((prev) => {
-                if (prev[index]?.lastCheckedAddress !== normalizedAddress) {
-                    return prev;
-                }
-
+            setNodeInfoByAddress((prev) => {
                 return {
                     ...prev,
-                    [index]: {
+                    [normalizedAddress]: {
                         status: 'error',
                         lastCheckedAddress: normalizedAddress,
                         errorMessage: error instanceof Error ? error.message : 'Unable to fetch node info.',
@@ -104,7 +109,7 @@ export const useNodeInfoLookupByIndex = () => {
     }, []);
 
     return {
-        nodeInfoByIndex,
+        getNodeInfoState,
         setNodeInfoToIdle,
         fetchNodeInfoForAddress,
     };
@@ -112,28 +117,27 @@ export const useNodeInfoLookupByIndex = () => {
 
 export const usePrefetchNodeInfoOnRender = (
     nodes: Array<{ address?: string | null }> | undefined,
-    nodeInfoByIndex: Record<number, NodeInfoState>,
-    fetchNodeInfoForAddress: (index: number, rawAddress: string) => Promise<void>,
+    getNodeInfoState: (rawAddress: string | null | undefined) => NodeInfoState | undefined,
+    fetchNodeInfoForAddress: (rawAddress: string) => Promise<void>,
 ) => {
     useEffect(() => {
         if (!nodes || nodes.length === 0) {
             return;
         }
 
-        nodes.forEach((node, index) => {
-            const normalizedAddress = String(node?.address ?? '').trim();
+        nodes.forEach((node) => {
+            const normalizedAddress = normalizeNodeAddress(node?.address);
 
             if (!NODE_ADDRESS_REGEX.test(normalizedAddress)) {
                 return;
             }
 
-            const nodeInfoState = nodeInfoByIndex[index];
-            const hasLookupForSameAddress =
-                !!nodeInfoState && nodeInfoState.lastCheckedAddress === normalizedAddress && nodeInfoState.status !== 'idle';
+            const nodeInfoState = getNodeInfoState(normalizedAddress);
+            const hasLookupForAddress = !!nodeInfoState && nodeInfoState.status !== 'idle';
 
-            if (!hasLookupForSameAddress) {
-                void fetchNodeInfoForAddress(index, normalizedAddress);
+            if (!hasLookupForAddress) {
+                void fetchNodeInfoForAddress(normalizedAddress);
             }
         });
-    }, [fetchNodeInfoForAddress, nodeInfoByIndex, nodes]);
+    }, [fetchNodeInfoForAddress, getNodeInfoState, nodes]);
 };

@@ -5,12 +5,12 @@ import { RiAddLine, RiClipboardLine } from 'react-icons/ri';
 import NodeInfoStatusPopover from './NodeInfoStatusPopover';
 import DeeployInfoTag from '../DeeployInfoTag';
 import VariableSectionIndex from '../VariableSectionIndex';
-import { useNodeInfoLookupByIndex, usePrefetchNodeInfoOnRender } from './nodeInfo';
+import { useNodeInfoLookupByAddress, usePrefetchNodeInfoOnRender } from './nodeInfo';
 
 // This component assumes it's being used in the deployment step
 export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean }) {
     const { control, watch, formState, trigger, setValue } = useFormContext();
-    const { nodeInfoByIndex, setNodeInfoToIdle, fetchNodeInfoForAddress } = useNodeInfoLookupByIndex();
+    const { getNodeInfoState, setNodeInfoToIdle, fetchNodeInfoForAddress } = useNodeInfoLookupByAddress();
 
     const { fields, append } = useFieldArray({
         control,
@@ -23,7 +23,7 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
     // Get array-level errors
     const errors = (formState.errors.deployment as any)?.targetNodes;
 
-    usePrefetchNodeInfoOnRender(targetNodes, nodeInfoByIndex, fetchNodeInfoForAddress);
+    usePrefetchNodeInfoOnRender(targetNodes, getNodeInfoState, fetchNodeInfoForAddress);
 
     return (
         <div className="col gap-4" key={fields.length}>
@@ -59,8 +59,8 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                             const specificError = entryError?.address?.message;
                                             const fieldError = fieldState.error?.message;
                                             const rootError = errors?.root?.message || errors?.message;
-                                            const nodeInfoState = nodeInfoByIndex[index];
                                             const value = String(field.value ?? '');
+                                            const nodeInfoState = getNodeInfoState(value);
                                             const normalizedValue = value.trim();
 
                                             const isEmpty = !field.value || String(field.value).trim() === '';
@@ -76,12 +76,12 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                                     onChange={(e) => {
                                                         const nextValue = e.target.value;
                                                         field.onChange(nextValue);
-                                                        setNodeInfoToIdle(index, nextValue);
+                                                        setNodeInfoToIdle(nextValue);
                                                     }}
                                                     onBlur={async () => {
                                                         field.onBlur();
                                                         await trigger('deployment.targetNodes');
-                                                        await fetchNodeInfoForAddress(index, value);
+                                                        await fetchNodeInfoForAddress(value);
                                                     }}
                                                     isInvalid={hasError}
                                                     errorMessage={specificError || fieldError || rootError}
@@ -104,9 +104,9 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                                                             `deployment.targetNodes.${index}.address`,
                                                                             clipboardText,
                                                                         );
-                                                                        setNodeInfoToIdle(index, clipboardText);
+                                                                        setNodeInfoToIdle(clipboardText);
 
-                                                                        await fetchNodeInfoForAddress(index, clipboardText);
+                                                                        await fetchNodeInfoForAddress(clipboardText);
                                                                     } catch (error) {
                                                                         console.error('Failed to read clipboard:', error);
                                                                     }
