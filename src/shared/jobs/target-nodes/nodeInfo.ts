@@ -2,7 +2,7 @@ import { getNodeInfo } from '@lib/api/oracles';
 import { R1Address } from '@typedefs/blockchain';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export const NODE_ADDRESS_REGEX = /^0xai_[a-z0-9_-]+$/;
+export const NODE_ADDRESS_REGEX = /^0xai_[A-Za-z0-9_-]+$/;
 
 export type NodeInfoState = {
     status: 'idle' | 'loading' | 'loaded' | 'error';
