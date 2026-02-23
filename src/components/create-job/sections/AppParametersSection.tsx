@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@heroui/button';
 import { SelectItem } from '@heroui/select';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
@@ -11,7 +13,7 @@ import SelectWithLabel from '@shared/SelectWithLabel';
 import StyledSelect from '@shared/StyledSelect';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { RiCodeSSlashLine, RiRefreshLine } from 'react-icons/ri';
+import { RiCodeSSlashLine } from 'react-icons/ri';
 
 type TunnelGenerationResult = {
     token?: string;
