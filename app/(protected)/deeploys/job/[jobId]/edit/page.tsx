@@ -51,9 +51,7 @@ export default function EditJob() {
 
     const router = useRouter();
     const { jobId } = useParams<{ jobId?: string }>();
-    const { job, isLoading: isJobLoading } = useRunningJob(jobId, {
-        onError: () => router.replace('/404'),
-    });
+    const { job, isLoading: isJobLoading, status: jobStatus, error: jobError } = useRunningJob(jobId);
 
     const { data: walletClient } = useWalletClient();
     const publicClient = usePublicClient();
@@ -81,6 +79,12 @@ export default function EditJob() {
     useEffect(() => {
         setStep(0);
     }, []);
+
+    useEffect(() => {
+        if (jobStatus === 'missing') {
+            router.replace(routePath.notFound);
+        }
+    }, [jobStatus, router]);
 
     useEffect(() => {
         if (job) {
@@ -326,7 +330,21 @@ export default function EditJob() {
         return request;
     };
 
-    if (isJobLoading || !job) {
+    if (jobStatus === 'error') {
+        return (
+            <div className="center-all flex-1">
+                <DetailedAlert
+                    variant="red"
+                    icon={<RiAlertLine />}
+                    title="Unable to load job"
+                    description={<div>{jobError?.message || 'Failed to fetch running job details.'}</div>}
+                    isCompact
+                />
+            </div>
+        );
+    }
+
+    if (jobStatus === 'missing' || jobStatus === 'idle' || isJobLoading || !job) {
         return <EditJobPageLoading />;
     }
 

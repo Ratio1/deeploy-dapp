@@ -9,6 +9,7 @@ import SupportFooter from '@shared/SupportFooter';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import { useRunningJob } from '@lib/hooks/useRunningJob';
+import { routePath } from '@lib/routes/route-paths';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { RiAlertLine, RiArrowLeftLine } from 'react-icons/ri';
@@ -17,10 +18,14 @@ export default function ExtendJob() {
     const router = useRouter();
     const { hasEscrowPermission } = useDeploymentContext() as DeploymentContextType;
     const { jobId } = useParams<{ jobId?: string }>();
-    const { job, isLoading } = useRunningJob(jobId, {
-        onError: () => router.replace('/404'),
-    });
+    const { job, isLoading, status, error } = useRunningJob(jobId);
     const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
+
+    useEffect(() => {
+        if (status === 'missing') {
+            router.replace(routePath.notFound);
+        }
+    }, [router, status]);
 
     useEffect(() => {
         if (job) {
@@ -28,7 +33,21 @@ export default function ExtendJob() {
         }
     }, [job]);
 
-    if (isLoading || !job) {
+    if (status === 'error') {
+        return (
+            <div className="center-all flex-1">
+                <DetailedAlert
+                    variant="red"
+                    icon={<RiAlertLine />}
+                    title="Unable to load job"
+                    description={<div>{error?.message || 'Failed to fetch running job details.'}</div>}
+                    isCompact
+                />
+            </div>
+        );
+    }
+
+    if (status === 'missing' || status === 'idle' || isLoading || !job) {
         return <ExtendJobPageLoading />;
     }
 
