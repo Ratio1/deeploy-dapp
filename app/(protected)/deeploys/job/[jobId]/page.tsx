@@ -12,6 +12,7 @@ import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deplo
 import { useRunningJob } from '@lib/hooks/useRunningJob';
 import { routePath } from '@lib/routes/route-paths';
 import ActionButton from '@shared/ActionButton';
+import { DetailedAlert } from '@shared/DetailedAlert';
 import JobActions from '@shared/jobs/JobActions';
 import RefreshRequiredAlert from '@shared/jobs/RefreshRequiredAlert';
 import SupportFooter from '@shared/SupportFooter';
@@ -20,19 +21,23 @@ import { uniq } from 'lodash';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { RiArrowLeftLine, RiCloseFill } from 'react-icons/ri';
+import { RiAlertLine, RiArrowLeftLine, RiCloseFill } from 'react-icons/ri';
 
 export default function Job() {
     const { fetchApps } = useDeploymentContext() as DeploymentContextType;
     const router = useRouter();
     const { jobId } = useParams<{ jobId?: string }>();
 
-    const { job, isLoading, fetchJob } = useRunningJob(jobId, {
-        onError: () => router.replace(routePath.notFound),
-    });
+    const { job, isLoading, fetchJob, status, error } = useRunningJob(jobId);
     const [jobTypeOption, setJobTypeOption] = useState<JobTypeOption | undefined>();
 
     const [updatingServerAliases, setUpdatingServerAliases] = useState<string[] | undefined>();
+
+    useEffect(() => {
+        if (status === 'missing') {
+            router.replace(routePath.notFound);
+        }
+    }, [router, status]);
 
     useEffect(() => {
         if (!jobId) return;
@@ -58,7 +63,21 @@ export default function Job() {
         }
     }, [job]);
 
-    if (isLoading || !job) {
+    if (status === 'error') {
+        return (
+            <div className="center-all flex-1">
+                <DetailedAlert
+                    variant="red"
+                    icon={<RiAlertLine />}
+                    title="Unable to load job"
+                    description={<div>{error?.message || 'Failed to fetch running job details.'}</div>}
+                    isCompact
+                />
+            </div>
+        );
+    }
+
+    if (status === 'missing' || status === 'idle' || isLoading || !job) {
         return <JobPageLoading />;
     }
 

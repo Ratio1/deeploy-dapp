@@ -20,6 +20,7 @@ export default function ProjectDraft() {
     const router = useRouter();
     const { projectHash } = useParams<{ projectHash?: string }>();
     const hasAutoOpenedRecoveredPrefillRef = useRef(false);
+    const suppressMissingProjectRedirectRef = useRef(false);
 
     const project: DraftProject | undefined | null = useLiveQuery(
         isValidProjectHash(projectHash) ? () => db.projects.get(projectHash) : () => undefined,
@@ -52,10 +53,15 @@ export default function ProjectDraft() {
     }, [pendingRecoveredJobPrefill, projectHash, setJobType, setProjectPage, setStep]);
 
     useEffect(() => {
-        if (project === undefined) {
-            router.push(routePath.notFound);
+        if (!isValidProjectHash(projectHash)) {
+            router.replace(routePath.notFound);
+            return;
         }
-    }, [project, router]);
+
+        if (project === undefined && !suppressMissingProjectRedirectRef.current) {
+            router.replace(`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`);
+        }
+    }, [project, projectHash, router]);
 
     if (project === null) {
         return <></>;
@@ -75,13 +81,21 @@ export default function ProjectDraft() {
                     projectName={project.name}
                     jobs={draftJobs}
                     callback={(items) => {
+                        suppressMissingProjectRedirectRef.current = true;
                         sessionStorage.setItem('successfulJobs', JSON.stringify(items));
-                        router.push(`${routePath.deeploys}/${routePath.dashboard}?tab=running`);
+                        router.replace(`${routePath.deeploys}/${routePath.dashboard}?tab=running`);
                     }}
                     projectIdentity={getProjectIdentity()}
                 />
             ) : (
-                <DraftOverview project={project} draftJobs={draftJobs} projectIdentity={getProjectIdentity()} />
+                <DraftOverview
+                    project={project}
+                    draftJobs={draftJobs}
+                    projectIdentity={getProjectIdentity()}
+                    onBeforeDeleteProject={() => {
+                        suppressMissingProjectRedirectRef.current = true;
+                    }}
+                />
             )}
         </>
     ) : (

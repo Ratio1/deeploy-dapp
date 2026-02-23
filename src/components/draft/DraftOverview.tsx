@@ -21,10 +21,12 @@ export default function DraftOverview({
     project,
     draftJobs,
     projectIdentity,
+    onBeforeDeleteProject,
 }: {
     project: DraftProject;
     draftJobs: DraftJob[] | undefined;
     projectIdentity: React.ReactNode;
+    onBeforeDeleteProject?: () => void;
 }) {
     const { confirm } = useInteractionContext() as InteractionContextType;
     const router = useRouter();
@@ -37,9 +39,10 @@ export default function DraftOverview({
                 return;
             }
 
+            onBeforeDeleteProject?.();
             await db.projects.delete(project.projectHash);
             toast.success('Project draft deleted successfully.');
-            router.push(`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`);
+            router.replace(`${routePath.deeploys}/${routePath.dashboard}?tab=drafts`);
         } catch (error) {
             console.error('Error deleting project draft:', error);
             toast.error('Failed to delete project draft.');
