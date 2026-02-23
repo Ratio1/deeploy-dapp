@@ -13,6 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthenticationContextType, useAuthenticationContext } from '@lib/contexts/authentication';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { KYB_TAG } from '@lib/deeploy-utils';
+import useUnsavedChangesGuard from '@lib/hooks/useUnsavedChangesGuard';
 import { MAIN_STEPS, Step, STEPS } from '@lib/steps/steps';
 import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
@@ -156,6 +157,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         mode: 'onTouched',
         defaultValues: getDefaultSchemaValues(),
     });
+    const { runWithGuard } = useUnsavedChangesGuard({ isDirty: form.formState.isDirty });
 
     const mergeDefaults = (defaults: Record<string, any>, prefillDefaults?: Record<string, any>) => {
         if (!prefillDefaults) {
@@ -290,19 +292,27 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         return STEPS[steps[step]].component;
     }, [step, steps]);
 
+    const handleCancel = () => {
+        runWithGuard(() => {
+            clearPendingRecoveredJobPrefill();
+            setJobType(undefined);
+        });
+    };
+
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit, onError)} key={jobType || 'no-type'}>
                 <div className="w-full flex-1">
                     <div className="mx-auto max-w-[626px]">
                         <div className="col gap-6">
-                            <JobFormHeader steps={steps.map((step) => STEPS[step].title)} />
+                            <JobFormHeader steps={steps.map((step) => STEPS[step].title)} onCancel={handleCancel} />
 
                             <ActiveStep />
 
                             <JobFormButtons
                                 steps={steps.map((step) => STEPS[step])}
                                 cancelLabel="Project"
+                                onCancel={handleCancel}
                                 disableNextStep={jobType === JobType.Service && step === 0 && !form.watch('serviceId')}
                             />
                         </div>
