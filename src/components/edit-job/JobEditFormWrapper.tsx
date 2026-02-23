@@ -28,7 +28,7 @@ import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
 import { BasePluginType, CustomParameterEntry, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import _ from 'lodash';
 import { JSX, useEffect, useMemo, useRef, useState } from 'react';
-import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
+import { FieldErrors, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import z from 'zod';
@@ -47,11 +47,13 @@ export default function JobEditFormWrapper({
     onSubmit,
     isLoading,
     setLoading,
+    onDirtyStateChange,
 }: {
     job: RunningJobWithResources;
     onSubmit: (data: z.infer<typeof jobSchema>) => Promise<void>;
     isLoading: boolean;
     setLoading: (isLoading: boolean) => void;
+    onDirtyStateChange?: (isDirty: boolean) => void;
 }) {
     const { step } = useDeploymentContext() as DeploymentContextType;
     const router = useRouter();
@@ -327,8 +329,17 @@ export default function JobEditFormWrapper({
         mode: 'onTouched',
         defaultValues,
     });
+    const watchedValues = useWatch({ control: form.control });
+    const [baselineValues, setBaselineValues] = useState<z.infer<typeof jobSchema> | null>(null);
+    const hasUnsavedChanges = useMemo(() => {
+        if (!baselineValues) {
+            return form.formState.isDirty;
+        }
+
+        return !_.isEqual(watchedValues, baselineValues);
+    }, [baselineValues, form.formState.isDirty, watchedValues]);
     const { confirmNavigation } = useUnsavedChangesGuard({
-        isDirty: form.formState.isDirty,
+        isDirty: hasUnsavedChanges,
         isSubmitting: form.formState.isSubmitting || isLoading,
     });
 
@@ -337,10 +348,15 @@ export default function JobEditFormWrapper({
         const defaults = getDefaultSchemaValues() as z.infer<typeof jobSchema>;
         setDefaultValues(defaults);
         form.reset(defaults);
+        setBaselineValues(defaults);
 
         setTargetNodesCountLower(false);
         setAdditionalCost(0n);
     }, [form]);
+
+    useEffect(() => {
+        onDirtyStateChange?.(hasUnsavedChanges);
+    }, [hasUnsavedChanges, onDirtyStateChange]);
 
     useEffect(() => {
         if (step !== 0 && isTargetNodesCountLower) {

@@ -11,6 +11,7 @@ import { scaleUpJobWorkers, updatePipeline } from '@lib/api/deeploy';
 import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import {
     buildDeeployMessage,
     formatContainerResources,
@@ -50,6 +51,7 @@ export default function EditJob() {
         useDeploymentContext() as DeploymentContextType;
 
     const router = useRouter();
+    const { confirm } = useInteractionContext() as InteractionContextType;
     const { jobId } = useParams<{ jobId?: string }>();
     const { job, isLoading: isJobLoading } = useRunningJob(jobId, {
         onError: () => router.replace('/404'),
@@ -68,6 +70,7 @@ export default function EditJob() {
     }>(null);
 
     const [isSubmitting, setSubmitting] = useState<boolean>(false);
+    const [isFormDirty, setFormDirty] = useState<boolean>(false);
 
     const [errors, setErrors] = useState<{ text: string; serverAlias: string }[]>([]);
 
@@ -76,6 +79,20 @@ export default function EditJob() {
         'signXMessages',
         'callDeeployApi',
     ]);
+
+    const handleCancel = async () => {
+        if (isFormDirty && !isSubmitting) {
+            const confirmed = await confirm('You have unsaved changes. Are you sure you want to leave this page?', {
+                confirmButtonClassNames: 'bg-slate-900',
+            });
+
+            if (!confirmed) {
+                return;
+            }
+        }
+
+        router.back();
+    };
 
     // Init
     useEffect(() => {
@@ -352,7 +369,7 @@ export default function EditJob() {
                     <JobBreadcrumbs job={job} jobTypeOption={jobTypeOption} />
 
                     <div className="row gap-2">
-                        <ActionButton className="slate-button" color="default" onPress={() => router.back()}>
+                        <ActionButton className="slate-button" color="default" onPress={() => void handleCancel()}>
                             <div className="row gap-1.5">
                                 <RiArrowLeftLine className="text-lg" />
                                 <div className="compact">Cancel</div>
@@ -366,7 +383,13 @@ export default function EditJob() {
                     <DeeployErrors type="update" errors={errors} />
 
                     {/* Form */}
-                    <JobEditFormWrapper job={job} onSubmit={onSubmit} isLoading={isSubmitting} setLoading={setSubmitting} />
+                    <JobEditFormWrapper
+                        job={job}
+                        onSubmit={onSubmit}
+                        isLoading={isSubmitting}
+                        setLoading={setSubmitting}
+                        onDirtyStateChange={setFormDirty}
+                    />
                 </div>
             </div>
 

@@ -23,8 +23,8 @@ import { RecoveredJobPrefill } from '@typedefs/recoveredDraft';
 import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import _ from 'lodash';
 import { useParams } from 'next/navigation';
-import { useEffect, useMemo, useRef } from 'react';
-import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { FieldErrors, FormProvider, useForm, useWatch } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { z } from 'zod';
 
@@ -58,6 +58,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
     });
 
     const getBaseSchemaDefaults = () => ({
+        jobType,
         specifications: {
             // applicationType: APPLICATION_TYPES[0],
             targetNodesCount: jobType === JobType.Generic || jobType === JobType.Native ? 2 : 1, // Generic and Native jobs always have a minimal balancing of 2 nodes, Services are locked to 1 node
@@ -157,8 +158,17 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         mode: 'onTouched',
         defaultValues: getDefaultSchemaValues(),
     });
+    const watchedValues = useWatch({ control: form.control });
+    const [baselineValues, setBaselineValues] = useState<z.infer<typeof jobSchema> | null>(null);
+    const hasUnsavedChanges = useMemo(() => {
+        if (!baselineValues) {
+            return form.formState.isDirty;
+        }
+
+        return !_.isEqual(watchedValues, baselineValues);
+    }, [baselineValues, form.formState.isDirty, watchedValues]);
     const { confirmNavigation } = useUnsavedChangesGuard({
-        isDirty: form.formState.isDirty,
+        isDirty: hasUnsavedChanges,
         isSubmitting: form.formState.isSubmitting,
     });
 
@@ -224,6 +234,8 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         if (form && !recoveredPrefill?.formValues?.deployment?.jobAlias) {
             setDefaultJobAlias(jobType);
         }
+
+        setBaselineValues(form.getValues());
 
         if (recoveredPrefill) {
             clearPendingRecoveredJobPrefill();
