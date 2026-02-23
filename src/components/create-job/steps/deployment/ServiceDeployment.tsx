@@ -11,6 +11,7 @@ import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { stripToAlphanumeric } from '@lib/utils';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
+import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import ServiceInputsSection from '@shared/jobs/ServiceInputsSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import PortMappingSection from '@shared/PortMappingSection';

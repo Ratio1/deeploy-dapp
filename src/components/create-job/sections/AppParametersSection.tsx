@@ -201,9 +201,7 @@ export default function AppParametersSection({
                         )}
                     </div>
 
-                    {disableTunneling && tunnelingDisabledNote && (
-                        <DeeployInfoTag text={tunnelingDisabledNote} />
-                    )}
+                    {disableTunneling && tunnelingDisabledNote && <DeeployInfoTag text={tunnelingDisabledNote} />}
                 </div>
             )}
 
@@ -253,9 +251,7 @@ export default function AppParametersSection({
                                             <SelectItem key={tunnel.id} textValue={`${tunnel.alias} | ${tunnel.url}`}>
                                                 <div className="row items-center gap-2 py-1">
                                                     <div className="font-medium">{tunnel.alias}</div>
-                                                    <div className="font-roboto-mono text-xs text-slate-500">
-                                                        {tunnel.url}
-                                                    </div>
+                                                    <div className="font-roboto-mono text-xs text-slate-500">{tunnel.url}</div>
                                                 </div>
                                             </SelectItem>
                                         ))}
