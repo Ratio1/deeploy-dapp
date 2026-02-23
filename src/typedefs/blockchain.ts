@@ -1,6 +1,6 @@
 import { KycStatus } from './profile';
 
-type R1Address = `0xai${string}`;
+type R1Address = `0xai_${string}`;
 type EthAddress = `0x${string}`;
 
 type OraclesAvailabilityResult = {

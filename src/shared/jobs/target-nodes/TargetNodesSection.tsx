@@ -2,21 +2,29 @@ import { TARGET_NODES_REQUIRED_ERROR } from '@schemas/index';
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiAddLine, RiClipboardLine } from 'react-icons/ri';
+import { toast } from 'react-hot-toast';
+import NodeInfoStatusPopover from './NodeInfoStatusPopover';
 import DeeployInfoTag from '../DeeployInfoTag';
 import VariableSectionIndex from '../VariableSectionIndex';
+import { useNodeInfoLookupByAddress, usePrefetchNodeInfoOnRender } from './nodeInfo';
 
 // This component assumes it's being used in the deployment step
 export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean }) {
     const { control, watch, formState, trigger, setValue } = useFormContext();
+    const { getNodeInfoState, setNodeInfoToIdle, fetchNodeInfoForAddress } = useNodeInfoLookupByAddress();
+
     const { fields, append } = useFieldArray({
         control,
         name: 'deployment.targetNodes',
     });
 
     const targetNodesCount: number = watch('specifications.targetNodesCount');
+    const targetNodes: Array<{ address?: string | null }> = watch('deployment.targetNodes');
 
     // Get array-level errors
     const errors = (formState.errors.deployment as any)?.targetNodes;
+
+    usePrefetchNodeInfoOnRender(targetNodes, getNodeInfoState, fetchNodeInfoForAddress);
 
     return (
         <div className="col gap-4" key={fields.length}>
@@ -52,6 +60,9 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                                             const specificError = entryError?.address?.message;
                                             const fieldError = fieldState.error?.message;
                                             const rootError = errors?.root?.message || errors?.message;
+                                            const value = String(field.value ?? '');
+                                            const nodeInfoState = getNodeInfoState(value);
+                                            const normalizedValue = value.trim();
 
                                             const isEmpty = !field.value || String(field.value).trim() === '';
                                             const hasRootError =
@@ -61,35 +72,54 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
 
                                             return (
                                                 <StyledInput
-                                                    placeholder="0x_ai"
-                                                    value={field.value ?? ''}
+                                                    placeholder="0xai_"
+                                                    value={value}
                                                     onChange={(e) => {
-                                                        field.onChange(e.target.value);
+                                                        const nextValue = e.target.value;
+                                                        field.onChange(nextValue);
+                                                        setNodeInfoToIdle(nextValue);
                                                     }}
                                                     onBlur={async () => {
                                                         field.onBlur();
                                                         await trigger('deployment.targetNodes');
+                                                        await fetchNodeInfoForAddress(value);
                                                     }}
                                                     isInvalid={hasError}
                                                     errorMessage={specificError || fieldError || rootError}
                                                     endContent={
-                                                        <div
-                                                            className="cursor-pointer hover:opacity-60"
-                                                            onClick={async () => {
-                                                                try {
-                                                                    const clipboardText = await navigator.clipboard.readText();
-                                                                    field.onChange(clipboardText);
+                                                        <div className="flex items-center gap-2">
+                                                            <NodeInfoStatusPopover
+                                                                nodeInfoState={nodeInfoState}
+                                                                normalizedValue={normalizedValue}
+                                                                ariaLabel="Show node info"
+                                                            />
 
-                                                                    setValue(
-                                                                        `deployment.targetNodes.${index}.address`,
-                                                                        clipboardText,
-                                                                    );
-                                                                } catch (error) {
-                                                                    console.error('Failed to read clipboard:', error);
-                                                                }
-                                                            }}
-                                                        >
-                                                            <RiClipboardLine className="text-lg text-slate-600" />
+                                                            <button
+                                                                type="button"
+                                                                className="cursor-pointer hover:opacity-60"
+                                                                aria-label="Paste target node address from clipboard"
+                                                                onClick={async () => {
+                                                                    try {
+                                                                        const clipboardText = await navigator.clipboard.readText();
+                                                                        field.onChange(clipboardText);
+
+                                                                        setValue(
+                                                                            `deployment.targetNodes.${index}.address`,
+                                                                            clipboardText,
+                                                                        );
+                                                                        setNodeInfoToIdle(clipboardText);
+
+                                                                        await fetchNodeInfoForAddress(clipboardText);
+                                                                    } catch (error) {
+                                                                        console.error('Failed to read clipboard:', error);
+                                                                        toast.error(
+                                                                            'Unable to read from clipboard. Please paste the address manually.',
+                                                                        );
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <RiClipboardLine className="text-lg text-slate-600" />
+                                                            </button>
                                                         </div>
                                                     }
                                                 />
