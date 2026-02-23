@@ -4,28 +4,47 @@ import axios from 'axios';
 import * as types from '@typedefs/blockchain';
 
 const oraclesUrl = config.oraclesUrl;
+type NodeAddress = types.EthAddress | types.R1Address;
 
 // *****
 // GET
 // *****
 
-export const getNodeEpochs = (nodeAddress: types.EthAddress) =>
-    _doGet<types.OraclesAvailabilityResult>(`/node_epochs?eth_node_addr=${nodeAddress}`);
+export const getNodeEpochs = (nodeAddress: NodeAddress) =>
+    _doGet<types.OraclesAvailabilityResult>(`/node_epochs?${getNodeAddressQuery(nodeAddress)}`);
 
-export const getNodeEpochsRange = (nodeAddress: types.EthAddress, startEpoch: number, endEpoch: number) =>
+export const getNodeEpochsRange = (nodeAddress: NodeAddress, startEpoch: number, endEpoch: number) =>
     _doGet<types.OraclesAvailabilityResult>(
-        `/node_epochs_range?eth_node_addr=${nodeAddress}&start_epoch=${startEpoch}&end_epoch=${endEpoch}`,
+        `/node_epochs_range?${getNodeAddressQuery(nodeAddress)}&start_epoch=${startEpoch}&end_epoch=${endEpoch}`,
     );
 
-export const getNodeLastEpoch = (nodeAddress: types.EthAddress) =>
-    _doGet<types.OraclesAvailabilityResult>(`/node_last_epoch?eth_node_addr=${nodeAddress}`);
+export const getNodeLastEpoch = (nodeAddress: NodeAddress) =>
+    _doGet<types.OraclesAvailabilityResult>(`/node_last_epoch?${getNodeAddressQuery(nodeAddress)}`);
 
 export const getNodeInfo = (
-    nodeAddress: types.EthAddress,
+    nodeAddress: NodeAddress,
 ): Promise<{
-    node_alias: string;
-    node_is_online: boolean;
-}> => getNodeLastEpoch(nodeAddress).then(({ node_alias, node_is_online }) => ({ node_alias, node_is_online }));
+    node_alias: string | null;
+    node_is_online: boolean | null;
+    node_is_recognized: boolean;
+}> =>
+    getNodeLastEpoch(nodeAddress).then((result) => {
+        if (typeof (result as types.OraclesAvailabilityResult).node_is_online !== 'boolean') {
+            return {
+                node_alias: null,
+                node_is_online: null,
+                node_is_recognized: false,
+            };
+        }
+
+        const { node_alias, node_is_online } = result as types.OraclesAvailabilityResult;
+
+        return {
+            node_alias: node_alias || null,
+            node_is_online,
+            node_is_recognized: true,
+        };
+    });
 
 export const getMultiNodeEpochsRange = (nodesWithRanges: Record<types.EthAddress, [number, number]>) => {
     return _doPost<types.OraclesDefaultResult & Record<types.EthAddress, types.OraclesAvailabilityResult>>(
@@ -39,6 +58,11 @@ export const getMultiNodeEpochsRange = (nodesWithRanges: Record<types.EthAddress
 // *****
 // INTERNAL HELPERS
 // *****
+
+const getNodeAddressQuery = (nodeAddress: NodeAddress) => {
+    const queryKey = nodeAddress.startsWith('0xai_') ? 'node_addr' : 'eth_node_addr';
+    return `${queryKey}=${encodeURIComponent(nodeAddress)}`;
+};
 
 async function _doGet<T>(endpoint: string) {
     const { data } = await axiosInstance.get<{
