@@ -18,6 +18,7 @@ import {
     NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS,
     titlecase,
 } from '@lib/deeploy-utils';
+import { useUnsavedChangesGuard } from '@lib/hooks/useUnsavedChangesGuard';
 import { Step, STEPS } from '@lib/steps/steps';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
@@ -326,6 +327,10 @@ export default function JobEditFormWrapper({
         mode: 'onTouched',
         defaultValues,
     });
+    const { confirmNavigation } = useUnsavedChangesGuard({
+        isDirty: form.formState.isDirty,
+        isSubmitting: form.formState.isSubmitting || isLoading,
+    });
 
     // Reset form
     useEffect(() => {
@@ -391,6 +396,12 @@ export default function JobEditFormWrapper({
         [activeStep, stepRenderers],
     );
 
+    const handleCancel = () => {
+        void confirmNavigation(() => {
+            router.back();
+        });
+    };
+
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit, onError)} key={`${job.resources.jobType}-edit`}>
@@ -399,9 +410,7 @@ export default function JobEditFormWrapper({
                         <div className="col gap-6">
                             <JobFormHeaderInterface
                                 steps={steps.map((step) => STEPS[step].title)}
-                                onCancel={() => {
-                                    router.back();
-                                }}
+                                onCancel={handleCancel}
                             >
                                 <div className="big-title">Edit Job</div>
                             </JobFormHeaderInterface>
@@ -411,9 +420,7 @@ export default function JobEditFormWrapper({
                             <JobFormButtons
                                 steps={steps.map((step) => STEPS[step])}
                                 cancelLabel="Job"
-                                onCancel={() => {
-                                    router.back();
-                                }}
+                                onCancel={handleCancel}
                                 customSubmitButton={
                                     <div className="center-all gap-2">
                                         <PayButtonWithAllowance
