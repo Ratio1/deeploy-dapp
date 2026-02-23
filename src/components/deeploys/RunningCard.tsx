@@ -25,8 +25,6 @@ export default function RunningCard({
     expanded: boolean | undefined;
     toggle: () => void;
 }) {
-    const usageWarningThreshold = environment === 'devnet' ? 15 * 24 : 15;
-
     const getDaysLeftUntilNextPayment = (job: RunningJobWithDetails): any => {
         const epochsCovered = Math.floor(
             Number(job.balance / (job.pricePerEpoch * job.numberOfNodesRequested * (environment === 'devnet' ? 24n : 1n))),
@@ -195,7 +193,6 @@ export default function RunningCard({
                                             used={Math.max(diffTimeFn(new Date(), requestDate), 1)}
                                             total={diffTimeFn(expirationDate, requestDate) + 1}
                                             isColored
-                                            warningThreshold={usageWarningThreshold}
                                         />
                                     </div>
                                 </div>
