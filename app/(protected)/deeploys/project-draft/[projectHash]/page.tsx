@@ -53,6 +53,14 @@ export default function ProjectDraft() {
     }, [pendingRecoveredJobPrefill, projectHash, setJobType, setProjectPage, setStep]);
 
     useEffect(() => {
+        suppressMissingProjectRedirectRef.current = false;
+
+        return () => {
+            suppressMissingProjectRedirectRef.current = false;
+        };
+    }, [projectHash]);
+
+    useEffect(() => {
         if (!isValidProjectHash(projectHash)) {
             router.replace(routePath.notFound);
             return;
@@ -94,6 +102,9 @@ export default function ProjectDraft() {
                     projectIdentity={getProjectIdentity()}
                     onBeforeDeleteProject={() => {
                         suppressMissingProjectRedirectRef.current = true;
+                    }}
+                    onDeleteProjectFailed={() => {
+                        suppressMissingProjectRedirectRef.current = false;
                     }}
                 />
             )}
