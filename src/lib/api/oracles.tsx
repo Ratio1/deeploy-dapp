@@ -77,7 +77,7 @@ async function _doGet<T>(endpoint: string, options?: RequestOptions) {
             | T
         ) &
             types.OraclesDefaultResult;
-        node_addr: `0xai${string}`;
+        node_addr: `0xai_${string}`;
     }>(endpoint, {
         signal: options?.signal,
     });
@@ -100,7 +100,7 @@ async function _doPost<T>(endpoint: string, body: any) {
                   }
                 | T
             );
-        node_addr: `0xai${string}`;
+        node_addr: `0xai_${string}`;
     }>(endpoint, body);
     if ('error' in data.result) {
         throw new Error(data.result.error);
