@@ -225,12 +225,41 @@ export default function AppParametersSection({
             {enableTunneling === BOOLEAN_TYPES[0] && (
                 <div className="col gap-4">
                     {shouldShowTunnelAlternatives && (
-                        <div className="col gap-2">
-                            <div className="row justify-end">
+                        <div className="col w-full gap-1.5">
+                            <Label value="Select Tunnel" />
+
+                            <div className="row items-end gap-2">
+                                <StyledSelect
+                                    items={tunnelSelectOptions}
+                                    selectedKeys={[selectedTunnelId]}
+                                    onSelectionChange={(keys) => {
+                                        const selectedKey = Array.from(keys)[0] as string;
+                                        selectExistingTunnel(selectedKey);
+                                    }}
+                                    placeholder={isFetchingTunnels ? 'Loading tunnels...' : 'Select an existing tunnel'}
+                                    isDisabled={isFetchingTunnels}
+                                >
+                                    {(option: object) => {
+                                        const tunnel = option as TunnelSelectOption;
+
+                                        return (
+                                            <SelectItem
+                                                key={tunnel.id}
+                                                textValue={tunnel.isCustom ? tunnel.alias : `${tunnel.alias} | ${tunnel.url}`}
+                                            >
+                                                <div className="row items-center gap-2 py-1">
+                                                    <div className="font-medium">{tunnel.alias}</div>
+                                                    <div className="font-roboto-mono text-xs text-slate-500">{tunnel.url}</div>
+                                                </div>
+                                            </SelectItem>
+                                        );
+                                    }}
+                                </StyledSelect>
+
                                 <Button
-                                    className="h-[34px]"
+                                    className="h-[38px] rounded-lg"
                                     color="primary"
-                                    size="sm"
+                                    size="lg"
                                     onPress={handleGenerateTunnel}
                                     isLoading={isCreatingTunnel}
                                     isDisabled={isTunnelGenerationDisabled || !tunnelingSecrets}
@@ -240,55 +269,6 @@ export default function AppParametersSection({
                                         <div className="compact">Generate Tunnel</div>
                                     </div>
                                 </Button>
-                            </div>
-
-                            <div className="row items-end gap-2">
-                                <div className="col w-full gap-1.5">
-                                    <Label value="Select Existing Tunnel" />
-                                    <StyledSelect
-                                        items={tunnelSelectOptions}
-                                        selectedKeys={[selectedTunnelId]}
-                                        onSelectionChange={(keys) => {
-                                            const selectedKey = Array.from(keys)[0] as string;
-                                            selectExistingTunnel(selectedKey);
-                                        }}
-                                        placeholder={isFetchingTunnels ? 'Loading tunnels...' : 'Select an existing tunnel'}
-                                        isDisabled={isFetchingTunnels}
-                                    >
-                                        {(option: object) => {
-                                            const tunnel = option as TunnelSelectOption;
-
-                                            return (
-                                                <SelectItem
-                                                    key={tunnel.id}
-                                                    textValue={
-                                                        tunnel.isCustom ? tunnel.alias : `${tunnel.alias} | ${tunnel.url}`
-                                                    }
-                                                >
-                                                    <div className="row items-center gap-2 py-1">
-                                                        <div className="font-medium">{tunnel.alias}</div>
-                                                        <div className="font-roboto-mono text-xs text-slate-500">
-                                                            {tunnel.url}
-                                                        </div>
-                                                    </div>
-                                                </SelectItem>
-                                            );
-                                        }}
-                                    </StyledSelect>
-                                </div>
-
-                                {tunnelingSecrets && (
-                                    <Button
-                                        className="h-10 min-w-10 px-2 text-slate-500"
-                                        color="default"
-                                        variant="light"
-                                        onPress={() => fetchExistingTunnels()}
-                                        isDisabled={isFetchingTunnels}
-                                        isIconOnly
-                                    >
-                                        <RiRefreshLine className={isFetchingTunnels ? 'animate-spin' : ''} />
-                                    </Button>
-                                )}
                             </div>
 
                             {!tunnelingSecrets && (
