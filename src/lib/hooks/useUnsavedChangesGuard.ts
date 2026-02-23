@@ -1,5 +1,6 @@
 'use client';
 
+import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef } from 'react';
 
@@ -11,24 +12,34 @@ interface UseUnsavedChangesGuardProps {
 }
 
 export default function useUnsavedChangesGuard({ isDirty, message = DEFAULT_MESSAGE }: UseUnsavedChangesGuardProps) {
+    const { confirm } = (useInteractionContext() as InteractionContextType | null) ?? {};
     const router = useRouter();
     const isRevertingHistoryRef = useRef(false);
+    const routerRef = useRef(router);
 
-    const confirmNavigation = useCallback(() => {
+    useEffect(() => {
+        routerRef.current = router;
+    }, [router]);
+
+    const confirmNavigation = useCallback(async () => {
         if (!isDirty) {
             return true;
         }
 
+        if (confirm) {
+            return await confirm(message, { confirmButtonClassNames: 'bg-primary' });
+        }
+
         return window.confirm(message);
-    }, [isDirty, message]);
+    }, [confirm, isDirty, message]);
 
     const runWithGuard = useCallback(
-        (navigationAction: () => void) => {
-            if (!confirmNavigation()) {
+        async (navigationAction: () => void | Promise<void>) => {
+            if (!(await confirmNavigation())) {
                 return false;
             }
 
-            navigationAction();
+            await navigationAction();
             return true;
         },
         [confirmNavigation],
@@ -87,11 +98,13 @@ export default function useUnsavedChangesGuard({ isDirty, message = DEFAULT_MESS
 
             event.preventDefault();
 
-            if (!window.confirm(message)) {
-                return;
-            }
+            void (async () => {
+                if (!(await confirmNavigation())) {
+                    return;
+                }
 
-            router.push(nextPath);
+                routerRef.current.push(nextPath);
+            })();
         };
 
         const handlePopState = () => {
@@ -100,12 +113,17 @@ export default function useUnsavedChangesGuard({ isDirty, message = DEFAULT_MESS
                 return;
             }
 
-            if (window.confirm(message)) {
-                return;
-            }
-
             isRevertingHistoryRef.current = true;
             window.history.go(1);
+
+            void (async () => {
+                if (await confirmNavigation()) {
+                    window.history.back();
+                    return;
+                }
+
+                isRevertingHistoryRef.current = false;
+            })();
         };
 
         window.addEventListener('beforeunload', handleBeforeUnload);
@@ -117,7 +135,7 @@ export default function useUnsavedChangesGuard({ isDirty, message = DEFAULT_MESS
             document.removeEventListener('click', handleDocumentClick, true);
             window.removeEventListener('popstate', handlePopState);
         };
-    }, [isDirty, message, router]);
+    }, [confirmNavigation, isDirty]);
 
     return { confirmNavigation, runWithGuard };
 }

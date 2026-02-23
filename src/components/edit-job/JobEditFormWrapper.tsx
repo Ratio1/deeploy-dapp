@@ -350,10 +350,6 @@ export default function JobEditFormWrapper({
 
     useEffect(() => {
         onDirtyChange?.(isDirty);
-
-        return () => {
-            onDirtyChange?.(false);
-        };
     }, [isDirty, onDirtyChange]);
 
     const onError = (errors: FieldErrors<z.infer<typeof jobSchema>>) => {
