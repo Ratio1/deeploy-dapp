@@ -275,6 +275,10 @@ export default function AppParametersSection({
                                     </Button>
                                 )}
                             </div>
+
+                            {!tunnelingSecrets && (
+                                <DeeployInfoTag text="Please add your Cloudflare secrets to enable tunnel generation." />
+                            )}
                         </div>
                     )}
 
