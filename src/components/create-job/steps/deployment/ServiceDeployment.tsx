@@ -3,13 +3,11 @@
 import AppParametersSection from '@components/create-job/sections/AppParametersSection';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import services, { Service } from '@data/services';
-import { Button } from '@heroui/button';
 import { Checkbox } from '@heroui/checkbox';
 import { createTunnel } from '@lib/api/tunnels';
 import { DeploymentContextType } from '@lib/contexts/deployment/context';
 import { useDeploymentContext } from '@lib/contexts/deployment/hook';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
-import { routePath } from '@lib/routes/route-paths';
 import { stripToAlphanumeric } from '@lib/utils';
 import { SlateCard } from '@shared/cards/SlateCard';
 import InputWithLabel from '@shared/InputWithLabel';
@@ -17,12 +15,10 @@ import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import ServiceInputsSection from '@shared/jobs/ServiceInputsSection';
 import TargetNodesCard from '@shared/jobs/target-nodes/TargetNodesCard';
 import PortMappingSection from '@shared/PortMappingSection';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
-import { RiCodeSSlashLine } from 'react-icons/ri';
 
 function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     const { setFormSubmissionDisabled, getProjectName } = useDeploymentContext() as DeploymentContextType;
@@ -76,6 +72,7 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
         } else {
             setValue('deployment.tunnelingToken', undefined);
             setValue('deployment.tunnelingLabel', undefined);
+            setValue('tunnelURL', undefined);
             clearErrors('deployment.tunnelingToken');
             clearErrors('deployment.tunnelingLabel');
         }
@@ -83,7 +80,8 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
 
     const onGenerateTunnel = async () => {
         if (!tunnelingSecrets) {
-            throw new Error('No tunneling secrets found.');
+            toast.error('Missing Cloudflare secrets.');
+            return;
         }
 
         setFormSubmissionDisabled(true);
@@ -96,17 +94,20 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
             console.log('Creating tunnel', tunnelAlias, stripToAlphanumeric(service.name).toLowerCase());
             const response = await createTunnel(tunnelAlias, tunnelingSecrets, stripToAlphanumeric(service.name).toLowerCase());
 
-            if (!response.result.id) {
+            if (!response.result.id || !response.result.metadata?.tunnel_token) {
                 throw new Error('Failed to create tunnel.');
             }
 
             console.log('Tunnel created', response.result);
 
-            setValue('deployment.tunnelingToken', response.result.metadata.tunnel_token);
-            setValue('tunnelURL', response.result.metadata.dns_name);
+            return {
+                token: response.result.metadata.tunnel_token,
+                url: response.result.metadata.dns_name,
+            };
         } catch (error) {
             console.error(error);
             toast.error('Failed to create tunnel.');
+            return;
         } finally {
             setCreatingTunnel(false);
             setFormSubmissionDisabled(false);
@@ -128,26 +129,7 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
 
             <TargetNodesCard isEditingRunningJob={isEditingRunningJob} />
 
-            <SlateCard
-                title="Service Parameters"
-                label={
-                    isPublicService && (
-                        <Button
-                            className="h-[34px]"
-                            color="primary"
-                            size="sm"
-                            onPress={onGenerateTunnel}
-                            isLoading={isCreatingTunnel}
-                            isDisabled={!tunnelingSecrets || isEditingRunningJob}
-                        >
-                            <div className="row gap-1.5">
-                                <RiCodeSSlashLine className="text-base" />
-                                <div className="compact">Generate Tunnel</div>
-                            </div>
-                        </Button>
-                    )
-                }
-            >
+            <SlateCard title="Service Parameters">
                 <div className="col gap-4">
                     {!isEditingRunningJob && (
                         <Checkbox
@@ -158,26 +140,16 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
                         </Checkbox>
                     )}
 
-                    {isPublicService && !tunnelingSecrets && (
-                        <DeeployInfoTag
-                            text={
-                                <>
-                                    Please add your{' '}
-                                    <Link href={routePath.tunnels} className="text-primary font-medium hover:opacity-70">
-                                        Cloudflare secrets
-                                    </Link>{' '}
-                                    to enable tunnel generation.
-                                </>
-                            }
-                        />
-                    )}
-
                     {isPublicService ? (
                         <AppParametersSection
                             enablePort={false}
                             isCreatingTunnel={isCreatingTunnel}
                             enableTunnelingLabel={service.tunnelEngine === 'ngrok'}
                             forceTunnelingEnabled
+                            enableTunnelSelector
+                            onGenerateTunnel={onGenerateTunnel}
+                            isTunnelGenerationDisabled={!tunnelingSecrets || isEditingRunningJob}
+                            onTunnelUrlChange={(url) => setValue('tunnelURL', url)}
                         />
                     ) : (
                         <div className="col gap-2">
