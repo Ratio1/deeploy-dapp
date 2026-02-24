@@ -9,6 +9,20 @@ type RequestOptions = {
     signal?: AbortSignal;
 };
 
+type ActiveNodeEntry = {
+    alias?: string | null;
+    is_online?: boolean | null;
+};
+
+type ActiveNodesResult = types.OraclesDefaultResult & {
+    error?: string | null;
+    nodes: Record<types.R1Address, ActiveNodeEntry>;
+    nodes_total_items: number;
+    nodes_total_pages: number;
+    nodes_items_per_page: number;
+    nodes_page: number;
+};
+
 // *****
 // GET
 // *****
@@ -49,6 +63,38 @@ export const getNodeInfo = (
             node_is_recognized: true,
         };
     });
+
+export const getActiveNodes = async (
+    page: number = 1,
+    pageSize: number = 10,
+    aliasPattern?: string,
+    options?: RequestOptions,
+): Promise<ActiveNodesResult> => {
+    const searchParams = new URLSearchParams({
+        items_per_page: String(pageSize),
+        page: String(page),
+    });
+
+    const normalizedAliasPattern = aliasPattern?.trim();
+    if (normalizedAliasPattern) {
+        searchParams.set('alias_pattern', normalizedAliasPattern);
+    }
+
+    const response = await fetch(`${oraclesUrl}/active_nodes_list?${searchParams.toString()}`, {
+        signal: options?.signal,
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch active nodes.');
+    }
+
+    const payload: { result: ActiveNodesResult } = await response.json();
+    if (payload?.result?.error) {
+        throw new Error(payload.result.error);
+    }
+
+    return payload.result;
+};
 
 export const getMultiNodeEpochsRange = (nodesWithRanges: Record<types.EthAddress, [number, number]>) => {
     return _doPost<types.OraclesDefaultResult & Record<types.EthAddress, types.OraclesAvailabilityResult>>(
