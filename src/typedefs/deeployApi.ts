@@ -5,7 +5,6 @@ import { EthAddress, R1Address } from './blockchain';
 type Apps = {
     [jobId: string]: {
         job_id: number;
-        pipeline_cid: string | null;
         pipeline: Record<string, any> | null;
         online: OnlineApps;
         chain_job: ChainJob | null;
