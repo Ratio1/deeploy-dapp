@@ -8,7 +8,25 @@ type Apps = {
         pipeline_cid: string | null;
         pipeline: Record<string, any> | null;
         online: OnlineApps;
+        chain_job: ChainJob | null;
     };
+};
+
+type ChainJob = {
+    id: string; // bigint-like
+    projectHash: string;
+    requestTimestamp: string; // bigint-like
+    startTimestamp: string; // bigint-like
+    lastNodesChangeTimestamp: string; // bigint-like
+    jobType: string; // bigint-like
+    pricePerEpoch: string; // bigint-like
+    lastExecutionEpoch: string; // bigint-like
+    numberOfNodesRequested: string; // bigint-like
+    balance: string; // bigint-like signed
+    lastAllocatedEpoch: string; // bigint-like
+    activeNodes: EthAddress[];
+    network?: string;
+    escrowAddress?: EthAddress;
 };
 
 type OnlineApp = {
@@ -161,6 +179,7 @@ type DeeployDefaultResponse = {
 export type {
     Apps,
     AppsPlugin,
+    ChainJob,
     DeeployDefaultResponse,
     DeeploySpecs,
     GetAppsResponse,

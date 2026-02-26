@@ -2,7 +2,11 @@ import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { PoAIManagerAbi } from '@blockchain/PoAIManager';
 import { getApps } from '@lib/api/deeploy';
 import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
-import { getProjectNameFromGetApps, normalizeGetAppsToRunningJobsWithDetails } from '@lib/deeploy/normalizeGetApps';
+import {
+    getProjectNameFromGetApps,
+    getRunningJobsFromGetApps,
+    normalizeGetAppsToRunningJobsWithDetails,
+} from '@lib/deeploy/normalizeGetApps';
 import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import { ALL_DELEGATE_PERMISSIONS_MASK, DelegatePermissionKey, hasDelegatePermission } from '@lib/permissions/delegates';
 import { isZeroAddress } from '@lib/utils';
@@ -194,18 +198,9 @@ export const DeploymentProvider = ({ children }) => {
         runningJobs: readonly RunningJob[];
         runningJobsWithDetails: RunningJobWithDetails[];
     }> => {
-        if (!publicClient || !escrowContractAddress) {
-            toast.error('Please connect your wallet and refresh this page.');
-            throw new Error('Unable to fetch running jobs.');
-        }
-
-        const runningJobs: readonly RunningJob[] = await publicClient.readContract({
-            address: escrowContractAddress,
-            abi: CspEscrowAbi,
-            functionName: 'getActiveJobs',
-        });
-
-        const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(runningJobs, appsOverride);
+        const sourceApps = appsOverride ?? apps;
+        const runningJobs: readonly RunningJob[] = getRunningJobsFromGetApps(sourceApps);
+        const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(runningJobs, sourceApps);
         return { runningJobs, runningJobsWithDetails };
     };
 

@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { EthAddress, R1Address } from '@typedefs/blockchain';
-import { Apps, AppsPlugin, DeeploySpecs, JobConfig, OnlineApp, PipelineData } from '@typedefs/deeployApi';
+import { Apps, AppsPlugin, ChainJob, DeeploySpecs, JobConfig, OnlineApp, PipelineData } from '@typedefs/deeployApi';
 import { RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 
 type GenericRecord = Record<string, any>;
@@ -53,6 +53,34 @@ const toNumberValue = (value: unknown, fallback = 0): number => {
     return fallback;
 };
 
+const toBigIntValue = (value: unknown, fallback = 0n): bigint => {
+    if (typeof value === 'bigint') {
+        return value;
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        try {
+            return BigInt(Math.trunc(value));
+        } catch {
+            return fallback;
+        }
+    }
+
+    if (typeof value === 'string') {
+        const normalized = value.trim();
+        if (!normalized) {
+            return fallback;
+        }
+        try {
+            return BigInt(normalized);
+        } catch {
+            return fallback;
+        }
+    }
+
+    return fallback;
+};
+
 const toBooleanValue = (value: unknown, fallback = false): boolean => {
     if (typeof value === 'boolean') {
         return value;
@@ -89,6 +117,69 @@ const getPipelineSpecs = (pipeline: GenericRecord): GenericRecord => {
             getKey<GenericRecord>(pipeline, 'deeploy_specs') ??
             getKey<GenericRecord>(pipeline, 'deeploySpecs'),
     );
+};
+
+const buildRunningJobFromChainJob = (entry: Apps[string], fallbackJobId?: string): RunningJob | null => {
+    const chainJob = (entry?.chain_job ?? null) as ChainJob | null;
+    if (!chainJob) {
+        return null;
+    }
+
+    const jobIdFromEntry = toBigIntValue(entry?.job_id, fallbackJobId ? toBigIntValue(fallbackJobId, 0n) : 0n);
+    const id = toBigIntValue(chainJob.id, jobIdFromEntry);
+    const pipeline = toObject(entry?.pipeline);
+    const specs = getPipelineSpecs(pipeline);
+    const projectHash = toStringValue(chainJob.projectHash) || toStringValue(getKey(specs, 'project_id'));
+
+    if (!projectHash) {
+        return null;
+    }
+
+    const activeNodes = (Array.isArray(chainJob.activeNodes) ? chainJob.activeNodes : [])
+        .map((node) => toStringValue(node))
+        .filter((node): node is EthAddress => !!node);
+
+    return {
+        id,
+        projectHash,
+        requestTimestamp: toBigIntValue(chainJob.requestTimestamp, 0n),
+        startTimestamp: toBigIntValue(chainJob.startTimestamp, 0n),
+        lastNodesChangeTimestamp: toBigIntValue(chainJob.lastNodesChangeTimestamp, 0n),
+        jobType: toBigIntValue(chainJob.jobType, 0n),
+        pricePerEpoch: toBigIntValue(chainJob.pricePerEpoch, 0n),
+        lastExecutionEpoch: toBigIntValue(chainJob.lastExecutionEpoch, 0n),
+        numberOfNodesRequested: toBigIntValue(chainJob.numberOfNodesRequested, BigInt(activeNodes.length)),
+        balance: toBigIntValue(chainJob.balance, 0n),
+        lastAllocatedEpoch: toBigIntValue(chainJob.lastAllocatedEpoch, 0n),
+        activeNodes,
+    };
+};
+
+export const getRunningJobsFromGetApps = (apps: Apps): RunningJob[] => {
+    const runningJobs = Object.entries(apps ?? {})
+        .map(([jobId, entry]) => buildRunningJobFromChainJob(entry, jobId))
+        .filter((job): job is RunningJob => !!job);
+
+    runningJobs.sort((a, b) => {
+        if (a.id < b.id) {
+            return -1;
+        }
+        if (a.id > b.id) {
+            return 1;
+        }
+        return 0;
+    });
+
+    return runningJobs;
+};
+
+export const getRunningJobByIdFromGetApps = (apps: Apps, jobId: string | number | bigint): RunningJob | undefined => {
+    const parsedId = toBigIntValue(jobId, -1n);
+    if (parsedId < 0n) {
+        return undefined;
+    }
+
+    return getRunningJobsFromGetApps(apps).find((job) => job.id === parsedId);
 };
 
 const normalizeSpecs = ({
