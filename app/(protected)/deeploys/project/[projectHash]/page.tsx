@@ -8,7 +8,7 @@ import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import { DetailedAlert } from '@shared/DetailedAlert';
-import ProjectIdentity from '@shared/jobs/projects/ProjectIdentity';
+import ProjectIdentity, { ProjectRuntimeStatus } from '@shared/jobs/projects/ProjectIdentity';
 import Payment from '@shared/projects/Payment';
 import { Apps } from '@typedefs/deeployApi';
 import { DraftJob, ProjectPage, RunningJobWithDetails } from '@typedefs/deeploys';
@@ -97,7 +97,18 @@ export default function Project() {
         return <></>;
     }
 
-    const getProjectIdentity = () => <ProjectIdentity projectName={projectName} />;
+    const totalInstancesCount = runningJobsWithDetails.reduce((count, job) => count + job.instances.length, 0);
+    const offlineInstancesCount = runningJobsWithDetails.reduce(
+        (count, job) => count + job.instances.filter((instance) => instance.isOnline === false).length,
+        0,
+    );
+
+    let projectRuntimeStatus: ProjectRuntimeStatus = 'running';
+    if (totalInstancesCount > 0 && offlineInstancesCount > 0) {
+        projectRuntimeStatus = offlineInstancesCount === totalInstancesCount ? 'down' : 'degraded';
+    }
+
+    const getProjectIdentity = () => <ProjectIdentity projectName={projectName} runtimeStatus={projectRuntimeStatus} />;
 
     return !jobType ? (
         <>

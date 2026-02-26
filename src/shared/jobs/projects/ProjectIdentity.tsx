@@ -9,8 +9,16 @@ import { DraftProject } from '@typedefs/deeploys';
 import { useParams, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+export type ProjectRuntimeStatus = 'running' | 'degraded' | 'down';
+
 // To be used only inside a project/projectDraft route
-export default function ProjectIdentity({ projectName }: { projectName?: string }) {
+export default function ProjectIdentity({
+    projectName,
+    runtimeStatus = 'running',
+}: {
+    projectName?: string;
+    runtimeStatus?: ProjectRuntimeStatus;
+}) {
     const pathname = usePathname() ?? '';
     const { projectHash } = useParams<{ projectHash?: string }>();
 
@@ -26,6 +34,9 @@ export default function ProjectIdentity({ projectName }: { projectName?: string 
         const draft = await db.projects.get(projectHash);
         setDraft(draft);
     };
+
+    const runtimeTagVariant = runtimeStatus === 'down' ? 'red' : runtimeStatus === 'degraded' ? 'yellow' : 'green';
+    const runtimeTagText = runtimeStatus === 'down' ? 'Down' : runtimeStatus === 'degraded' ? 'Degraded' : 'Running';
 
     if (!projectHash) {
         return <Skeleton className="min-h-10 w-40 rounded-lg" />;
@@ -60,8 +71,8 @@ export default function ProjectIdentity({ projectName }: { projectName?: string 
             <div className="row gap-1.5">
                 <div className="text-xl font-semibold">{projectName}</div>
 
-                <SmallTag variant="green" isLarge>
-                    Running
+                <SmallTag variant={runtimeTagVariant} isLarge>
+                    {runtimeTagText}
                 </SmallTag>
             </div>
         );
@@ -72,8 +83,8 @@ export default function ProjectIdentity({ projectName }: { projectName?: string 
             <div className="row gap-1.5">
                 <SmallTag isLarge>{getShortAddressOrHash(projectHash, 6)}</SmallTag>
 
-                <SmallTag variant="green" isLarge>
-                    Running
+                <SmallTag variant={runtimeTagVariant} isLarge>
+                    {runtimeTagText}
                 </SmallTag>
             </div>
         );

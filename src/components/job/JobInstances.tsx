@@ -154,11 +154,19 @@ export default function JobInstances({
                                 <div className="row gap-2">
                                     <SmallTag isLarge>
                                         <div className="font-roboto-mono flex font-medium">
-                                            <span>{instance.nodeAlias && instance.nodeAlias}</span>&nbsp;(
-                                            <CopyableValue value={instance.nodeAddress}>
-                                                {getShortAddressOrHash(instance.nodeAddress, 8)}
-                                            </CopyableValue>
-                                            )
+                                            {instance.nodeAlias ? (
+                                                <>
+                                                    <span>{instance.nodeAlias}</span>&nbsp;(
+                                                    <CopyableValue value={instance.nodeAddress}>
+                                                        {getShortAddressOrHash(instance.nodeAddress, 8)}
+                                                    </CopyableValue>
+                                                    )
+                                                </>
+                                            ) : (
+                                                <CopyableValue value={instance.nodeAddress}>
+                                                    {getShortAddressOrHash(instance.nodeAddress, 8)}
+                                                </CopyableValue>
+                                            )}
                                         </div>
                                     </SmallTag>
                                 </div>

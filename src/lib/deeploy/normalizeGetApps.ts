@@ -119,6 +119,25 @@ const getPipelineSpecs = (pipeline: GenericRecord): GenericRecord => {
     );
 };
 
+const getPipelineTargetNodes = (pipeline: GenericRecord): R1Address[] => {
+    const rawSpecs = getPipelineSpecs(pipeline);
+    if (!Object.keys(rawSpecs).length) {
+        return [];
+    }
+
+    const currentTargetNodes = getKey<unknown[]>(rawSpecs, 'current_target_nodes');
+    const initialTargetNodes = getKey<unknown[]>(rawSpecs, 'initial_target_nodes');
+    const rawTargetNodes = Array.isArray(currentTargetNodes)
+        ? currentTargetNodes
+        : Array.isArray(initialTargetNodes)
+          ? initialTargetNodes
+          : [];
+
+    return rawTargetNodes
+        .map((node) => normalizeNodeAddress(node))
+        .filter((node): node is R1Address => !!node);
+};
+
 const buildRunningJobFromChainJob = (entry: Apps[string], fallbackJobId?: string): RunningJob | null => {
     const chainJob = (entry?.chain_job ?? null) as ChainJob | null;
     if (!chainJob) {
@@ -371,6 +390,47 @@ const buildRunningJobFromOnline = ({
         return null;
     }
 
+    const pipeline = toObject(entry.pipeline);
+    const pipelineTargetNodes = getPipelineTargetNodes(pipeline);
+    const onlineNodes = selectedInstances.map((instance) => instance.nodeAddress);
+    const onlineNodesSet = new Set(onlineNodes);
+    const missingOfflineNodes = pipelineTargetNodes.filter((nodeAddress) => !onlineNodesSet.has(nodeAddress));
+
+    const pipelinePlugins = normalizePipelinePlugins(pipeline);
+    const offlinePlugins =
+        pipelinePlugins.length > 0
+            ? pipelinePlugins
+            : selectedInstances[0].plugins.map((plugin) => ({
+                  ...plugin,
+                  start: null,
+                  last_alive: null,
+                  last_error: null,
+              }));
+
+    const mergedNodes = pipelineTargetNodes.length
+        ? [...pipelineTargetNodes, ...onlineNodes.filter((nodeAddress) => !pipelineTargetNodes.includes(nodeAddress))]
+        : onlineNodes;
+
+    const onlineInstances = selectedInstances.map((instance) => {
+        return {
+            nodeAddress: instance.nodeAddress,
+            nodeAlias: instance.app.node_alias,
+            appId: instance.appId,
+            isOnline: true,
+            plugins: instance.plugins,
+        };
+    });
+
+    const offlineInstances = missingOfflineNodes.map((nodeAddress) => {
+        return {
+            nodeAddress,
+            nodeAlias: undefined,
+            appId: preferredEntry.appId,
+            isOnline: false,
+            plugins: offlinePlugins,
+        };
+    });
+
     const result: RunningJobWithDetails = {
         ...runningJob,
         alias: preferredEntry.appId,
@@ -378,16 +438,8 @@ const buildRunningJobFromOnline = ({
         allowReplicationInTheWild: specs?.allow_replication_in_the_wild,
         spareNodes: specs?.spare_nodes,
         jobTags: specs?.job_tags ?? [],
-        nodes: selectedInstances.map((instance) => instance.nodeAddress),
-        instances: selectedInstances.map((instance) => {
-            return {
-                nodeAddress: instance.nodeAddress,
-                nodeAlias: instance.app.node_alias,
-                appId: instance.appId,
-                isOnline: true,
-                plugins: instance.plugins,
-            };
-        }),
+        nodes: mergedNodes,
+        instances: [...onlineInstances, ...offlineInstances],
         config: primaryPlugin.instance_conf,
         pipelineData: appDetails.pipeline_data,
     };
@@ -416,14 +468,7 @@ const buildRunningJobFromPipeline = ({
         return null;
     }
 
-    const preferredNodes = (Array.isArray(getKey(rawSpecs, 'current_target_nodes'))
-        ? getKey<unknown[]>(rawSpecs, 'current_target_nodes')
-        : Array.isArray(getKey(rawSpecs, 'initial_target_nodes'))
-          ? getKey<unknown[]>(rawSpecs, 'initial_target_nodes')
-          : []
-    )
-        ?.map((node) => normalizeNodeAddress(node))
-        .filter((node): node is R1Address => !!node);
+    const preferredNodes = getPipelineTargetNodes(pipeline);
 
     const targetNodes = preferredNodes ?? [];
     if (!targetNodes.length) {
