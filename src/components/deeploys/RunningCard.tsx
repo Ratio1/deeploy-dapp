@@ -178,23 +178,21 @@ export default function RunningCard({
                                             )}
                                         </div>
 
+                                        <div className={`h-2.5 w-2.5 rounded-full ${jobHealthColorClass}`}></div>
+
                                         <div className={`text-[17px] ${jobTypeOption.textColorClass}`}>
                                             {jobTypeOption.icon}
                                         </div>
 
                                         <div className="w-[163px]">
-                                            <div className="row items-center gap-1.5">
-                                                <div className={`h-2.5 w-2.5 rounded-full ${jobHealthColorClass}`}></div>
-
-                                                <Link
-                                                    href={`${routePath.deeploys}/${routePath.job}/${job.id}`}
-                                                    className="hover:opacity-75"
-                                                >
-                                                    <SmallTag variant={jobTypeOption.color}>
-                                                        <div className="max-w-[150px] truncate">{job.alias}</div>
-                                                    </SmallTag>
-                                                </Link>
-                                            </div>
+                                            <Link
+                                                href={`${routePath.deeploys}/${routePath.job}/${job.id}`}
+                                                className="hover:opacity-75"
+                                            >
+                                                <SmallTag variant={jobTypeOption.color}>
+                                                    <div className="max-w-[150px] truncate">{job.alias}</div>
+                                                </SmallTag>
+                                            </Link>
                                         </div>
                                     </div>
 
