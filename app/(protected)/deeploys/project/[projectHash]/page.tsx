@@ -17,27 +17,16 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiAlertLine } from 'react-icons/ri';
-import { usePublicClient } from 'wagmi';
 
 export default function Project() {
     const router = useRouter();
 
-    const {
-        escrowContractAddress,
-        jobType,
-        setJobType,
-        projectPage,
-        setProjectPage,
-        getProjectName,
-        fetchRunningJobsWithDetails,
-        hasEscrowPermission,
-    } = useDeploymentContext() as DeploymentContextType;
+    const { jobType, setJobType, projectPage, setProjectPage, getProjectName, getRunningJobsWithDetails, hasEscrowPermission } =
+        useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
     const [projectName, setProjectName] = useState<string | undefined>();
     const [runningJobsWithDetails, setRunningJobsWithDetails] = useState<RunningJobWithDetails[]>([]);
-
-    const publicClient = usePublicClient();
 
     const { projectHash } = useParams<{ projectHash?: string }>();
 
@@ -57,10 +46,10 @@ export default function Project() {
     }, []);
 
     useEffect(() => {
-        if (publicClient && isValidProjectHash(projectHash)) {
+        if (isValidProjectHash(projectHash)) {
             fetchRunningJobs();
         }
-    }, [publicClient, projectHash]);
+    }, [projectHash]);
 
     useEffect(() => {
         if (!isValidProjectHash(projectHash)) {
@@ -71,15 +60,10 @@ export default function Project() {
     }, [getProjectName, projectHash, router]);
 
     const fetchRunningJobs = async (appsOverride?: Apps) => {
-        if (!publicClient || !escrowContractAddress) {
-            toast.error('Please connect your wallet.');
-            return;
-        }
-
         setLoading(true);
 
         try {
-            const { runningJobsWithDetails } = await fetchRunningJobsWithDetails(appsOverride);
+            const { runningJobsWithDetails } = getRunningJobsWithDetails(appsOverride);
             const projectJobs = runningJobsWithDetails.filter((job) => job.projectHash === projectHash);
 
             setRunningJobsWithDetails(projectJobs);

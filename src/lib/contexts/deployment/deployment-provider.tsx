@@ -192,12 +192,10 @@ export const DeploymentProvider = ({ children }) => {
         }
     };
 
-    const fetchRunningJobsWithDetails = async (
-        appsOverride?: Apps,
-    ): Promise<{
+    const getRunningJobsWithDetails = (appsOverride?: Apps): {
         runningJobs: readonly RunningJob[];
         runningJobsWithDetails: RunningJobWithDetails[];
-    }> => {
+    } => {
         const sourceApps = appsOverride ?? apps;
         const runningJobs: readonly RunningJob[] = getRunningJobsFromGetApps(sourceApps);
         const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(runningJobs, sourceApps);
@@ -250,7 +248,7 @@ export const DeploymentProvider = ({ children }) => {
                 apps,
                 // Utils
                 getProjectName,
-                fetchRunningJobsWithDetails,
+                getRunningJobsWithDetails,
                 formatRunningJobsWithDetails,
                 // Escrow
                 escrowContractAddress,

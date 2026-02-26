@@ -42,10 +42,10 @@ export interface DeploymentContextType {
 
     // Utils
     getProjectName: (projectHash: string) => string | undefined;
-    fetchRunningJobsWithDetails: (appsOverride?: Apps) => Promise<{
+    getRunningJobsWithDetails: (appsOverride?: Apps) => {
         runningJobs: readonly RunningJob[];
         runningJobsWithDetails: RunningJobWithDetails[];
-    }>;
+    };
     formatRunningJobsWithDetails: (runningJobs: readonly RunningJob[], appsOverride?: Apps) => RunningJobWithDetails[];
 
     // Escrow
