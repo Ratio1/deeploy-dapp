@@ -33,7 +33,7 @@ export const getInfoIconClassName = (nodeInfoState: NodeInfoState | undefined) =
     return 'text-slate-500';
 };
 
-const normalizeNodeAddress = (rawAddress: string | null | undefined) => String(rawAddress || '').trim().toLowerCase();
+const normalizeNodeAddress = (rawAddress: string | null | undefined) => String(rawAddress || '').trim();
 
 const isAbortError = (error: unknown) => {
     if (!error || typeof error !== 'object') {
