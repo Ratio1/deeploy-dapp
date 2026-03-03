@@ -28,9 +28,11 @@ export function ProtectedLayout({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         if (shouldRedirectToLogin) {
-            router.replace('/login');
+            const requestedPath = `${window.location.pathname}${window.location.search}`;
+            const loginPath = `/login?next=${encodeURIComponent(requestedPath)}`;
+            router.replace(loginPath);
         }
-    }, [shouldRedirectToLogin, router]);
+    }, [router, shouldRedirectToLogin]);
 
     if (shouldRedirectToLogin) {
         return (

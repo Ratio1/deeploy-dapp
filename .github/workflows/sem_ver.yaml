@@ -13,6 +13,7 @@ concurrency:
 
 env:
   VERSION_FILE: package.json
+  LOCK_FILE: package-lock.json
 
 jobs:
   release:
@@ -25,12 +26,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # fetch all history + tags
-          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Fetch tags
         run: git fetch --force --tags
@@ -92,7 +92,7 @@ jobs:
           fi
           echo "should_release=true" >> "$GITHUB_OUTPUT"
 
-      - name: Update version file
+      - name: Update version files
         if: steps.guard.outputs.should_release == 'true'
         env:
           NEW_TAG: ${{ steps.semver.outputs.version_tag }}
@@ -102,15 +102,30 @@ jobs:
           import json, os
           from pathlib import Path
 
-          path = Path(os.environ["VERSION_FILE"])
+          version_path = Path(os.environ["VERSION_FILE"])
+          lock_path = Path(os.environ["LOCK_FILE"])
           new_tag = os.environ["NEW_TAG"]
           # Strip leading 'v' for package.json (uses bare semver)
           version = new_tag.lstrip("v")
 
-          data = json.loads(path.read_text(encoding="utf-8"))
-          data["version"] = version
-          path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-          print(f"Updated {path} -> {version}")
+          package_data = json.loads(version_path.read_text(encoding="utf-8"))
+          package_data["version"] = version
+          version_path.write_text(json.dumps(package_data, indent=2) + "\n", encoding="utf-8")
+          print(f"Updated {version_path} -> {version}")
+
+          if lock_path.exists():
+            lock_data = json.loads(lock_path.read_text(encoding="utf-8"))
+            lock_data["version"] = version
+            if (
+              isinstance(lock_data.get("packages"), dict)
+              and isinstance(lock_data["packages"].get(""), dict)
+            ):
+              lock_data["packages"][""]["version"] = version
+
+            lock_path.write_text(json.dumps(lock_data, indent=4) + "\n", encoding="utf-8")
+            print(f"Updated {lock_path} -> {version}")
+          else:
+            print(f"Skipping lockfile update; {lock_path} not found")
           PY
 
       - name: Commit + tag + push
@@ -120,6 +135,9 @@ jobs:
           tag="${{ steps.semver.outputs.version_tag }}"
 
           git add "$VERSION_FILE"
+          if [[ -f "$LOCK_FILE" ]]; then
+            git add "$LOCK_FILE"
+          fi
           if ! git diff --cached --quiet; then
             git commit -m "chore(release): ${tag}"
           fi

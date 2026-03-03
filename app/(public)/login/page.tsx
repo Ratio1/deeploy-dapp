@@ -10,12 +10,52 @@ import { AuthenticationContextType, useAuthenticationContext } from '@lib/contex
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { EscrowAccess } from '@lib/contexts/deployment/context';
 import { getAssetUrl } from '@lib/assets/getAssetUrl';
-import { EthAddress } from '@typedefs/blockchain';
 import { ConnectKitButton, useModal } from 'connectkit';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAccount, usePublicClient } from 'wagmi';
 import { useRouter } from 'next/navigation';
+
+const FALLBACK_REDIRECT = '/home';
+
+const decodePathValue = (value: string): string => {
+    let decodedValue = value.trim();
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+            const nextDecodedValue = decodeURIComponent(decodedValue);
+
+            if (nextDecodedValue === decodedValue) {
+                break;
+            }
+
+            decodedValue = nextDecodedValue.trim();
+        } catch {
+            break;
+        }
+    }
+
+    return decodedValue;
+};
+
+const getRedirectPath = (nextPath: string | null): string => {
+    if (!nextPath) {
+        return FALLBACK_REDIRECT;
+    }
+
+    const decodedNextPath = decodePathValue(nextPath);
+    const normalizedPath = decodedNextPath.toLowerCase();
+
+    if (!decodedNextPath.startsWith('/') || decodedNextPath.startsWith('//')) {
+        return FALLBACK_REDIRECT;
+    }
+
+    if (normalizedPath === '/login' || normalizedPath.startsWith('/login?') || normalizedPath.startsWith('/login/')) {
+        return FALLBACK_REDIRECT;
+    }
+
+    return decodedNextPath;
+};
 
 export default function Login() {
     const { isSignedIn } = useAuthenticationContext() as AuthenticationContextType;
@@ -43,7 +83,8 @@ export default function Login() {
 
     useEffect(() => {
         if (isSignedIn && address !== undefined && isFetchAppsRequired !== undefined) {
-            router.replace('/home');
+            const nextPath = new URLSearchParams(window.location.search).get('next');
+            router.replace(getRedirectPath(nextPath));
         }
     }, [address, isFetchAppsRequired, isSignedIn, router]);
 

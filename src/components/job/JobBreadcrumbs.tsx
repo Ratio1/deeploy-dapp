@@ -22,6 +22,7 @@ export default function JobBreadcrumbs({
             <div className="row gap-1.5">
                 {!!jobTypeOption && <div className={`text-xl ${jobTypeOption.textColorClass}`}>{jobTypeOption.icon}</div>}
                 <div className="text-xl font-semibold">{job.alias}</div>
+                <div className="text-xl font-semibold text-slate-500">#{job.id.toString()}</div>
 
                 <SmallTag variant="green" isLarge>
                     Running

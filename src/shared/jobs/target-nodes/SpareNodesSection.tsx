@@ -1,21 +1,29 @@
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { RiClipboardLine } from 'react-icons/ri';
+import { toast } from 'react-hot-toast';
+import NodeInfoStatusPopover from './NodeInfoStatusPopover';
 import DeeployInfoTag from '../DeeployInfoTag';
 import VariableSectionControls from '../VariableSectionControls';
 import VariableSectionIndex from '../VariableSectionIndex';
 import VariableSectionRemove from '../VariableSectionRemove';
+import { useNodeInfoLookupByAddress, usePrefetchNodeInfoOnRender } from './nodeInfo';
 
 // This component assumes it's being used in the deployment step
 export default function SpareNodesSection() {
-    const { control, formState, trigger, setValue } = useFormContext();
+    const { control, watch, formState, trigger, setValue } = useFormContext();
+    const { getNodeInfoState, setNodeInfoToIdle, fetchNodeInfoForAddress } = useNodeInfoLookupByAddress();
+
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'deployment.spareNodes',
     });
+    const spareNodes: Array<{ address?: string | null }> = watch('deployment.spareNodes');
 
     // Get array-level errors
-    const errors = (formState.errors.deployment as any)?.targetNodes;
+    const errors = (formState.errors.deployment as any)?.spareNodes;
+
+    usePrefetchNodeInfoOnRender(spareNodes, getNodeInfoState, fetchNodeInfoForAddress);
 
     return (
         <div className="col gap-4" key={fields.length}>
@@ -23,12 +31,12 @@ export default function SpareNodesSection() {
 
             {fields.length > 0 && (
                 <div className="col gap-2">
-                    {fields.map((field, index) => {
+                    {fields.map((spareField, index) => {
                         // Get the error for this specific entry
                         const entryError = errors?.[index];
 
                         return (
-                            <div className="flex gap-3" key={field.id}>
+                            <div className="flex gap-3" key={spareField.id}>
                                 <VariableSectionIndex index={index} />
 
                                 <Controller
@@ -37,12 +45,19 @@ export default function SpareNodesSection() {
                                     render={({ field, fieldState }) => {
                                         const specificError = entryError?.address;
                                         const hasError = !!fieldState.error || !!specificError || !!errors?.root?.message;
+                                        const value = String(field.value ?? '');
+                                        const nodeInfoState = getNodeInfoState(value);
+                                        const normalizedValue = value.trim();
 
                                         return (
                                             <StyledInput
-                                                placeholder="0x_ai"
-                                                value={field.value ?? ''}
-                                                onChange={(e) => field.onChange(e.target.value)}
+                                                placeholder="0xai_"
+                                                value={value}
+                                                onChange={(e) => {
+                                                    const nextValue = e.target.value;
+                                                    field.onChange(nextValue);
+                                                    setNodeInfoToIdle(nextValue);
+                                                }}
                                                 onBlur={async () => {
                                                     field.onBlur();
 
@@ -50,6 +65,8 @@ export default function SpareNodesSection() {
                                                     if (fields.length > 1) {
                                                         await trigger('deployment.spareNodes');
                                                     }
+
+                                                    await fetchNodeInfoForAddress(value);
                                                 }}
                                                 isInvalid={hasError}
                                                 errorMessage={
@@ -58,23 +75,39 @@ export default function SpareNodesSection() {
                                                     (errors?.root?.message && index === 0 ? errors.root.message : undefined)
                                                 }
                                                 endContent={
-                                                    <div
-                                                        className="cursor-pointer hover:opacity-60"
-                                                        onClick={async () => {
-                                                            try {
-                                                                const clipboardText = await navigator.clipboard.readText();
-                                                                field.onChange(clipboardText);
+                                                    <div className="flex items-center gap-2">
+                                                        <NodeInfoStatusPopover
+                                                            nodeInfoState={nodeInfoState}
+                                                            normalizedValue={normalizedValue}
+                                                            ariaLabel="Show spare node info"
+                                                        />
 
-                                                                setValue(
-                                                                    `deployment.spareNodes.${index}.address`,
-                                                                    clipboardText,
-                                                                );
-                                                            } catch (error) {
-                                                                console.error('Failed to read clipboard:', error);
-                                                            }
-                                                        }}
-                                                    >
-                                                        <RiClipboardLine className="text-lg text-slate-600" />
+                                                        <button
+                                                            type="button"
+                                                            className="cursor-pointer hover:opacity-60"
+                                                            aria-label="Paste spare node address from clipboard"
+                                                            onClick={async () => {
+                                                                try {
+                                                                    const clipboardText = await navigator.clipboard.readText();
+                                                                    field.onChange(clipboardText);
+
+                                                                    setValue(
+                                                                        `deployment.spareNodes.${index}.address`,
+                                                                        clipboardText,
+                                                                    );
+                                                                    setNodeInfoToIdle(clipboardText);
+
+                                                                    await fetchNodeInfoForAddress(clipboardText);
+                                                                } catch (error) {
+                                                                    console.error('Failed to read clipboard:', error);
+                                                                    toast.error(
+                                                                        'Unable to read from clipboard. Please paste the address manually.',
+                                                                    );
+                                                                }
+                                                            }}
+                                                        >
+                                                            <RiClipboardLine className="text-lg text-slate-600" />
+                                                        </button>
                                                     </div>
                                                 }
                                             />

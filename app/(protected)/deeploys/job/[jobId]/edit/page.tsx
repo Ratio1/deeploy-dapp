@@ -20,6 +20,7 @@ import {
     generateDeeployNonce,
 } from '@lib/deeploy-utils';
 import { useRunningJob } from '@lib/hooks/useRunningJob';
+import useUnsavedChangesGuard from '@lib/hooks/useUnsavedChangesGuard';
 import { routePath } from '@lib/routes/route-paths';
 import { jobSchema } from '@schemas/index';
 import ActionButton from '@shared/ActionButton';
@@ -51,9 +52,7 @@ export default function EditJob() {
 
     const router = useRouter();
     const { jobId } = useParams<{ jobId?: string }>();
-    const { job, isLoading: isJobLoading } = useRunningJob(jobId, {
-        onError: () => router.replace('/404'),
-    });
+    const { job, isLoading: isJobLoading, status: jobStatus, error: jobError } = useRunningJob(jobId);
 
     const { data: walletClient } = useWalletClient();
     const publicClient = usePublicClient();
@@ -68,6 +67,7 @@ export default function EditJob() {
     }>(null);
 
     const [isSubmitting, setSubmitting] = useState<boolean>(false);
+    const [isFormDirty, setFormDirty] = useState<boolean>(false);
 
     const [errors, setErrors] = useState<{ text: string; serverAlias: string }[]>([]);
 
@@ -76,11 +76,18 @@ export default function EditJob() {
         'signXMessages',
         'callDeeployApi',
     ]);
+    const { runWithGuard } = useUnsavedChangesGuard({ isDirty: isFormDirty });
 
     // Init
     useEffect(() => {
         setStep(0);
     }, []);
+
+    useEffect(() => {
+        if (jobStatus === 'missing') {
+            router.replace(routePath.notFound);
+        }
+    }, [jobStatus, router]);
 
     useEffect(() => {
         if (job) {
@@ -326,7 +333,21 @@ export default function EditJob() {
         return request;
     };
 
-    if (isJobLoading || !job) {
+    if (jobStatus === 'error') {
+        return (
+            <div className="center-all flex-1">
+                <DetailedAlert
+                    variant="red"
+                    icon={<RiAlertLine />}
+                    title="Unable to load job"
+                    description={<div>{jobError?.message || 'Failed to fetch running job details.'}</div>}
+                    isCompact
+                />
+            </div>
+        );
+    }
+
+    if (jobStatus === 'missing' || jobStatus === 'idle' || isJobLoading || !job) {
         return <EditJobPageLoading />;
     }
 
@@ -344,6 +365,8 @@ export default function EditJob() {
         );
     }
 
+    const jobDetailsPath = `${routePath.deeploys}/${routePath.job}/${Number(job.id)}`;
+
     return (
         <div className="col flex-1 justify-between gap-12">
             <div className="col gap-6">
@@ -352,7 +375,13 @@ export default function EditJob() {
                     <JobBreadcrumbs job={job} jobTypeOption={jobTypeOption} />
 
                     <div className="row gap-2">
-                        <ActionButton className="slate-button" color="default" onPress={() => router.back()}>
+                        <ActionButton
+                            className="slate-button"
+                            color="default"
+                            onPress={() => {
+                                runWithGuard(() => router.push(jobDetailsPath));
+                            }}
+                        >
                             <div className="row gap-1.5">
                                 <RiArrowLeftLine className="text-lg" />
                                 <div className="compact">Cancel</div>
@@ -366,7 +395,16 @@ export default function EditJob() {
                     <DeeployErrors type="update" errors={errors} />
 
                     {/* Form */}
-                    <JobEditFormWrapper job={job} onSubmit={onSubmit} isLoading={isSubmitting} setLoading={setSubmitting} />
+                    <JobEditFormWrapper
+                        job={job}
+                        onSubmit={onSubmit}
+                        isLoading={isSubmitting}
+                        setLoading={setSubmitting}
+                        onDirtyChange={setFormDirty}
+                        onCancel={() => {
+                            runWithGuard(() => router.push(jobDetailsPath));
+                        }}
+                    />
                 </div>
             </div>
 

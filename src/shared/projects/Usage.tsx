@@ -1,6 +1,10 @@
 import clsx from 'clsx';
+import {  environment } from '@lib/config';
 
 export default function Usage({ used, total, isColored = false }: { used: number; total: number; isColored?: boolean }) {
+    const warningThreshold = environment === 'devnet' ? 15 * 24 : 15;
+    const remainingEpochs = total - used;
+
     return (
         <div className="col w-full gap-1.5 text-xs font-medium">
             <div className="row justify-between leading-none">
@@ -15,7 +19,7 @@ export default function Usage({ used, total, isColored = false }: { used: number
                 <div
                     className={clsx('bg-primary rounded-full transition-all', {
                         'bg-emerald-500!': isColored && used >= total,
-                        'bg-yellow-500!': isColored && used >= total * 0.75 && used < total,
+                        'bg-yellow-500!': isColored && remainingEpochs < warningThreshold && used < total,
                     })}
                     style={{ width: `${Number((used * 100) / total)}%` }}
                 ></div>

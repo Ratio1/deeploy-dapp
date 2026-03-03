@@ -3,34 +3,36 @@ import { getRunningJobResources, RunningJobResources } from '@data/containerReso
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { Apps } from '@typedefs/deeployApi';
 import { RunningJob, RunningJobWithDetails, RunningJobWithResources } from '@typedefs/deeploys';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { usePublicClient } from 'wagmi';
 
-type UseRunningJobOptions = {
-    onError?: () => void;
-};
+export type UseRunningJobStatus = 'idle' | 'loading' | 'ready' | 'missing' | 'error';
 
-export function useRunningJob(jobId?: string, options?: UseRunningJobOptions) {
+class MissingRunningJobError extends Error {}
+
+export function useRunningJob(jobId?: string) {
     const { escrowContractAddress, formatRunningJobsWithDetails } = useDeploymentContext() as DeploymentContextType;
     const publicClient = usePublicClient();
-    const onErrorRef = useRef<UseRunningJobOptions['onError']>(undefined);
-
-    useEffect(() => {
-        onErrorRef.current = options?.onError;
-    }, [options?.onError]);
 
     const [job, setJob] = useState<RunningJobWithResources | undefined>();
     const [isLoading, setLoading] = useState(false);
+    const [status, setStatus] = useState<UseRunningJobStatus>('idle');
+    const [error, setError] = useState<Error | undefined>();
 
     const fetchJob = useCallback(
         async (appsOverride?: Apps) => {
             if (!publicClient || !jobId || !escrowContractAddress) {
-                toast.error('Please refresh this page and try again.');
+                const prerequisitesError = new Error('Please refresh this page and try again.');
+                setStatus('error');
+                setError(prerequisitesError);
+                toast.error(prerequisitesError.message);
                 return;
             }
 
             setLoading(true);
+            setStatus('loading');
+            setError(undefined);
 
             try {
                 const runningJob: RunningJob = await publicClient.readContract({
@@ -41,7 +43,7 @@ export function useRunningJob(jobId?: string, options?: UseRunningJobOptions) {
                 });
 
                 if (!runningJob.id) {
-                    throw new Error('Job missing from the smart contract.');
+                    throw new MissingRunningJobError('Job missing from the smart contract.');
                 }
 
                 const resources: RunningJobResources | undefined = getRunningJobResources(runningJob.jobType);
@@ -61,11 +63,22 @@ export function useRunningJob(jobId?: string, options?: UseRunningJobOptions) {
                 };
 
                 setJob(runningJobWithResources);
+                setStatus('ready');
                 return runningJobWithResources;
             } catch (error) {
                 console.error(error);
+
+                setJob(undefined);
+
+                if (error instanceof MissingRunningJobError) {
+                    setStatus('missing');
+                    setError(undefined);
+                    return undefined;
+                }
+
+                setStatus('error');
+                setError(error instanceof Error ? error : new Error('Failed to fetch running job details.'));
                 toast.error('Failed to fetch running job details.');
-                onErrorRef.current?.();
                 return undefined;
             } finally {
                 setLoading(false);
@@ -80,5 +93,5 @@ export function useRunningJob(jobId?: string, options?: UseRunningJobOptions) {
         }
     }, [publicClient, escrowContractAddress, jobId, fetchJob]);
 
-    return { job, isLoading, fetchJob };
+    return { job, isLoading, fetchJob, status, error };
 }

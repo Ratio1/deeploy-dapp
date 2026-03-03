@@ -21,7 +21,7 @@ import { useAccount, usePublicClient, useSignMessage, useWalletClient } from 'wa
 
 export default function LoginCard({ hasOracles }: { hasOracles: boolean }) {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
-    const { escrowContractAddress, setEscrowContractAddress, setFetchAppsRequired, setApps } =
+    const { escrowContractAddress, setEscrowContractAddress, setFetchAppsRequired, setApps, fetchEscrowAccess } =
         useDeploymentContext() as DeploymentContextType;
     const { openSignMessageModal, closeSignMessageModal } = useInteractionContext() as InteractionContextType;
     const { setTunnelingSecrets } = useTunnelsContext() as TunnelsContextType;
@@ -77,6 +77,10 @@ export default function LoginCard({ hasOracles }: { hasOracles: boolean }) {
                 if (escrowDeployedLog && escrowDeployedLog.args.escrow) {
                     console.log('Escrow deployed', escrowDeployedLog.args.escrow);
                     setEscrowContractAddress(escrowDeployedLog.args.escrow as EthAddress);
+                }
+
+                if (address) {
+                    await fetchEscrowAccess(address);
                 }
             } else {
                 throw new Error('Failed to deploy contract.');
