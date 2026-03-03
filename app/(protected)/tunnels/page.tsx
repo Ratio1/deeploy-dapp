@@ -16,7 +16,7 @@ import { DetailedAlert } from '@shared/DetailedAlert';
 import EmptyData from '@shared/EmptyData';
 import { TunnelingSecrets } from '@typedefs/general';
 import { Tunnel } from '@typedefs/tunnels';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiAddLine, RiCloseCircleLine, RiDoorLockLine, RiDraftLine, RiPencilLine } from 'react-icons/ri';
 import { useAccount, useSignMessage } from 'wagmi';
@@ -53,6 +53,16 @@ function Tunnels() {
             fetchTunnels();
         }
     }, [tunnelingSecrets]);
+
+    const statusStats = useMemo(() => {
+        return {
+            total: tunnels.length,
+            healthy: tunnels.filter((item) => item.status === 'healthy').length,
+            degraded: tunnels.filter((item) => item.status === 'degraded').length,
+            down: tunnels.filter((item) => item.status === 'down').length,
+            inactive: tunnels.filter((item) => item.status === 'inactive').length,
+        };
+    }, [tunnels]);
 
     const init = async () => {
         if (!address) {
@@ -252,6 +262,24 @@ function Tunnels() {
                                 <div className="compact">Modify Secrets</div>
                             </div>
                         </ActionButton>
+                    </div>
+
+                    <div className="row flex-wrap gap-2 text-xs sm:text-sm">
+                        <div className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 font-semibold text-slate-700">
+                            Total: {statusStats.total}
+                        </div>
+                        <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-semibold text-emerald-700">
+                            Healthy: {statusStats.healthy}
+                        </div>
+                        <div className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 font-semibold text-amber-700">
+                            Degraded: {statusStats.degraded}
+                        </div>
+                        <div className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 font-semibold text-red-700">
+                            Down: {statusStats.down}
+                        </div>
+                        <div className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 font-semibold text-slate-700">
+                            Inactive: {statusStats.inactive}
+                        </div>
                     </div>
 
                     {error && !isFetchingTunnels && (
