@@ -23,11 +23,11 @@ type CustomParameterEntry = KeyValueEntry & {
     valueType: 'string' | 'json';
 };
 
-type DynamicEnvVarValue = { type: string; value: string };
+type DynamicEnvVarValue = { type: string; value: string; path?: [string, string] };
 
 type DynamicEnvVarsEntry = {
     key: string;
-    values: [DynamicEnvVarValue, DynamicEnvVarValue, DynamicEnvVarValue];
+    values: DynamicEnvVarValue[];
 };
 
 type VolumesEntry = {
@@ -122,6 +122,7 @@ type NativePlugin = {
 
 type Plugin = (GenericPlugin | NativePlugin) & {
     basePluginType: BasePluginType;
+    pluginName?: string;
 };
 
 // Deployment types

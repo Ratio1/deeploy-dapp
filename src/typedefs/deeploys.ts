@@ -129,6 +129,7 @@ type RunningJobWithDetails = RunningJob & {
     }[];
     config: JobConfig;
     pipelineData: PipelineData;
+    pluginSemaphoreMap?: Record<string, string>;
 };
 
 type RunningJobWithResources = RunningJobWithDetails & {

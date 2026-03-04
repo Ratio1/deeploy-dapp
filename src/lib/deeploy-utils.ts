@@ -38,6 +38,8 @@ import _ from 'lodash';
 import { FieldValues, UseFieldArrayAppend, UseFieldArrayRemove } from 'react-hook-form';
 import { formatUnits } from 'viem';
 import { environment } from './config';
+import { computeDependencyTree } from './dependencyTree';
+import { getPluginName } from './pluginNames';
 import { deepSort, parseIfJson } from './utils';
 
 export const GITHUB_REPO_REGEX = new RegExp('^https?://github\\.com/([^\\s/]+)/([^\\s/]+?)(?:\\.git)?(?:/.*)?$', 'i');
@@ -46,7 +48,7 @@ export const KYB_TAG = 'IS_KYB';
 export const KYC_TAG = '!IS_KYB';
 export const DC_TAG = 'DC:*';
 
-export const NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS: (keyof JobConfig)[] = [
+export const NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS: string[] = [
     'CHAINSTORE_PEERS',
     'CHAINSTORE_RESPONSE_KEY',
     'CLOUDFLARE_TOKEN',
@@ -54,10 +56,11 @@ export const NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS: (keyof JobConfig)[] = [
     'PORT',
     'TUNNEL_ENGINE_ENABLED',
     'NGROK_USE_API',
+    'plugin_name',
 ];
 
 // Keys that are system-managed and cannot be edited by users
-export const SYSTEM_MANAGED_JOB_CONFIG_KEYS: (keyof JobConfig)[] = [
+export const SYSTEM_MANAGED_JOB_CONFIG_KEYS: string[] = [
     'CHAINSTORE_PEERS',
     'CHAINSTORE_RESPONSE_KEY',
     'INSTANCE_ID',
@@ -65,10 +68,11 @@ export const SYSTEM_MANAGED_JOB_CONFIG_KEYS: (keyof JobConfig)[] = [
     'NGROK_AUTH_TOKEN',
     'NGROK_EDGE_LABEL',
     'NGROK_USE_API',
+    'plugin_name',
 ];
 
 // Keys that are editable via dedicated UI sections in generic job deployment
-export const GENERIC_JOB_UI_MANAGED_KEYS: (keyof JobConfig)[] = [
+export const GENERIC_JOB_UI_MANAGED_KEYS: string[] = [
     'ENV',
     'DYNAMIC_ENV',
     'VOLUMES',
@@ -86,7 +90,7 @@ export const GENERIC_JOB_UI_MANAGED_KEYS: (keyof JobConfig)[] = [
 ];
 
 // Combined: all keys that should be excluded from custom parameters for generic jobs
-export const GENERIC_JOB_RESERVED_KEYS: (keyof JobConfig)[] = [
+export const GENERIC_JOB_RESERVED_KEYS: string[] = [
     ...SYSTEM_MANAGED_JOB_CONFIG_KEYS,
     ...GENERIC_JOB_UI_MANAGED_KEYS,
 ];
@@ -167,7 +171,7 @@ export const getGpuType = (specifications: GenericJobSpecifications | NativeJobS
 };
 
 export const downloadDataAsJson = (data: any, filename: string) => {
-    const jsonString = JSON.stringify(data, null, 2);
+    const jsonString = JSON.stringify(data, (_key, value) => (typeof value === 'bigint' ? value.toString() : value), 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
 
@@ -199,11 +203,18 @@ export const formatEnvVars = (envVars: { key: string | undefined; value: string 
     return formatted;
 };
 
-export const formatDynamicEnvVars = (dynamicEnvVars: { key: string; values: { type: string; value: string }[] }[]) => {
-    const formatted: Record<string, { type: string; value: string }[]> = {};
+export const formatDynamicEnvVars = (
+    dynamicEnvVars: { key: string; values: { type: string; value: string; path?: [string, string] }[] }[],
+) => {
+    const formatted: Record<string, { type: string; value?: string; path?: [string, string] }[]> = {};
     dynamicEnvVars.forEach((dynamicEnvVar) => {
         if (dynamicEnvVar.key) {
-            formatted[dynamicEnvVar.key] = dynamicEnvVar.values;
+            formatted[dynamicEnvVar.key] = dynamicEnvVar.values.map((v) => {
+                if (v.type === 'shmem' && v.path) {
+                    return { type: 'shmem', path: v.path };
+                }
+                return { type: v.type, value: v.value };
+            });
         }
     });
     return formatted;
@@ -483,7 +494,9 @@ export const formatNativeJobPayload = (
     const nonce = generateDeeployNonce();
 
     // Build plugins array
-    const plugins = deployment.plugins.map((plugin) => {
+    const plugins = deployment.plugins.map((plugin, index) => {
+        const pluginName = getPluginName(plugin, index);
+
         if (plugin.basePluginType === BasePluginType.Generic) {
             const genericPlugin = plugin as GenericPlugin;
             const secondaryPluginNodeResources = formatContainerResources(workerType, genericPlugin.ports);
@@ -496,6 +509,7 @@ export const formatNativeJobPayload = (
             const customParams = formatGenericJobCustomParams(genericPlugin.customParams);
 
             return {
+                plugin_name: pluginName,
                 plugin_signature: pluginSignature,
                 ...pluginConfig,
                 ...customParams,
@@ -505,9 +519,16 @@ export const formatNativeJobPayload = (
         if (plugin.basePluginType === BasePluginType.Native) {
             const nativePlugin = plugin as NativePlugin;
 
-            return formatNativePlugin(nativePlugin);
+            return {
+                plugin_name: pluginName,
+                ...formatNativePlugin(nativePlugin),
+            };
         }
     });
+
+    // Compute dependency tree
+    const { edges } = computeDependencyTree(deployment.plugins);
+    const dependencyTree = edges.map((e) => [e.from, e.to]);
 
     return {
         nonce,
@@ -522,12 +543,16 @@ export const formatNativeJobPayload = (
         target_nodes_count: targetNodesCount,
         job_tags: jobTags,
         node_res_req: nodeResources,
+        job_app_type: 'native',
 
         // Tunneling
         TUNNEL_ENGINE: 'cloudflare',
 
         // Plugins
         plugins,
+
+        // Dependencies
+        ...(dependencyTree.length > 0 ? { dependency_tree: dependencyTree } : {}),
 
         // Pipeline
         pipeline_input_type: deployment.pipelineInputType,

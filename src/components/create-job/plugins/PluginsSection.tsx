@@ -3,16 +3,19 @@ import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
+import { generatePluginName, getPluginName } from '@lib/pluginNames';
 import { SlateCard } from '@shared/cards/SlateCard';
 import DeeployErrorAlert from '@shared/jobs/DeeployErrorAlert';
 import AddJobCard from '@shared/projects/AddJobCard';
 import { SmallTag } from '@shared/SmallTag';
+import { computeDependencyTree } from '@lib/dependencyTree';
 import { BasePluginType, GenericPlugin, Plugin, PluginType } from '@typedefs/steps/deploymentStepTypes';
-import { useEffect, useRef } from 'react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useEffect, useMemo, useRef } from 'react';
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { RiBox3Line, RiDeleteBin2Line, RiTerminalBoxLine } from 'react-icons/ri';
 import CARInputsSection from './CARInputsSection';
+import DependencyTreeView from './DependencyTreeView';
 import NativeInputsSection from './NativeInputsSection';
 import WARInputsSection from './WARInputsSection';
 
@@ -70,7 +73,7 @@ export default function PluginsSection() {
 
     const { confirm } = useInteractionContext() as InteractionContextType;
 
-    const { control, formState, clearErrors } = useFormContext();
+    const { control, formState, clearErrors, setValue, getValues } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -83,12 +86,62 @@ export default function PluginsSection() {
 
     const rootError: string | undefined = (formState.errors.plugins as any)?.root?.message as string | undefined;
 
+    // Watch all plugin values for computing available plugins and dependency tree
+    const watchedPlugins: Plugin[] = useWatch({ control, name: 'plugins' }) ?? [];
+
+    // Compute available plugins per plugin index (all other CAR/WAR plugins)
+    const availablePluginsByIndex = useMemo(() => {
+        return watchedPlugins.map((_plugin, currentIndex) => {
+            const others: { name: string }[] = [];
+            watchedPlugins.forEach((p, i) => {
+                if (i !== currentIndex && p.basePluginType === BasePluginType.Generic) {
+                    others.push({ name: getPluginName(p, i) });
+                }
+            });
+            return others;
+        });
+    }, [watchedPlugins]);
+
+    // Compute dependency tree from current plugin state
+    const { edges: depEdges, hasCycle: depHasCycle } = useMemo(() => {
+        return computeDependencyTree(watchedPlugins);
+    }, [watchedPlugins]);
+
+    // Clean stale shmem references when a plugin is removed
+    const handleRemovePlugin = (indexToRemove: number) => {
+        const removedName = watchedPlugins[indexToRemove]?.pluginName;
+        remove(indexToRemove);
+
+        if (!removedName) return;
+
+        // Clear shmem refs pointing to the removed plugin's stable name
+        setTimeout(() => {
+            const currentPlugins = getValues('plugins') as Plugin[] | undefined;
+            if (!currentPlugins) return;
+
+            currentPlugins.forEach((plugin, pluginIdx) => {
+                if (!('dynamicEnvVars' in plugin) || !plugin.dynamicEnvVars) return;
+
+                plugin.dynamicEnvVars.forEach((entry, entryIdx) => {
+                    entry.values.forEach((pair, pairIdx) => {
+                        if (pair.type === 'shmem' && pair.path?.[0] === removedName) {
+                            setValue(`plugins.${pluginIdx}.dynamicEnvVars.${entryIdx}.values.${pairIdx}.type`, 'static');
+                            setValue(`plugins.${pluginIdx}.dynamicEnvVars.${entryIdx}.values.${pairIdx}.path`, undefined);
+                            setValue(`plugins.${pluginIdx}.dynamicEnvVars.${entryIdx}.values.${pairIdx}.value`, '');
+                        }
+                    });
+                });
+            });
+        }, 0);
+    };
+
     const onAddPlugin = (pluginType: PluginType) => {
         clearErrors(`${name}.root`);
 
         switch (pluginType) {
             case PluginType.Container:
                 append({
+                    pluginName: generatePluginName(watchedPlugins, PluginType.Container),
                     basePluginType: BasePluginType.Generic,
                     deploymentType: {
                         pluginType,
@@ -105,6 +158,7 @@ export default function PluginsSection() {
 
             case PluginType.Worker:
                 append({
+                    pluginName: generatePluginName(watchedPlugins, PluginType.Worker),
                     basePluginType: BasePluginType.Generic,
                     deploymentType: {
                         pluginType,
@@ -125,6 +179,7 @@ export default function PluginsSection() {
 
             case PluginType.Native:
                 append({
+                    pluginName: generatePluginName(watchedPlugins, PluginType.Native),
                     basePluginType: BasePluginType.Native,
                     pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
                     customParams: [{ key: '', value: '', valueType: 'string' }],
@@ -154,7 +209,7 @@ export default function PluginsSection() {
             option = OPTIONS.find((option) => option.pluginType === pluginType)!;
         }
 
-        const title = `${option.title.toLowerCase().split(' ').join('-')}-${index + 1}`;
+        const title = getPluginName(plugin, index);
 
         return {
             title,
@@ -228,7 +283,7 @@ export default function PluginsSection() {
                                                     return;
                                                 }
 
-                                                remove(index);
+                                                handleRemovePlugin(index);
                                             } catch (error) {
                                                 console.error('Error removing plugin:', error);
                                                 toast.error('Failed to remove plugin.');
@@ -246,9 +301,9 @@ export default function PluginsSection() {
                                     {plugin.basePluginType === BasePluginType.Generic ? (
                                         <>
                                             {(plugin as GenericPlugin).deploymentType.pluginType === PluginType.Container ? (
-                                                <CARInputsSection name={`${name}.${index}`} />
+                                                <CARInputsSection name={`${name}.${index}`} availablePlugins={availablePluginsByIndex[index]} />
                                             ) : (
-                                                <WARInputsSection name={`${name}.${index}`} />
+                                                <WARInputsSection name={`${name}.${index}`} availablePlugins={availablePluginsByIndex[index]} />
                                             )}
                                         </>
                                     ) : (
@@ -260,6 +315,8 @@ export default function PluginsSection() {
                     );
                 })}
             </div>
+
+            <DependencyTreeView edges={depEdges} hasCycle={depHasCycle} />
         </div>
     );
 }

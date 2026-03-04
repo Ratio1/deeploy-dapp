@@ -26,6 +26,7 @@ type DeeploySpecs = {
     initial_target_nodes: R1Address[];
     job_config?: {
         pipeline_params?: Record<string, string>;
+        plugin_semaphore_map?: Record<string, string>;
     };
     job_id: number;
     job_tags: string[];

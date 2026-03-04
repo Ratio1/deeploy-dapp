@@ -355,6 +355,7 @@ export const DeploymentProvider = ({ children }) => {
                     instances: appWithInstances.instances,
                     config,
                     pipelineData,
+                    pluginSemaphoreMap: specs.job_config?.plugin_semaphore_map,
                     ...job,
                 };
 

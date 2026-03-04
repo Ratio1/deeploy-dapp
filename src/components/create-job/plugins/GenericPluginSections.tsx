@@ -8,7 +8,12 @@ import AppParametersSection from '../sections/AppParametersSection';
 import PluginEnvVariablesSection from '../sections/PluginEnvVariablesSection';
 import PoliciesSection from '../sections/PoliciesSection';
 
-export default function GenericPluginSections({ name }: { name: string }) {
+type Props = {
+    name: string;
+    availablePlugins?: { name: string }[];
+};
+
+export default function GenericPluginSections({ name, availablePlugins }: Props) {
     return (
         <>
             <ConfigSectionTitle title="App Parameters" />
@@ -20,7 +25,7 @@ export default function GenericPluginSections({ name }: { name: string }) {
             <PluginEnvVariablesSection baseName={name} />
 
             <ConfigSectionTitle title="Dynamic ENV Variables" />
-            <DynamicEnvSection baseName={name} />
+            <DynamicEnvSection baseName={name} availablePlugins={availablePlugins} />
 
             <ConfigSectionTitle title="Volumes" />
             <KeyValueEntriesSection

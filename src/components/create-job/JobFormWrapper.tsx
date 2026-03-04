@@ -20,7 +20,8 @@ import { isValidProjectHash } from '@lib/utils';
 import { jobSchema } from '@schemas/index';
 import { DraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
 import { RecoveredJobPrefill } from '@typedefs/recoveredDraft';
-import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes';
+import { BasePluginType, Plugin, PluginType } from '@typedefs/steps/deploymentStepTypes';
+import { generatePluginName, getPluginType } from '@lib/pluginNames';
 import _ from 'lodash';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useRef } from 'react';
@@ -111,6 +112,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         },
         plugins: [
             {
+                pluginName: 'native-plugin-1',
                 basePluginType: BasePluginType.Native,
                 pluginSignature: PLUGIN_SIGNATURE_TYPES[0],
                 enableTunneling: BOOLEAN_TYPES[1],
@@ -214,6 +216,17 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
 
         const defaults = getDefaultSchemaValues();
         const mergedDefaults = mergeDefaults(defaults, recoveredPrefill?.formValues as Record<string, any>);
+
+        // Ensure every plugin has a stable pluginName (backwards compat for old data)
+        if (Array.isArray(mergedDefaults.plugins)) {
+            const assigned: Plugin[] = [];
+            mergedDefaults.plugins.forEach((plugin: Plugin) => {
+                if (!plugin.pluginName) {
+                    plugin.pluginName = generatePluginName(assigned, getPluginType(plugin));
+                }
+                assigned.push(plugin);
+            });
+        }
 
         form.reset(mergedDefaults);
         form.setValue('jobType', jobType);
