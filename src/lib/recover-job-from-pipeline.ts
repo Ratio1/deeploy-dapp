@@ -600,7 +600,8 @@ export const buildRecoveredJobPrefill = ({
                     const base = isGenericPlugin(plugin.signature)
                         ? formatGenericPlugin(config, semaphoreToPluginName)
                         : formatNativePlugin(plugin.signature, config);
-                    const pluginName = (config as Record<string, unknown>).plugin_name as string | undefined;
+                    const pluginName = ((config as Record<string, unknown>).PLUGIN_NAME ??
+                        (config as Record<string, unknown>).plugin_name) as string | undefined;
                     return pluginName ? { ...base, pluginName } : base;
                 });
             });

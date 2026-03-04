@@ -507,7 +507,7 @@ export const formatNativeJobPayload = (
             const customParams = formatGenericJobCustomParams(genericPlugin.customParams);
 
             return {
-                PLUGIN_NAME: pluginName,
+                plugin_name: pluginName,
                 plugin_signature: pluginSignature,
                 ...pluginConfig,
                 ...customParams,
@@ -518,7 +518,7 @@ export const formatNativeJobPayload = (
             const nativePlugin = plugin as NativePlugin;
 
             return {
-                PLUGIN_NAME: pluginName,
+                plugin_name: pluginName,
                 ...formatNativePlugin(nativePlugin),
             };
         }
