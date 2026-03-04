@@ -54,6 +54,21 @@ export default function RunningCard({
         );
     };
 
+    const getHealthColorClass = (offlineCount: number, totalCount: number): string => {
+        if (offlineCount === 0) {
+            return 'bg-emerald-500';
+        }
+
+        return totalCount > 0 && offlineCount === totalCount ? 'bg-red-500' : 'bg-yellow-500';
+    };
+
+    const totalProjectInstancesCount = jobs.reduce((count, job) => count + job.instances.length, 0);
+    const offlineProjectInstancesCount = jobs.reduce(
+        (count, job) => count + job.instances.filter((instance) => instance.isOnline === false).length,
+        0,
+    );
+    const projectHealthColorClass = getHealthColorClass(offlineProjectInstancesCount, totalProjectInstancesCount);
+
     const getProjectIdentity = (): React.ReactNode => {
         const job = jobs.find((job) => !!job.projectName);
 
@@ -73,9 +88,16 @@ export default function RunningCard({
                         <div className="row gap-2">
                             <Expander expanded={expanded} onToggle={toggle} />
 
-                            <Link href={`${routePath.deeploys}/${routePath.project}/${projectHash}`} className="hover:opacity-75">
-                                {getProjectIdentity()}
-                            </Link>
+                            <div className="row items-center gap-1.5">
+                                <div className={`h-2.5 w-2.5 rounded-full ${projectHealthColorClass}`}></div>
+
+                                <Link
+                                    href={`${routePath.deeploys}/${routePath.project}/${projectHash}`}
+                                    className="hover:opacity-75"
+                                >
+                                    {getProjectIdentity()}
+                                </Link>
+                            </div>
                         </div>
                     </div>
 
@@ -132,6 +154,9 @@ export default function RunningCard({
                         ) as JobTypeOption;
 
                         const targetNodes = Number(job.numberOfNodesRequested);
+                        const totalJobInstancesCount = job.instances.length;
+                        const offlineJobInstancesCount = job.instances.filter((instance) => instance.isOnline === false).length;
+                        const jobHealthColorClass = getHealthColorClass(offlineJobInstancesCount, totalJobInstancesCount);
 
                         const requestDate = new Date(Number(job.requestTimestamp) * 1000);
                         const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
@@ -152,6 +177,8 @@ export default function RunningCard({
                                                 <div className="bg-slate-75 absolute bottom-0 left-0 h-[19px] w-0.5"></div>
                                             )}
                                         </div>
+
+                                        <div className={`h-2.5 w-2.5 rounded-full ${jobHealthColorClass}`}></div>
 
                                         <div className={`text-[17px] ${jobTypeOption.textColorClass}`}>
                                             {jobTypeOption.icon}
