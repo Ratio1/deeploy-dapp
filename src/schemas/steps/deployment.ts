@@ -3,6 +3,7 @@ import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { CUSTOM_PLUGIN_SIGNATURE, PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
+import { computeDependencyTree } from '@lib/dependencyTree';
 import {
     dynamicEnvEntrySchema,
     enabledBooleanTypeValue,
@@ -332,6 +333,7 @@ export const genericAppDeploymentSchema = applyDeploymentTypeRefinements(
 // Plugins
 const genericPluginSchema = z.object({
     basePluginType: z.literal(BasePluginType.Generic),
+    pluginName: z.string().optional(),
 
     // Tunneling
     port: validations.port,
@@ -360,6 +362,7 @@ const genericPluginSchema = z.object({
 
 const nativePluginSchema = z.object({
     basePluginType: z.literal(BasePluginType.Native),
+    pluginName: z.string().optional(),
 
     // Signature
     pluginSignature: validations.pluginSignature,
@@ -383,7 +386,17 @@ const pluginSchema = applyCustomPluginSignatureRefinements(
 export const nativeAppPluginsSchema = z
     .array(pluginSchema)
     .min(1, 'At least one plugin is required')
-    .max(5, 'Only 5 plugins allowed');
+    .max(5, 'Only 5 plugins allowed')
+    .superRefine((plugins, ctx) => {
+        const { hasCycle } = computeDependencyTree(plugins as any);
+        if (hasCycle) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Circular dependency detected between plugins',
+                path: [],
+            });
+        }
+    });
 
 const nativeAppDeploymentSchemaWihtoutRefinements = mainDeploymentSchema.extend({
     pipelineParams: validations.pipelineParams,

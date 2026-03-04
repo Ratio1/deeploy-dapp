@@ -143,25 +143,41 @@ export const nodeSchema = z.object({
         .refine((val) => val === '' || /^0xai_[A-Za-z0-9_-]+$/.test(val), 'Must be a valid node address'),
 });
 
-export const dynamicEnvPairSchema = z.object({
-    type: z.enum(DYNAMIC_ENV_TYPES),
-    value: z
-        .string()
-        .max(128, 'Value cannot exceed 128 characters')
-        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
-        .optional(),
-});
+export const dynamicEnvPairSchema = z
+    .object({
+        type: z.enum(DYNAMIC_ENV_TYPES),
+        value: z
+            .string()
+            .max(128, 'Value cannot exceed 128 characters')
+            .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
+            .optional(),
+        path: z.tuple([z.string(), z.string()]).optional(),
+    })
+    .refine(
+        (data) => {
+            if (data.type === 'shmem') {
+                return (
+                    Array.isArray(data.path) &&
+                    data.path.length === 2 &&
+                    data.path[0].length > 0 &&
+                    data.path[1].length > 0
+                );
+            }
+            return true;
+        },
+        { message: 'Plugin and env key required for shmem type', path: ['path'] },
+    );
 
-// The key + the 3 key-value pairs
+// The key + variable-length value parts
 export const dynamicEnvEntrySchema = z
     .object({
         key: z.string().optional(),
-        values: z.array(dynamicEnvPairSchema).length(3, 'Must have exactly 3 value pairs'),
+        values: z.array(dynamicEnvPairSchema).min(1, 'At least one value part is required'),
     })
     .refine(
         (data) => {
             // If key is empty and all values are empty, it's a valid empty entry
-            if (!data.key && data.values.every((pair) => !pair.value)) {
+            if (!data.key && data.values.every((pair) => !pair.value && pair.type !== 'shmem')) {
                 return true;
             }
             // If key is present, it's valid

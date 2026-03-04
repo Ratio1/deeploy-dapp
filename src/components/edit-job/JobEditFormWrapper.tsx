@@ -24,7 +24,8 @@ import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import PayButtonWithAllowance from '@shared/jobs/PayButtonWithAllowance';
 import { AppsPlugin, JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJobWithResources } from '@typedefs/deeploys';
-import { BasePluginType, CustomParameterEntry, PluginType } from '@typedefs/steps/deploymentStepTypes';
+import { BasePluginType, CustomParameterEntry, Plugin, PluginType } from '@typedefs/steps/deploymentStepTypes';
+import { generatePluginName, getPluginType } from '@lib/pluginNames';
 import _ from 'lodash';
 import { JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { FieldErrors, FormProvider, useForm } from 'react-hook-form';
@@ -63,6 +64,17 @@ export default function JobEditFormWrapper({
     const payButtonRef = useRef<{ fetchAllowance: () => Promise<bigint | undefined> }>(null);
 
     const jobConfig: JobConfig = job.config;
+
+    // Build reverse map: semaphore_key → plugin_name for restoring shmem paths
+    const semaphoreToPluginName = useMemo(() => {
+        const map: Record<string, string> = {};
+        if (job.pluginSemaphoreMap) {
+            for (const [pluginName, semaphoreKey] of Object.entries(job.pluginSemaphoreMap)) {
+                map[semaphoreKey] = pluginName;
+            }
+        }
+        return map;
+    }, [job.pluginSemaphoreMap]);
 
     console.log('[JobEditFormWrapper]', { job, jobConfig });
 
@@ -129,22 +141,30 @@ export default function JobEditFormWrapper({
         customParams: formatCustomParams(config, GENERIC_JOB_RESERVED_KEYS),
     });
 
-    const getGenericPluginSchemaDefaults = (config: JobConfig) => ({
-        basePluginType: BasePluginType.Generic,
+    const getGenericPluginSchemaDefaults = (config: JobConfig) => {
+        const pluginName = (config as Record<string, unknown>).plugin_name as string | undefined;
 
-        // Tunneling
-        ...getBaseSchemaTunnelingDefaults(config),
+        return {
+            basePluginType: BasePluginType.Generic,
+            ...(pluginName ? { pluginName } : {}),
 
-        ...getGenericSpecificDeploymentDefaults(config),
-    });
+            // Tunneling
+            ...getBaseSchemaTunnelingDefaults(config),
+
+            ...getGenericSpecificDeploymentDefaults(config),
+        };
+    };
 
     const getNativePluginSchemaDefaults = (pluginInfo: AppsPlugin & { signature: string }) => {
         const isKnownSignature = PLUGIN_SIGNATURE_TYPES.includes(
             pluginInfo.signature as (typeof PLUGIN_SIGNATURE_TYPES)[number],
         );
 
+        const pluginName = (pluginInfo.instance_conf as Record<string, unknown>).plugin_name as string | undefined;
+
         return {
             basePluginType: BasePluginType.Native,
+            ...(pluginName ? { pluginName } : {}),
 
             // Signature - if not in the predefined list, select CUSTOM and pre-fill customPluginSignature
             pluginSignature: isKnownSignature
@@ -244,7 +264,16 @@ export default function JobEditFormWrapper({
     };
 
     const getDynamicEnvVars = (config: JobConfig) => {
-        return !config.DYNAMIC_ENV ? [] : Object.entries(config.DYNAMIC_ENV).map(([key, values]) => ({ key, values }));
+        if (!config.DYNAMIC_ENV) return [];
+        return Object.entries(config.DYNAMIC_ENV).map(([key, values]) => ({
+            key,
+            values: values.map((v) => {
+                if (v.type === 'shmem' && Array.isArray((v as any).path) && (v as any).path[0] in semaphoreToPluginName) {
+                    return { ...v, path: [semaphoreToPluginName[(v as any).path[0]], (v as any).path[1]] };
+                }
+                return v;
+            }),
+        }));
     };
 
     const getVolumes = (config: JobConfig) => {
@@ -273,17 +302,28 @@ export default function JobEditFormWrapper({
 
         const nativePlugins = instance.plugins.filter((plugin) => !isGenericPlugin(plugin.signature));
 
-        return [
+        const plugins = [
             ...nativePlugins.map((pluginInfo) => getNativePluginSchemaDefaults(pluginInfo)),
             ...genericPluginConfigs.map((config) => getGenericPluginSchemaDefaults(config)),
-        ];
+        ] as Plugin[];
+
+        // Ensure every plugin has a stable pluginName (backwards compat for old jobs)
+        const assigned: Plugin[] = [];
+        plugins.forEach((plugin) => {
+            if (!plugin.pluginName) {
+                plugin.pluginName = generatePluginName(assigned, getPluginType(plugin));
+            }
+            assigned.push(plugin);
+        });
+
+        return plugins;
     };
 
-    const formatCustomParams = (config: JobConfig, reservedKeys: (keyof JobConfig)[]) => {
+    const formatCustomParams = (config: JobConfig, reservedKeys: string[]) => {
         const customParams: CustomParameterEntry[] = [];
 
         Object.entries(config).forEach(([key, value]) => {
-            if (!reservedKeys.includes(key as keyof JobConfig)) {
+            if (!reservedKeys.includes(key)) {
                 const valueType = typeof value === 'string' ? 'string' : 'json';
 
                 let parsedValue: string = '';

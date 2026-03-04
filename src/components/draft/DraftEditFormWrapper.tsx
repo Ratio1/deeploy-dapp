@@ -12,7 +12,8 @@ import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import { SmallTag } from '@shared/SmallTag';
 import SubmitButton from '@shared/SubmitButton';
 import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
-import { ContainerDeploymentType, DeploymentType, PluginType, WorkerDeploymentType } from '@typedefs/steps/deploymentStepTypes';
+import { ContainerDeploymentType, DeploymentType, Plugin, PluginType, WorkerDeploymentType } from '@typedefs/steps/deploymentStepTypes';
+import { generatePluginName, getPluginType } from '@lib/pluginNames';
 import { cloneDeep } from 'lodash';
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
@@ -24,6 +25,17 @@ const JOB_TYPE_STEPS: Record<JobType, Step[]> = {
     [JobType.Native]: [...MAIN_STEPS, Step.PLUGINS],
     [JobType.Service]: [...MAIN_STEPS], // Editing service type is disabled for now
 };
+
+function ensurePluginNames(plugins: Plugin[]): Plugin[] {
+    const assigned: Plugin[] = [];
+    plugins.forEach((plugin) => {
+        if (!plugin.pluginName) {
+            plugin.pluginName = generatePluginName(assigned, getPluginType(plugin));
+        }
+        assigned.push(plugin);
+    });
+    return plugins;
+}
 
 export default function DraftEditFormWrapper({
     job,
@@ -150,7 +162,7 @@ export default function DraftEditFormWrapper({
                 pipelineInputUri: deployment.pipelineInputUri,
                 chainstoreResponse: deployment.chainstoreResponse ?? BOOLEAN_TYPES[1],
             },
-            plugins: cloneDeep(deployment.plugins),
+            plugins: ensurePluginNames(cloneDeep(deployment.plugins)),
         } as z.infer<typeof jobSchema>;
     };
 

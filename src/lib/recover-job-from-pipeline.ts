@@ -216,7 +216,7 @@ const normalizeEnvVars = (config: JobConfig) => {
     }));
 };
 
-const normalizeDynamicEnvVars = (config: JobConfig) => {
+const normalizeDynamicEnvVars = (config: JobConfig, semaphoreToPluginName?: Record<string, string>) => {
     const dynamicEnvVars = getKey<GenericRecord>(toObject(config), 'DYNAMIC_ENV');
     if (!dynamicEnvVars || typeof dynamicEnvVars !== 'object') {
         return [];
@@ -225,9 +225,25 @@ const normalizeDynamicEnvVars = (config: JobConfig) => {
     return Object.entries(dynamicEnvVars).map(([key, values]) => {
         const normalizedValues = Array.isArray(values) ? values : [];
 
-        const preparedValues = normalizedValues.slice(0, 3).map((entry) => {
+        const preparedValues = normalizedValues.map((entry) => {
             const entryObject = toObject(entry);
             const type = getKey<string>(entryObject, 'type');
+
+            if (type === 'shmem') {
+                const path = getKey<[string, string]>(entryObject, 'path');
+                const normalizedPath: [string, string] =
+                    Array.isArray(path) && path.length === 2 ? (path as [string, string]) : ['', ''];
+                // Reverse-map semaphore keys back to plugin names
+                if (semaphoreToPluginName && normalizedPath[0] && normalizedPath[0] in semaphoreToPluginName) {
+                    normalizedPath[0] = semaphoreToPluginName[normalizedPath[0]];
+                }
+                return {
+                    type: 'shmem' as const,
+                    value: '',
+                    path: normalizedPath,
+                };
+            }
+
             const normalizedType = type === 'host_ip' ? 'host_ip' : 'static';
 
             return {
@@ -236,7 +252,8 @@ const normalizeDynamicEnvVars = (config: JobConfig) => {
             };
         });
 
-        while (preparedValues.length < 3) {
+        // Ensure at least one part
+        if (preparedValues.length === 0) {
             preparedValues.push({
                 type: 'static',
                 value: '',
@@ -471,7 +488,7 @@ const formatNativePlugin = (signature: string, config: JobConfig) => {
     };
 };
 
-const formatGenericPlugin = (config: JobConfig) => {
+const formatGenericPlugin = (config: JobConfig, semaphoreToPluginName?: Record<string, string>) => {
     return {
         basePluginType: BasePluginType.Generic,
         enableTunneling: boolToBooleanType(toBooleanValue(config.TUNNEL_ENGINE_ENABLED, false)),
@@ -480,7 +497,7 @@ const formatGenericPlugin = (config: JobConfig) => {
         ports: normalizePorts(config),
         deploymentType: getDeploymentType(config),
         envVars: normalizeEnvVars(config),
-        dynamicEnvVars: normalizeDynamicEnvVars(config),
+        dynamicEnvVars: normalizeDynamicEnvVars(config, semaphoreToPluginName),
         volumes: normalizeVolumes(config),
         fileVolumes: normalizeFileVolumes(config),
         restartPolicy: getPolicyValue(config.RESTART_POLICY),
@@ -569,13 +586,23 @@ export const buildRecoveredJobPrefill = ({
         const jobConfig = getKey<GenericRecord>(deeploySpecs, 'job_config') ?? {};
         const pipelineParams = getKey<GenericRecord>(jobConfig, 'pipeline_params') ?? {};
 
+        // Build reverse map: semaphore_key → plugin_name for restoring shmem paths
+        const pluginSemaphoreMap = getKey<Record<string, string>>(jobConfig, 'plugin_semaphore_map') ?? {};
+        const semaphoreToPluginName: Record<string, string> = {};
+        for (const [pluginName, semaphoreKey] of Object.entries(pluginSemaphoreMap)) {
+            semaphoreToPluginName[semaphoreKey] = pluginName;
+        }
+
         const plugins = normalizedPlugins
             .filter((plugin) => plugin.instances.length > 0)
-            .map((plugin) => {
-                const config = plugin.instances[0];
-                return isGenericPlugin(plugin.signature)
-                    ? formatGenericPlugin(config)
-                    : formatNativePlugin(plugin.signature, config);
+            .flatMap((plugin) => {
+                return plugin.instances.map((config) => {
+                    const base = isGenericPlugin(plugin.signature)
+                        ? formatGenericPlugin(config, semaphoreToPluginName)
+                        : formatNativePlugin(plugin.signature, config);
+                    const pluginName = (config as Record<string, unknown>).plugin_name as string | undefined;
+                    return pluginName ? { ...base, pluginName } : base;
+                });
             });
 
         if (!plugins.length) {
