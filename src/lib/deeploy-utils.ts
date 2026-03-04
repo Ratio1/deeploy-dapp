@@ -48,7 +48,7 @@ export const KYB_TAG = 'IS_KYB';
 export const KYC_TAG = '!IS_KYB';
 export const DC_TAG = 'DC:*';
 
-export const NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS: string[] = [
+export const NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS: (keyof JobConfig)[] = [
     'CHAINSTORE_PEERS',
     'CHAINSTORE_RESPONSE_KEY',
     'CLOUDFLARE_TOKEN',
@@ -56,11 +56,11 @@ export const NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS: string[] = [
     'PORT',
     'TUNNEL_ENGINE_ENABLED',
     'NGROK_USE_API',
-    'plugin_name',
+    'PLUGIN_NAME',
 ];
 
 // Keys that are system-managed and cannot be edited by users
-export const SYSTEM_MANAGED_JOB_CONFIG_KEYS: string[] = [
+export const SYSTEM_MANAGED_JOB_CONFIG_KEYS: (keyof JobConfig)[] = [
     'CHAINSTORE_PEERS',
     'CHAINSTORE_RESPONSE_KEY',
     'INSTANCE_ID',
@@ -68,11 +68,11 @@ export const SYSTEM_MANAGED_JOB_CONFIG_KEYS: string[] = [
     'NGROK_AUTH_TOKEN',
     'NGROK_EDGE_LABEL',
     'NGROK_USE_API',
-    'plugin_name',
+    'PLUGIN_NAME',
 ];
 
 // Keys that are editable via dedicated UI sections in generic job deployment
-export const GENERIC_JOB_UI_MANAGED_KEYS: string[] = [
+export const GENERIC_JOB_UI_MANAGED_KEYS: (keyof JobConfig)[] = [
     'ENV',
     'DYNAMIC_ENV',
     'VOLUMES',
@@ -90,7 +90,7 @@ export const GENERIC_JOB_UI_MANAGED_KEYS: string[] = [
 ];
 
 // Combined: all keys that should be excluded from custom parameters for generic jobs
-export const GENERIC_JOB_RESERVED_KEYS: string[] = [
+export const GENERIC_JOB_RESERVED_KEYS: (keyof JobConfig)[] = [
     ...SYSTEM_MANAGED_JOB_CONFIG_KEYS,
     ...GENERIC_JOB_UI_MANAGED_KEYS,
 ];
@@ -323,9 +323,7 @@ const formatGenericJobVariables = (plugin: GenericPlugin) => {
 };
 
 const formatNativeJobPluginSignature = (plugin: NativePlugin) => {
-    return plugin.pluginSignature === CUSTOM_PLUGIN_SIGNATURE
-        ? plugin.customPluginSignature
-        : plugin.pluginSignature;
+    return plugin.pluginSignature === CUSTOM_PLUGIN_SIGNATURE ? plugin.customPluginSignature : plugin.pluginSignature;
 };
 
 const formatNativeJobCustomParams = (plugin: NativePlugin) => {
@@ -509,7 +507,7 @@ export const formatNativeJobPayload = (
             const customParams = formatGenericJobCustomParams(genericPlugin.customParams);
 
             return {
-                plugin_name: pluginName,
+                PLUGIN_NAME: pluginName,
                 plugin_signature: pluginSignature,
                 ...pluginConfig,
                 ...customParams,
@@ -520,7 +518,7 @@ export const formatNativeJobPayload = (
             const nativePlugin = plugin as NativePlugin;
 
             return {
-                plugin_name: pluginName,
+                PLUGIN_NAME: pluginName,
                 ...formatNativePlugin(nativePlugin),
             };
         }

@@ -94,6 +94,7 @@ type JobConfig = {
         }
     >;
     VCS_DATA?: JobConfigVCSData;
+    PLUGIN_NAME: string;
 };
 
 type JobConfigCRData = {
