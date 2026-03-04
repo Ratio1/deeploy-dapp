@@ -21,7 +21,7 @@ const toDraftLikePayload = (payload: Record<string, any>): Record<string, any> =
     }
 
     // Native draft exports store plugins under deployment.plugins.
-    if (payload.jobType === JobType.Native && normalized.plugins === undefined) {
+    if (payload.jobType === JobType.Native && payload.plugins === undefined) {
         const deployment = normalized.deployment;
         if (isRecord(deployment) && Array.isArray(deployment.plugins)) {
             normalized.plugins = deployment.plugins;
