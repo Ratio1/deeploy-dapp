@@ -1,6 +1,11 @@
 name: Build and Push Devnet Image
 
 on:
+  # Run after Semantic Versioning completes (tag push from GITHUB_TOKEN won't trigger 'push' events)
+  workflow_run:
+    workflows: ["Semantic Versioning"]
+    branches: [develop]
+    types: [completed]
   push:
     tags: ['v*']
   # also allow manual runs
@@ -8,7 +13,10 @@ on:
 
 jobs:
   build:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -17,7 +25,7 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event_name == 'workflow_run' && 'develop' || github.sha }}
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
