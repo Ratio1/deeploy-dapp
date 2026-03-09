@@ -14,9 +14,10 @@ import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import ActionButton from '@shared/ActionButton';
 import { DetailedAlert } from '@shared/DetailedAlert';
 import EmptyData from '@shared/EmptyData';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { TunnelingSecrets } from '@typedefs/general';
 import { Tunnel } from '@typedefs/tunnels';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiAddLine, RiCloseCircleLine, RiDoorLockLine, RiDraftLine, RiPencilLine } from 'react-icons/ri';
 import { useAccount, useSignMessage } from 'wagmi';
@@ -33,12 +34,12 @@ function Tunnels() {
     const [isFetchingSecrets, setFetchingSecrets] = useState(false);
     const [doSecretsExist, setSecretsExist] = useState<boolean | undefined>();
 
-    const [tunnels, setTunnels] = useState<Tunnel[]>([]);
-    const [isFetchingTunnels, setFetchingTunnels] = useState(true);
-
-    const [error, setError] = useState<string | null>(null);
+    const [secretsError, setSecretsError] = useState<string | null>(null);
 
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
+    const queryClient = useQueryClient();
+
+    const tunnelsQueryKey = ['tunnels', tunnelingSecrets?.cloudflareAccountId] as const;
 
     // Init
     useEffect(() => {
@@ -47,12 +48,74 @@ function Tunnels() {
         }
     }, [address]);
 
-    useEffect(() => {
-        if (tunnelingSecrets) {
-            // console.log('Tunneling secrets exist, fetching tunnels...');
-            fetchTunnels();
-        }
-    }, [tunnelingSecrets]);
+    const {
+        data: tunnels = [],
+        isLoading: isLoadingTunnels,
+        isFetching: isFetchingTunnels,
+        error: tunnelsError,
+    } = useQuery<Tunnel[]>({
+        queryKey: tunnelsQueryKey,
+        queryFn: async () => {
+            if (!tunnelingSecrets) {
+                return [];
+            }
+
+            const data = await getTunnels(tunnelingSecrets.cloudflareAccountId, tunnelingSecrets.cloudflareApiKey);
+            const tunnelsResult = data.result || [];
+
+            return Object.values(tunnelsResult)
+                .filter((t: any) => t.metadata?.creator === 'ratio1')
+                .map((t: any) => ({
+                    id: t.id,
+                    status: t.status,
+                    connections: t.connections || [],
+                    alias: t.metadata.alias,
+                    url: t.metadata.dns_name,
+                    token: t.metadata.tunnel_token,
+                    custom_hostnames: t.metadata.custom_hostnames,
+                    aliases: t.metadata.aliases || [],
+                }));
+        },
+        enabled: !!tunnelingSecrets && !!doSecretsExist,
+        staleTime: 60_000,
+        gcTime: 60_000,
+        retry: false,
+        refetchOnWindowFocus: false,
+    });
+
+    const statusStats = useMemo(() => {
+        const counts = tunnels.reduce(
+            (acc, item) => {
+                switch (item.status) {
+                    case 'healthy':
+                        acc.healthy += 1;
+                        break;
+                    case 'degraded':
+                        acc.degraded += 1;
+                        break;
+                    case 'down':
+                        acc.down += 1;
+                        break;
+                    case 'inactive':
+                        acc.inactive += 1;
+                        break;
+                    default:
+                        break;
+                }
+
+                return acc;
+            },
+            { healthy: 0, degraded: 0, down: 0, inactive: 0 },
+        );
+
+        return {
+            total: tunnels.length,
+            healthy: counts.healthy,
+            degraded: counts.degraded,
+            down: counts.down,
+            inactive: counts.inactive,
+        };
+    }, [tunnels]);
 
     const init = async () => {
         if (!address) {
@@ -74,6 +137,7 @@ function Tunnels() {
     const fetchSecrets = async () => {
         try {
             setFetchingSecrets(true);
+            setSecretsError(null);
 
             const nonce = generateDeeployNonce();
             const message = buildDeeployMessage(
@@ -129,7 +193,7 @@ function Tunnels() {
             if (error?.message.includes('User rejected the request')) {
                 toast.error('Please sign the message to continue.');
             } else {
-                setError('An error occurred while fetching your secrets.');
+                setSecretsError('An error occurred while fetching your secrets.');
             }
 
             closeSignMessageModal();
@@ -138,41 +202,14 @@ function Tunnels() {
         }
     };
 
-    const fetchTunnels = async () => {
-        if (!tunnelingSecrets) {
-            console.error('No tunneling secrets available, skipping tunnels fetch');
-            return;
-        }
-
-        setFetchingTunnels(true);
-        setError(null);
-
-        try {
-            const data = await getTunnels(tunnelingSecrets.cloudflareAccountId, tunnelingSecrets.cloudflareApiKey);
-            const tunnelsObj = data.result || {};
-
-            const tunnelsArray = Object.values(tunnelsObj)
-                .filter((t: any) => t.metadata?.creator === 'ratio1')
-                .map((t: any) => ({
-                    id: t.id,
-                    status: t.status,
-                    connections: t.connections || [],
-                    alias: t.metadata.alias,
-                    url: t.metadata.dns_name,
-                    token: t.metadata.tunnel_token,
-                    custom_hostnames: t.metadata.custom_hostnames,
-                    aliases: t.metadata.aliases || [],
-                }));
-
-            setTunnels(tunnelsArray);
-        } catch (e: any) {
-            setError('An error occurred while fetching your tunnels.');
-            setTunnels([]);
-            console.error(e);
-        } finally {
-            setFetchingTunnels(false);
-        }
+    const invalidateTunnels = async () => {
+        await queryClient.invalidateQueries({
+            queryKey: tunnelsQueryKey,
+        });
     };
+
+    const error = secretsError ?? (tunnelsError ? 'An error occurred while fetching your tunnels.' : null);
+    const showTunnelSkeletons = isLoadingTunnels || (isFetchingTunnels && tunnels.length === 0);
 
     if (isLoading || doSecretsExist === undefined) {
         return (
@@ -239,7 +276,7 @@ function Tunnels() {
             <div className="w-full flex-1">
                 <div className="col mx-auto max-w-[620px] gap-8">
                     <div className="row justify-between">
-                        <ActionButton color="primary" onPress={() => openTunnelCreateModal(() => fetchTunnels())}>
+                        <ActionButton color="primary" onPress={() => openTunnelCreateModal(() => invalidateTunnels())}>
                             <div className="row gap-1">
                                 <RiAddLine className="text-lg" />
                                 <div className="compact">Add Tunnel</div>
@@ -254,7 +291,33 @@ function Tunnels() {
                         </ActionButton>
                     </div>
 
-                    {error && !isFetchingTunnels && (
+                    {showTunnelSkeletons ? (
+                        <div className="row flex-wrap gap-2">
+                            {Array.from({ length: 5 }).map((_, index) => (
+                                <Skeleton key={index} className="h-[32px] w-[90px] rounded-full" />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="row flex-wrap gap-2 text-xs sm:text-sm">
+                            <div className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 font-semibold text-slate-700">
+                                Total: {statusStats.total}
+                            </div>
+                            <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-semibold text-emerald-700">
+                                Healthy: {statusStats.healthy}
+                            </div>
+                            <div className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 font-semibold text-amber-700">
+                                Degraded: {statusStats.degraded}
+                            </div>
+                            <div className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 font-semibold text-red-700">
+                                Down: {statusStats.down}
+                            </div>
+                            <div className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 font-semibold text-slate-700">
+                                Inactive: {statusStats.inactive}
+                            </div>
+                        </div>
+                    )}
+
+                    {error && !showTunnelSkeletons && (
                         <div className="py-8 lg:py-12">
                             <DetailedAlert
                                 variant="red"
@@ -267,7 +330,7 @@ function Tunnels() {
                     )}
 
                     <div className="col gap-4">
-                        {isFetchingTunnels ? (
+                        {showTunnelSkeletons ? (
                             <>
                                 {Array.from({ length: 4 }).map((_, index) => (
                                     <Skeleton key={index} className="min-h-[104px] w-full rounded-lg" />
@@ -287,7 +350,7 @@ function Tunnels() {
 
                                 {tunnels.map((tunnel) => (
                                     <div key={tunnel.id}>
-                                        <TunnelCard tunnel={tunnel} fetchTunnels={fetchTunnels} />
+                                        <TunnelCard tunnel={tunnel} fetchTunnels={invalidateTunnels} />
                                     </div>
                                 ))}
                             </>
