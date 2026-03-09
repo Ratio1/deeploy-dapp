@@ -89,13 +89,16 @@ export default function PluginsSection() {
     // Watch all plugin values for computing available plugins and dependency tree
     const watchedPlugins: Plugin[] = useWatch({ control, name: 'plugins' }) ?? [];
 
-    // Compute available plugins per plugin index (all other CAR/WAR plugins)
+    // Compute available plugins per plugin index (all other plugins)
     const availablePluginsByIndex = useMemo(() => {
         return watchedPlugins.map((_plugin, currentIndex) => {
-            const others: { name: string }[] = [];
+            const others: { name: string; basePluginType: BasePluginType }[] = [];
             watchedPlugins.forEach((p, i) => {
-                if (i !== currentIndex && p.basePluginType === BasePluginType.Generic) {
-                    others.push({ name: getPluginName(p, i) });
+                if (i !== currentIndex) {
+                    others.push({
+                        name: getPluginName(p, i),
+                        basePluginType: p.basePluginType,
+                    });
                 }
             });
             return others;
