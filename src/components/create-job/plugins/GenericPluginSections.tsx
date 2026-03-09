@@ -8,9 +8,11 @@ import AppParametersSection from '../sections/AppParametersSection';
 import PluginEnvVariablesSection from '../sections/PluginEnvVariablesSection';
 import PoliciesSection from '../sections/PoliciesSection';
 
+import { BasePluginType } from '@typedefs/steps/deploymentStepTypes';
+
 type Props = {
     name: string;
-    availablePlugins?: { name: string }[];
+    availablePlugins?: { name: string; basePluginType: BasePluginType }[];
 };
 
 export default function GenericPluginSections({ name, availablePlugins }: Props) {

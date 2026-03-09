@@ -3,12 +3,13 @@ import { SHMEM_ENV_KEYS } from '@data/shmemEnvKeys';
 import { SelectItem } from '@heroui/select';
 import StyledSelect from '@shared/StyledSelect';
 import StyledInput from '@shared/StyledInput';
+import { BasePluginType } from '@typedefs/steps/deploymentStepTypes';
 import { Controller, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import VariableSectionControls from './VariableSectionControls';
 import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
 
-type AvailablePlugin = { name: string };
+type AvailablePlugin = { name: string; basePluginType: BasePluginType };
 
 type Props = {
     baseName?: string;
@@ -308,6 +309,7 @@ function ShmemPathInputs({
     entryError: any;
     availablePlugins: AvailablePlugin[];
 }) {
+    const { setValue } = useFormContext();
     const pathError = entryError?.values?.[k]?.path;
 
     const path0Value = useWatch({
@@ -323,6 +325,12 @@ function ShmemPathInputs({
     const showPath0Error = !!pathError && !path0Value;
     const showPath1Error = !!pathError && !path1Value;
 
+    // Filter env keys based on the selected source plugin's type
+    const selectedPlugin = availablePlugins.find((p) => p.name === path0Value);
+    const envKeys = selectedPlugin
+        ? SHMEM_ENV_KEYS[selectedPlugin.basePluginType]
+        : SHMEM_ENV_KEYS[BasePluginType.Generic];
+
     return (
         <div className="flex gap-2">
             <div className="w-1/2">
@@ -335,6 +343,16 @@ function ShmemPathInputs({
                             onSelectionChange={async (keys) => {
                                 const selectedKey = Array.from(keys)[0] as string;
                                 field.onChange(selectedKey);
+
+                                // Clear env key if it's no longer valid for the new source type
+                                const newPlugin = availablePlugins.find((p) => p.name === selectedKey);
+                                const newEnvKeys = newPlugin
+                                    ? SHMEM_ENV_KEYS[newPlugin.basePluginType]
+                                    : SHMEM_ENV_KEYS[BasePluginType.Generic];
+                                if (path1Value && !(newEnvKeys as readonly string[]).includes(path1Value)) {
+                                    setValue(`${baseName}.dynamicEnvVars.${index}.values.${k}.path.1`, '');
+                                }
+
                                 await trigger(`${baseName}.dynamicEnvVars.${index}.values.${k}`);
                             }}
                             onBlur={field.onBlur}
@@ -370,7 +388,7 @@ function ShmemPathInputs({
                             errorMessage={fieldState.error?.message || (showPath1Error ? pathError?.message : undefined)}
                             placeholder="Select env key"
                         >
-                            {SHMEM_ENV_KEYS.map((envKey) => (
+                            {envKeys.map((envKey) => (
                                 <SelectItem key={envKey} textValue={envKey}>
                                     <div className="row gap-2 py-1">
                                         <div className="font-medium">{envKey}</div>
