@@ -52,6 +52,7 @@ export default function TunnelPage() {
     const [alias, setAlias] = useState<string>('');
     const [isLoadingAlias, setLoadingAlias] = useState<boolean>(false);
 
+    const tunnelsQueryKey = ['tunnels', tunnelingSecrets?.cloudflareAccountId] as const;
     const tunnelQueryKey = ['tunnel', id, tunnelingSecrets?.cloudflareAccountId] as const;
     const {
         data: tunnel,
@@ -100,7 +101,7 @@ export default function TunnelPage() {
                 queryKey: tunnelQueryKey,
             }),
             queryClient.invalidateQueries({
-                queryKey: ['tunnels'],
+                queryKey: tunnelsQueryKey,
             }),
         ]);
     };
@@ -129,7 +130,7 @@ export default function TunnelPage() {
                         try {
                             await deleteTunnel(tunnel.id, tunnelingSecrets);
                             await queryClient.invalidateQueries({
-                                queryKey: ['tunnels'],
+                                queryKey: tunnelsQueryKey,
                             });
                             toast.success('Tunnel deleted successfully.');
                             router.push(routePath.tunnels);

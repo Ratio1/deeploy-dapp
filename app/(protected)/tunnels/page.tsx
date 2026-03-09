@@ -50,6 +50,7 @@ function Tunnels() {
 
     const {
         data: tunnels = [],
+        isLoading: isLoadingTunnels,
         isFetching: isFetchingTunnels,
         error: tunnelsError,
     } = useQuery<Tunnel[]>({
@@ -208,6 +209,7 @@ function Tunnels() {
     };
 
     const error = secretsError ?? (tunnelsError ? 'An error occurred while fetching your tunnels.' : null);
+    const showTunnelSkeletons = isLoadingTunnels || (isFetchingTunnels && tunnels.length === 0);
 
     if (isLoading || doSecretsExist === undefined) {
         return (
@@ -289,7 +291,7 @@ function Tunnels() {
                         </ActionButton>
                     </div>
 
-                    {isFetchingTunnels ? (
+                    {showTunnelSkeletons ? (
                         <div className="row flex-wrap gap-2">
                             {Array.from({ length: 5 }).map((_, index) => (
                                 <Skeleton key={index} className="h-[32px] w-[90px] rounded-full" />
@@ -315,7 +317,7 @@ function Tunnels() {
                         </div>
                     )}
 
-                    {error && !isFetchingTunnels && (
+                    {error && !showTunnelSkeletons && (
                         <div className="py-8 lg:py-12">
                             <DetailedAlert
                                 variant="red"
@@ -328,7 +330,7 @@ function Tunnels() {
                     )}
 
                     <div className="col gap-4">
-                        {isFetchingTunnels ? (
+                        {showTunnelSkeletons ? (
                             <>
                                 {Array.from({ length: 4 }).map((_, index) => (
                                     <Skeleton key={index} className="min-h-[104px] w-full rounded-lg" />
