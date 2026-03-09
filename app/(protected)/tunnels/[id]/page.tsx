@@ -19,6 +19,7 @@ import { CopyableValue } from '@shared/CopyableValue';
 import EmptyData from '@shared/EmptyData';
 import { SmallTag } from '@shared/SmallTag';
 import StyledInput from '@shared/StyledInput';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tunnel } from '@typedefs/tunnels';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -42,8 +43,7 @@ export default function TunnelPage() {
 
     const router = useRouter();
     const { id } = useParams<{ id?: string }>();
-
-    const [tunnel, setTunnel] = useState<Tunnel | undefined>();
+    const queryClient = useQueryClient();
 
     // Used for adding new domains
     const [domain, setDomain] = useState<string>('');
@@ -52,14 +52,14 @@ export default function TunnelPage() {
     const [alias, setAlias] = useState<string>('');
     const [isLoadingAlias, setLoadingAlias] = useState<boolean>(false);
 
-    useEffect(() => {
-        if (tunnelingSecrets && id) {
-            fetchTunnel(id);
-        }
-    }, [id, tunnelingSecrets]);
-
-    const fetchTunnel = async (id: string | undefined) => {
-        try {
+    const tunnelsQueryKey = ['tunnels', tunnelingSecrets?.cloudflareAccountId] as const;
+    const tunnelQueryKey = ['tunnel', id, tunnelingSecrets?.cloudflareAccountId] as const;
+    const {
+        data: tunnel,
+        error: tunnelError,
+    } = useQuery<Tunnel>({
+        queryKey: tunnelQueryKey,
+        queryFn: async () => {
             if (!id) {
                 throw new Error('Invalid tunnel ID.');
             }
@@ -68,24 +68,42 @@ export default function TunnelPage() {
                 throw new Error('Tunneling secrets not found.');
             }
 
-            setTunnel(undefined);
+            const { result: tunnelData } = await getTunnel(id, tunnelingSecrets);
 
-            const { result: tunnel } = await getTunnel(id, tunnelingSecrets);
+            return {
+                id: tunnelData.id,
+                status: tunnelData.status,
+                connections: tunnelData.connections || [],
+                alias: tunnelData.metadata.alias,
+                url: tunnelData.metadata.dns_name,
+                token: tunnelData.metadata.tunnel_token,
+                custom_hostnames: tunnelData.metadata.custom_hostnames,
+                aliases: tunnelData.metadata.aliases || [],
+            };
+        },
+        enabled: !!id && !!tunnelingSecrets,
+        staleTime: 60_000,
+        gcTime: 60_000,
+        retry: false,
+        refetchOnWindowFocus: false,
+    });
 
-            setTunnel({
-                id: tunnel.id,
-                status: tunnel.status,
-                connections: tunnel.connections || [],
-                alias: tunnel.metadata.alias,
-                url: tunnel.metadata.dns_name,
-                token: tunnel.metadata.tunnel_token,
-                custom_hostnames: tunnel.metadata.custom_hostnames,
-                aliases: tunnel.metadata.aliases || [],
-            });
-        } catch (error) {
-            console.error(error);
+    useEffect(() => {
+        if (tunnelError) {
+            console.error(tunnelError);
             router.push(routePath.notFound);
         }
+    }, [router, tunnelError]);
+
+    const invalidateTunnelQueries = async () => {
+        await Promise.all([
+            queryClient.invalidateQueries({
+                queryKey: tunnelQueryKey,
+            }),
+            queryClient.invalidateQueries({
+                queryKey: tunnelsQueryKey,
+            }),
+        ]);
     };
 
     const onDeleteTunnel = async () => {
@@ -111,6 +129,9 @@ export default function TunnelPage() {
                     onConfirm: async () => {
                         try {
                             await deleteTunnel(tunnel.id, tunnelingSecrets);
+                            await queryClient.invalidateQueries({
+                                queryKey: tunnelsQueryKey,
+                            });
                             toast.success('Tunnel deleted successfully.');
                             router.push(routePath.tunnels);
                         } catch (error: any) {
@@ -151,7 +172,7 @@ export default function TunnelPage() {
             await addTunnelHostname(tunnel.id, sanitizedDomain, tunnelingSecrets);
             toast.success('Domain added successfully.');
             setDomain('');
-            fetchTunnel(id);
+            await invalidateTunnelQueries();
             onViewDNS(sanitizedDomain);
         } catch (error) {
             console.error('Error adding domain:', error);
@@ -180,7 +201,7 @@ export default function TunnelPage() {
                     onConfirm: async () => {
                         await removeTunnelHostname(tunnel.id, hostnameId, tunnelingSecrets);
                         toast.success('Domain deleted successfully.');
-                        fetchTunnel(id);
+                        await invalidateTunnelQueries();
                     },
                 },
             );
@@ -207,7 +228,7 @@ export default function TunnelPage() {
             await addTunnelAlias(tunnel.id, sanitizedAlias, tunnelingSecrets);
             toast.success('Alias added successfully.');
             setAlias('');
-            fetchTunnel(id);
+            await invalidateTunnelQueries();
         } catch (error) {
             console.error('Error adding alias:', error);
             toast.error('Error adding alias.');
@@ -235,7 +256,7 @@ export default function TunnelPage() {
                     onConfirm: async () => {
                         await removeTunnelAlias(tunnel.id, aliasId, tunnelingSecrets);
                         toast.success('Alias deleted successfully.');
-                        fetchTunnel(id);
+                        await invalidateTunnelQueries();
                     },
                 },
             );
@@ -302,7 +323,7 @@ export default function TunnelPage() {
                         className="slate-button"
                         color="default"
                         onPress={() => {
-                            openTunnelRenameModal(tunnel, () => fetchTunnel(id));
+                            openTunnelRenameModal(tunnel, () => invalidateTunnelQueries());
                         }}
                     >
                         <div className="row gap-1.5">
