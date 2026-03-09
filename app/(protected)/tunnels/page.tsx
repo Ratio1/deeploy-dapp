@@ -14,6 +14,7 @@ import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import ActionButton from '@shared/ActionButton';
 import { DetailedAlert } from '@shared/DetailedAlert';
 import EmptyData from '@shared/EmptyData';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { TunnelingSecrets } from '@typedefs/general';
 import { Tunnel } from '@typedefs/tunnels';
 import { useEffect, useMemo, useState } from 'react';
@@ -33,12 +34,12 @@ function Tunnels() {
     const [isFetchingSecrets, setFetchingSecrets] = useState(false);
     const [doSecretsExist, setSecretsExist] = useState<boolean | undefined>();
 
-    const [tunnels, setTunnels] = useState<Tunnel[]>([]);
-    const [isFetchingTunnels, setFetchingTunnels] = useState(true);
-
-    const [error, setError] = useState<string | null>(null);
+    const [secretsError, setSecretsError] = useState<string | null>(null);
 
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
+    const queryClient = useQueryClient();
+
+    const tunnelsQueryKey = ['tunnels', tunnelingSecrets?.cloudflareAccountId] as const;
 
     // Init
     useEffect(() => {
@@ -47,12 +48,39 @@ function Tunnels() {
         }
     }, [address]);
 
-    useEffect(() => {
-        if (tunnelingSecrets) {
-            // console.log('Tunneling secrets exist, fetching tunnels...');
-            fetchTunnels();
-        }
-    }, [tunnelingSecrets]);
+    const {
+        data: tunnels = [],
+        isFetching: isFetchingTunnels,
+        error: tunnelsError,
+    } = useQuery<Tunnel[]>({
+        queryKey: tunnelsQueryKey,
+        queryFn: async () => {
+            if (!tunnelingSecrets) {
+                return [];
+            }
+
+            const data = await getTunnels(tunnelingSecrets.cloudflareAccountId, tunnelingSecrets.cloudflareApiKey);
+            const tunnelsResult = data.result || [];
+
+            return Object.values(tunnelsResult)
+                .filter((t: any) => t.metadata?.creator === 'ratio1')
+                .map((t: any) => ({
+                    id: t.id,
+                    status: t.status,
+                    connections: t.connections || [],
+                    alias: t.metadata.alias,
+                    url: t.metadata.dns_name,
+                    token: t.metadata.tunnel_token,
+                    custom_hostnames: t.metadata.custom_hostnames,
+                    aliases: t.metadata.aliases || [],
+                }));
+        },
+        enabled: !!tunnelingSecrets && !!doSecretsExist,
+        staleTime: 60_000,
+        gcTime: 60_000,
+        retry: false,
+        refetchOnWindowFocus: false,
+    });
 
     const statusStats = useMemo(() => {
         const counts = tunnels.reduce(
@@ -108,6 +136,7 @@ function Tunnels() {
     const fetchSecrets = async () => {
         try {
             setFetchingSecrets(true);
+            setSecretsError(null);
 
             const nonce = generateDeeployNonce();
             const message = buildDeeployMessage(
@@ -163,7 +192,7 @@ function Tunnels() {
             if (error?.message.includes('User rejected the request')) {
                 toast.error('Please sign the message to continue.');
             } else {
-                setError('An error occurred while fetching your secrets.');
+                setSecretsError('An error occurred while fetching your secrets.');
             }
 
             closeSignMessageModal();
@@ -172,41 +201,13 @@ function Tunnels() {
         }
     };
 
-    const fetchTunnels = async () => {
-        if (!tunnelingSecrets) {
-            console.error('No tunneling secrets available, skipping tunnels fetch');
-            return;
-        }
-
-        setFetchingTunnels(true);
-        setError(null);
-
-        try {
-            const data = await getTunnels(tunnelingSecrets.cloudflareAccountId, tunnelingSecrets.cloudflareApiKey);
-            const tunnelsObj = data.result || {};
-
-            const tunnelsArray = Object.values(tunnelsObj)
-                .filter((t: any) => t.metadata?.creator === 'ratio1')
-                .map((t: any) => ({
-                    id: t.id,
-                    status: t.status,
-                    connections: t.connections || [],
-                    alias: t.metadata.alias,
-                    url: t.metadata.dns_name,
-                    token: t.metadata.tunnel_token,
-                    custom_hostnames: t.metadata.custom_hostnames,
-                    aliases: t.metadata.aliases || [],
-                }));
-
-            setTunnels(tunnelsArray);
-        } catch (e: any) {
-            setError('An error occurred while fetching your tunnels.');
-            setTunnels([]);
-            console.error(e);
-        } finally {
-            setFetchingTunnels(false);
-        }
+    const invalidateTunnels = async () => {
+        await queryClient.invalidateQueries({
+            queryKey: tunnelsQueryKey,
+        });
     };
+
+    const error = secretsError ?? (tunnelsError ? 'An error occurred while fetching your tunnels.' : null);
 
     if (isLoading || doSecretsExist === undefined) {
         return (
@@ -273,7 +274,7 @@ function Tunnels() {
             <div className="w-full flex-1">
                 <div className="col mx-auto max-w-[620px] gap-8">
                     <div className="row justify-between">
-                        <ActionButton color="primary" onPress={() => openTunnelCreateModal(() => fetchTunnels())}>
+                        <ActionButton color="primary" onPress={() => openTunnelCreateModal(() => invalidateTunnels())}>
                             <div className="row gap-1">
                                 <RiAddLine className="text-lg" />
                                 <div className="compact">Add Tunnel</div>
@@ -347,7 +348,7 @@ function Tunnels() {
 
                                 {tunnels.map((tunnel) => (
                                     <div key={tunnel.id}>
-                                        <TunnelCard tunnel={tunnel} fetchTunnels={fetchTunnels} />
+                                        <TunnelCard tunnel={tunnel} fetchTunnels={invalidateTunnels} />
                                     </div>
                                 ))}
                             </>
