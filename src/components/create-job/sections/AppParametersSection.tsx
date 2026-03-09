@@ -11,6 +11,7 @@ import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import NumberInputWithLabel from '@shared/NumberInputWithLabel';
 import SelectWithLabel from '@shared/SelectWithLabel';
 import StyledSelect from '@shared/StyledSelect';
+import clsx from 'clsx';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { RiCodeSSlashLine } from 'react-icons/ri';
@@ -25,13 +26,34 @@ type ExistingTunnelOption = {
     alias: string;
     token: string;
     url: string;
+    status: 'inactive' | 'degraded' | 'healthy' | 'down';
+    isCustom?: false;
 };
 
-type TunnelSelectOption = ExistingTunnelOption & {
-    isCustom?: boolean;
+type CustomTunnelOption = {
+    id: string;
+    alias: string;
+    token: string;
+    url: string;
+    isCustom: true;
 };
+
+type TunnelSelectOption = ExistingTunnelOption | CustomTunnelOption;
 
 const CUSTOM_TUNNEL_OPTION = 'custom';
+const tunnelStatusOrder: Record<ExistingTunnelOption['status'], number> = {
+    healthy: 0,
+    degraded: 1,
+    inactive: 2,
+    down: 3,
+};
+
+const tunnelStatusColorClass: Record<ExistingTunnelOption['status'], string> = {
+    healthy: 'bg-emerald-500',
+    degraded: 'bg-yellow-500',
+    inactive: 'bg-gray-500',
+    down: 'bg-red-500',
+};
 
 export default function AppParametersSection({
     baseName = 'deployment',
@@ -102,8 +124,16 @@ export default function AppParametersSection({
                     alias: (tunnel.metadata.alias || tunnel.metadata.dns_name) as string,
                     token: tunnel.metadata.tunnel_token as string,
                     url: tunnel.metadata.dns_name as string,
+                    status: tunnel.status as ExistingTunnelOption['status'],
                 }))
-                .sort((a, b) => a.alias.localeCompare(b.alias));
+                .sort((a, b) => {
+                    const statusDiff = tunnelStatusOrder[a.status] - tunnelStatusOrder[b.status];
+                    if (statusDiff !== 0) {
+                        return statusDiff;
+                    }
+
+                    return a.alias.localeCompare(b.alias);
+                });
 
             setExistingTunnels(tunnels);
             return tunnels;
@@ -247,11 +277,28 @@ export default function AppParametersSection({
                                         return (
                                             <SelectItem
                                                 key={tunnel.id}
-                                                textValue={tunnel.isCustom ? tunnel.alias : `${tunnel.alias} | ${tunnel.url}`}
+                                                textValue={
+                                                    tunnel.isCustom
+                                                        ? tunnel.alias
+                                                        : `${tunnel.alias} | ${tunnel.url} | ${tunnel.status}`
+                                                }
                                             >
-                                                <div className="row items-center gap-2 py-1">
+                                                <div className="row items-center gap-2 py-1.5">
                                                     <div className="font-medium">{tunnel.alias}</div>
                                                     <div className="font-roboto-mono text-xs text-slate-500">{tunnel.url}</div>
+                                                    {!tunnel.isCustom && (
+                                                        <div className="row items-center gap-1.5 rounded-md border border-slate-200 px-2 py-0.5">
+                                                            <div
+                                                                className={clsx(
+                                                                    'h-2 w-2 rounded-full',
+                                                                    tunnelStatusColorClass[tunnel.status],
+                                                                )}
+                                                            />
+                                                            <div className="text-[11px] capitalize text-slate-600">
+                                                                {tunnel.status}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </SelectItem>
                                         );
