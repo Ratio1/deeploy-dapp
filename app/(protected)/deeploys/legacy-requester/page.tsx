@@ -62,6 +62,21 @@ function LegacyRequester() {
             );
         }
 
+        if (endpoint === '/get_r1fs_job_pipeline') {
+            setUserInput(
+                JSON.stringify(
+                    {
+                        request: {
+                            nonce,
+                            job_id: 123,
+                        },
+                    },
+                    null,
+                    2,
+                ),
+            );
+        }
+
         if (endpoint === '/create_pipeline') {
             setUserInput(
                 JSON.stringify(
@@ -236,6 +251,11 @@ function LegacyRequester() {
                         <SelectItem key="/get_apps" textValue="/get_apps">
                             <div className="row gap-2 py-1">
                                 <div className="font-medium">/get_apps</div>
+                            </div>
+                        </SelectItem>
+                        <SelectItem key="/get_r1fs_job_pipeline" textValue="/get_r1fs_job_pipeline">
+                            <div className="row gap-2 py-1">
+                                <div className="font-medium">/get_r1fs_job_pipeline</div>
                             </div>
                         </SelectItem>
                     </StyledSelect>
