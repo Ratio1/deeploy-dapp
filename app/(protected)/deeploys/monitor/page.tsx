@@ -47,7 +47,7 @@ const widthClasses = [
 export default function Monitor() {
     const { watchTx } = useBlockchainContext() as BlockchainContextType;
     const { confirm } = useInteractionContext() as InteractionContextType;
-    const { escrowContractAddress, fetchRunningJobsWithDetails, setProjectOverviewTab, hasEscrowPermission } =
+    const { escrowContractAddress, getRunningJobsWithDetails, setProjectOverviewTab, hasEscrowPermission } =
         useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
@@ -69,18 +69,11 @@ export default function Monitor() {
     }>(null);
 
     const getJobs = useCallback(
-        async (paidDraftJobs: PaidDraftJob[]) => {
-            if (!publicClient || !escrowContractAddress) {
-                toast.error('Please connect your wallet.');
-                return;
-            }
-
-            console.log('Fetching running jobs...');
-
+        (paidDraftJobs: PaidDraftJob[]) => {
             setLoading(true);
 
             try {
-                const { runningJobs, runningJobsWithDetails } = await fetchRunningJobsWithDetails();
+                const { runningJobs, runningJobsWithDetails } = getRunningJobsWithDetails();
 
                 // The IDs of the jobs that were successfully deployed by the pipeline
                 const deployedJobIds: bigint[] = runningJobsWithDetails.map((job) => job.id);
@@ -113,7 +106,7 @@ export default function Monitor() {
                 setLoading(false);
             }
         },
-        [publicClient, escrowContractAddress, fetchRunningJobsWithDetails],
+        [getRunningJobsWithDetails],
     );
 
     const onClaimFunds = async (job: MonitoredJob) => {
@@ -190,12 +183,12 @@ export default function Monitor() {
     }, [draftJobs]);
 
     useEffect(() => {
-        if (!publicClient || draftJobs === undefined) {
+        if (draftJobs === undefined) {
             return;
         }
 
         getJobs(paidDraftJobsRef.current);
-    }, [publicClient, draftJobs, getJobs]);
+    }, [draftJobs, getJobs]);
 
     if (!hasEscrowPermission('redeemUnused')) {
         return (

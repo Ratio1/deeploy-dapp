@@ -9,7 +9,6 @@ import _ from 'lodash';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiDraftLine } from 'react-icons/ri';
-import { usePublicClient } from 'wagmi';
 import RunningCard from './RunningCard';
 
 export interface RunningRef {
@@ -26,20 +25,16 @@ const Running = forwardRef<
         clearSuccessfulJobsFromLocation: () => void;
     }
 >(({ setProjectsCount, successfulJobs, setSuccessfulJobs, clearSuccessfulJobsFromLocation }, ref) => {
-    const { apps, fetchRunningJobsWithDetails, fetchApps } = useDeploymentContext() as DeploymentContextType;
+    const { apps, getRunningJobsWithDetails, fetchApps } = useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
 
     const [projects, setProjects] = useState<Record<string, RunningJobWithDetails[]>>({});
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-    const publicClient = usePublicClient();
-
     useEffect(() => {
-        if (publicClient) {
-            getProjectsWithJobs();
-        }
-    }, [publicClient, apps]);
+        getProjectsWithJobs();
+    }, [apps]);
 
     useEffect(() => {
         if (projects) {
@@ -53,11 +48,11 @@ const Running = forwardRef<
         }
     }, [projects]);
 
-    const getProjectsWithJobs = async () => {
+    const getProjectsWithJobs = () => {
         setLoading(true);
 
         try {
-            const { runningJobsWithDetails } = await fetchRunningJobsWithDetails();
+            const { runningJobsWithDetails } = getRunningJobsWithDetails();
             const projectsWithJobs = _.groupBy(runningJobsWithDetails, 'projectHash');
 
             setProjects(projectsWithJobs);
