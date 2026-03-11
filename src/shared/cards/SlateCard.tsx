@@ -1,4 +1,4 @@
-import { FunctionComponent, PropsWithChildren } from 'react';
+import { Children, FunctionComponent, PropsWithChildren } from 'react';
 
 interface Props {
     title?: string;
@@ -7,6 +7,8 @@ interface Props {
 }
 
 export const SlateCard: FunctionComponent<PropsWithChildren<Props>> = ({ children, title, titleElement, label }) => {
+    const hasChildren = Children.count(children) > 0;
+
     return (
         <div className="col justify-center gap-4 rounded-lg bg-slate-100 px-4 py-5">
             {(!!title || !!titleElement || !!label) && (
@@ -17,7 +19,7 @@ export const SlateCard: FunctionComponent<PropsWithChildren<Props>> = ({ childre
                 </div>
             )}
 
-            <div className="col gap-4">{children}</div>
+            {hasChildren && <div className="col gap-4">{children}</div>}
         </div>
     );
 };

@@ -5,12 +5,13 @@ import { POLICY_TYPES } from '@data/policyTypes';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { generatePluginName, getPluginName } from '@lib/pluginNames';
 import { SlateCard } from '@shared/cards/SlateCard';
+import Expander from '@shared/Expander';
 import DeeployErrorAlert from '@shared/jobs/DeeployErrorAlert';
 import AddJobCard from '@shared/projects/AddJobCard';
 import { SmallTag } from '@shared/SmallTag';
 import { computeDependencyTree } from '@lib/dependencyTree';
 import { BasePluginType, GenericPlugin, Plugin, PluginType } from '@typedefs/steps/deploymentStepTypes';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { RiBox3Line, RiDeleteBin2Line, RiTerminalBoxLine } from 'react-icons/ri';
@@ -81,6 +82,7 @@ export default function PluginsSection() {
     });
 
     const plugins = fields as PluginWithId[];
+    const [expandedPlugins, setExpandedPlugins] = useState<Record<string, boolean>>({});
 
     const previousPluginsLengthRef = useRef<number>(plugins.length);
 
@@ -112,7 +114,20 @@ export default function PluginsSection() {
 
     // Clean stale shmem references when a plugin is removed
     const handleRemovePlugin = (indexToRemove: number) => {
+        const removedPluginId = plugins[indexToRemove]?.id;
         const removedName = watchedPlugins[indexToRemove]?.pluginName;
+
+        if (removedPluginId) {
+            setExpandedPlugins((previous) => {
+                if (!(removedPluginId in previous)) {
+                    return previous;
+                }
+
+                const { [removedPluginId]: _removed, ...next } = previous;
+                return next;
+            });
+        }
+
         remove(indexToRemove);
 
         if (!removedName) return;
@@ -252,6 +267,20 @@ export default function PluginsSection() {
         previousPluginsLengthRef.current = plugins.length;
     }, [plugins]);
 
+    useEffect(() => {
+        const pluginIds = new Set(plugins.map((plugin) => plugin.id));
+
+        setExpandedPlugins((previous) => {
+            const next = Object.fromEntries(Object.entries(previous).filter(([id]) => pluginIds.has(id)));
+
+            if (Object.keys(next).length === Object.keys(previous).length) {
+                return previous;
+            }
+
+            return next;
+        });
+    }, [plugins]);
+
     return (
         <div className="col gap-6">
             {fields.length < 5 && (
@@ -265,11 +294,25 @@ export default function PluginsSection() {
             <div className="col gap-6">
                 {plugins.map((plugin, index) => {
                     const { title, element } = getPluginAlias(plugin, index);
+                    const isExpanded = expandedPlugins[plugin.id] ?? true;
 
                     return (
                         <div key={plugin.id} id={`plugin-card-${plugin.id}`}>
                             <SlateCard
-                                titleElement={element}
+                                titleElement={
+                                    <div className="row gap-2">
+                                        <Expander
+                                            expanded={isExpanded}
+                                            onToggle={() =>
+                                                setExpandedPlugins((previous) => ({
+                                                    ...previous,
+                                                    [plugin.id]: !(previous[plugin.id] ?? true),
+                                                }))
+                                            }
+                                        />
+                                        {element}
+                                    </div>
+                                }
                                 label={
                                     <div
                                         className="compact cursor-pointer text-red-600 hover:opacity-50"
@@ -300,19 +343,27 @@ export default function PluginsSection() {
                                     </div>
                                 }
                             >
-                                <>
-                                    {plugin.basePluginType === BasePluginType.Generic ? (
-                                        <>
-                                            {(plugin as GenericPlugin).deploymentType.pluginType === PluginType.Container ? (
-                                                <CARInputsSection name={`${name}.${index}`} availablePlugins={availablePluginsByIndex[index]} />
-                                            ) : (
-                                                <WARInputsSection name={`${name}.${index}`} availablePlugins={availablePluginsByIndex[index]} />
-                                            )}
-                                        </>
-                                    ) : (
-                                        <NativeInputsSection name={`${name}.${index}`} />
-                                    )}
-                                </>
+                                {isExpanded ? (
+                                    <>
+                                        {plugin.basePluginType === BasePluginType.Generic ? (
+                                            <>
+                                                {(plugin as GenericPlugin).deploymentType.pluginType === PluginType.Container ? (
+                                                    <CARInputsSection
+                                                        name={`${name}.${index}`}
+                                                        availablePlugins={availablePluginsByIndex[index]}
+                                                    />
+                                                ) : (
+                                                    <WARInputsSection
+                                                        name={`${name}.${index}`}
+                                                        availablePlugins={availablePluginsByIndex[index]}
+                                                    />
+                                                )}
+                                            </>
+                                        ) : (
+                                            <NativeInputsSection name={`${name}.${index}`} />
+                                        )}
+                                    </>
+                                ) : null}
                             </SlateCard>
                         </div>
                     );
