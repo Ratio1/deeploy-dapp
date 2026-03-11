@@ -16,6 +16,8 @@ import ConfigSectionTitle from './ConfigSectionTitle';
 import ConfigWAR from './ConfigWAR';
 
 type PluginConfig = {
+    key: string;
+    instance: string;
     signature: string;
     value: JobConfig;
 };
@@ -26,12 +28,14 @@ export default function JobPluginsSection({ job }: { job: RunningJobWithResource
         .flatten()
         .map((plugin) => {
             return {
+                key: `${plugin.signature}:${plugin.instance}`,
+                instance: plugin.instance,
                 signature: plugin.signature,
                 value: plugin.instance_conf,
             };
         })
-        .uniqBy('signature')
-        .sortBy('signature')
+        .uniqBy('instance')
+        .sortBy(['instance', 'signature'])
         .value();
 
     const [pluginConfig, setPluginConfig] = useState<PluginConfig>(pluginConfigs[0]!);
@@ -51,17 +55,17 @@ export default function JobPluginsSection({ job }: { job: RunningJobWithResource
                     {job.resources.jobType !== JobType.Service && (
                         <div className="w-[240px]">
                             <StyledSelect
-                                selectedKeys={[pluginConfig.signature]}
+                                selectedKeys={[pluginConfig.key]}
                                 onSelectionChange={(keys) => {
                                     const selectedKey = Array.from(keys)[0] as string;
-                                    setPluginConfig(pluginConfigs.find((config) => config.signature === selectedKey)!);
+                                    setPluginConfig(pluginConfigs.find((config) => config.key === selectedKey)!);
                                 }}
                                 placeholder="Select a plugin"
                             >
                                 {pluginConfigs.map((item) => (
-                                    <SelectItem key={item.signature} textValue={item.signature}>
+                                    <SelectItem key={item.key} textValue={item.instance}>
                                         <div className="row gap-2 py-1">
-                                            <div className="font-medium">{item.signature}</div>
+                                            <div className="font-medium">{item.instance}</div>
                                         </div>
                                     </SelectItem>
                                 ))}
