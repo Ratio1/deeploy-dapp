@@ -181,7 +181,7 @@ export default function ExpiredJobsPage() {
             <div className="col gap-4">
                 <div className="list">
                     <ListHeader>
-                        <div className="grid w-full grid-cols-[70px_100px_minmax(120px,1fr)_140px_140px_130px] items-center gap-4">
+                        <div className="grid w-full grid-cols-[70px_100px_minmax(0,1fr)_140px_140px_130px] items-center gap-4">
                             <div>Job ID</div>
                             <div>Job Type</div>
                             <div>Project</div>
@@ -201,12 +201,12 @@ export default function ExpiredJobsPage() {
                         <>
                             {closedJobs.map((job) => (
                                 <BorderedCard key={job.id.toString()}>
-                                    <div className="compact grid w-full grid-cols-[70px_100px_minmax(120px,1fr)_140px_140px_130px] items-center gap-4">
+                                    <div className="compact grid w-full grid-cols-[70px_100px_minmax(0,1fr)_140px_140px_130px] items-center gap-4">
                                         <div>{job.id.toString()}</div>
 
                                         <div>{getClosedJobTypeLabel(job)}</div>
 
-                                        <div className="truncate">
+                                        <div className="min-w-0 truncate">
                                             {localProjectNames.get(job.projectHash) ??
                                                 getProjectName(job.projectHash) ??
                                                 getShortAddressOrHash(job.projectHash, 6)}
