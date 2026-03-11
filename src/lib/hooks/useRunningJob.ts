@@ -1,19 +1,17 @@
-import { CspEscrowAbi } from '@blockchain/CspEscrow';
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
+import { getRunningJobByIdFromGetApps } from '@lib/deeploy/normalizeGetApps';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { Apps } from '@typedefs/deeployApi';
 import { RunningJob, RunningJobWithDetails, RunningJobWithResources } from '@typedefs/deeploys';
 import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { usePublicClient } from 'wagmi';
 
 export type UseRunningJobStatus = 'idle' | 'loading' | 'ready' | 'missing' | 'error';
 
 class MissingRunningJobError extends Error {}
 
 export function useRunningJob(jobId?: string) {
-    const { escrowContractAddress, formatRunningJobsWithDetails } = useDeploymentContext() as DeploymentContextType;
-    const publicClient = usePublicClient();
+    const { apps, formatRunningJobsWithDetails } = useDeploymentContext() as DeploymentContextType;
 
     const [job, setJob] = useState<RunningJobWithResources | undefined>();
     const [isLoading, setLoading] = useState(false);
@@ -22,7 +20,7 @@ export function useRunningJob(jobId?: string) {
 
     const fetchJob = useCallback(
         async (appsOverride?: Apps) => {
-            if (!publicClient || !jobId || !escrowContractAddress) {
+            if (!jobId) {
                 const prerequisitesError = new Error('Please refresh this page and try again.');
                 setStatus('error');
                 setError(prerequisitesError);
@@ -35,21 +33,17 @@ export function useRunningJob(jobId?: string) {
             setError(undefined);
 
             try {
-                const runningJob: RunningJob = await publicClient.readContract({
-                    address: escrowContractAddress,
-                    abi: CspEscrowAbi,
-                    functionName: 'getJobDetails',
-                    args: [BigInt(jobId)],
-                });
+                const sourceApps = appsOverride ?? apps;
+                const runningJob: RunningJob | undefined = getRunningJobByIdFromGetApps(sourceApps, jobId);
 
-                if (!runningJob.id) {
+                if (!runningJob?.id) {
                     throw new MissingRunningJobError('Job missing from the smart contract.');
                 }
 
                 const resources: RunningJobResources | undefined = getRunningJobResources(runningJob.jobType);
                 const runningJobsWithDetails: RunningJobWithDetails[] = formatRunningJobsWithDetails(
                     [runningJob],
-                    appsOverride,
+                    sourceApps,
                 );
 
                 if (!resources || !runningJobsWithDetails.length) {
@@ -84,14 +78,14 @@ export function useRunningJob(jobId?: string) {
                 setLoading(false);
             }
         },
-        [escrowContractAddress, jobId, publicClient],
+        [apps, formatRunningJobsWithDetails, jobId],
     );
 
     useEffect(() => {
-        if (publicClient && escrowContractAddress && jobId) {
+        if (jobId) {
             fetchJob();
         }
-    }, [publicClient, escrowContractAddress, jobId, fetchJob]);
+    }, [jobId, fetchJob]);
 
     return { job, isLoading, fetchJob, status, error };
 }

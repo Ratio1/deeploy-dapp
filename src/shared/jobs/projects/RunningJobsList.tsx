@@ -53,6 +53,14 @@ export default function RunningJobsList({
                 const requestEpoch = diffTimeFn(requestDate, config.genesisDate);
 
                 const expirationDate = addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch));
+                const totalInstancesCount = job.instances.length;
+                const offlineInstancesCount = job.instances.filter((instance) => instance.isOnline === false).length;
+                const jobHealthColorClass =
+                    offlineInstancesCount === 0
+                        ? 'bg-emerald-500'
+                        : totalInstancesCount > 0 && offlineInstancesCount === totalInstancesCount
+                          ? 'bg-red-500'
+                          : 'bg-yellow-500';
 
                 return (
                     <div key={`${job.id}-${index}`} className="col gap-4 border-t-2 border-slate-200/65 px-4 py-5 text-sm">
@@ -67,7 +75,9 @@ export default function RunningJobsList({
                                 />
 
                                 {/* Negative margin takes into account the width of the Expander */}
-                                <div className="-mr-[30px]">
+                                <div className="row -mr-[30px] gap-1.5">
+                                    <div className={`h-2.5 w-2.5 rounded-full ${jobHealthColorClass}`}></div>
+
                                     <Link
                                         href={`${routePath.deeploys}/${routePath.job}/${job.id.toString()}`}
                                         className="hover:opacity-75"
