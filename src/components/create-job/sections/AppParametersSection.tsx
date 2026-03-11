@@ -20,18 +20,42 @@ type TunnelGenerationResult = {
     url?: string;
 };
 
+type TunnelStatus = 'inactive' | 'degraded' | 'healthy' | 'down';
+
 type ExistingTunnelOption = {
     id: string;
     alias: string;
     token: string;
     url: string;
+    status: TunnelStatus;
+    isCustom?: false;
 };
 
-type TunnelSelectOption = ExistingTunnelOption & {
-    isCustom?: boolean;
+type CustomTunnelOption = {
+    id: string;
+    alias: string;
+    token: string;
+    url: string;
+    isCustom: true;
 };
+
+type TunnelSelectOption = ExistingTunnelOption | CustomTunnelOption;
 
 const CUSTOM_TUNNEL_OPTION = 'custom';
+
+const tunnelStatusPriority: Record<TunnelStatus, number> = {
+    healthy: 0,
+    degraded: 1,
+    inactive: 2,
+    down: 3,
+};
+
+const tunnelStatusColorClassName: Record<TunnelStatus, string> = {
+    healthy: 'bg-emerald-500',
+    degraded: 'bg-yellow-500',
+    inactive: 'bg-slate-500',
+    down: 'bg-red-500',
+};
 
 export default function AppParametersSection({
     baseName = 'deployment',
@@ -102,8 +126,17 @@ export default function AppParametersSection({
                     alias: (tunnel.metadata.alias || tunnel.metadata.dns_name) as string,
                     token: tunnel.metadata.tunnel_token as string,
                     url: tunnel.metadata.dns_name as string,
+                    status: tunnel.status as TunnelStatus,
                 }))
-                .sort((a, b) => a.alias.localeCompare(b.alias));
+                .sort((a, b) => {
+                    const statusPriorityDiff = tunnelStatusPriority[a.status] - tunnelStatusPriority[b.status];
+
+                    if (statusPriorityDiff !== 0) {
+                        return statusPriorityDiff;
+                    }
+
+                    return a.alias.localeCompare(b.alias);
+                });
 
             setExistingTunnels(tunnels);
             return tunnels;
@@ -240,6 +273,17 @@ export default function AppParametersSection({
                                     }}
                                     placeholder={isFetchingTunnels ? 'Loading tunnels...' : 'Select an existing tunnel'}
                                     isDisabled={isFetchingTunnels}
+                                    renderValue={(items) => {
+                                        return items.map((item) => {
+                                            const tunnel = item.data as TunnelSelectOption | undefined;
+
+                                            if (!tunnel) {
+                                                return <div key={item.key}>{item.textValue}</div>;
+                                            }
+
+                                            return <TunnelSelectOptionContent key={item.key} tunnel={tunnel} />;
+                                        });
+                                    }}
                                 >
                                     {(option: object) => {
                                         const tunnel = option as TunnelSelectOption;
@@ -249,10 +293,7 @@ export default function AppParametersSection({
                                                 key={tunnel.id}
                                                 textValue={tunnel.isCustom ? tunnel.alias : `${tunnel.alias} | ${tunnel.url}`}
                                             >
-                                                <div className="row items-center gap-2 py-1">
-                                                    <div className="font-medium">{tunnel.alias}</div>
-                                                    <div className="font-roboto-mono text-xs text-slate-500">{tunnel.url}</div>
-                                                </div>
+                                                <TunnelSelectOptionContent tunnel={tunnel} />
                                             </SelectItem>
                                         );
                                     }}
@@ -310,6 +351,31 @@ export default function AppParametersSection({
                     )}
                 </div>
             )}
+        </div>
+    );
+}
+
+function TunnelSelectOptionContent({ tunnel }: { tunnel: TunnelSelectOption }) {
+    if (tunnel.isCustom) {
+        return (
+            <div className="row items-center gap-2 py-1">
+                <div className="font-medium">{tunnel.alias}</div>
+                <div className="font-roboto-mono text-xs text-slate-500">{tunnel.url}</div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="row items-center justify-between gap-2 py-1">
+            <div className="row min-w-0 items-center gap-2">
+                <div className="truncate font-medium">{tunnel.alias}</div>
+                <div className="font-roboto-mono truncate text-xs text-slate-500">{tunnel.url}</div>
+            </div>
+
+            <div className="row shrink-0 items-center gap-1.5 text-xs">
+                <div className={`h-2 w-2 rounded-full ${tunnelStatusColorClassName[tunnel.status]}`}></div>
+                <div className="capitalize">{tunnel.status}</div>
+            </div>
         </div>
     );
 }
