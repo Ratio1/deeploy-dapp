@@ -5,6 +5,7 @@ import { SelectItem } from '@heroui/select';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { getTunnels } from '@lib/api/tunnels';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
+import { compareTunnelStatusAndAlias, tunnelStatusDotColorClassByStatus, type TunnelStatus } from '@lib/tunnel-status';
 import InputWithLabel from '@shared/InputWithLabel';
 import Label from '@shared/Label';
 import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
@@ -19,8 +20,6 @@ type TunnelGenerationResult = {
     token?: string;
     url?: string;
 };
-
-type TunnelStatus = 'inactive' | 'degraded' | 'healthy' | 'down';
 
 type ExistingTunnelOption = {
     id: string;
@@ -42,20 +41,6 @@ type CustomTunnelOption = {
 type TunnelSelectOption = ExistingTunnelOption | CustomTunnelOption;
 
 const CUSTOM_TUNNEL_OPTION = 'custom';
-
-const tunnelStatusPriority: Record<TunnelStatus, number> = {
-    healthy: 0,
-    degraded: 1,
-    inactive: 2,
-    down: 3,
-};
-
-const tunnelStatusColorClassName: Record<TunnelStatus, string> = {
-    healthy: 'bg-emerald-500',
-    degraded: 'bg-yellow-500',
-    inactive: 'bg-slate-500',
-    down: 'bg-red-500',
-};
 
 export default function AppParametersSection({
     baseName = 'deployment',
@@ -128,15 +113,7 @@ export default function AppParametersSection({
                     url: tunnel.metadata.dns_name as string,
                     status: tunnel.status as TunnelStatus,
                 }))
-                .sort((a, b) => {
-                    const statusPriorityDiff = tunnelStatusPriority[a.status] - tunnelStatusPriority[b.status];
-
-                    if (statusPriorityDiff !== 0) {
-                        return statusPriorityDiff;
-                    }
-
-                    return a.alias.localeCompare(b.alias);
-                });
+                .sort(compareTunnelStatusAndAlias);
 
             setExistingTunnels(tunnels);
             return tunnels;
@@ -373,7 +350,7 @@ function TunnelSelectOptionContent({ tunnel }: { tunnel: TunnelSelectOption }) {
             </div>
 
             <div className="row shrink-0 items-center gap-1.5 text-xs">
-                <div className={`h-2 w-2 rounded-full ${tunnelStatusColorClassName[tunnel.status]}`}></div>
+                <div className={`h-2 w-2 rounded-full ${tunnelStatusDotColorClassByStatus[tunnel.status]}`}></div>
                 <div className="capitalize">{tunnel.status}</div>
             </div>
         </div>
