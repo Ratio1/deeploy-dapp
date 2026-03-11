@@ -1,4 +1,5 @@
 import { jobSchema } from '@schemas/index';
+import { parseImportedRunningJobEntry } from '@lib/import-running-job-json';
 import { JobType } from '@typedefs/deeploys';
 import { z } from 'zod';
 
@@ -54,7 +55,26 @@ export const parseImportedJobJson = (rawJson: string): JobFormValues => {
         return draftLikeParse.data;
     }
 
+    const runningEntryParse = (() => {
+        try {
+            return {
+                success: true as const,
+                data: parseImportedRunningJobEntry(parsedJson),
+            };
+        } catch (error) {
+            return {
+                success: false as const,
+                error,
+            };
+        }
+    })();
+
+    if (runningEntryParse.success) {
+        return runningEntryParse.data;
+    }
+
     const issueMessage =
+        (runningEntryParse.error instanceof Error ? runningEntryParse.error.message : undefined) ??
         draftLikeParse.error.issues[0]?.message ??
         directParse.error.issues[0]?.message ??
         'JSON does not match supported job formats.';

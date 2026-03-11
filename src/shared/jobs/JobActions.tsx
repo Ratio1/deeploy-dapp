@@ -5,7 +5,7 @@ import { deletePipeline, sendJobCommand } from '@lib/api/deeploy';
 import { environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
-import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
+import { buildDeeployMessage, downloadDataAsJson, generateDeeployNonce } from '@lib/deeploy-utils';
 import { routePath } from '@lib/routes/route-paths';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { RunningJobWithResources } from '@typedefs/deeploys';
@@ -24,7 +24,7 @@ export default function JobActions({
     type: 'compact' | 'button';
     onJobDeleted?: () => void;
 }) {
-    const { setFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
+    const { apps, setFetchAppsRequired } = useDeploymentContext() as DeploymentContextType;
     const { confirm } = useInteractionContext() as InteractionContextType;
 
     const router = useRouter();
@@ -136,6 +136,17 @@ export default function JobActions({
         }
     };
 
+    const onDownloadJson = () => {
+        const exportedEntry = apps?.[job.id.toString()] ?? apps?.[Number(job.id).toString()];
+
+        if (!exportedEntry) {
+            toast.error('Unable to export this running job. Please refresh jobs and try again.');
+            return;
+        }
+
+        downloadDataAsJson(exportedEntry, `Deeploy-running-job-${job.id.toString()}.json`);
+    };
+
     const buildAndSendDeleteRequest = async () => {
         if (!address) {
             toast.error('Please connect your wallet.');
@@ -217,6 +228,12 @@ export default function JobActions({
                     description: 'Modify the configuration of the job',
                     isDisabled: getCurrentEpoch() >= Number(job.lastExecutionEpoch),
                     onPress: onEdit,
+                },
+                {
+                    key: 'downloadJson',
+                    label: 'Download JSON',
+                    description: 'Export this running job as a single getApps entry',
+                    onPress: onDownloadJson,
                 },
                 ...(environment === 'devnet'
                     ? [
