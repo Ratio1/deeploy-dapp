@@ -13,6 +13,7 @@ import {
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { routePath } from '@lib/routes/route-paths';
+import { tunnelStatusTagVariantByStatus } from '@lib/tunnel-status';
 import ActionButton from '@shared/ActionButton';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
 import { CopyableValue } from '@shared/CopyableValue';
@@ -266,24 +267,6 @@ export default function TunnelPage() {
         }
     };
 
-    const getStatusTagVariant = () => {
-        if (!tunnel) {
-            return 'slate';
-        }
-
-        switch (tunnel.status) {
-            case 'healthy':
-                return 'green';
-            case 'degraded':
-                return 'yellow';
-            case 'down':
-                return 'red';
-
-            default:
-                return 'slate';
-        }
-    };
-
     if (!tunnel) {
         return (
             <div className="col mx-auto w-full max-w-[620px] gap-6">
@@ -313,7 +296,7 @@ export default function TunnelPage() {
 
                         <div className="row gap-3">
                             <div className="text-2xl font-bold">{tunnel.alias}</div>
-                            <SmallTag variant={getStatusTagVariant()} isLarge>
+                            <SmallTag variant={tunnelStatusTagVariantByStatus[tunnel.status]} isLarge>
                                 <div className="capitalize">{tunnel.status}</div>
                             </SmallTag>
                         </div>

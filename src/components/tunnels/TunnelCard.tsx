@@ -4,12 +4,12 @@ import { deleteTunnel } from '@lib/api/tunnels';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { routePath } from '@lib/routes/route-paths';
+import { tunnelStatusDotColorClassByStatus } from '@lib/tunnel-status';
 import { BorderedCard } from '@shared/cards/BorderedCard';
 import ContextMenuWithTrigger from '@shared/ContextMenuWithTrigger';
 import { CopyableValue } from '@shared/CopyableValue';
 import { SmallTag } from '@shared/SmallTag';
 import { Tunnel } from '@typedefs/tunnels';
-import clsx from 'clsx';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -56,14 +56,7 @@ export default function TunnelCard({ tunnel, fetchTunnels }: { tunnel: Tunnel; f
             <BorderedCard isHoverable>
                 <div className="row justify-between gap-3 bg-white lg:gap-6">
                     <div className="row gap-2.5">
-                        <div
-                            className={clsx('h-9 w-1 rounded-full', {
-                                'bg-emerald-500': tunnel.status === 'healthy',
-                                'bg-red-500': tunnel.status === 'down',
-                                'bg-gray-500': tunnel.status === 'inactive',
-                                'bg-yellow-500': tunnel.status === 'degraded',
-                            })}
-                        ></div>
+                        <div className={`h-9 w-1 rounded-full ${tunnelStatusDotColorClassByStatus[tunnel.status]}`}></div>
 
                         <div className="col">
                             <div className="text-[15px] font-medium">{tunnel.alias}</div>
