@@ -335,21 +335,21 @@ export default function AppParametersSection({
 function TunnelSelectOptionContent({ tunnel }: { tunnel: TunnelSelectOption }) {
     if (tunnel.isCustom) {
         return (
-            <div className="row items-center gap-2 py-1">
-                <div className="font-medium">{tunnel.alias}</div>
-                <div className="font-roboto-mono text-xs text-slate-500">{tunnel.url}</div>
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-2 py-1">
+                <div className="truncate font-medium">{tunnel.alias}</div>
+                <div className="font-roboto-mono truncate text-xs text-slate-500">{tunnel.url}</div>
             </div>
         );
     }
 
     return (
-        <div className="row items-center justify-between gap-2 py-1">
-            <div className="row min-w-0 items-center gap-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_6.75rem] items-center gap-2 py-1">
+            <div className="min-w-0">
                 <div className="truncate font-medium">{tunnel.alias}</div>
-                <div className="font-roboto-mono truncate text-xs text-slate-500">{tunnel.url}</div>
             </div>
+            <div className="font-roboto-mono truncate text-xs text-slate-500">{tunnel.url}</div>
 
-            <div className="row shrink-0 items-center gap-1.5 text-xs">
+            <div className="row min-w-0 items-center justify-end gap-1.5 text-right text-xs">
                 <div className={`h-2 w-2 rounded-full ${tunnelStatusDotColorClassByStatus[tunnel.status]}`}></div>
                 <div className="capitalize">{tunnel.status}</div>
             </div>
