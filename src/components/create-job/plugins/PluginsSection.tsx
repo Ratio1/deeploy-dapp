@@ -114,7 +114,20 @@ export default function PluginsSection() {
 
     // Clean stale shmem references when a plugin is removed
     const handleRemovePlugin = (indexToRemove: number) => {
+        const removedPluginId = plugins[indexToRemove]?.id;
         const removedName = watchedPlugins[indexToRemove]?.pluginName;
+
+        if (removedPluginId) {
+            setExpandedPlugins((previous) => {
+                if (!(removedPluginId in previous)) {
+                    return previous;
+                }
+
+                const { [removedPluginId]: _removed, ...next } = previous;
+                return next;
+            });
+        }
+
         remove(indexToRemove);
 
         if (!removedName) return;
@@ -252,6 +265,20 @@ export default function PluginsSection() {
         }
 
         previousPluginsLengthRef.current = plugins.length;
+    }, [plugins]);
+
+    useEffect(() => {
+        const pluginIds = new Set(plugins.map((plugin) => plugin.id));
+
+        setExpandedPlugins((previous) => {
+            const next = Object.fromEntries(Object.entries(previous).filter(([id]) => pluginIds.has(id)));
+
+            if (Object.keys(next).length === Object.keys(previous).length) {
+                return previous;
+            }
+
+            return next;
+        });
     }, [plugins]);
 
     return (
