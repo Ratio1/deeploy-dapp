@@ -138,7 +138,7 @@ export default function JobInstances({
         >
             <div className="col gap-3 px-4 py-3">
                 {instances.map((instance) => {
-                    const isOnline = instance.isOnline === true;
+                    const isOnline = instance.isOnline !== false;
                     return (
                         <div key={instance.nodeAddress} className="flex items-start gap-2">
                             <div className="center-all h-6">
