@@ -58,6 +58,7 @@ export const sendInstanceCommand = (request: {
     EE_ETH_SENDER: EthAddress;
     app_id: string;
     job_id: number;
+    target_nodes: string[];
     plugin_signature: string;
     instance_id: string;
     instance_command: 'RESTART' | 'STOP';

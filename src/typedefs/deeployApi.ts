@@ -3,19 +3,47 @@ import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { EthAddress, R1Address } from './blockchain';
 
 type Apps = {
+    [jobId: string]: {
+        job_id: number;
+        pipeline: Record<string, any> | null;
+        online: OnlineApps;
+        chain_job: ChainJob | null;
+    };
+};
+
+type ChainJob = {
+    id: string; // bigint-like
+    projectHash: string;
+    requestTimestamp: string; // bigint-like
+    startTimestamp: string; // bigint-like
+    lastNodesChangeTimestamp: string; // bigint-like
+    jobType: string; // bigint-like
+    pricePerEpoch: string; // bigint-like
+    lastExecutionEpoch: string; // bigint-like
+    numberOfNodesRequested: string; // bigint-like
+    balance: string; // bigint-like signed
+    lastAllocatedEpoch: string; // bigint-like
+    activeNodes: EthAddress[];
+    network?: string;
+    escrowAddress?: EthAddress;
+};
+
+type OnlineApp = {
+    initiator: R1Address;
+    node_alias?: string;
+    owner: EthAddress;
+    last_config: string; // ISO-like timestamp string
+    is_deeployed: boolean;
+    deeploy_specs: DeeploySpecs;
+    pipeline_data: PipelineData;
+    plugins: {
+        [pluginName: string]: AppsPlugin[];
+    };
+};
+
+type OnlineApps = {
     [nodeAddress: R1Address]: {
-        [jobAlias: string]: {
-            initiator: R1Address;
-            node_alias?: string;
-            owner: EthAddress;
-            last_config: string; // ISO-like timestamp string
-            is_deeployed: boolean;
-            deeploy_specs: DeeploySpecs;
-            pipeline_data: PipelineData;
-            plugins: {
-                [pluginName: string]: AppsPlugin[];
-            };
-        };
+        [appId: string]: OnlineApp;
     };
 };
 
@@ -56,8 +84,8 @@ type PipelineData = {
 
 type AppsPlugin = {
     instance: string;
-    start: string; // ISO-like timestamp string
-    last_alive: string; // ISO-like timestamp string
+    start: string | null; // ISO-like timestamp string
+    last_alive: string | null; // ISO-like timestamp string
     last_error: string | null;
     instance_conf: JobConfig;
 };
@@ -152,6 +180,7 @@ type DeeployDefaultResponse = {
 export type {
     Apps,
     AppsPlugin,
+    ChainJob,
     DeeployDefaultResponse,
     DeeploySpecs,
     GetAppsResponse,
@@ -159,5 +188,7 @@ export type {
     JobConfig,
     JobConfigCRData,
     JobConfigVCSData,
+    OnlineApp,
+    OnlineApps,
     PipelineData,
 };
