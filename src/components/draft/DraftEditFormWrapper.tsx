@@ -60,11 +60,18 @@ export default function DraftEditFormWrapper({
         allowReplicationInTheWild: job.deployment.allowReplicationInTheWild ?? true,
     });
 
-    const getBaseSchemaTunnelingDefaults = () => ({
-        enableTunneling: job.deployment.enableTunneling ?? BOOLEAN_TYPES[0],
-        port: job.deployment.port ?? '',
-        tunnelingToken: job.deployment.tunnelingToken,
-        tunnelingLabel: job.deployment.tunnelingLabel,
+    const getBaseSchemaTunnelingDefaults = (
+        deployment: Partial<{
+            enableTunneling: string;
+            port?: number | string;
+            tunnelingToken?: string;
+            tunnelingLabel?: string;
+        }>,
+    ) => ({
+        enableTunneling: deployment.enableTunneling ?? BOOLEAN_TYPES[0],
+        port: deployment.port ?? '',
+        tunnelingToken: deployment.tunnelingToken,
+        tunnelingLabel: deployment.tunnelingLabel,
     });
 
     const getBaseSchemaDefaults = () => ({
@@ -81,7 +88,6 @@ export default function DraftEditFormWrapper({
         },
         deployment: {
             ...getBaseSchemaDeploymentDefaults(),
-            ...getBaseSchemaTunnelingDefaults(),
         },
     });
 
@@ -123,7 +129,10 @@ export default function DraftEditFormWrapper({
             deployment: {
                 ...baseDefaults.deployment,
                 deploymentType,
-                ports: cloneDeep(deployment.ports),
+                exposedPorts: cloneDeep(
+                    deployment.exposedPorts ??
+                        [],
+                ),
                 // Variables
                 envVars: cloneDeep(deployment.envVars),
                 dynamicEnvVars: cloneDeep(deployment.dynamicEnvVars),
@@ -180,6 +189,7 @@ export default function DraftEditFormWrapper({
             },
             deployment: {
                 ...baseDefaults.deployment,
+                ...getBaseSchemaTunnelingDefaults(deployment),
                 inputs: cloneDeep(deployment.inputs),
                 ports: cloneDeep(deployment.ports ?? []),
                 isPublicService: deployment.isPublicService ?? true,

@@ -83,10 +83,17 @@ const formatDynamicEnvVars = (dynamicEnvVars: DynamicEnvVarsEntry[] | undefined)
     const formatted = dynamicEnvVars
         .map((entry) => {
             const values = entry.values
-                .map(
-                    (value) =>
-                        `${indent(5)}{ type: '${sanitizeString(value.type)}', value: '${sanitizeString(value.value)}' },`,
-                )
+                .map((value) => {
+                    if (value.source === 'container_ip') {
+                        return `${indent(5)}{ source: 'container_ip', provider: '${sanitizeString(value.provider ?? '')}' },`;
+                    }
+
+                    if (value.source === 'host_ip') {
+                        return `${indent(5)}{ source: 'host_ip' },`;
+                    }
+
+                    return `${indent(5)}{ source: 'static', value: '${sanitizeString(value.value ?? '')}' },`;
+                })
                 .join('\n');
 
             return (
@@ -363,6 +370,24 @@ const promptForDynamicEnvValue = async (index: number, typeOptions: string[]): P
         ]);
     }
 
+    if (typeResponse.type === 'container_ip') {
+        const { provider } = await inquirer.prompt<{ provider: string }>([
+            {
+                name: 'provider',
+                type: 'input',
+                message: `Dynamic value ${index} provider:`,
+                validate: (input: string) => (input.trim() ? true : 'Provider cannot be empty.'),
+                filter: (input: string) => input.trim(),
+            },
+        ]);
+
+        return { source: 'container_ip', provider };
+    }
+
+    if (typeResponse.type === 'host_ip') {
+        return { source: 'host_ip' };
+    }
+
     const { value } = await inquirer.prompt<{ value: string }>([
         {
             name: 'value',
@@ -373,7 +398,7 @@ const promptForDynamicEnvValue = async (index: number, typeOptions: string[]): P
         },
     ]);
 
-    return { type: typeResponse.type, value };
+    return { source: 'static', value };
 };
 
 const promptForDynamicEnvVars = async (typeOptions: string[]): Promise<DynamicEnvVarsEntry[]> => {
@@ -722,13 +747,17 @@ const printSummary = (service: Service) => {
     }
 
     if (service.dynamicEnvVars?.length) {
-        console.log('Dynamic environment variables:');
-        service.dynamicEnvVars.forEach((entry, index) => {
-            console.log(`  ${index + 1}. key="${colorValue(entry.key)}"`);
-            entry.values.forEach((value, valueIndex) => {
-                console.log(`     - [${valueIndex + 1}] type="${colorValue(value.type)}", value="${colorValue(value.value)}"`);
+            console.log('Dynamic environment variables:');
+            service.dynamicEnvVars.forEach((entry, index) => {
+                console.log(`  ${index + 1}. key="${colorValue(entry.key)}"`);
+                entry.values.forEach((value, valueIndex) => {
+                    const displayValue =
+                        value.source === 'container_ip' ? value.provider ?? '' : value.source === 'host_ip' ? '(auto)' : value.value;
+                    console.log(
+                        `     - [${valueIndex + 1}] source="${colorValue(value.source)}", value="${colorValue(displayValue ?? '')}"`,
+                    );
+                });
             });
-        });
     } else {
         console.log(`Dynamic environment variables: ${colorValue('[] (none)')}`);
     }

@@ -1,4 +1,3 @@
-import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
@@ -24,17 +23,18 @@ type PluginWithId = Plugin & {
     id: string;
 };
 
-const TUNNELING_DEFAULTS = {
-    enableTunneling: BOOLEAN_TYPES[0],
-    port: '',
-};
-
 const NATIVE_TUNNELING_DEFAULTS = {
-    enableTunneling: BOOLEAN_TYPES[1],
+    enableTunneling: 'False',
     port: '',
 };
 
 const GENERIC_PLUGIN_DEFAULTS = {
+    exposedPorts: [],
+    envVars: [],
+    dynamicEnvVars: [],
+    volumes: [],
+    fileVolumes: [],
+    customParams: [],
     restartPolicy: POLICY_TYPES[0],
     imagePullPolicy: POLICY_TYPES[0],
 };
@@ -112,7 +112,7 @@ export default function PluginsSection() {
         return computeDependencyTree(watchedPlugins);
     }, [watchedPlugins]);
 
-    // Clean stale shmem references when a plugin is removed
+    // Clean stale container_ip references when a plugin is removed
     const handleRemovePlugin = (indexToRemove: number) => {
         const removedPluginId = plugins[indexToRemove]?.id;
         const removedName = watchedPlugins[indexToRemove]?.pluginName;
@@ -132,7 +132,7 @@ export default function PluginsSection() {
 
         if (!removedName) return;
 
-        // Clear shmem refs pointing to the removed plugin's stable name
+        // Clear container_ip refs pointing to the removed plugin's stable name
         setTimeout(() => {
             const currentPlugins = getValues('plugins') as Plugin[] | undefined;
             if (!currentPlugins) return;
@@ -142,9 +142,15 @@ export default function PluginsSection() {
 
                 plugin.dynamicEnvVars.forEach((entry, entryIdx) => {
                     entry.values.forEach((pair, pairIdx) => {
-                        if (pair.type === 'shmem' && pair.path?.[0] === removedName) {
-                            setValue(`plugins.${pluginIdx}.dynamicEnvVars.${entryIdx}.values.${pairIdx}.type`, 'static');
-                            setValue(`plugins.${pluginIdx}.dynamicEnvVars.${entryIdx}.values.${pairIdx}.path`, undefined);
+                        if (pair.source === 'container_ip' && pair.provider === removedName) {
+                            setValue(
+                                `plugins.${pluginIdx}.dynamicEnvVars.${entryIdx}.values.${pairIdx}.source`,
+                                'static',
+                            );
+                            setValue(
+                                `plugins.${pluginIdx}.dynamicEnvVars.${entryIdx}.values.${pairIdx}.provider`,
+                                undefined,
+                            );
                             setValue(`plugins.${pluginIdx}.dynamicEnvVars.${entryIdx}.values.${pairIdx}.value`, '');
                         }
                     });
@@ -169,7 +175,6 @@ export default function PluginsSection() {
                         crUsername: '',
                         crPassword: '',
                     },
-                    ...TUNNELING_DEFAULTS,
                     ...GENERIC_PLUGIN_DEFAULTS,
                 });
                 break;
@@ -190,7 +195,6 @@ export default function PluginsSection() {
                             { command: 'npm run start' },
                         ],
                     },
-                    ...TUNNELING_DEFAULTS,
                     ...GENERIC_PLUGIN_DEFAULTS,
                 });
                 break;

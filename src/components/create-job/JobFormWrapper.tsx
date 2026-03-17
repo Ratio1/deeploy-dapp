@@ -58,7 +58,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         port: '',
     });
 
-    const getBaseSchemaDefaults = () => ({
+const getBaseSchemaDefaults = () => ({
         specifications: {
             // applicationType: APPLICATION_TYPES[0],
             targetNodesCount: jobType === JobType.Generic || jobType === JobType.Native ? 2 : 1, // Generic and Native jobs always have a minimal balancing of 2 nodes, Services are locked to 1 node
@@ -71,7 +71,6 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         },
         deployment: {
             ...getBaseSchemaDeploymentDefaults(),
-            ...getBaseSchemaTunnelingDefaults(),
         },
     });
 
@@ -91,6 +90,11 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
                 crUsername: '',
                 crPassword: '',
             },
+            exposedPorts: [],
+            envVars: [],
+            dynamicEnvVars: [],
+            volumes: [],
+            fileVolumes: [],
             restartPolicy: POLICY_TYPES[0],
             imagePullPolicy: POLICY_TYPES[0],
             customParams: [],
@@ -131,6 +135,7 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
+            ...getBaseSchemaTunnelingDefaults(),
             ports: [],
             isPublicService: true,
             envVars: [],

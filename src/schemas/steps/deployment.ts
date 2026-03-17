@@ -86,6 +86,40 @@ const validations = {
             },
         )
         .default([]),
+    exposedPorts: z
+        .array(
+            z.object({
+                containerPort: z
+                    .number()
+                    .int('Value must be a whole number')
+                    .min(1, 'Value must be at least 1')
+                    .max(65535, 'Value cannot exceed 65535'),
+                isMainPort: z.boolean().default(false),
+                cloudflareToken: getOptionalStringSchema(512),
+            }),
+        )
+        .refine(
+            (entries) => {
+                const containerPorts = entries.map((entry) => entry.containerPort);
+                return containerPorts.length === new Set(containerPorts).size;
+            },
+            {
+                message: 'Duplicate container ports are not allowed',
+            },
+        )
+        .refine(
+            (entries) => entries.filter((entry) => entry.isMainPort).length <= 1,
+            {
+                message: 'Only one main port is allowed',
+            },
+        )
+        .refine(
+            (entries) => entries.length === 0 || entries.some((entry) => entry.isMainPort),
+            {
+                message: 'Select one main port',
+            },
+        )
+        .default([]),
 
     envVars: getKeyValueEntriesArraySchema(50),
     dynamicEnvVars: z
@@ -314,9 +348,9 @@ export const deploymentTypeSchema = z.discriminatedUnion('pluginType', [
     workerDeploymentTypeSchema,
 ]);
 
-const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
+const genericAppDeploymentSchemaWihtoutRefinements = mainDeploymentSchema.extend({
     deploymentType: deploymentTypeSchema,
-    ports: validations.ports,
+    exposedPorts: validations.exposedPorts,
     envVars: validations.envVars,
     dynamicEnvVars: validations.dynamicEnvVars,
     volumes: validations.volumes,
@@ -326,22 +360,13 @@ const genericAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend
     customParams: validations.customParams,
 });
 
-export const genericAppDeploymentSchema = applyDeploymentTypeRefinements(
-    applyTunnelingRefinements(genericAppDeploymentSchemaWihtoutRefinements),
-);
+export const genericAppDeploymentSchema = applyDeploymentTypeRefinements(genericAppDeploymentSchemaWihtoutRefinements);
 
 // Plugins
 const genericPluginSchema = z.object({
     basePluginType: z.literal(BasePluginType.Generic),
     pluginName: z.string().optional(),
-
-    // Tunneling
-    port: validations.port,
-    enableTunneling: z.enum(BOOLEAN_TYPES, { required_error: 'Value is required' }),
-    tunnelingToken: getOptionalStringSchema(512),
-
-    // Ports
-    ports: validations.ports,
+    exposedPorts: validations.exposedPorts,
 
     // Deployment type
     deploymentType: deploymentTypeSchema,
@@ -379,9 +404,7 @@ const nativePluginSchema = z.object({
 
 const pluginSchemaWithoutRefinements = z.discriminatedUnion('basePluginType', [genericPluginSchema, nativePluginSchema]);
 
-const pluginSchema = applyCustomPluginSignatureRefinements(
-    applyDeploymentTypeRefinements(applyTunnelingRefinements(pluginSchemaWithoutRefinements)),
-);
+const pluginSchema = applyCustomPluginSignatureRefinements(applyDeploymentTypeRefinements(pluginSchemaWithoutRefinements));
 
 export const nativeAppPluginsSchema = z
     .array(pluginSchema)

@@ -1,1 +1,1 @@
-export const DYNAMIC_ENV_TYPES = ['static', 'host_ip', 'shmem'] as const;
+export const DYNAMIC_ENV_TYPES = ['static', 'host_ip', 'container_ip'] as const;

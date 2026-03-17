@@ -1,4 +1,3 @@
-import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { EthAddress, R1Address } from './blockchain';
 
@@ -90,39 +89,68 @@ type AppsPlugin = {
     instance_conf: JobConfig;
 };
 
+type LegacyDynamicEnvEntry = {
+    type: string;
+    value?: string;
+    path?: [string, string];
+};
+
+type DynamicEnvUiEntry = {
+    source: string;
+    value?: string;
+    provider?: string;
+};
+
+type ExposedPortConfig = {
+    is_main_port?: boolean;
+    host_port?: number | null;
+    tunnel?: {
+        enabled?: boolean;
+        engine?: string;
+        token?: string;
+    };
+};
+
 type JobConfig = {
     BUILD_AND_RUN_COMMANDS?: string[];
-    CHAINSTORE_PEERS: string[];
-    CHAINSTORE_RESPONSE_KEY: string;
-    CLOUDFLARE_TOKEN: string | undefined;
+    CHAINSTORE_PEERS?: string[];
+    CHAINSTORE_RESPONSE_KEY?: string;
+    CLOUDFLARE_TOKEN?: string | null;
     CONTAINER_RESOURCES: {
         cpu: number;
         memory: string;
-        ports?: Record<string, string>;
+        ports?: Record<string, number | string>;
     };
     CR_DATA?: JobConfigCRData;
-    DYNAMIC_ENV: Record<string, { type: (typeof DYNAMIC_ENV_TYPES)[number]; value: string }[]>;
-    ENV: Record<string, any>;
-    IMAGE: string;
-    IMAGE_PULL_POLICY?: string;
-    INSTANCE_ID: string;
-    NGROK_AUTH_TOKEN?: string;
-    NGROK_EDGE_LABEL?: string;
-    NGROK_USE_API?: boolean; // Deprecated, used for backwards compatibility
-    PORT: number;
-    RESTART_POLICY?: string;
-    TUNNEL_ENGINE: 'cloudflare' | 'ngrok';
-    TUNNEL_ENGINE_ENABLED: boolean;
-    VOLUMES: Record<string, any>;
-    FILE_VOLUMES: Record<
+    DYNAMIC_ENV?: Record<string, LegacyDynamicEnvEntry[]>;
+    DYNAMIC_ENV_UI?: Record<string, DynamicEnvUiEntry[]>;
+    ENV?: Record<string, any>;
+    EXPOSED_PORTS?: Record<string, ExposedPortConfig>;
+    EXTRA_TUNNELS?: Record<string, string>;
+    FILE_VOLUMES?: Record<
         string,
         {
             content: string;
             mounting_point: string;
         }
     >;
+    HOST_IP?: string;
+    HOST_PORT?: number;
+    IMAGE: string;
+    IMAGE_PULL_POLICY?: string;
+    INSTANCE_ID?: string;
+    NGROK_AUTH_TOKEN?: string | null;
+    NGROK_EDGE_LABEL?: string;
+    NGROK_USE_API?: boolean; // Deprecated, used for backwards compatibility
+    PLUGIN_NAME?: string;
+    PORT?: number | string | null;
+    RESTART_POLICY?: string;
+    TUNNEL_ENGINE?: 'cloudflare' | 'ngrok';
+    TUNNEL_ENGINE_ENABLED?: boolean;
+    VOLUMES?: Record<string, any>;
+    CONTAINER_IP?: string;
+    CONTAINER_PORT?: number;
     VCS_DATA?: JobConfigVCSData;
-    PLUGIN_NAME: string;
 };
 
 type JobConfigCRData = {

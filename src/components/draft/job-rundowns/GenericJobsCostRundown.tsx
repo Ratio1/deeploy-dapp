@@ -25,6 +25,8 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericDraftJob
                     : undefined;
 
                 const deploymentType: DeploymentType = genericJob.deployment.deploymentType;
+                const mainPort = genericJob.deployment.exposedPorts?.find((entry) => entry.isMainPort);
+                const tunneledPorts = genericJob.deployment.exposedPorts?.filter((entry) => !!entry.cloudflareToken) ?? [];
 
                 const entries = [
                     // Alias
@@ -38,12 +40,9 @@ export default function GenericJobsCostRundown({ jobs }: { jobs: GenericDraftJob
                     },
                     ...(gpuType ? [{ label: 'GPU Type', value: `${gpuType.name} (${gpuType.gpus.join(', ')})` }] : []),
 
-                    // Tunneling
-                    { label: 'Port', value: genericJob.deployment.port ?? '—' },
-                    { label: 'Tunneling', value: genericJob.deployment.enableTunneling },
-                    ...(genericJob.deployment.enableTunneling === 'True' && genericJob.deployment.tunnelingLabel
-                        ? [{ label: 'Tunneling Label', value: genericJob.deployment.tunnelingLabel }]
-                        : []),
+                    { label: 'Main Port', value: mainPort?.containerPort ?? '—' },
+                    { label: 'Open Ports', value: genericJob.deployment.exposedPorts?.length ?? 0 },
+                    { label: 'Tunneled Ports', value: tunneledPorts.length },
 
                     // Policies
                     { label: 'Restart Policy', value: genericJob.deployment.restartPolicy },

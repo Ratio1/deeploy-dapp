@@ -23,6 +23,12 @@ type NormalizedPlugin = {
     instances: JobConfig[];
 };
 
+type NormalizedExposedPort = {
+    containerPort: number;
+    isMainPort: boolean;
+    cloudflareToken?: string;
+};
+
 const normalizeImageReference = (value: string) => {
     return value
         .trim()
@@ -204,6 +210,75 @@ const normalizePorts = (config: JobConfig) => {
         .filter((port): port is { hostPort: number; containerPort: number } => !!port);
 };
 
+const normalizeExposedPorts = (config: JobConfig) => {
+    const exposedPorts = getKey<GenericRecord>(toObject(config), 'EXPOSED_PORTS');
+    if (exposedPorts && typeof exposedPorts === 'object') {
+        return Object.entries(exposedPorts)
+            .map<NormalizedExposedPort | null>(([containerPort, value]) => {
+                const normalizedContainerPort = Number(containerPort);
+                if (!Number.isInteger(normalizedContainerPort)) {
+                    return null;
+                }
+
+                const entry = toObject(value);
+                const tunnel = toObject(getKey(entry, 'tunnel'));
+
+                return {
+                    containerPort: normalizedContainerPort,
+                    isMainPort: toBooleanValue(getKey(entry, 'is_main_port'), false),
+                    cloudflareToken: toStringValue(getKey(tunnel, 'token')) || undefined,
+                };
+            })
+            .filter((entry): entry is NormalizedExposedPort => entry !== null)
+            .sort((a, b) => Number(b.isMainPort) - Number(a.isMainPort) || a.containerPort - b.containerPort);
+    }
+
+    const entries: NormalizedExposedPort[] = normalizePorts(config).map((port) => ({
+        containerPort: port.containerPort,
+        isMainPort: false,
+        cloudflareToken: undefined as string | undefined,
+    }));
+
+    const extraTunnels = getKey<Record<string, unknown>>(toObject(config), 'EXTRA_TUNNELS') ?? {};
+    Object.entries(extraTunnels).forEach(([containerPort, token]) => {
+        const normalizedContainerPort = Number(containerPort);
+        if (!Number.isInteger(normalizedContainerPort)) {
+            return;
+        }
+
+        const normalizedToken = toStringValue(token) || undefined;
+        const existingEntry = entries.find((entry) => entry.containerPort === normalizedContainerPort);
+
+        if (existingEntry) {
+            existingEntry.cloudflareToken = normalizedToken;
+            return;
+        }
+
+        entries.push({
+            containerPort: normalizedContainerPort,
+            isMainPort: false,
+            cloudflareToken: normalizedToken,
+        });
+    });
+
+    const mainPort = Number(config.PORT);
+    if (Number.isInteger(mainPort)) {
+        const existingMain = entries.find((entry) => entry.containerPort === mainPort);
+        if (existingMain) {
+            existingMain.isMainPort = true;
+            existingMain.cloudflareToken = toStringValue(config.CLOUDFLARE_TOKEN || config.NGROK_AUTH_TOKEN) || undefined;
+        } else {
+            entries.push({
+                containerPort: mainPort,
+                isMainPort: true,
+                cloudflareToken: toStringValue(config.CLOUDFLARE_TOKEN || config.NGROK_AUTH_TOKEN) || undefined,
+            });
+        }
+    }
+
+    return entries.sort((a, b) => Number(b.isMainPort) - Number(a.isMainPort) || a.containerPort - b.containerPort);
+};
+
 const normalizeEnvVars = (config: JobConfig) => {
     const envVars = getKey<GenericRecord>(toObject(config), 'ENV');
     if (!envVars || typeof envVars !== 'object') {
@@ -217,6 +292,48 @@ const normalizeEnvVars = (config: JobConfig) => {
 };
 
 const normalizeDynamicEnvVars = (config: JobConfig, semaphoreToPluginName?: Record<string, string>) => {
+    const dynamicEnvUi = getKey<GenericRecord>(toObject(config), 'DYNAMIC_ENV_UI');
+    if (dynamicEnvUi && typeof dynamicEnvUi === 'object') {
+        return Object.entries(dynamicEnvUi).map(([key, values]) => {
+            const normalizedValues = Array.isArray(values) ? values : [];
+
+            return {
+                key,
+                values:
+                    normalizedValues.length > 0
+                        ? normalizedValues.map((entry) => {
+                              const entryObject = toObject(entry);
+                              const source = getKey<string>(entryObject, 'source');
+
+                              if (source === 'container_ip') {
+                                  return {
+                                      source: 'container_ip' as const,
+                                      provider: toStringValue(getKey(entryObject, 'provider')),
+                                  };
+                              }
+
+                              if (source === 'host_ip') {
+                                  return {
+                                      source: 'host_ip' as const,
+                                      value: '',
+                                  };
+                              }
+
+                              return {
+                                  source: 'static' as const,
+                                  value: toStringValue(getKey(entryObject, 'value')),
+                              };
+                          })
+                        : [
+                              {
+                                  source: 'static' as const,
+                                  value: '',
+                              },
+                          ],
+            };
+        });
+    }
+
     const dynamicEnvVars = getKey<GenericRecord>(toObject(config), 'DYNAMIC_ENV');
     if (!dynamicEnvVars || typeof dynamicEnvVars !== 'object') {
         return [];
@@ -233,21 +350,26 @@ const normalizeDynamicEnvVars = (config: JobConfig, semaphoreToPluginName?: Reco
                 const path = getKey<[string, string]>(entryObject, 'path');
                 const normalizedPath: [string, string] =
                     Array.isArray(path) && path.length === 2 ? (path as [string, string]) : ['', ''];
+                if (normalizedPath[1] !== 'CONTAINER_IP') {
+                    return {
+                        source: 'static' as const,
+                        value: '',
+                    };
+                }
                 // Reverse-map semaphore keys back to plugin names
                 if (semaphoreToPluginName && normalizedPath[0] && normalizedPath[0] in semaphoreToPluginName) {
                     normalizedPath[0] = semaphoreToPluginName[normalizedPath[0]];
                 }
                 return {
-                    type: 'shmem' as const,
-                    value: '',
-                    path: normalizedPath,
+                    source: 'container_ip' as const,
+                    provider: normalizedPath[0],
                 };
             }
 
             const normalizedType = type === 'host_ip' ? 'host_ip' : 'static';
 
             return {
-                type: normalizedType,
+                source: normalizedType,
                 value: toStringValue(getKey(entryObject, 'value')),
             };
         });
@@ -255,7 +377,7 @@ const normalizeDynamicEnvVars = (config: JobConfig, semaphoreToPluginName?: Reco
         // Ensure at least one part
         if (preparedValues.length === 0) {
             preparedValues.push({
-                type: 'static',
+                source: 'static',
                 value: '',
             });
         }
@@ -491,10 +613,7 @@ const formatNativePlugin = (signature: string, config: JobConfig) => {
 const formatGenericPlugin = (config: JobConfig, semaphoreToPluginName?: Record<string, string>) => {
     return {
         basePluginType: BasePluginType.Generic,
-        enableTunneling: boolToBooleanType(toBooleanValue(config.TUNNEL_ENGINE_ENABLED, false)),
-        port: config.PORT ?? '',
-        tunnelingToken: toStringValue(config.CLOUDFLARE_TOKEN || config.NGROK_AUTH_TOKEN) || undefined,
-        ports: normalizePorts(config),
+        exposedPorts: normalizeExposedPorts(config),
         deploymentType: getDeploymentType(config),
         envVars: normalizeEnvVars(config),
         dynamicEnvVars: normalizeDynamicEnvVars(config, semaphoreToPluginName),
@@ -564,11 +683,8 @@ export const buildRecoveredJobPrefill = ({
                     targetNodes: commonDefaults.targetNodes,
                     spareNodes: commonDefaults.spareNodes,
                     allowReplicationInTheWild: commonDefaults.allowReplicationInTheWild,
-                    enableTunneling: boolToBooleanType(toBooleanValue(pluginConfig.TUNNEL_ENGINE_ENABLED, false)),
-                    port: pluginConfig.PORT ?? '',
-                    tunnelingToken: toStringValue(pluginConfig.CLOUDFLARE_TOKEN || pluginConfig.NGROK_AUTH_TOKEN) || undefined,
                     deploymentType: getDeploymentType(pluginConfig),
-                    ports: normalizePorts(pluginConfig),
+                    exposedPorts: normalizeExposedPorts(pluginConfig),
                     envVars: normalizeEnvVars(pluginConfig),
                     dynamicEnvVars: normalizeDynamicEnvVars(pluginConfig),
                     volumes: normalizeVolumes(pluginConfig),
