@@ -33,9 +33,19 @@ export const CONTAINERIZED_PLUGIN_SEMAPHORE_KEYS: PluginSemaphoreKeyOption[] = [
 
 export const BUILTIN_NATIVE_PLUGIN_SEMAPHORE_KEYS: PluginSemaphoreKeyOption[] = [
     {
+        key: 'HOST_IP',
+        label: 'Host IP',
+        description: 'Node host IP exported by the native plugin.',
+    },
+    {
+        key: 'HOST_PORT',
+        label: 'Host Port',
+        description: 'Runtime host port exported by the native plugin.',
+    },
+    {
         key: 'PORT',
         label: 'Port',
-        description: 'Primary runtime port exported by the native plugin.',
+        description: 'Legacy primary runtime port exported by the native plugin.',
     },
 ];
 

@@ -18,8 +18,8 @@ const firstBuiltinNative = BUILTIN_NATIVE_PLUGIN_SIGNATURES[0];
 assert.ok(firstBuiltinNative, 'expected at least one built-in native plugin signature');
 assert.deepEqual(
     getPluginSemaphoreKeyOptions(firstBuiltinNative)?.map((entry) => entry.key),
-    ['PORT'],
-    'built-in native plugins should expose the default PORT key',
+    ['HOST_IP', 'HOST_PORT', 'PORT'],
+    'built-in native plugins should expose explicit host keys plus legacy PORT',
 );
 
 assert.equal(
