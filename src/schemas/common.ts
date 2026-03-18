@@ -219,12 +219,18 @@ export const getStringWithSpacesSchema = (minLength: number, maxLength: number) 
 };
 
 export const getOptionalStringSchema = (maxLength: number) => {
-    return z
-        .string()
-        .min(3, 'Value must be at least 3 characters')
-        .max(maxLength, `Value cannot exceed ${maxLength} characters`)
-        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
-        .optional();
+    return z.preprocess(
+        (value) => (value === '' ? undefined : value),
+        z
+            .string()
+            .min(3, 'Value must be at least 3 characters')
+            .max(maxLength, `Value cannot exceed ${maxLength} characters`)
+            .regex(
+                /^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
+                'Only letters, numbers and special characters allowed',
+            )
+            .optional(),
+    );
 };
 
 export const getOptionalStringWithSpacesSchema = (minLength: number, maxLength: number) => {
