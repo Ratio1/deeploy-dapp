@@ -48,6 +48,19 @@ Visit https://localhost:3000 and trust the local certificate if prompted.
 - Draft projects/jobs are stored in IndexedDB (`src/lib/storage/db.ts`); clearing browser storage removes drafts.
 - When pointing to a local edge_node, start that server first, then set `NEXT_PUBLIC_API_URL` to its port (e.g., `http://localhost:5000`).
 
+### Dynamic Env Model
+
+Container and native plugins now use a UI-facing `DYNAMIC_ENV_UI` model that compiles to backend `DYNAMIC_ENV` entries:
+
+- `static` – fixed string fragment
+- `host_ip` – host IP shortcut
+- `container_ip` – shortcut for another plugin's `CONTAINER_IP`
+- `plugin_value` – generic semaphore lookup from another plugin by `provider` + exported `key`
+
+Known plugin signatures expose preset keys in the UI. Custom or unknown signatures fall back to manual key entry, so user-defined semaphore exports remain accessible without exposing raw `shmem` in the normal form.
+
+Generic/container plugins also use a normalized `EXPOSED_PORTS` model in the request payload. The standard UI edits container ports and optional per-port Cloudflare tokens; host-port mapping remains backend-managed.
+
 ## Scripts
 
 - `npm run dev` – Next.js dev server (`next dev --turbo --experimental-https`).
@@ -55,6 +68,11 @@ Visit https://localhost:3000 and trust the local certificate if prompted.
 - `npm run lint` – ESLint with the project rules.
 - `npm run add-service` – interactive wizard to append a service to `src/data/services.ts`.
 - `npm run validate-services` – checks service definitions, color variants, and dynamic env types.
+- `npm run test:dynamic-env-schema` – validates the UI `DYNAMIC_ENV_UI` schema.
+- `npm run test:plugin-semaphore-keys` – verifies built-in semaphore-key mappings and custom fallback.
+- `npm run test:dynamic-env-ui` – checks provider/key selection helpers and dependency-graph wiring.
+- `npm run test:dynamic-env-serialization` – checks `DYNAMIC_ENV_UI` request serialization.
+- `npm run test:dynamic-env-roundtrip` – checks recovery/import/read-only round-tripping of semaphore-backed values.
 
 ## Project Structure
 
@@ -73,4 +91,21 @@ Dockerfiles are provided per environment (`Dockerfile_devnet`, `_testnet`, `_mai
 
 ## Testing
 
-Automated tests are not wired up yet; use `npm run lint` locally and document manual QA steps when making changes.
+For the dynamic-env and exposed-port flows, run at least:
+
+```bash
+npm run test:dynamic-env-schema
+npm run test:plugin-semaphore-keys
+npm run test:dynamic-env-ui
+npm run test:dynamic-env-serialization
+npm run test:dynamic-env-roundtrip
+npm run lint
+npx tsc --noEmit --incremental false
+```
+
+For visual QA, use the preview route:
+
+```bash
+npm run dev
+# open /playwright-preview
+```
