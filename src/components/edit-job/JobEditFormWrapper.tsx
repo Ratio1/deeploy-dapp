@@ -18,6 +18,7 @@ import {
     NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS,
     titlecase,
 } from '@lib/deeploy-utils';
+import { normalizeDynamicEnvUiValue, normalizeLegacyDynamicEnvValue } from '@lib/dynamicEnvRoundtrip';
 import { Step, STEPS } from '@lib/steps/steps';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
@@ -264,53 +265,14 @@ export default function JobEditFormWrapper({
         if (dynamicEnvUi && typeof dynamicEnvUi === 'object') {
             return Object.entries(dynamicEnvUi).map(([key, values]) => ({
                 key,
-                values: (Array.isArray(values) ? values : []).map((entry: any) => {
-                    if (entry?.source === 'container_ip') {
-                        return {
-                            source: 'container_ip',
-                            provider: entry.provider ?? '',
-                        };
-                    }
-
-                    if (entry?.source === 'host_ip') {
-                        return {
-                            source: 'host_ip',
-                            value: '',
-                        };
-                    }
-
-                    return {
-                        source: 'static',
-                        value: entry?.value ?? '',
-                    };
-                }),
+                values: (Array.isArray(values) ? values : []).map((entry: any) => normalizeDynamicEnvUiValue(entry)),
             }));
         }
 
         if (!config.DYNAMIC_ENV) return [];
         return Object.entries(config.DYNAMIC_ENV).map(([key, values]) => ({
             key,
-            values: values.map((v: any) => {
-                if (v.type === 'shmem' && Array.isArray(v.path) && v.path[1] === 'CONTAINER_IP') {
-                    const provider = v.path[0] in semaphoreToPluginName ? semaphoreToPluginName[v.path[0]] : v.path[0];
-                    return {
-                        source: 'container_ip',
-                        provider,
-                    };
-                }
-
-                if (v.type === 'host_ip') {
-                    return {
-                        source: 'host_ip',
-                        value: '',
-                    };
-                }
-
-                return {
-                    source: 'static',
-                    value: v.value ?? '',
-                };
-            }),
+            values: values.map((v: any) => normalizeLegacyDynamicEnvValue(v, semaphoreToPluginName)),
         }));
     };
 

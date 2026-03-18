@@ -1,4 +1,5 @@
 import { jobSchema } from '@schemas/index';
+import { normalizeLegacyDynamicEnvValue } from '@lib/dynamicEnvRoundtrip';
 import { JobType } from '@typedefs/deeploys';
 import { z } from 'zod';
 
@@ -24,23 +25,7 @@ const normalizeDynamicEnvVars = (dynamicEnvVars: unknown) => {
                     return value;
                 }
 
-                if (value.type === 'shmem' && Array.isArray(value.path) && value.path[1] === 'CONTAINER_IP') {
-                    return {
-                        source: 'container_ip',
-                        provider: value.path[0] ?? '',
-                    };
-                }
-
-                if (value.type === 'host_ip') {
-                    return {
-                        source: 'host_ip',
-                    };
-                }
-
-                return {
-                    source: 'static',
-                    value: typeof value.value === 'string' ? value.value : '',
-                };
+                return normalizeLegacyDynamicEnvValue(value);
             }),
         };
     });

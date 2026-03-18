@@ -11,6 +11,7 @@ import {
     isGenericPlugin,
     NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS,
 } from '@lib/deeploy-utils';
+import { normalizeDynamicEnvUiValue, normalizeLegacyDynamicEnvValue } from '@lib/dynamicEnvRoundtrip';
 import { JobConfig } from '@typedefs/deeployApi';
 import { JobType, RunningJob } from '@typedefs/deeploys';
 import { RecoveredJobPrefill } from '@typedefs/recoveredDraft';
@@ -301,29 +302,7 @@ const normalizeDynamicEnvVars = (config: JobConfig, semaphoreToPluginName?: Reco
                 key,
                 values:
                     normalizedValues.length > 0
-                        ? normalizedValues.map((entry) => {
-                              const entryObject = toObject(entry);
-                              const source = getKey<string>(entryObject, 'source');
-
-                              if (source === 'container_ip') {
-                                  return {
-                                      source: 'container_ip' as const,
-                                      provider: toStringValue(getKey(entryObject, 'provider')),
-                                  };
-                              }
-
-                              if (source === 'host_ip') {
-                                  return {
-                                      source: 'host_ip' as const,
-                                      value: '',
-                                  };
-                              }
-
-                              return {
-                                  source: 'static' as const,
-                                  value: toStringValue(getKey(entryObject, 'value')),
-                              };
-                          })
+                        ? normalizedValues.map((entry) => normalizeDynamicEnvUiValue(entry))
                         : [
                               {
                                   source: 'static' as const,
@@ -342,37 +321,9 @@ const normalizeDynamicEnvVars = (config: JobConfig, semaphoreToPluginName?: Reco
     return Object.entries(dynamicEnvVars).map(([key, values]) => {
         const normalizedValues = Array.isArray(values) ? values : [];
 
-        const preparedValues = normalizedValues.map((entry) => {
-            const entryObject = toObject(entry);
-            const type = getKey<string>(entryObject, 'type');
-
-            if (type === 'shmem') {
-                const path = getKey<[string, string]>(entryObject, 'path');
-                const normalizedPath: [string, string] =
-                    Array.isArray(path) && path.length === 2 ? (path as [string, string]) : ['', ''];
-                if (normalizedPath[1] !== 'CONTAINER_IP') {
-                    return {
-                        source: 'static' as const,
-                        value: '',
-                    };
-                }
-                // Reverse-map semaphore keys back to plugin names
-                if (semaphoreToPluginName && normalizedPath[0] && normalizedPath[0] in semaphoreToPluginName) {
-                    normalizedPath[0] = semaphoreToPluginName[normalizedPath[0]];
-                }
-                return {
-                    source: 'container_ip' as const,
-                    provider: normalizedPath[0],
-                };
-            }
-
-            const normalizedType = type === 'host_ip' ? 'host_ip' : 'static';
-
-            return {
-                source: normalizedType,
-                value: toStringValue(getKey(entryObject, 'value')),
-            };
-        });
+        const preparedValues = normalizedValues.map((entry) =>
+            normalizeLegacyDynamicEnvValue(entry, semaphoreToPluginName),
+        );
 
         // Ensure at least one part
         if (preparedValues.length === 0) {

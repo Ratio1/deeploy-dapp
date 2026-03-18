@@ -1,4 +1,5 @@
 import { getShortAddressOrHash } from '@lib/utils';
+import { describeDynamicEnvValue } from '@lib/dynamicEnvRoundtrip';
 import { SmallTag } from '@shared/SmallTag';
 
 type LegacyDynamicEnvValue = {
@@ -11,41 +12,10 @@ type DynamicEnvUiValue = {
     source?: string;
     value?: string;
     provider?: string;
+    key?: string;
 };
 
 type DynamicEnvValue = LegacyDynamicEnvValue | DynamicEnvUiValue;
-
-const getEntrySource = (entry: DynamicEnvValue) => {
-    if ('source' in entry && entry.source) {
-        return entry.source;
-    }
-
-    if ('type' in entry && entry.type === 'shmem') {
-        return 'container_ip';
-    }
-
-    if ('type' in entry && entry.type) {
-        return entry.type;
-    }
-
-    return 'static';
-};
-
-const getEntryValue = (entry: DynamicEnvValue) => {
-    if ('provider' in entry && entry.provider) {
-        return entry.provider;
-    }
-
-    if ('value' in entry && entry.value) {
-        return entry.value;
-    }
-
-    if ('path' in entry && Array.isArray(entry.path) && entry.path.length === 2) {
-        return `${entry.path[0]} / ${entry.path[1]}`;
-    }
-
-    return '—';
-};
 
 export default function JobDynamicEnvSection({
     dynamicEnv,
@@ -69,8 +39,7 @@ export default function JobDynamicEnvSection({
 
                     <div className="col">
                         {values.map((entry, index) => {
-                            const source = getEntrySource(entry);
-                            const value = getEntryValue(entry);
+                            const { source, value } = describeDynamicEnvValue(entry);
 
                             return (
                                 <div key={index} className="row gap-1">
