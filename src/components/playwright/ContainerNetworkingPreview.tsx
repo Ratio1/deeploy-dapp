@@ -42,7 +42,7 @@ const defaultValues = {
             },
             {
                 key: 'UPSTREAM_PORT',
-                values: [{ source: 'plugin_value', provider: 'native-agent', key: 'PORT' }],
+                values: [{ source: 'plugin_value', provider: 'native-agent', key: 'HOST_PORT' }],
             },
             {
                 key: 'CUSTOM_STATUS',

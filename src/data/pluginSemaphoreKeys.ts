@@ -42,11 +42,6 @@ export const BUILTIN_NATIVE_PLUGIN_SEMAPHORE_KEYS: PluginSemaphoreKeyOption[] = 
         label: 'Host Port',
         description: 'Runtime host port exported by the native plugin.',
     },
-    {
-        key: 'PORT',
-        label: 'Port',
-        description: 'Legacy primary runtime port exported by the native plugin.',
-    },
 ];
 
 export const BUILTIN_NATIVE_PLUGIN_SIGNATURES = PLUGIN_SIGNATURE_TYPES.filter(

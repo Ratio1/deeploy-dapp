@@ -16,7 +16,7 @@ const availablePlugins: AvailableDynamicEnvPlugin[] = [
 
 assert.deepEqual(
     getDynamicEnvKeyOptionsForProvider(availablePlugins, 'native-agent')?.map((entry) => entry.key),
-    ['HOST_IP', 'HOST_PORT', 'PORT'],
+    ['HOST_IP', 'HOST_PORT'],
     'built-in native providers should expose preset keys',
 );
 assert.equal(
