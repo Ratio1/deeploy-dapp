@@ -152,6 +152,11 @@ export const dynamicEnvPairSchema = z
             .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
             .optional(),
         provider: z.string().max(128, 'Value cannot exceed 128 characters').optional(),
+        key: z
+            .string()
+            .max(128, 'Value cannot exceed 128 characters')
+            .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
+            .optional(),
     })
     .refine(
         (data) => {
@@ -161,6 +166,24 @@ export const dynamicEnvPairSchema = z
             return true;
         },
         { message: 'Plugin is required for container_ip source', path: ['provider'] },
+    )
+    .refine(
+        (data) => {
+            if (data.source === 'plugin_value') {
+                return typeof data.provider === 'string' && data.provider.trim().length > 0;
+            }
+            return true;
+        },
+        { message: 'Plugin is required for plugin_value source', path: ['provider'] },
+    )
+    .refine(
+        (data) => {
+            if (data.source === 'plugin_value') {
+                return typeof data.key === 'string' && data.key.trim().length > 0;
+            }
+            return true;
+        },
+        { message: 'Key is required for plugin_value source', path: ['key'] },
     );
 
 // The key + variable-length value parts

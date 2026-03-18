@@ -28,16 +28,25 @@ type DynamicEnvVarValue =
           source: 'static';
           value: string;
           provider?: undefined;
+          key?: undefined;
       }
     | {
           source: 'host_ip';
           value?: string;
           provider?: undefined;
+          key?: undefined;
       }
     | {
           source: 'container_ip';
           value?: string;
           provider?: string;
+          key?: undefined;
+      }
+    | {
+          source: 'plugin_value';
+          value?: undefined;
+          provider?: string;
+          key?: string;
       };
 
 type DynamicEnvVarsEntry = {

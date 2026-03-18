@@ -9,6 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "test:dynamic-env-schema": "node --import tsx scripts/test-dynamic-env-schema.ts",
     "add-service": "tsx scripts/add-service.ts",
     "validate-services": "tsx scripts/validate-services.ts"
   },
