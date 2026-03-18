@@ -44,6 +44,10 @@ const defaultValues = {
                 key: 'UPSTREAM_PORT',
                 values: [{ source: 'plugin_value', provider: 'native-agent', key: 'PORT' }],
             },
+            {
+                key: 'CUSTOM_STATUS',
+                values: [{ source: 'plugin_value', provider: 'custom-native', key: 'CUSTOM_STATUS' }],
+            },
         ],
         deploymentType: {
             pluginType: PluginType.Container,
