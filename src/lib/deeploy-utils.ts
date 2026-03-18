@@ -206,12 +206,15 @@ export const formatEnvVars = (envVars: { key: string | undefined; value: string 
 };
 
 export const formatDynamicEnvVars = (
-    dynamicEnvVars: { key: string; values: { source: string; value?: string; provider?: string }[] }[],
+    dynamicEnvVars: { key: string; values: { source: string; value?: string; provider?: string; key?: string }[] }[],
 ) => {
-    const formatted: Record<string, { source: string; value?: string; provider?: string }[]> = {};
+    const formatted: Record<string, { source: string; value?: string; provider?: string; key?: string }[]> = {};
     dynamicEnvVars.forEach((dynamicEnvVar) => {
         if (dynamicEnvVar.key) {
             formatted[dynamicEnvVar.key] = dynamicEnvVar.values.map((v) => {
+                if (v.source === 'plugin_value') {
+                    return { source: 'plugin_value', provider: v.provider, key: v.key };
+                }
                 if (v.source === 'container_ip') {
                     return { source: 'container_ip', provider: v.provider };
                 }

@@ -99,6 +99,7 @@ type DynamicEnvUiEntry = {
     source: string;
     value?: string;
     provider?: string;
+    key?: string;
 };
 
 type ExposedPortConfig = {
