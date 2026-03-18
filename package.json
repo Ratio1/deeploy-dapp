@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "test:dynamic-env-schema": "node --import tsx scripts/test-dynamic-env-schema.ts",
     "test:plugin-semaphore-keys": "node --import tsx scripts/test-plugin-semaphore-keys.ts",
+    "test:dynamic-env-ui": "node --import tsx scripts/test-dynamic-env-ui.ts",
     "add-service": "tsx scripts/add-service.ts",
     "validate-services": "tsx scripts/validate-services.ts"
   },

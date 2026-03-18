@@ -1,18 +1,20 @@
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
+import {
+    getDynamicEnvKeyOptionsForProvider,
+    shouldUseManualDynamicEnvKeyForProvider,
+    type AvailableDynamicEnvPlugin,
+} from '@lib/dynamicEnvUi';
 import { SelectItem } from '@heroui/select';
 import StyledSelect from '@shared/StyledSelect';
 import StyledInput from '@shared/StyledInput';
-import { BasePluginType } from '@typedefs/steps/deploymentStepTypes';
 import { Controller, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import VariableSectionControls from './VariableSectionControls';
 import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
 
-type AvailablePlugin = { name: string; basePluginType: BasePluginType };
-
 type Props = {
     baseName?: string;
-    availablePlugins?: AvailablePlugin[];
+    availablePlugins?: AvailableDynamicEnvPlugin[];
 };
 
 export default function DynamicEnvSection({ baseName = 'deployment', availablePlugins }: Props) {
@@ -81,7 +83,7 @@ function DynamicEnvEntry({
     entryError: any;
     rootErrorMessage?: string;
     onRemove: () => void;
-    availablePlugins?: AvailablePlugin[];
+    availablePlugins?: AvailableDynamicEnvPlugin[];
 }) {
     const valuesName = `${baseName}.dynamicEnvVars.${index}.values`;
     const { fields, append, remove } = useFieldArray({
@@ -161,7 +163,7 @@ function DynamicEnvValueRow({
     control: any;
     trigger: any;
     entryError: any;
-    availablePlugins?: AvailablePlugin[];
+    availablePlugins?: AvailableDynamicEnvPlugin[];
     canRemove: boolean;
     onRemove: () => void;
 }) {
@@ -170,7 +172,53 @@ function DynamicEnvValueRow({
         control,
         name: `${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.source`,
     });
+    const providerValue = useWatch({
+        control,
+        name: `${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.provider`,
+    });
     const pairError = entryError?.values?.[pairIndex];
+    const keyOptions = getDynamicEnvKeyOptionsForProvider(availablePlugins, providerValue);
+    const useManualKeyEntry = shouldUseManualDynamicEnvKeyForProvider(availablePlugins, providerValue);
+
+    const renderProviderSelect = () => (
+        <Controller
+            name={`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.provider`}
+            control={control}
+            render={({ field, fieldState }) => (
+                <StyledSelect
+                    selectedKeys={field.value ? [field.value] : []}
+                    onSelectionChange={async (keys) => {
+                        const selectedKey = Array.from(keys)[0] as string;
+                        field.onChange(selectedKey);
+
+                        const nextKeyOptions = getDynamicEnvKeyOptionsForProvider(availablePlugins, selectedKey);
+                        const currentKey = (
+                            (control as any)._formValues?.[baseName]?.dynamicEnvVars?.[index]?.values?.[pairIndex]?.key ??
+                            undefined
+                        ) as string | undefined;
+                        if (nextKeyOptions && !nextKeyOptions.some((option) => option.key === currentKey)) {
+                            setValue(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.key`, undefined);
+                        }
+
+                        await trigger(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}`);
+                    }}
+                    onBlur={field.onBlur}
+                    isInvalid={!!fieldState.error || !!pairError?.provider}
+                    errorMessage={fieldState.error?.message || pairError?.provider?.message}
+                    placeholder={availablePlugins?.length ? 'Select plugin' : 'No plugins available'}
+                    isDisabled={!availablePlugins?.length}
+                >
+                    {(availablePlugins ?? []).map((plugin) => (
+                        <SelectItem key={plugin.name} textValue={plugin.name}>
+                            <div className="row gap-2 py-1">
+                                <div className="font-medium">{plugin.name}</div>
+                            </div>
+                        </SelectItem>
+                    ))}
+                </StyledSelect>
+            )}
+        />
+    );
 
     return (
         <div className="flex gap-3">
@@ -186,10 +234,17 @@ function DynamicEnvValueRow({
                                     const selectedKey = Array.from(keys)[0] as string;
                                     field.onChange(selectedKey);
 
-                                    if (selectedKey === 'container_ip') {
+                                    if (selectedKey === 'container_ip' || selectedKey === 'plugin_value') {
                                         setValue(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.value`, '');
-                                    } else {
+                                    }
+
+                                    if (selectedKey !== 'container_ip' && selectedKey !== 'plugin_value') {
                                         setValue(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.provider`, undefined);
+                                        setValue(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.key`, undefined);
+                                    }
+
+                                    if (selectedKey === 'container_ip') {
+                                        setValue(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.key`, undefined);
                                     }
 
                                     await trigger(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}`);
@@ -213,33 +268,65 @@ function DynamicEnvValueRow({
 
                 <div className="w-2/3">
                     {sourceValue === 'container_ip' ? (
-                        <Controller
-                            name={`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.provider`}
-                            control={control}
-                            render={({ field, fieldState }) => (
-                                <StyledSelect
-                                    selectedKeys={field.value ? [field.value] : []}
-                                    onSelectionChange={async (keys) => {
-                                        const selectedKey = Array.from(keys)[0] as string;
-                                        field.onChange(selectedKey);
-                                        await trigger(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}`);
-                                    }}
-                                    onBlur={field.onBlur}
-                                    isInvalid={!!fieldState.error || !!pairError?.provider}
-                                    errorMessage={fieldState.error?.message || pairError?.provider?.message}
-                                    placeholder={availablePlugins?.length ? 'Select plugin' : 'No plugins available'}
-                                    isDisabled={!availablePlugins?.length}
-                                >
-                                    {(availablePlugins ?? []).map((plugin) => (
-                                        <SelectItem key={plugin.name} textValue={plugin.name}>
-                                            <div className="row gap-2 py-1">
-                                                <div className="font-medium">{plugin.name}</div>
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                </StyledSelect>
+                        renderProviderSelect()
+                    ) : sourceValue === 'plugin_value' ? (
+                        <div className="col gap-2">
+                            {renderProviderSelect()}
+
+                            {useManualKeyEntry ? (
+                                <div className="col gap-1">
+                                    <Controller
+                                        name={`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.key`}
+                                        control={control}
+                                        render={({ field, fieldState }) => (
+                                            <StyledInput
+                                                placeholder={providerValue ? 'Semaphore key' : 'Select plugin first'}
+                                                value={field.value ?? ''}
+                                                onChange={async (e) => {
+                                                    field.onChange(e.target.value);
+                                                    await trigger(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}`);
+                                                }}
+                                                onBlur={field.onBlur}
+                                                isInvalid={!!fieldState.error || !!pairError?.key}
+                                                errorMessage={fieldState.error?.message || pairError?.key?.message}
+                                                isDisabled={!providerValue}
+                                            />
+                                        )}
+                                    />
+
+                                    <div className="tiny text-slate-500">Enter the semaphore key exported by this plugin.</div>
+                                </div>
+                            ) : (
+                                <Controller
+                                    name={`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.key`}
+                                    control={control}
+                                    render={({ field, fieldState }) => (
+                                        <StyledSelect
+                                            selectedKeys={field.value ? [field.value] : []}
+                                            onSelectionChange={async (keys) => {
+                                                const selectedKey = Array.from(keys)[0] as string;
+                                                field.onChange(selectedKey);
+                                                await trigger(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}`);
+                                            }}
+                                            onBlur={field.onBlur}
+                                            isInvalid={!!fieldState.error || !!pairError?.key}
+                                            errorMessage={fieldState.error?.message || pairError?.key?.message}
+                                            placeholder={providerValue ? 'Select exported value' : 'Select plugin first'}
+                                            isDisabled={!providerValue}
+                                        >
+                                            {(keyOptions ?? []).map((option) => (
+                                                <SelectItem key={option.key} textValue={option.label}>
+                                                    <div className="col gap-0.5 py-1">
+                                                        <div className="font-medium">{option.label}</div>
+                                                        {option.description && <div className="tiny text-slate-500">{option.description}</div>}
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </StyledSelect>
+                                    )}
+                                />
                             )}
-                        />
+                        </div>
                     ) : (
                         <Controller
                             name={`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.value`}

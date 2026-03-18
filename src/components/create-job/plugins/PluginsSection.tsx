@@ -2,6 +2,7 @@ import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { PLUGIN_SIGNATURE_TYPES } from '@data/pluginSignatureTypes';
 import { POLICY_TYPES } from '@data/policyTypes';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
+import { getDynamicEnvProviderSignature, type AvailableDynamicEnvPlugin } from '@lib/dynamicEnvUi';
 import { generatePluginName, getPluginName } from '@lib/pluginNames';
 import { SlateCard } from '@shared/cards/SlateCard';
 import Expander from '@shared/Expander';
@@ -94,12 +95,13 @@ export default function PluginsSection() {
     // Compute available plugins per plugin index (all other plugins)
     const availablePluginsByIndex = useMemo(() => {
         return watchedPlugins.map((_plugin, currentIndex) => {
-            const others: { name: string; basePluginType: BasePluginType }[] = [];
+            const others: AvailableDynamicEnvPlugin[] = [];
             watchedPlugins.forEach((p, i) => {
                 if (i !== currentIndex) {
                     others.push({
                         name: getPluginName(p, i),
                         basePluginType: p.basePluginType,
+                        signature: getDynamicEnvProviderSignature(p),
                     });
                 }
             });
@@ -132,7 +134,7 @@ export default function PluginsSection() {
 
         if (!removedName) return;
 
-        // Clear container_ip refs pointing to the removed plugin's stable name
+        // Clear plugin references pointing to the removed plugin's stable name
         setTimeout(() => {
             const currentPlugins = getValues('plugins') as Plugin[] | undefined;
             if (!currentPlugins) return;
@@ -142,7 +144,10 @@ export default function PluginsSection() {
 
                 plugin.dynamicEnvVars.forEach((entry, entryIdx) => {
                     entry.values.forEach((pair, pairIdx) => {
-                        if (pair.source === 'container_ip' && pair.provider === removedName) {
+                        if (
+                            (pair.source === 'container_ip' || pair.source === 'plugin_value') &&
+                            pair.provider === removedName
+                        ) {
                             setValue(
                                 `plugins.${pluginIdx}.dynamicEnvVars.${entryIdx}.values.${pairIdx}.source`,
                                 'static',
@@ -151,6 +156,7 @@ export default function PluginsSection() {
                                 `plugins.${pluginIdx}.dynamicEnvVars.${entryIdx}.values.${pairIdx}.provider`,
                                 undefined,
                             );
+                            setValue(`plugins.${pluginIdx}.dynamicEnvVars.${entryIdx}.values.${pairIdx}.key`, undefined);
                             setValue(`plugins.${pluginIdx}.dynamicEnvVars.${entryIdx}.values.${pairIdx}.value`, '');
                         }
                     });

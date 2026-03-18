@@ -2,6 +2,7 @@
 
 import { POLICY_TYPES } from '@data/policyTypes';
 import { FormProvider, useForm } from 'react-hook-form';
+import { type AvailableDynamicEnvPlugin } from '@lib/dynamicEnvUi';
 import { SlateCard } from '@shared/cards/SlateCard';
 import ExposedPortsSection from '@shared/ExposedPortsSection';
 import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';
@@ -39,6 +40,10 @@ const defaultValues = {
                 key: 'HOST_IP',
                 values: [{ source: 'host_ip', value: '' }],
             },
+            {
+                key: 'UPSTREAM_PORT',
+                values: [{ source: 'plugin_value', provider: 'native-agent', key: 'PORT' }],
+            },
         ],
         deploymentType: {
             pluginType: PluginType.Container,
@@ -57,9 +62,11 @@ const defaultValues = {
     },
 };
 
-const availablePlugins = [
-    { name: 'redis-sidecar', basePluginType: BasePluginType.Generic },
-    { name: 'api-sidecar', basePluginType: BasePluginType.Generic },
+const availablePlugins: AvailableDynamicEnvPlugin[] = [
+    { name: 'redis-sidecar', basePluginType: BasePluginType.Generic, signature: 'CONTAINER_APP_RUNNER' },
+    { name: 'api-sidecar', basePluginType: BasePluginType.Generic, signature: 'WORKER_APP_RUNNER' },
+    { name: 'native-agent', basePluginType: BasePluginType.Native, signature: 'PENTESTER_API_01' },
+    { name: 'custom-native', basePluginType: BasePluginType.Native, signature: 'CUSTOM_NATIVE_PLUGIN' },
 ];
 
 export default function ContainerNetworkingPreview() {

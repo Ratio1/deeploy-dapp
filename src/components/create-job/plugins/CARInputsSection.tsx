@@ -1,10 +1,10 @@
+import { type AvailableDynamicEnvPlugin } from '@lib/dynamicEnvUi';
 import ContainerSection from '@shared/jobs/deployment-type/ContainerSection';
-import { BasePluginType } from '@typedefs/steps/deploymentStepTypes';
 import GenericPluginSections from './GenericPluginSections';
 
 type Props = {
     name: string;
-    availablePlugins?: { name: string; basePluginType: BasePluginType }[];
+    availablePlugins?: AvailableDynamicEnvPlugin[];
 };
 
 export default function CARInputsSection({ name, availablePlugins }: Props) {
