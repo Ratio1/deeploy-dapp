@@ -73,8 +73,8 @@ function Tunnels() {
                     id: t.id,
                     status: t.status,
                     connections: t.connections || [],
-                    alias: t.metadata.alias || t.metadata.dns_name || t.id,
-                    url: t.metadata.dns_name || '',
+                    alias: t.metadata.alias,
+                    url: t.metadata.dns_name,
                     token: t.metadata.tunnel_token,
                     custom_hostnames: t.metadata.custom_hostnames,
                     aliases: t.metadata.aliases || [],
@@ -375,7 +375,11 @@ function Tunnels() {
                             ))}
                         </div>
                     ) : (
-                        <div className="row flex-wrap gap-2 text-xs sm:text-sm" role="group" aria-label="Filter tunnels by status">
+                        <div
+                            className="row flex-wrap gap-2 text-xs sm:text-sm"
+                            role="group"
+                            aria-label="Filter tunnels by status"
+                        >
                             {statusFilterOptions.map((option) => (
                                 <button
                                     key={option.value}
