@@ -138,6 +138,51 @@ function Tunnels() {
             });
     }, [searchQuery, statusFilter, tunnels]);
 
+    const statusBadgeBaseClass = 'rounded-full border px-3 py-1.5 font-semibold transition-opacity hover:opacity-80';
+    const statusFilterOptions: Array<{
+        value: TunnelStatus | 'all';
+        label: string;
+        count: number;
+        activeClassName: string;
+        inactiveClassName: string;
+    }> = [
+        {
+            value: 'all',
+            label: 'Total',
+            count: statusStats.total,
+            activeClassName: 'border-primary bg-primary text-white',
+            inactiveClassName: 'border-slate-200 bg-slate-100 text-slate-700',
+        },
+        {
+            value: 'healthy',
+            label: 'Healthy',
+            count: statusStats.healthy,
+            activeClassName: 'border-emerald-700 bg-emerald-700 text-white',
+            inactiveClassName: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+        },
+        {
+            value: 'degraded',
+            label: 'Degraded',
+            count: statusStats.degraded,
+            activeClassName: 'border-amber-600 bg-amber-600 text-white',
+            inactiveClassName: 'border-amber-200 bg-amber-50 text-amber-700',
+        },
+        {
+            value: 'down',
+            label: 'Down',
+            count: statusStats.down,
+            activeClassName: 'border-red-700 bg-red-700 text-white',
+            inactiveClassName: 'border-red-200 bg-red-50 text-red-700',
+        },
+        {
+            value: 'inactive',
+            label: 'Inactive',
+            count: statusStats.inactive,
+            activeClassName: 'border-slate-700 bg-slate-700 text-white',
+            inactiveClassName: 'border-slate-200 bg-slate-100 text-slate-700',
+        },
+    ];
+
     const init = async () => {
         if (!address) {
             return;
@@ -329,61 +374,18 @@ function Tunnels() {
                         </div>
                     ) : (
                         <div className="row flex-wrap gap-2 text-xs sm:text-sm">
-                            <button
-                                type="button"
-                                onClick={() => setStatusFilter('all')}
-                                className={`rounded-full border px-3 py-1.5 font-semibold transition-opacity hover:opacity-80 ${
-                                    statusFilter === 'all'
-                                        ? 'border-primary bg-primary text-white'
-                                        : 'border-slate-200 bg-slate-100 text-slate-700'
-                                }`}
-                            >
-                                Total: {statusStats.total}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setStatusFilter('healthy')}
-                                className={`rounded-full border px-3 py-1.5 font-semibold transition-opacity hover:opacity-80 ${
-                                    statusFilter === 'healthy'
-                                        ? 'border-emerald-700 bg-emerald-700 text-white'
-                                        : 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                                }`}
-                            >
-                                Healthy: {statusStats.healthy}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setStatusFilter('degraded')}
-                                className={`rounded-full border px-3 py-1.5 font-semibold transition-opacity hover:opacity-80 ${
-                                    statusFilter === 'degraded'
-                                        ? 'border-amber-600 bg-amber-600 text-white'
-                                        : 'border-amber-200 bg-amber-50 text-amber-700'
-                                }`}
-                            >
-                                Degraded: {statusStats.degraded}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setStatusFilter('down')}
-                                className={`rounded-full border px-3 py-1.5 font-semibold transition-opacity hover:opacity-80 ${
-                                    statusFilter === 'down'
-                                        ? 'border-red-700 bg-red-700 text-white'
-                                        : 'border-red-200 bg-red-50 text-red-700'
-                                }`}
-                            >
-                                Down: {statusStats.down}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setStatusFilter('inactive')}
-                                className={`rounded-full border px-3 py-1.5 font-semibold transition-opacity hover:opacity-80 ${
-                                    statusFilter === 'inactive'
-                                        ? 'border-slate-700 bg-slate-700 text-white'
-                                        : 'border-slate-200 bg-slate-100 text-slate-700'
-                                }`}
-                            >
-                                Inactive: {statusStats.inactive}
-                            </button>
+                            {statusFilterOptions.map((option) => (
+                                <button
+                                    key={option.value}
+                                    type="button"
+                                    onClick={() => setStatusFilter(option.value)}
+                                    className={`${statusBadgeBaseClass} ${
+                                        statusFilter === option.value ? option.activeClassName : option.inactiveClassName
+                                    }`}
+                                >
+                                    {option.label}: {option.count}
+                                </button>
+                            ))}
                         </div>
                     )}
 
