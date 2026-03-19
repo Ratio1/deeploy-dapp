@@ -73,8 +73,8 @@ function Tunnels() {
                     id: t.id,
                     status: t.status,
                     connections: t.connections || [],
-                    alias: t.metadata.alias,
-                    url: t.metadata.dns_name,
+                    alias: t.metadata.alias || t.metadata.dns_name || t.id,
+                    url: t.metadata.dns_name || '',
                     token: t.metadata.tunnel_token,
                     custom_hostnames: t.metadata.custom_hostnames,
                     aliases: t.metadata.aliases || [],
@@ -125,17 +125,19 @@ function Tunnels() {
         const normalizedSearchQuery = searchQuery.trim().toLowerCase();
 
         return [...tunnels]
-            .sort(compareTunnelAlias)
             .filter((tunnel) => {
                 const matchesStatus = statusFilter === 'all' || tunnel.status === statusFilter;
+                const normalizedAlias = tunnel.alias?.toLowerCase() || '';
+                const normalizedUrl = tunnel.url?.toLowerCase() || '';
 
                 const matchesSearch =
                     normalizedSearchQuery === '' ||
-                    tunnel.alias.toLowerCase().includes(normalizedSearchQuery) ||
-                    tunnel.url.toLowerCase().includes(normalizedSearchQuery);
+                    normalizedAlias.includes(normalizedSearchQuery) ||
+                    normalizedUrl.includes(normalizedSearchQuery);
 
                 return matchesStatus && matchesSearch;
-            });
+            })
+            .sort(compareTunnelAlias);
     }, [searchQuery, statusFilter, tunnels]);
 
     const statusBadgeBaseClass = 'rounded-full border px-3 py-1.5 font-semibold transition-opacity hover:opacity-80';
@@ -373,12 +375,13 @@ function Tunnels() {
                             ))}
                         </div>
                     ) : (
-                        <div className="row flex-wrap gap-2 text-xs sm:text-sm">
+                        <div className="row flex-wrap gap-2 text-xs sm:text-sm" role="group" aria-label="Filter tunnels by status">
                             {statusFilterOptions.map((option) => (
                                 <button
                                     key={option.value}
                                     type="button"
                                     onClick={() => setStatusFilter(option.value)}
+                                    aria-pressed={statusFilter === option.value}
                                     className={`${statusBadgeBaseClass} ${
                                         statusFilter === option.value ? option.activeClassName : option.inactiveClassName
                                     }`}
