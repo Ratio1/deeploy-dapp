@@ -24,6 +24,10 @@ const tunnelStatusSortPriority: Record<TunnelStatus, number> = {
     healthy: 3,
 };
 
+function compareTunnelAlias<T extends { alias: string }>(a: T, b: T): number {
+    return a.alias.localeCompare(b.alias, undefined, { sensitivity: 'base' });
+}
+
 function compareTunnelStatusAndAlias<T extends { status: TunnelStatus; alias: string }>(a: T, b: T): number {
     const statusPriorityDiff = tunnelStatusSortPriority[a.status] - tunnelStatusSortPriority[b.status];
 
@@ -31,10 +35,11 @@ function compareTunnelStatusAndAlias<T extends { status: TunnelStatus; alias: st
         return statusPriorityDiff;
     }
 
-    return a.alias.localeCompare(b.alias);
+    return compareTunnelAlias(a, b);
 }
 
 export {
+    compareTunnelAlias,
     compareTunnelStatusAndAlias,
     tunnelStatusDotColorClassByStatus,
     tunnelStatusTagVariantByStatus,
