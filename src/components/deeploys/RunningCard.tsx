@@ -184,13 +184,13 @@ export default function RunningCard({
                                             {jobTypeOption.icon}
                                         </div>
 
-                                        <div className="w-[163px]">
+                                        <div className="w-[147px]">
                                             <Link
                                                 href={`${routePath.deeploys}/${routePath.job}/${job.id}`}
                                                 className="hover:opacity-75"
                                             >
                                                 <SmallTag variant={jobTypeOption.color}>
-                                                    <div className="max-w-[150px] truncate">{job.alias}</div>
+                                                    <div className="max-w-[147px] truncate">{job.alias}</div>
                                                 </SmallTag>
                                             </Link>
                                         </div>
