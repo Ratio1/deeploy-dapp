@@ -181,15 +181,14 @@ export default function ExpiredJobsPage() {
             <div className="col gap-4">
                 <div className="list">
                     <ListHeader>
-                        <div className="row gap-6">
-                            <div className="w-[90px]">Job ID</div>
-                            <div className="w-[110px]">Job Type</div>
-                            <div className="w-[160px]">Project</div>
-                            <div className="w-[180px]">Requested</div>
-                            <div className="w-[180px]">Ended</div>
+                        <div className="grid w-full grid-cols-[70px_100px_minmax(0,1fr)_140px_140px_130px] items-center gap-4">
+                            <div>Job ID</div>
+                            <div>Job Type</div>
+                            <div>Project</div>
+                            <div>Requested</div>
+                            <div>Ended</div>
+                            <div className="text-right">Recover</div>
                         </div>
-
-                        <div className="w-[146px] text-right">Recover</div>
                     </ListHeader>
 
                     {isLoading ? (
@@ -202,51 +201,49 @@ export default function ExpiredJobsPage() {
                         <>
                             {closedJobs.map((job) => (
                                 <BorderedCard key={job.id.toString()}>
-                                    <div className="row compact justify-between gap-6">
-                                        <div className="row gap-6">
-                                            <div className="w-[90px]">{job.id.toString()}</div>
+                                    <div className="compact grid w-full grid-cols-[70px_100px_minmax(0,1fr)_140px_140px_130px] items-center gap-4">
+                                        <div>{job.id.toString()}</div>
 
-                                            <div className="w-[110px]">{getClosedJobTypeLabel(job)}</div>
+                                        <div>{getClosedJobTypeLabel(job)}</div>
 
-                                            <div className="w-[160px]">
-                                                {localProjectNames.get(job.projectHash) ??
-                                                    getProjectName(job.projectHash) ??
-                                                    getShortAddressOrHash(job.projectHash, 6)}
-                                            </div>
-
-                                            <div className="w-[180px]">
-                                                <SmallTag>
-                                                    <div className="row gap-1">
-                                                        <RiCalendarLine className="text-sm" />
-
-                                                        {new Date(Number(job.requestTimestamp) * 1000).toLocaleString(undefined, {
-                                                            month: 'short',
-                                                            day: 'numeric',
-                                                            year: 'numeric',
-                                                        })}
-                                                    </div>
-                                                </SmallTag>
-                                            </div>
-
-                                            <div className="w-[180px]">
-                                                <SmallTag>
-                                                    <div className="row gap-1">
-                                                        <RiHistoryLine className="text-sm" />
-
-                                                        {addTimeFn(
-                                                            config.genesisDate,
-                                                            Number(job.lastExecutionEpoch),
-                                                        ).toLocaleString(undefined, {
-                                                            month: 'short',
-                                                            day: 'numeric',
-                                                            year: 'numeric',
-                                                        })}
-                                                    </div>
-                                                </SmallTag>
-                                            </div>
+                                        <div className="min-w-0 truncate">
+                                            {localProjectNames.get(job.projectHash) ??
+                                                getProjectName(job.projectHash) ??
+                                                getShortAddressOrHash(job.projectHash, 6)}
                                         </div>
 
-                                        <div className="w-[146px] text-right">
+                                        <div>
+                                            <SmallTag>
+                                                <div className="row gap-1">
+                                                    <RiCalendarLine className="text-sm" />
+
+                                                    {new Date(Number(job.requestTimestamp) * 1000).toLocaleString(undefined, {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric',
+                                                    })}
+                                                </div>
+                                            </SmallTag>
+                                        </div>
+
+                                        <div>
+                                            <SmallTag>
+                                                <div className="row gap-1">
+                                                    <RiHistoryLine className="text-sm" />
+
+                                                    {addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch)).toLocaleString(
+                                                        undefined,
+                                                        {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            year: 'numeric',
+                                                        },
+                                                    )}
+                                                </div>
+                                            </SmallTag>
+                                        </div>
+
+                                        <div className="text-right">
                                             <ActionButton
                                                 className="slate-button"
                                                 onPress={() => recoverClosedJob(job)}

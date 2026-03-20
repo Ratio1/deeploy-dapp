@@ -2,7 +2,7 @@
   "name": "deeploy-dapp",
   "private": true,
   "type": "module",
-  "version": "1.8.0",
+  "version": "1.14.0",
   "scripts": {
     "dev": "next dev --turbo --experimental-https",
     "dev:logs": "NEXT_DEBUG=1 next dev --turbo --experimental-https",

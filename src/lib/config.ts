@@ -14,6 +14,7 @@ type Config = {
     safeAddress: EthAddress;
     usdcContractAddress: EthAddress;
     explorerUrl: string;
+    ratio1ExplorerUrl: string;
     genesisDate: Date;
     epochDurationInSeconds: number;
     networks: [Chain, ...Chain[]];
@@ -33,6 +34,7 @@ const configs: {
         safeAddress: '0x2265539ae09c7A605A707E11a6ED4aF1d018750e',
         usdcContractAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
         explorerUrl: 'https://basescan.org',
+        ratio1ExplorerUrl: 'https://explorer.ratio1.ai',
         genesisDate: new Date('2025-05-23T16:00:00.000Z'),
         epochDurationInSeconds: 86400, // 24 hours
         networks: [base],
@@ -48,6 +50,7 @@ const configs: {
         safeAddress: '0x5afF90797f717Fe8432A1809b6b53A18863061D6',
         usdcContractAddress: '0xfD9A4a17D76087f7c94950b67c3A5b7638427ECF',
         explorerUrl: 'https://sepolia.basescan.org',
+        ratio1ExplorerUrl: 'https://testnet-explorer.ratio1.ai',
         genesisDate: new Date('2025-05-23T16:00:00.000Z'),
         epochDurationInSeconds: 86400, // 24 hours
         networks: [baseSepolia],
@@ -63,6 +66,7 @@ const configs: {
         safeAddress: '0x20b1ebc9c13A6F4f3dfBdF9bc9299ec40Ac988e3',
         usdcContractAddress: '0xfD9A4a17D76087f7c94950b67c3A5b7638427ECF',
         explorerUrl: 'https://sepolia.basescan.org',
+        ratio1ExplorerUrl: 'https://devnet-explorer.ratio1.ai',
         genesisDate: new Date('2025-06-30T07:00:00.000Z'),
         epochDurationInSeconds: 3600, // 1 hour
         networks: [baseSepolia],

@@ -11,6 +11,10 @@ export default function JobBreadcrumbs({
     job: RunningJobWithResources;
     jobTypeOption: JobTypeOption | undefined;
 }) {
+    const totalInstancesCount = job.instances.length;
+    const offlineInstancesCount = job.instances.filter((instance) => instance.isOnline === false).length;
+    const allInstancesOffline = totalInstancesCount > 0 && offlineInstancesCount === totalInstancesCount;
+
     return (
         <div className="row gap-1.5">
             <Link href={`${routePath.deeploys}/${routePath.project}/${job.projectHash}`} className="hover:underline">
@@ -24,8 +28,8 @@ export default function JobBreadcrumbs({
                 <div className="text-xl font-semibold">{job.alias}</div>
                 <div className="text-xl font-semibold text-slate-500">#{job.id.toString()}</div>
 
-                <SmallTag variant="green" isLarge>
-                    Running
+                <SmallTag variant={offlineInstancesCount > 0 ? (allInstancesOffline ? 'red' : 'yellow') : 'green'} isLarge>
+                    {offlineInstancesCount > 0 ? `${offlineInstancesCount}/${totalInstancesCount} offline` : 'Running'}
                 </SmallTag>
             </div>
         </div>

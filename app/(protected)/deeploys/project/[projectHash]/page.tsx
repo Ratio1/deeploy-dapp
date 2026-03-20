@@ -8,7 +8,7 @@ import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
 import { isValidProjectHash } from '@lib/utils';
 import { DetailedAlert } from '@shared/DetailedAlert';
-import ProjectIdentity from '@shared/jobs/projects/ProjectIdentity';
+import ProjectIdentity, { ProjectRuntimeStatus } from '@shared/jobs/projects/ProjectIdentity';
 import Payment from '@shared/projects/Payment';
 import { Apps } from '@typedefs/deeployApi';
 import { DraftJob, ProjectPage, RunningJobWithDetails } from '@typedefs/deeploys';
@@ -17,27 +17,16 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { RiAlertLine } from 'react-icons/ri';
-import { usePublicClient } from 'wagmi';
 
 export default function Project() {
     const router = useRouter();
 
-    const {
-        escrowContractAddress,
-        jobType,
-        setJobType,
-        projectPage,
-        setProjectPage,
-        getProjectName,
-        fetchRunningJobsWithDetails,
-        hasEscrowPermission,
-    } = useDeploymentContext() as DeploymentContextType;
+    const { jobType, setJobType, projectPage, setProjectPage, getProjectName, getRunningJobsWithDetails, hasEscrowPermission } =
+        useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
     const [projectName, setProjectName] = useState<string | undefined>();
     const [runningJobsWithDetails, setRunningJobsWithDetails] = useState<RunningJobWithDetails[]>([]);
-
-    const publicClient = usePublicClient();
 
     const { projectHash } = useParams<{ projectHash?: string }>();
 
@@ -57,10 +46,10 @@ export default function Project() {
     }, []);
 
     useEffect(() => {
-        if (publicClient && isValidProjectHash(projectHash)) {
+        if (isValidProjectHash(projectHash)) {
             fetchRunningJobs();
         }
-    }, [publicClient, projectHash]);
+    }, [projectHash]);
 
     useEffect(() => {
         if (!isValidProjectHash(projectHash)) {
@@ -71,15 +60,10 @@ export default function Project() {
     }, [getProjectName, projectHash, router]);
 
     const fetchRunningJobs = async (appsOverride?: Apps) => {
-        if (!publicClient || !escrowContractAddress) {
-            toast.error('Please connect your wallet.');
-            return;
-        }
-
         setLoading(true);
 
         try {
-            const { runningJobsWithDetails } = await fetchRunningJobsWithDetails(appsOverride);
+            const { runningJobsWithDetails } = getRunningJobsWithDetails(appsOverride);
             const projectJobs = runningJobsWithDetails.filter((job) => job.projectHash === projectHash);
 
             setRunningJobsWithDetails(projectJobs);
@@ -113,7 +97,18 @@ export default function Project() {
         return <></>;
     }
 
-    const getProjectIdentity = () => <ProjectIdentity projectName={projectName} />;
+    const totalInstancesCount = runningJobsWithDetails.reduce((count, job) => count + job.instances.length, 0);
+    const offlineInstancesCount = runningJobsWithDetails.reduce(
+        (count, job) => count + job.instances.filter((instance) => instance.isOnline === false).length,
+        0,
+    );
+
+    let projectRuntimeStatus: ProjectRuntimeStatus = 'running';
+    if (totalInstancesCount > 0 && offlineInstancesCount > 0) {
+        projectRuntimeStatus = offlineInstancesCount === totalInstancesCount ? 'down' : 'degraded';
+    }
+
+    const getProjectIdentity = () => <ProjectIdentity projectName={projectName} runtimeStatus={projectRuntimeStatus} />;
 
     return !jobType ? (
         <>

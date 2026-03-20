@@ -5,6 +5,7 @@ import { SelectItem } from '@heroui/select';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { getTunnels } from '@lib/api/tunnels';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
+import { compareTunnelStatusAndAlias, tunnelStatusDotColorClassByStatus, type TunnelStatus } from '@lib/tunnel-status';
 import InputWithLabel from '@shared/InputWithLabel';
 import Label from '@shared/Label';
 import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
@@ -25,11 +26,19 @@ type ExistingTunnelOption = {
     alias: string;
     token: string;
     url: string;
+    status: TunnelStatus;
+    isCustom?: false;
 };
 
-type TunnelSelectOption = ExistingTunnelOption & {
-    isCustom?: boolean;
+type CustomTunnelOption = {
+    id: string;
+    alias: string;
+    token: string;
+    url: string;
+    isCustom: true;
 };
+
+type TunnelSelectOption = ExistingTunnelOption | CustomTunnelOption;
 
 const CUSTOM_TUNNEL_OPTION = 'custom';
 
@@ -102,8 +111,9 @@ export default function AppParametersSection({
                     alias: (tunnel.metadata.alias || tunnel.metadata.dns_name) as string,
                     token: tunnel.metadata.tunnel_token as string,
                     url: tunnel.metadata.dns_name as string,
+                    status: tunnel.status as TunnelStatus,
                 }))
-                .sort((a, b) => a.alias.localeCompare(b.alias));
+                .sort(compareTunnelStatusAndAlias);
 
             setExistingTunnels(tunnels);
             return tunnels;
@@ -240,6 +250,17 @@ export default function AppParametersSection({
                                     }}
                                     placeholder={isFetchingTunnels ? 'Loading tunnels...' : 'Select an existing tunnel'}
                                     isDisabled={isFetchingTunnels}
+                                    renderValue={(items) => {
+                                        return items.map((item) => {
+                                            const tunnel = item.data as TunnelSelectOption | undefined;
+
+                                            if (!tunnel) {
+                                                return <div key={item.key}>{item.textValue}</div>;
+                                            }
+
+                                            return <TunnelSelectOptionContent key={item.key} tunnel={tunnel} />;
+                                        });
+                                    }}
                                 >
                                     {(option: object) => {
                                         const tunnel = option as TunnelSelectOption;
@@ -249,10 +270,7 @@ export default function AppParametersSection({
                                                 key={tunnel.id}
                                                 textValue={tunnel.isCustom ? tunnel.alias : `${tunnel.alias} | ${tunnel.url}`}
                                             >
-                                                <div className="row items-center gap-2 py-1">
-                                                    <div className="font-medium">{tunnel.alias}</div>
-                                                    <div className="font-roboto-mono text-xs text-slate-500">{tunnel.url}</div>
-                                                </div>
+                                                <TunnelSelectOptionContent tunnel={tunnel} />
                                             </SelectItem>
                                         );
                                     }}
@@ -310,6 +328,31 @@ export default function AppParametersSection({
                     )}
                 </div>
             )}
+        </div>
+    );
+}
+
+function TunnelSelectOptionContent({ tunnel }: { tunnel: TunnelSelectOption }) {
+    if (tunnel.isCustom) {
+        return (
+            <div className="row min-w-0 items-center gap-2 py-1">
+                <div className="max-w-[12rem] shrink-0 truncate font-medium sm:max-w-[14rem]">{tunnel.alias}</div>
+                <div className="font-roboto-mono min-w-0 flex-1 truncate text-xs text-slate-500">{tunnel.url}</div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="grid grid-cols-[minmax(0,1fr)_6.75rem] items-center gap-2 py-1">
+            <div className="row min-w-0 items-center gap-2">
+                <div className="max-w-[12rem] shrink-0 truncate font-medium sm:max-w-[14rem]">{tunnel.alias}</div>
+                <div className="font-roboto-mono min-w-0 flex-1 truncate text-xs text-slate-500">{tunnel.url}</div>
+            </div>
+
+            <div className="row min-w-0 items-center justify-end gap-1.5 text-right text-xs">
+                <div className={`h-2 w-2 rounded-full ${tunnelStatusDotColorClassByStatus[tunnel.status]}`}></div>
+                <div className="capitalize">{tunnel.status}</div>
+            </div>
         </div>
     );
 }

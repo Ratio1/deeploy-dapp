@@ -30,6 +30,15 @@ Prettier (`.prettierrc`) enforces four-space indentation, single quotes, semicol
 
 Automated tests are not yet wired into `package.json`. Place specs alongside source as `*.test.ts(x)` or under `src/__tests__/`. Stub Deeploy API calls and blockchain providers to keep tests deterministic, and document manual QA steps in your PR until the suite matures.
 
+### UI Screenshot Validation
+
+When a change affects UI, validate it with a browser screenshot before concluding work:
+
+- Use the dev-only public route `app/(public)/playwright-preview/page.tsx` to render the component under test without login.
+- Keep preview data deterministic (mocked/static props) and avoid live blockchain/API dependencies in that route.
+- Run the app locally and capture screenshots with Playwright after each relevant UI change.
+- Save artifacts under `.playwright/` and visually verify layout, spacing, states, and responsive behavior.
+
 ## Commit & Pull Request Guidelines
 
 History follows Conventional Commit prefixes (`fix:`, `feat:`, etc.); keep summaries concise and imperative (<72 chars). Separate logical changes—UI tweaks, contract bindings, and config updates should ship in distinct commits. PRs need a clear problem statement, bullet summary of changes, evidence for UI updates (screenshots/GIFs), linked work items, and callouts for required env/config shifts.

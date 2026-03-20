@@ -3,6 +3,7 @@
 import TunnelCard from '@components/tunnels/TunnelCard';
 import TunnelingSecretsForm from '@components/tunnels/TunnelingSecretsForm';
 import { Button } from '@heroui/button';
+import { Input } from '@heroui/input';
 import { Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from '@heroui/modal';
 import { Skeleton } from '@heroui/skeleton';
 import { Spinner } from '@heroui/spinner';
@@ -11,6 +12,7 @@ import { getDevAddress, isUsingDevAddress } from '@lib/config';
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
+import { compareTunnelAlias, type TunnelStatus } from '@lib/tunnel-status';
 import ActionButton from '@shared/ActionButton';
 import { DetailedAlert } from '@shared/DetailedAlert';
 import EmptyData from '@shared/EmptyData';
@@ -19,7 +21,7 @@ import { TunnelingSecrets } from '@typedefs/general';
 import { Tunnel } from '@typedefs/tunnels';
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiAddLine, RiCloseCircleLine, RiDoorLockLine, RiDraftLine, RiPencilLine } from 'react-icons/ri';
+import { RiAddLine, RiCloseCircleLine, RiDoorLockLine, RiDraftLine, RiPencilLine, RiSearchLine } from 'react-icons/ri';
 import { useAccount, useSignMessage } from 'wagmi';
 
 function Tunnels() {
@@ -33,6 +35,8 @@ function Tunnels() {
 
     const [isFetchingSecrets, setFetchingSecrets] = useState(false);
     const [doSecretsExist, setSecretsExist] = useState<boolean | undefined>();
+    const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState<TunnelStatus | 'all'>('all');
 
     const [secretsError, setSecretsError] = useState<string | null>(null);
 
@@ -116,6 +120,70 @@ function Tunnels() {
             inactive: counts.inactive,
         };
     }, [tunnels]);
+
+    const filteredTunnels = useMemo(() => {
+        const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+
+        return [...tunnels]
+            .filter((tunnel) => {
+                const matchesStatus = statusFilter === 'all' || tunnel.status === statusFilter;
+                const normalizedAlias = tunnel.alias?.toLowerCase() || '';
+                const normalizedUrl = tunnel.url?.toLowerCase() || '';
+
+                const matchesSearch =
+                    normalizedSearchQuery === '' ||
+                    normalizedAlias.includes(normalizedSearchQuery) ||
+                    normalizedUrl.includes(normalizedSearchQuery);
+
+                return matchesStatus && matchesSearch;
+            })
+            .sort(compareTunnelAlias);
+    }, [searchQuery, statusFilter, tunnels]);
+
+    const statusBadgeBaseClass = 'rounded-full border px-3 py-1.5 font-semibold transition-opacity hover:opacity-80';
+    const statusFilterOptions: Array<{
+        value: TunnelStatus | 'all';
+        label: string;
+        count: number;
+        activeClassName: string;
+        inactiveClassName: string;
+    }> = [
+        {
+            value: 'all',
+            label: 'Total',
+            count: statusStats.total,
+            activeClassName: 'border-primary bg-primary text-white',
+            inactiveClassName: 'border-slate-200 bg-slate-100 text-slate-700',
+        },
+        {
+            value: 'healthy',
+            label: 'Healthy',
+            count: statusStats.healthy,
+            activeClassName: 'border-emerald-700 bg-emerald-700 text-white',
+            inactiveClassName: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+        },
+        {
+            value: 'degraded',
+            label: 'Degraded',
+            count: statusStats.degraded,
+            activeClassName: 'border-amber-600 bg-amber-600 text-white',
+            inactiveClassName: 'border-amber-200 bg-amber-50 text-amber-700',
+        },
+        {
+            value: 'down',
+            label: 'Down',
+            count: statusStats.down,
+            activeClassName: 'border-red-700 bg-red-700 text-white',
+            inactiveClassName: 'border-red-200 bg-red-50 text-red-700',
+        },
+        {
+            value: 'inactive',
+            label: 'Inactive',
+            count: statusStats.inactive,
+            activeClassName: 'border-slate-700 bg-slate-700 text-white',
+            inactiveClassName: 'border-slate-200 bg-slate-100 text-slate-700',
+        },
+    ];
 
     const init = async () => {
         if (!address) {
@@ -291,6 +359,15 @@ function Tunnels() {
                         </ActionButton>
                     </div>
 
+                    <Input
+                        value={searchQuery}
+                        onValueChange={setSearchQuery}
+                        placeholder="Search tunnels by alias or URL..."
+                        aria-label="Search tunnels"
+                        variant="bordered"
+                        startContent={<RiSearchLine className="text-lg text-slate-500" />}
+                    />
+
                     {showTunnelSkeletons ? (
                         <div className="row flex-wrap gap-2">
                             {Array.from({ length: 5 }).map((_, index) => (
@@ -298,22 +375,24 @@ function Tunnels() {
                             ))}
                         </div>
                     ) : (
-                        <div className="row flex-wrap gap-2 text-xs sm:text-sm">
-                            <div className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 font-semibold text-slate-700">
-                                Total: {statusStats.total}
-                            </div>
-                            <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-semibold text-emerald-700">
-                                Healthy: {statusStats.healthy}
-                            </div>
-                            <div className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 font-semibold text-amber-700">
-                                Degraded: {statusStats.degraded}
-                            </div>
-                            <div className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 font-semibold text-red-700">
-                                Down: {statusStats.down}
-                            </div>
-                            <div className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 font-semibold text-slate-700">
-                                Inactive: {statusStats.inactive}
-                            </div>
+                        <div
+                            className="row flex-wrap gap-2 text-xs sm:text-sm"
+                            role="group"
+                            aria-label="Filter tunnels by status"
+                        >
+                            {statusFilterOptions.map((option) => (
+                                <button
+                                    key={option.value}
+                                    type="button"
+                                    onClick={() => setStatusFilter(option.value)}
+                                    aria-pressed={statusFilter === option.value}
+                                    className={`${statusBadgeBaseClass} ${
+                                        statusFilter === option.value ? option.activeClassName : option.inactiveClassName
+                                    }`}
+                                >
+                                    {option.label}: {option.count}
+                                </button>
+                            ))}
                         </div>
                     )}
 
@@ -348,7 +427,17 @@ function Tunnels() {
                                     </div>
                                 )}
 
-                                {tunnels.map((tunnel) => (
+                                {tunnels.length > 0 && filteredTunnels.length === 0 && !error && (
+                                    <div className="center-all">
+                                        <EmptyData
+                                            title="No matching tunnels"
+                                            description="Try a different search query or status."
+                                            icon={<RiDraftLine />}
+                                        />
+                                    </div>
+                                )}
+
+                                {filteredTunnels.map((tunnel) => (
                                     <div key={tunnel.id}>
                                         <TunnelCard tunnel={tunnel} fetchTunnels={invalidateTunnels} />
                                     </div>
