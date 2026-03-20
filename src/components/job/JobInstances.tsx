@@ -1,5 +1,5 @@
 import { sendInstanceCommand } from '@lib/api/deeploy';
-import { getDevAddress, isUsingDevAddress } from '@lib/config';
+import { config, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { buildDeeployMessage, generateDeeployNonce } from '@lib/deeploy-utils';
 import { getShortAddressOrHash } from '@lib/utils';
 import { CompactCustomCard } from '@shared/cards/CompactCustomCard';
@@ -9,9 +9,10 @@ import { SmallTag } from '@shared/SmallTag';
 import { R1Address } from '@typedefs/blockchain';
 import { AppsPlugin } from '@typedefs/deeployApi';
 import clsx from 'clsx';
+import Link from 'next/link';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { RiTimeLine } from 'react-icons/ri';
+import { RiExternalLinkLine, RiTimeLine } from 'react-icons/ri';
 import { useAccount, useSignMessage } from 'wagmi';
 
 export default function JobInstances({
@@ -169,6 +170,16 @@ export default function JobInstances({
                                             )}
                                         </div>
                                     </SmallTag>
+
+                                    <Link
+                                        href={`${config.ratio1ExplorerUrl}/node/${instance.nodeAddress}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="center-all h-7 w-7 rounded-md border border-slate-200 text-slate-500 transition-colors hover:border-primary hover:text-primary"
+                                        aria-label={`Open node ${instance.nodeAlias ?? instance.nodeAddress} in Ratio1 explorer`}
+                                    >
+                                        <RiExternalLinkLine className="text-base" />
+                                    </Link>
                                 </div>
 
                                 <div className="col bg-slate-75 rounded-lg p-2 pr-4">
