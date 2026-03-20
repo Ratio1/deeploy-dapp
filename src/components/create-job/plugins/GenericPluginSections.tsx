@@ -1,28 +1,22 @@
 import ConfigSectionTitle from '@components/job/config/ConfigSectionTitle';
+import { type AvailableDynamicEnvPlugin } from '@lib/dynamicEnvUi';
 import DynamicEnvSection from '@shared/jobs/DynamicEnvSection';
 import FileVolumesSection from '@shared/jobs/FileVolumesSection';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
 import CustomParametersSection from '@shared/jobs/native/CustomParametersSection';
-import PortMappingSection from '@shared/PortMappingSection';
-import AppParametersSection from '../sections/AppParametersSection';
+import ExposedPortsSection from '@shared/ExposedPortsSection';
 import PluginEnvVariablesSection from '../sections/PluginEnvVariablesSection';
 import PoliciesSection from '../sections/PoliciesSection';
-
-import { BasePluginType } from '@typedefs/steps/deploymentStepTypes';
-
 type Props = {
     name: string;
-    availablePlugins?: { name: string; basePluginType: BasePluginType }[];
+    availablePlugins?: AvailableDynamicEnvPlugin[];
 };
 
 export default function GenericPluginSections({ name, availablePlugins }: Props) {
     return (
         <>
-            <ConfigSectionTitle title="App Parameters" />
-            <AppParametersSection baseName={name} />
-
-            <ConfigSectionTitle title="Port Mapping" />
-            <PortMappingSection baseName={name} />
+            <ConfigSectionTitle title="Exposed Ports" />
+            <ExposedPortsSection baseName={name} />
 
             <PluginEnvVariablesSection baseName={name} />
 

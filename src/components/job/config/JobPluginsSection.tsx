@@ -22,6 +22,63 @@ type PluginConfig = {
     value: JobConfig;
 };
 
+const getDynamicEnvDisplay = (config: JobConfig) => {
+    if (config.DYNAMIC_ENV_UI && !isEmpty(config.DYNAMIC_ENV_UI)) {
+        return config.DYNAMIC_ENV_UI;
+    }
+
+    return config.DYNAMIC_ENV;
+};
+
+const getExposedPortsDisplay = (config: JobConfig) => {
+    if (config.EXPOSED_PORTS && !isEmpty(config.EXPOSED_PORTS)) {
+        return Object.entries(config.EXPOSED_PORTS).reduce<Record<string, string>>((acc, [containerPort, rawEntry]) => {
+            const entry = rawEntry ?? {};
+            const details: string[] = [];
+
+            if (entry.is_main_port) {
+                details.push('main');
+            }
+
+            if (entry.tunnel?.token) {
+                details.push('tunnel');
+            }
+
+            acc[containerPort] = details.length ? details.join(', ') : 'open';
+            return acc;
+        }, {});
+    }
+
+    const extraTunnels = config.EXTRA_TUNNELS ?? {};
+    const legacyMappings = config.CONTAINER_RESOURCES.ports ?? {};
+
+    if (isEmpty(legacyMappings) && !config.PORT) {
+        return {};
+    }
+
+    const display: Record<string, string> = {};
+    Object.values(legacyMappings).forEach((containerPortValue) => {
+        const containerPort = String(containerPortValue);
+        const details: string[] = [];
+
+        if (Number(containerPortValue) === Number(config.PORT)) {
+            details.push('main');
+        }
+
+        if (extraTunnels[containerPort] || (Number(containerPortValue) === Number(config.PORT) && config.CLOUDFLARE_TOKEN)) {
+            details.push('tunnel');
+        }
+
+        display[containerPort] = details.length ? details.join(', ') : 'open';
+    });
+
+    if (config.PORT && !(String(config.PORT) in display)) {
+        display[String(config.PORT)] = config.CLOUDFLARE_TOKEN ? 'main, tunnel' : 'main';
+    }
+
+    return display;
+};
+
 export default function JobPluginsSection({ job }: { job: RunningJobWithResources }) {
     const pluginConfigs: PluginConfig[] = _(job.instances)
         .map((instance) => instance.plugins)
@@ -45,6 +102,8 @@ export default function JobPluginsSection({ job }: { job: RunningJobWithResource
     // }, [pluginConfig]);
 
     const config = pluginConfig.value;
+    const displayedDynamicEnv = getDynamicEnvDisplay(config);
+    const displayedExposedPorts = getExposedPortsDisplay(config);
 
     return (
         <BorderedCard isLight={false} disableWrapper>
@@ -97,10 +156,19 @@ export default function JobPluginsSection({ job }: { job: RunningJobWithResource
                         </>
                     )}
 
-                    {/* Port Mapping */}
+                    {/* Exposed Ports */}
+                    {isGenericPlugin(pluginConfig.signature) && !isEmpty(displayedExposedPorts) && (
+                        <>
+                            <ConfigSectionTitle title="Exposed Ports" />
+
+                            <JobKeyValueSection obj={displayedExposedPorts} labels={['PORT', 'DETAILS']} displayShortValues={false} />
+                        </>
+                    )}
+
+                    {/* Legacy Port Mapping */}
                     {isGenericPlugin(pluginConfig.signature) && !isEmpty(pluginConfig.value.CONTAINER_RESOURCES.ports) && (
                         <>
-                            <ConfigSectionTitle title="Port Mapping" />
+                            <ConfigSectionTitle title="Legacy Port Mapping" />
 
                             <JobKeyValueSection
                                 obj={pluginConfig.value.CONTAINER_RESOURCES.ports}
@@ -126,10 +194,10 @@ export default function JobPluginsSection({ job }: { job: RunningJobWithResource
                                         <ItemWithBoldValue
                                             label="Dynamic ENV Variables"
                                             value={
-                                                isEmpty(config.DYNAMIC_ENV) ? (
+                                                isEmpty(displayedDynamicEnv) ? (
                                                     '—'
                                                 ) : (
-                                                    <JobDynamicEnvSection dynamicEnv={config.DYNAMIC_ENV} />
+                                                    <JobDynamicEnvSection dynamicEnv={displayedDynamicEnv} />
                                                 )
                                             }
                                         />

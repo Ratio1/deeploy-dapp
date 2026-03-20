@@ -23,7 +23,31 @@ type CustomParameterEntry = KeyValueEntry & {
     valueType: 'string' | 'json';
 };
 
-type DynamicEnvVarValue = { type: string; value: string; path?: [string, string] };
+type DynamicEnvVarValue =
+    | {
+          source: 'static';
+          value: string;
+          provider?: undefined;
+          key?: undefined;
+      }
+    | {
+          source: 'host_ip';
+          value?: string;
+          provider?: undefined;
+          key?: undefined;
+      }
+    | {
+          source: 'container_ip';
+          value?: string;
+          provider?: string;
+          key?: undefined;
+      }
+    | {
+          source: 'plugin_value';
+          value?: undefined;
+          provider?: string;
+          key?: string;
+      };
 
 type DynamicEnvVarsEntry = {
     key: string;
@@ -41,9 +65,10 @@ type FileVolumesEntry = {
     content: string;
 };
 
-type PortMappingEntry = {
-    hostPort: number;
+type ExposedPortEntry = {
     containerPort: number;
+    isMainPort: boolean;
+    cloudflareToken?: string;
 };
 
 // Deployment types
@@ -81,13 +106,7 @@ export enum PluginType {
 }
 
 type GenericPlugin = {
-    // Tunneling
-    port?: number | string;
-    enableTunneling: (typeof BOOLEAN_TYPES)[number];
-    tunnelingToken?: string;
-
-    // Ports
-    ports: Array<PortMappingEntry>;
+    exposedPorts: Array<ExposedPortEntry>;
 
     // Deployment type
     deploymentType: DeploymentType;
@@ -132,6 +151,9 @@ type BaseJobDeployment = {
     targetNodes: Array<{ address: R1Address }>;
     spareNodes: Array<{ address: R1Address }>;
     allowReplicationInTheWild: boolean;
+};
+
+type TunnelingJobDeployment = {
     enableTunneling: (typeof BOOLEAN_TYPES)[number];
     port?: number | string;
     tunnelingToken?: string;
@@ -141,8 +163,7 @@ type BaseJobDeployment = {
 type GenericJobDeployment = BaseJobDeployment & {
     deploymentType: DeploymentType;
 
-    // Ports
-    ports: Array<PortMappingEntry>;
+    exposedPorts: Array<ExposedPortEntry>;
 
     // Variables
     envVars: Array<KeyValueEntry>;
@@ -158,7 +179,8 @@ type GenericJobDeployment = BaseJobDeployment & {
     customParams: Array<CustomParameterEntry>;
 };
 
-type NativeJobDeployment = BaseJobDeployment & {
+type NativeJobDeployment = BaseJobDeployment &
+    TunnelingJobDeployment & {
     pipelineParams: Array<KeyValueEntry>;
     pipelineInputType: (typeof PIPELINE_INPUT_TYPES)[number];
     pipelineInputUri?: string;
@@ -166,9 +188,10 @@ type NativeJobDeployment = BaseJobDeployment & {
     chainstoreResponse: (typeof BOOLEAN_TYPES)[number]; // Enforced to true
 };
 
-type ServiceJobDeployment = BaseJobDeployment & {
+type ServiceJobDeployment = BaseJobDeployment &
+    TunnelingJobDeployment & {
     inputs: Array<KeyValueEntry>;
-    ports: Array<PortMappingEntry>;
+    ports: Array<{ hostPort: number; containerPort: number }>;
     isPublicService: boolean;
     serviceReplica?: R1Address;
 };
@@ -182,6 +205,7 @@ export type {
     DeploymentType,
     DynamicEnvVarsEntry,
     DynamicEnvVarValue,
+    ExposedPortEntry,
     FileVolumesEntry,
     GenericJobDeployment,
     GenericPlugin,
@@ -191,7 +215,6 @@ export type {
     NativeJobDeployment,
     NativePlugin,
     Plugin,
-    PortMappingEntry,
     ServiceJobDeployment,
     VolumesEntry,
     WorkerDeploymentType,

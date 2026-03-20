@@ -18,6 +18,7 @@ import {
     NATIVE_PLUGIN_DEFAULT_RESPONSE_KEYS,
     titlecase,
 } from '@lib/deeploy-utils';
+import { normalizeDynamicEnvUiValue, normalizeLegacyDynamicEnvValue } from '@lib/dynamicEnvRoundtrip';
 import { Step, STEPS } from '@lib/steps/steps';
 import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
@@ -98,14 +99,13 @@ export default function JobEditFormWrapper({
     });
 
     const getBaseSchemaTunnelingDefaults = (config: JobConfig) => ({
-        enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED),
+        enableTunneling: boolToBooleanType(config.TUNNEL_ENGINE_ENABLED ?? false),
         port: config.PORT ?? '',
         tunnelingToken: config.CLOUDFLARE_TOKEN || config.NGROK_AUTH_TOKEN || undefined,
     });
 
     const getGenericSpecificDeploymentDefaults = (config: JobConfig) => ({
-        // Ports
-        ports: getPortMappings(config),
+        exposedPorts: getExposedPorts(config),
 
         // Deployment type
         deploymentType: !config.VCS_DATA
@@ -148,9 +148,6 @@ export default function JobEditFormWrapper({
             basePluginType: BasePluginType.Generic,
             ...(pluginName ? { pluginName } : {}),
 
-            // Tunneling
-            ...getBaseSchemaTunnelingDefaults(config),
-
             ...getGenericSpecificDeploymentDefaults(config),
         };
     };
@@ -180,7 +177,7 @@ export default function JobEditFormWrapper({
         };
     };
 
-    const getBaseSchemaDefaults = (config: JobConfig = jobConfig) => ({
+    const getBaseSchemaDefaults = () => ({
         jobType: job.resources.jobType,
         specifications: {
             // applicationType: APPLICATION_TYPES[0],
@@ -196,7 +193,6 @@ export default function JobEditFormWrapper({
         },
         deployment: {
             ...getBaseSchemaDeploymentDefaults(),
-            ...getBaseSchemaTunnelingDefaults(config),
         },
     });
 
@@ -237,11 +233,12 @@ export default function JobEditFormWrapper({
             ...getBaseSchemaDefaults().specifications,
             serviceContainerType: job.resources.containerOrWorkerType.name,
         },
-        deployment: {
-            ...getBaseSchemaDefaults().deployment,
-            tunnelingLabel: jobConfig.NGROK_EDGE_LABEL || '',
-            inputs: getEnvVars(jobConfig),
-            ports: getPortMappings(jobConfig),
+            deployment: {
+                ...getBaseSchemaDefaults().deployment,
+                ...getBaseSchemaTunnelingDefaults(jobConfig),
+                tunnelingLabel: jobConfig.NGROK_EDGE_LABEL || '',
+                inputs: getEnvVars(jobConfig),
+                ports: getPortMappings(jobConfig),
             isPublicService: !!(jobConfig.CLOUDFLARE_TOKEN || jobConfig.NGROK_AUTH_TOKEN),
         },
     });
@@ -264,16 +261,81 @@ export default function JobEditFormWrapper({
     };
 
     const getDynamicEnvVars = (config: JobConfig) => {
+        const dynamicEnvUi = (config as any).DYNAMIC_ENV_UI;
+        if (dynamicEnvUi && typeof dynamicEnvUi === 'object') {
+            return Object.entries(dynamicEnvUi).map(([key, values]) => ({
+                key,
+                values: (Array.isArray(values) ? values : []).map((entry: any) => normalizeDynamicEnvUiValue(entry)),
+            }));
+        }
+
         if (!config.DYNAMIC_ENV) return [];
         return Object.entries(config.DYNAMIC_ENV).map(([key, values]) => ({
             key,
-            values: values.map((v) => {
-                if (v.type === 'shmem' && Array.isArray((v as any).path) && (v as any).path[0] in semaphoreToPluginName) {
-                    return { ...v, path: [semaphoreToPluginName[(v as any).path[0]], (v as any).path[1]] };
-                }
-                return v;
-            }),
+            values: values.map((v: any) => normalizeLegacyDynamicEnvValue(v, semaphoreToPluginName)),
         }));
+    };
+
+    const getExposedPorts = (config: JobConfig) => {
+        const exposedPorts = (config as any).EXPOSED_PORTS;
+        if (exposedPorts && typeof exposedPorts === 'object') {
+            return Object.entries(exposedPorts)
+                .map(([containerPort, value]) => {
+                    const normalizedContainerPort = Number(containerPort);
+                    if (!Number.isInteger(normalizedContainerPort)) {
+                        return null;
+                    }
+
+                    const entry = (value ?? {}) as Record<string, any>;
+                    return {
+                        containerPort: normalizedContainerPort,
+                        isMainPort: !!entry.is_main_port,
+                        cloudflareToken: entry.tunnel?.token ?? '',
+                    };
+                })
+                .filter(Boolean);
+        }
+
+        const extraTunnels = config.EXTRA_TUNNELS ?? {};
+        const legacyPorts = getPortMappings(config).map((entry) => ({
+            containerPort: entry.containerPort,
+            isMainPort: entry.containerPort === config.PORT,
+            cloudflareToken:
+                (entry.containerPort === config.PORT
+                    ? config.CLOUDFLARE_TOKEN || config.NGROK_AUTH_TOKEN
+                    : extraTunnels[String(entry.containerPort)]) || '',
+        }));
+
+        if (!legacyPorts.length && config.PORT) {
+            return [
+                {
+                    containerPort: config.PORT,
+                    isMainPort: true,
+                    cloudflareToken: config.CLOUDFLARE_TOKEN || config.NGROK_AUTH_TOKEN || '',
+                },
+            ];
+        }
+
+        Object.entries(extraTunnels).forEach(([containerPort, token]) => {
+            const normalizedContainerPort = Number(containerPort);
+            if (!Number.isInteger(normalizedContainerPort)) {
+                return;
+            }
+
+            const existing = legacyPorts.find((entry) => entry.containerPort === normalizedContainerPort);
+            if (existing) {
+                existing.cloudflareToken = token || existing.cloudflareToken;
+                return;
+            }
+
+            legacyPorts.push({
+                containerPort: normalizedContainerPort,
+                isMainPort: normalizedContainerPort === config.PORT,
+                cloudflareToken: token || '',
+            });
+        });
+
+        return legacyPorts.sort((a, b) => Number(b.isMainPort) - Number(a.isMainPort) || a.containerPort - b.containerPort);
     };
 
     const getVolumes = (config: JobConfig) => {

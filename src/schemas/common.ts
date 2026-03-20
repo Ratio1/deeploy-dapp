@@ -145,27 +145,45 @@ export const nodeSchema = z.object({
 
 export const dynamicEnvPairSchema = z
     .object({
-        type: z.enum(DYNAMIC_ENV_TYPES),
+        source: z.enum(DYNAMIC_ENV_TYPES),
         value: z
             .string()
             .max(128, 'Value cannot exceed 128 characters')
             .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
             .optional(),
-        path: z.tuple([z.string(), z.string()]).optional(),
+        provider: z.string().max(128, 'Value cannot exceed 128 characters').optional(),
+        key: z
+            .string()
+            .max(128, 'Value cannot exceed 128 characters')
+            .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
+            .optional(),
     })
     .refine(
         (data) => {
-            if (data.type === 'shmem') {
-                return (
-                    Array.isArray(data.path) &&
-                    data.path.length === 2 &&
-                    data.path[0].length > 0 &&
-                    data.path[1].length > 0
-                );
+            if (data.source === 'container_ip') {
+                return typeof data.provider === 'string' && data.provider.trim().length > 0;
             }
             return true;
         },
-        { message: 'Plugin and env key required for shmem type', path: ['path'] },
+        { message: 'Plugin is required for container_ip source', path: ['provider'] },
+    )
+    .refine(
+        (data) => {
+            if (data.source === 'plugin_value') {
+                return typeof data.provider === 'string' && data.provider.trim().length > 0;
+            }
+            return true;
+        },
+        { message: 'Plugin is required for plugin_value source', path: ['provider'] },
+    )
+    .refine(
+        (data) => {
+            if (data.source === 'plugin_value') {
+                return typeof data.key === 'string' && data.key.trim().length > 0;
+            }
+            return true;
+        },
+        { message: 'Key is required for plugin_value source', path: ['key'] },
     );
 
 // The key + variable-length value parts
@@ -177,7 +195,15 @@ export const dynamicEnvEntrySchema = z
     .refine(
         (data) => {
             // If key is empty and all values are empty, it's a valid empty entry
-            if (!data.key && data.values.every((pair) => !pair.value && pair.type !== 'shmem')) {
+            if (
+                !data.key &&
+                data.values.every((pair) => {
+                    if (pair.source === 'static') {
+                        return !pair.value;
+                    }
+                    return false;
+                })
+            ) {
                 return true;
             }
             // If key is present, it's valid
@@ -216,12 +242,18 @@ export const getStringWithSpacesSchema = (minLength: number, maxLength: number) 
 };
 
 export const getOptionalStringSchema = (maxLength: number) => {
-    return z
-        .string()
-        .min(3, 'Value must be at least 3 characters')
-        .max(maxLength, `Value cannot exceed ${maxLength} characters`)
-        .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/, 'Only letters, numbers and special characters allowed')
-        .optional();
+    return z.preprocess(
+        (value) => (value === '' ? undefined : value),
+        z
+            .string()
+            .min(3, 'Value must be at least 3 characters')
+            .max(maxLength, `Value cannot exceed ${maxLength} characters`)
+            .regex(
+                /^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]*$/,
+                'Only letters, numbers and special characters allowed',
+            )
+            .optional(),
+    );
 };
 
 export const getOptionalStringWithSpacesSchema = (minLength: number, maxLength: number) => {

@@ -1,25 +1,24 @@
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
-import { SHMEM_ENV_KEYS } from '@data/shmemEnvKeys';
+import {
+    getDynamicEnvKeyOptionsForProvider,
+    shouldUseManualDynamicEnvKeyForProvider,
+    type AvailableDynamicEnvPlugin,
+} from '@lib/dynamicEnvUi';
 import { SelectItem } from '@heroui/select';
 import StyledSelect from '@shared/StyledSelect';
 import StyledInput from '@shared/StyledInput';
-import { BasePluginType } from '@typedefs/steps/deploymentStepTypes';
 import { Controller, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import VariableSectionControls from './VariableSectionControls';
 import VariableSectionIndex from './VariableSectionIndex';
 import VariableSectionRemove from './VariableSectionRemove';
 
-type AvailablePlugin = { name: string; basePluginType: BasePluginType };
-
 type Props = {
     baseName?: string;
-    availablePlugins?: AvailablePlugin[];
+    availablePlugins?: AvailableDynamicEnvPlugin[];
 };
 
-// This component assumes it's being used in the deployment step
 export default function DynamicEnvSection({ baseName = 'deployment', availablePlugins }: Props) {
     const name = `${baseName}.dynamicEnvVars`;
-
     const { control, formState, trigger } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
@@ -27,7 +26,6 @@ export default function DynamicEnvSection({ baseName = 'deployment', availablePl
         name,
     });
 
-    // Get array-level errors
     const errors = name.split('.').reduce<unknown>((acc, segment) => {
         if (!acc || typeof acc !== 'object') {
             return undefined;
@@ -43,12 +41,12 @@ export default function DynamicEnvSection({ baseName = 'deployment', availablePl
                     key={field.id}
                     baseName={baseName}
                     index={index}
-                    control={control}
-                    trigger={trigger}
                     entryError={errors?.[index]}
                     rootErrorMessage={errors?.root?.message && index === 0 ? errors.root.message : undefined}
                     onRemove={() => remove(index)}
                     availablePlugins={availablePlugins}
+                    control={control}
+                    trigger={trigger}
                 />
             ))}
 
@@ -57,7 +55,7 @@ export default function DynamicEnvSection({ baseName = 'deployment', availablePl
                 onClick={() =>
                     append({
                         key: '',
-                        values: [{ type: DYNAMIC_ENV_TYPES[0], value: '' }],
+                        values: [{ source: DYNAMIC_ENV_TYPES[0], value: '' }],
                     })
                 }
                 fieldsLength={fields.length}
@@ -83,18 +81,12 @@ function DynamicEnvEntry({
     control: any;
     trigger: any;
     entryError: any;
-    rootErrorMessage: string | undefined;
+    rootErrorMessage?: string;
     onRemove: () => void;
-    availablePlugins?: AvailablePlugin[];
+    availablePlugins?: AvailableDynamicEnvPlugin[];
 }) {
-    const { setValue } = useFormContext();
     const valuesName = `${baseName}.dynamicEnvVars.${index}.values`;
-
-    const {
-        fields: valueFields,
-        append: appendPart,
-        remove: removePart,
-    } = useFieldArray({
+    const { fields, append, remove } = useFieldArray({
         control,
         name: valuesName,
     });
@@ -107,46 +99,36 @@ function DynamicEnvEntry({
                 <Controller
                     name={`${baseName}.dynamicEnvVars.${index}.key`}
                     control={control}
-                    render={({ field, fieldState }) => {
-                        const specificKeyError = entryError?.key;
-                        const hasError = !!fieldState.error || !!specificKeyError || !!rootErrorMessage;
-
-                        return (
-                            <StyledInput
-                                placeholder="Dynamic ENV Key"
-                                value={field.value ?? ''}
-                                onChange={async (e) => {
-                                    field.onChange(e.target.value);
-                                }}
-                                onBlur={async () => {
-                                    field.onBlur();
-                                    await trigger(`${baseName}.dynamicEnvVars`);
-                                }}
-                                isInvalid={hasError}
-                                errorMessage={
-                                    fieldState.error?.message || specificKeyError?.message || rootErrorMessage
-                                }
-                            />
-                        );
-                    }}
+                    render={({ field, fieldState }) => (
+                        <StyledInput
+                            placeholder="Dynamic ENV Key"
+                            value={field.value ?? ''}
+                            onChange={field.onChange}
+                            onBlur={async () => {
+                                field.onBlur();
+                                await trigger(`${baseName}.dynamicEnvVars`);
+                            }}
+                            isInvalid={!!fieldState.error || !!entryError?.key || !!rootErrorMessage}
+                            errorMessage={fieldState.error?.message || entryError?.key?.message || rootErrorMessage}
+                        />
+                    )}
                 />
 
                 <VariableSectionRemove onClick={onRemove} />
             </div>
 
-            {valueFields.map((valueField, k) => (
-                <DynamicEnvPairRow
+            {fields.map((valueField, pairIndex) => (
+                <DynamicEnvValueRow
                     key={valueField.id}
                     baseName={baseName}
                     index={index}
-                    pairIndex={k}
+                    pairIndex={pairIndex}
                     control={control}
                     trigger={trigger}
-                    setValue={setValue}
                     entryError={entryError}
                     availablePlugins={availablePlugins}
-                    canRemove={valueFields.length > 1}
-                    onRemovePart={() => removePart(k)}
+                    canRemove={fields.length > 1}
+                    onRemove={() => remove(pairIndex)}
                 />
             ))}
 
@@ -154,78 +136,123 @@ function DynamicEnvEntry({
                 <VariableSectionControls
                     displayLabel="parts"
                     addLabel="part"
-                    onClick={() => appendPart({ type: DYNAMIC_ENV_TYPES[0], value: '' })}
-                    fieldsLength={valueFields.length}
+                    onClick={() => append({ source: DYNAMIC_ENV_TYPES[0], value: '' })}
+                    fieldsLength={fields.length}
                     maxFields={10}
-                    remove={removePart}
+                    remove={remove}
                 />
             </div>
         </div>
     );
 }
 
-function DynamicEnvPairRow({
+function DynamicEnvValueRow({
     baseName,
     index,
-    pairIndex: k,
+    pairIndex,
     control,
     trigger,
-    setValue,
     entryError,
     availablePlugins,
     canRemove,
-    onRemovePart,
+    onRemove,
 }: {
     baseName: string;
     index: number;
     pairIndex: number;
     control: any;
     trigger: any;
-    setValue: any;
     entryError: any;
-    availablePlugins?: AvailablePlugin[];
+    availablePlugins?: AvailableDynamicEnvPlugin[];
     canRemove: boolean;
-    onRemovePart: () => void;
+    onRemove: () => void;
 }) {
-    const typeValue = useWatch({
+    const { setValue } = useFormContext();
+    const sourceValue = useWatch({
         control,
-        name: `${baseName}.dynamicEnvVars.${index}.values.${k}.type`,
+        name: `${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.source`,
     });
+    const providerValue = useWatch({
+        control,
+        name: `${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.provider`,
+    });
+    const pairError = entryError?.values?.[pairIndex];
+    const keyOptions = getDynamicEnvKeyOptionsForProvider(availablePlugins, providerValue);
+    const useManualKeyEntry = shouldUseManualDynamicEnvKeyForProvider(availablePlugins, providerValue);
 
-    const isShmem = typeValue === 'shmem';
-    const isHostIP = typeValue === 'host_ip';
-    const hasShmemPlugins = availablePlugins && availablePlugins.length > 0;
+    const renderProviderSelect = () => (
+        <Controller
+            name={`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.provider`}
+            control={control}
+            render={({ field, fieldState }) => (
+                <StyledSelect
+                    selectedKeys={field.value ? [field.value] : []}
+                    onSelectionChange={async (keys) => {
+                        const selectedKey = Array.from(keys)[0] as string;
+                        field.onChange(selectedKey);
+
+                        const nextKeyOptions = getDynamicEnvKeyOptionsForProvider(availablePlugins, selectedKey);
+                        const currentKey = (
+                            (control as any)._formValues?.[baseName]?.dynamicEnvVars?.[index]?.values?.[pairIndex]?.key ??
+                            undefined
+                        ) as string | undefined;
+                        if (nextKeyOptions && !nextKeyOptions.some((option) => option.key === currentKey)) {
+                            setValue(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.key`, undefined);
+                        }
+
+                        await trigger(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}`);
+                    }}
+                    onBlur={field.onBlur}
+                    isInvalid={!!fieldState.error || !!pairError?.provider}
+                    errorMessage={fieldState.error?.message || pairError?.provider?.message}
+                    placeholder={availablePlugins?.length ? 'Select plugin' : 'No plugins available'}
+                    isDisabled={!availablePlugins?.length}
+                >
+                    {(availablePlugins ?? []).map((plugin) => (
+                        <SelectItem key={plugin.name} textValue={plugin.name}>
+                            <div className="row gap-2 py-1">
+                                <div className="font-medium">{plugin.name}</div>
+                            </div>
+                        </SelectItem>
+                    ))}
+                </StyledSelect>
+            )}
+        />
+    );
 
     return (
         <div className="flex gap-3">
             <div className="flex w-full items-start gap-2 pl-7">
                 <div className="w-1/3">
                     <Controller
-                        name={`${baseName}.dynamicEnvVars.${index}.values.${k}.type`}
+                        name={`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.source`}
                         control={control}
                         render={({ field, fieldState }) => (
                             <StyledSelect
                                 selectedKeys={field.value ? [field.value] : []}
                                 onSelectionChange={async (keys) => {
                                     const selectedKey = Array.from(keys)[0] as string;
-                                    const previousType = field.value;
                                     field.onChange(selectedKey);
 
-                                    // Reset fields when switching type
-                                    if (selectedKey === 'shmem' && previousType !== 'shmem') {
-                                        setValue(`${baseName}.dynamicEnvVars.${index}.values.${k}.value`, '');
-                                        setValue(`${baseName}.dynamicEnvVars.${index}.values.${k}.path`, ['', '']);
-                                    } else if (selectedKey !== 'shmem' && previousType === 'shmem') {
-                                        setValue(`${baseName}.dynamicEnvVars.${index}.values.${k}.path`, undefined);
-                                        await trigger(`${baseName}.dynamicEnvVars.${index}.values.${k}`);
-                                    } else {
-                                        await trigger(`${baseName}.dynamicEnvVars.${index}.values.${k}`);
+                                    if (selectedKey === 'container_ip' || selectedKey === 'plugin_value') {
+                                        setValue(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.value`, '');
                                     }
+
+                                    if (selectedKey !== 'container_ip' && selectedKey !== 'plugin_value') {
+                                        setValue(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.provider`, undefined);
+                                        setValue(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.key`, undefined);
+                                    }
+
+                                    if (selectedKey === 'container_ip') {
+                                        setValue(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.key`, undefined);
+                                    }
+
+                                    await trigger(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}`);
                                 }}
                                 onBlur={field.onBlur}
                                 isInvalid={!!fieldState.error}
                                 errorMessage={fieldState.error?.message}
-                                placeholder="Select an option"
+                                placeholder="Select source"
                             >
                                 {DYNAMIC_ENV_TYPES.map((envType) => (
                                     <SelectItem key={envType} textValue={envType}>
@@ -240,165 +267,90 @@ function DynamicEnvPairRow({
                 </div>
 
                 <div className="w-2/3">
-                    {isShmem && hasShmemPlugins ? (
-                        <ShmemPathInputs
-                            baseName={baseName}
-                            index={index}
-                            pairIndex={k}
-                            control={control}
-                            trigger={trigger}
-                            entryError={entryError}
-                            availablePlugins={availablePlugins!}
-                        />
+                    {sourceValue === 'container_ip' ? (
+                        renderProviderSelect()
+                    ) : sourceValue === 'plugin_value' ? (
+                        <div className="col gap-2">
+                            {renderProviderSelect()}
+
+                            {useManualKeyEntry ? (
+                                <div className="col gap-1">
+                                    <Controller
+                                        name={`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.key`}
+                                        control={control}
+                                        render={({ field, fieldState }) => (
+                                            <StyledInput
+                                                placeholder={providerValue ? 'Semaphore key' : 'Select plugin first'}
+                                                value={field.value ?? ''}
+                                                onChange={async (e) => {
+                                                    field.onChange(e.target.value);
+                                                    await trigger(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}`);
+                                                }}
+                                                onBlur={field.onBlur}
+                                                isInvalid={!!fieldState.error || !!pairError?.key}
+                                                errorMessage={fieldState.error?.message || pairError?.key?.message}
+                                                isDisabled={!providerValue}
+                                            />
+                                        )}
+                                    />
+
+                                    <div className="tiny text-slate-500">Enter the semaphore key exported by this plugin.</div>
+                                </div>
+                            ) : (
+                                <Controller
+                                    name={`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.key`}
+                                    control={control}
+                                    render={({ field, fieldState }) => (
+                                        <StyledSelect
+                                            selectedKeys={field.value ? [field.value] : []}
+                                            onSelectionChange={async (keys) => {
+                                                const selectedKey = Array.from(keys)[0] as string;
+                                                field.onChange(selectedKey);
+                                                await trigger(`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}`);
+                                            }}
+                                            onBlur={field.onBlur}
+                                            isInvalid={!!fieldState.error || !!pairError?.key}
+                                            errorMessage={fieldState.error?.message || pairError?.key?.message}
+                                            placeholder={providerValue ? 'Select exported value' : 'Select plugin first'}
+                                            isDisabled={!providerValue}
+                                        >
+                                            {(keyOptions ?? []).map((option) => (
+                                                <SelectItem key={option.key} textValue={option.label}>
+                                                    <div className="col gap-0.5 py-1">
+                                                        <div className="font-medium">{option.label}</div>
+                                                        {option.description && <div className="tiny text-slate-500">{option.description}</div>}
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </StyledSelect>
+                                    )}
+                                />
+                            )}
+                        </div>
                     ) : (
                         <Controller
-                            name={`${baseName}.dynamicEnvVars.${index}.values.${k}.value`}
+                            name={`${baseName}.dynamicEnvVars.${index}.values.${pairIndex}.value`}
                             control={control}
-                            render={({ field, fieldState }) => {
-                                const specificValueError = entryError?.values?.[k]?.value;
-
-                                return (
-                                    <StyledInput
-                                        placeholder={
-                                            isHostIP
-                                                ? 'Auto-filled by system'
-                                                : isShmem
-                                                  ? 'Add plugins to use shmem'
-                                                  : 'None'
-                                        }
-                                        value={field.value ?? ''}
-                                        onChange={async (e) => {
-                                            field.onChange(e.target.value);
-                                            await trigger(`${baseName}.dynamicEnvVars.${index}`);
-                                        }}
-                                        onBlur={field.onBlur}
-                                        isInvalid={!!fieldState.error || !!specificValueError}
-                                        errorMessage={fieldState.error?.message || specificValueError?.message}
-                                        isDisabled={isHostIP || isShmem}
-                                    />
-                                );
-                            }}
+                            render={({ field, fieldState }) => (
+                                <StyledInput
+                                    placeholder={sourceValue === 'host_ip' ? 'Auto-filled by system' : 'Value'}
+                                    value={field.value ?? ''}
+                                    onChange={async (e) => {
+                                        field.onChange(e.target.value);
+                                        await trigger(`${baseName}.dynamicEnvVars.${index}`);
+                                    }}
+                                    onBlur={field.onBlur}
+                                    isInvalid={!!fieldState.error || !!pairError?.value}
+                                    errorMessage={fieldState.error?.message || pairError?.value?.message}
+                                    isDisabled={sourceValue === 'host_ip'}
+                                />
+                            )}
                         />
                     )}
                 </div>
             </div>
 
-            {canRemove ? (
-                <VariableSectionRemove onClick={onRemovePart} />
-            ) : (
-                <div className="compact invisible h-10 text-slate-500">Remove</div>
-            )}
-        </div>
-    );
-}
-
-function ShmemPathInputs({
-    baseName,
-    index,
-    pairIndex: k,
-    control,
-    trigger,
-    entryError,
-    availablePlugins,
-}: {
-    baseName: string;
-    index: number;
-    pairIndex: number;
-    control: any;
-    trigger: any;
-    entryError: any;
-    availablePlugins: AvailablePlugin[];
-}) {
-    const { setValue } = useFormContext();
-    const pathError = entryError?.values?.[k]?.path;
-
-    const path0Value = useWatch({
-        control,
-        name: `${baseName}.dynamicEnvVars.${index}.values.${k}.path.0`,
-    });
-    const path1Value = useWatch({
-        control,
-        name: `${baseName}.dynamicEnvVars.${index}.values.${k}.path.1`,
-    });
-
-    // Only show the refinement error on the specific dropdown that's empty
-    const showPath0Error = !!pathError && !path0Value;
-    const showPath1Error = !!pathError && !path1Value;
-
-    // Filter env keys based on the selected source plugin's type
-    const selectedPlugin = availablePlugins.find((p) => p.name === path0Value);
-    const envKeys = selectedPlugin
-        ? SHMEM_ENV_KEYS[selectedPlugin.basePluginType]
-        : SHMEM_ENV_KEYS[BasePluginType.Generic];
-
-    return (
-        <div className="flex gap-2">
-            <div className="w-1/2">
-                <Controller
-                    name={`${baseName}.dynamicEnvVars.${index}.values.${k}.path.0`}
-                    control={control}
-                    render={({ field, fieldState }) => (
-                        <StyledSelect
-                            selectedKeys={field.value ? [field.value] : []}
-                            onSelectionChange={async (keys) => {
-                                const selectedKey = Array.from(keys)[0] as string;
-                                field.onChange(selectedKey);
-
-                                // Clear env key if it's no longer valid for the new source type
-                                const newPlugin = availablePlugins.find((p) => p.name === selectedKey);
-                                const newEnvKeys = newPlugin
-                                    ? SHMEM_ENV_KEYS[newPlugin.basePluginType]
-                                    : SHMEM_ENV_KEYS[BasePluginType.Generic];
-                                if (path1Value && !(newEnvKeys as readonly string[]).includes(path1Value)) {
-                                    setValue(`${baseName}.dynamicEnvVars.${index}.values.${k}.path.1`, '');
-                                }
-
-                                await trigger(`${baseName}.dynamicEnvVars.${index}.values.${k}`);
-                            }}
-                            onBlur={field.onBlur}
-                            isInvalid={!!fieldState.error || showPath0Error}
-                            errorMessage={fieldState.error?.message || (showPath0Error ? pathError?.message : undefined)}
-                            placeholder="Select plugin"
-                        >
-                            {availablePlugins.map((plugin) => (
-                                <SelectItem key={plugin.name} textValue={plugin.name}>
-                                    <div className="row gap-2 py-1">
-                                        <div className="font-medium">{plugin.name}</div>
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </StyledSelect>
-                    )}
-                />
-            </div>
-            <div className="w-1/2">
-                <Controller
-                    name={`${baseName}.dynamicEnvVars.${index}.values.${k}.path.1`}
-                    control={control}
-                    render={({ field, fieldState }) => (
-                        <StyledSelect
-                            selectedKeys={field.value ? [field.value] : []}
-                            onSelectionChange={async (keys) => {
-                                const selectedKey = Array.from(keys)[0] as string;
-                                field.onChange(selectedKey);
-                                await trigger(`${baseName}.dynamicEnvVars.${index}.values.${k}`);
-                            }}
-                            onBlur={field.onBlur}
-                            isInvalid={!!fieldState.error || showPath1Error}
-                            errorMessage={fieldState.error?.message || (showPath1Error ? pathError?.message : undefined)}
-                            placeholder="Select env key"
-                        >
-                            {envKeys.map((envKey) => (
-                                <SelectItem key={envKey} textValue={envKey}>
-                                    <div className="row gap-2 py-1">
-                                        <div className="font-medium">{envKey}</div>
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </StyledSelect>
-                    )}
-                />
-            </div>
+            {canRemove ? <VariableSectionRemove onClick={onRemove} /> : <div className="compact invisible h-10">Remove</div>}
         </div>
     );
 }

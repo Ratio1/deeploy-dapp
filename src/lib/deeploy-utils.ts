@@ -27,10 +27,10 @@ import {
     BasePluginType,
     ContainerDeploymentType,
     CustomParameterEntry,
+    ExposedPortEntry,
     GenericPlugin,
     NativePlugin,
     PluginType,
-    PortMappingEntry,
     WorkerDeploymentType,
 } from '@typedefs/steps/deploymentStepTypes';
 import { addDays, addHours, differenceInDays, differenceInHours } from 'date-fns';
@@ -75,10 +75,12 @@ export const SYSTEM_MANAGED_JOB_CONFIG_KEYS: (keyof JobConfig)[] = [
 export const GENERIC_JOB_UI_MANAGED_KEYS: (keyof JobConfig)[] = [
     'ENV',
     'DYNAMIC_ENV',
+    'DYNAMIC_ENV_UI',
     'VOLUMES',
     'FILE_VOLUMES',
     'CONTAINER_RESOURCES',
     'PORT',
+    'EXPOSED_PORTS',
     'TUNNEL_ENGINE_ENABLED',
     'CLOUDFLARE_TOKEN',
     'RESTART_POLICY',
@@ -204,16 +206,22 @@ export const formatEnvVars = (envVars: { key: string | undefined; value: string 
 };
 
 export const formatDynamicEnvVars = (
-    dynamicEnvVars: { key: string; values: { type: string; value: string; path?: [string, string] }[] }[],
+    dynamicEnvVars: { key: string; values: { source: string; value?: string; provider?: string; key?: string }[] }[],
 ) => {
-    const formatted: Record<string, { type: string; value?: string; path?: [string, string] }[]> = {};
+    const formatted: Record<string, { source: string; value?: string; provider?: string; key?: string }[]> = {};
     dynamicEnvVars.forEach((dynamicEnvVar) => {
         if (dynamicEnvVar.key) {
             formatted[dynamicEnvVar.key] = dynamicEnvVar.values.map((v) => {
-                if (v.type === 'shmem' && v.path) {
-                    return { type: 'shmem', path: v.path };
+                if (v.source === 'plugin_value') {
+                    return { source: 'plugin_value', provider: v.provider, key: v.key };
                 }
-                return { type: v.type, value: v.value };
+                if (v.source === 'container_ip') {
+                    return { source: 'container_ip', provider: v.provider };
+                }
+                if (v.source === 'host_ip') {
+                    return { source: 'host_ip' };
+                }
+                return { source: 'static', value: v.value ?? '' };
             });
         }
     });
@@ -245,8 +253,11 @@ export const formatFileVolumes = (fileVolumes: { name: string; mountingPoint: st
 
 export const formatContainerResources = (
     containerOrWorkerType: BaseContainerOrWorkerType,
-    portsArray: Array<PortMappingEntry>,
-) => {
+): {
+    cpu: number;
+    memory: string;
+    ports?: Record<string, number>;
+} => {
     const formatMemory = (ramGb: number) => {
         if (Number.isInteger(ramGb)) {
             return `${ramGb}g`;
@@ -255,22 +266,49 @@ export const formatContainerResources = (
         return `${Math.round(ramGb * 1024)}m`;
     };
 
-    const baseResources: { cpu: number; memory: string; ports?: Record<string, number> } = {
+    return {
         cpu: containerOrWorkerType.cores,
         memory: formatMemory(containerOrWorkerType.ram),
     };
+};
 
-    if (portsArray.length > 0) {
-        const ports = {};
-
-        portsArray.forEach((port) => {
-            ports[port.hostPort.toString()] = port.containerPort;
-        });
-
-        baseResources.ports = ports;
+export const formatExposedPorts = (exposedPorts: Array<ExposedPortEntry>) => {
+    if (!exposedPorts.length) {
+        return undefined;
     }
 
-    return baseResources;
+    const formatted: Record<string, { is_main_port?: boolean; tunnel?: { enabled: boolean; engine: 'cloudflare'; token: string } }> =
+        {};
+
+    exposedPorts.forEach((entry) => {
+        if (!entry.containerPort) {
+            return;
+        }
+
+        const portConfig: Record<string, any> = {};
+        if (entry.isMainPort) {
+            portConfig.is_main_port = true;
+        }
+        if (entry.cloudflareToken) {
+            portConfig.tunnel = {
+                enabled: true,
+                engine: 'cloudflare',
+                token: entry.cloudflareToken,
+            };
+        }
+
+        formatted[String(entry.containerPort)] = portConfig;
+    });
+
+    return Object.keys(formatted).length > 0 ? formatted : undefined;
+};
+
+const getMainExposedPort = (exposedPorts: Array<ExposedPortEntry>) => {
+    return exposedPorts.find((entry) => entry.isMainPort);
+};
+
+const hasAnyPortTunnels = (exposedPorts: Array<ExposedPortEntry>) => {
+    return exposedPorts.some((entry) => !!entry.cloudflareToken);
 };
 
 export const formatNodes = (targetNodes: { address: string }[]): string[] => {
@@ -358,23 +396,23 @@ export const formatGenericPluginConfigAndSignature = (
     resources: {
         cpu: number;
         memory: string;
-        ports?: Record<string, number>;
     },
     plugin: GenericPlugin,
 ) => {
     const { envVars, dynamicEnvVars, volumes, fileVolumes } = formatGenericJobVariables(plugin);
     let pluginSignature: string;
+    const mainExposedPort = getMainExposedPort(plugin.exposedPorts);
 
     const pluginConfig: any = {
         CONTAINER_RESOURCES: resources,
-        // Tunneling
-        PORT: formatPort(plugin.port),
+        PORT: mainExposedPort?.containerPort ?? null,
         TUNNEL_ENGINE: 'cloudflare',
-        CLOUDFLARE_TOKEN: plugin.tunnelingToken ?? null,
-        TUNNEL_ENGINE_ENABLED: plugin.enableTunneling === 'True',
+        TUNNEL_ENGINE_ENABLED: hasAnyPortTunnels(plugin.exposedPorts),
+        CLOUDFLARE_TOKEN: mainExposedPort?.cloudflareToken ?? null,
+        EXPOSED_PORTS: formatExposedPorts(plugin.exposedPorts),
         // Variables
         ENV: envVars,
-        DYNAMIC_ENV: dynamicEnvVars,
+        DYNAMIC_ENV_UI: dynamicEnvVars,
         VOLUMES: volumes,
         FILE_VOLUMES: fileVolumes,
         // Policies
@@ -440,7 +478,7 @@ export const formatGenericJobPayload = (
     const spareNodes = formatNodes(deployment.spareNodes);
 
     const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
-        formatContainerResources(containerType, deployment.ports),
+        formatContainerResources(containerType),
         deployment,
     );
 
@@ -483,7 +521,7 @@ export const formatNativeJobPayload = (
         }
     });
 
-    const nodeResources = formatContainerResources(workerType, []);
+    const nodeResources = formatContainerResources(workerType);
     const targetNodes = formatNodes(deployment.targetNodes);
     const targetNodesCount = formatTargetNodesCount(targetNodes, specifications.targetNodesCount);
 
@@ -497,7 +535,7 @@ export const formatNativeJobPayload = (
 
         if (plugin.basePluginType === BasePluginType.Generic) {
             const genericPlugin = plugin as GenericPlugin;
-            const secondaryPluginNodeResources = formatContainerResources(workerType, genericPlugin.ports);
+            const secondaryPluginNodeResources = formatContainerResources(workerType);
 
             const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
                 secondaryPluginNodeResources,
@@ -567,10 +605,14 @@ export const formatServiceJobPayload = (
     deployment: ServiceJobDeployment,
 ) => {
     const jobTags = formatJobTags(specifications);
-    const containerResources = formatContainerResources(
-        serviceContainerType,
-        deployment.isPublicService ? [] : deployment.ports,
-    );
+    const containerResources = formatContainerResources(serviceContainerType);
+    if (!deployment.isPublicService && deployment.ports.length > 0) {
+        const ports = {};
+        deployment.ports.forEach((port) => {
+            ports[port.hostPort.toString()] = port.containerPort;
+        });
+        containerResources.ports = ports;
+    }
     const targetNodes = formatNodes(deployment.targetNodes);
     const spareNodes = formatNodes(deployment.spareNodes);
 
@@ -597,7 +639,7 @@ export const formatServiceJobPayload = (
 
         // Variables
         ENV: envVars,
-        DYNAMIC_ENV: dynamicEnvVars,
+        DYNAMIC_ENV_UI: dynamicEnvVars,
         VOLUMES: volumes,
         FILE_VOLUMES: fileVolumes,
         BUILD_AND_RUN_COMMANDS: service.buildAndRunCommands ?? [],

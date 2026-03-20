@@ -9,6 +9,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "test:dynamic-env-schema": "node --import tsx scripts/test-dynamic-env-schema.ts",
+    "test:dynamic-env-serialization": "node --import tsx scripts/test-dynamic-env-serialization.ts",
+    "test:dynamic-env-roundtrip": "node --import tsx scripts/test-dynamic-env-roundtrip.ts",
+    "test:plugin-semaphore-keys": "node --import tsx scripts/test-plugin-semaphore-keys.ts",
+    "test:dynamic-env-ui": "node --import tsx scripts/test-dynamic-env-ui.ts",
     "add-service": "tsx scripts/add-service.ts",
     "validate-services": "tsx scripts/validate-services.ts"
   },

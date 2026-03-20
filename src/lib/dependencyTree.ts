@@ -19,8 +19,8 @@ export function computeDependencyTree(plugins: Plugin[]): {
 
         for (const entry of plugin.dynamicEnvVars) {
             for (const pair of entry.values) {
-                if (pair.type === 'shmem' && pair.path?.[0]) {
-                    const providerName = pair.path[0];
+                if ((pair.source === 'container_ip' || pair.source === 'plugin_value') && pair.provider) {
+                    const providerName = pair.provider;
                     const edgeKey = `${consumerName}->${providerName}`;
                     if (!seen.has(edgeKey)) {
                         seen.add(edgeKey);

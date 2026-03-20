@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import ContainerNetworkingPreview from '@components/playwright/ContainerNetworkingPreview';
 
 /*
 Use this public route to render UI components without login and take deterministic screenshots with
@@ -21,7 +22,9 @@ export default function PlaywrightPreviewPage() {
                 <h1 className="text-3xl font-semibold text-slate-900">Playwright Preview</h1>
             </header>
 
-            <section id="playwright-preview" className="mx-auto w-full max-w-3xl"></section>
+            <section id="playwright-preview" className="mx-auto w-full max-w-3xl">
+                <ContainerNetworkingPreview />
+            </section>
         </main>
     );
 }
