@@ -9,6 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "test": "tsx --test src/lib/stacks/__tests__/*.test.ts",
     "add-service": "tsx scripts/add-service.ts",
     "validate-services": "tsx scripts/validate-services.ts"
   },

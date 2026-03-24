@@ -8,18 +8,41 @@ import { JOB_TYPE_OPTIONS } from '@typedefs/jobType';
 import { useParams } from 'next/navigation';
 import { useRef } from 'react';
 import toast from 'react-hot-toast';
-import { RiAddLine, RiUpload2Line } from 'react-icons/ri';
+import { RiAddLine, RiStackLine, RiUpload2Line } from 'react-icons/ri';
+
+type AddJobOption = {
+    id: string;
+    title: string;
+    icon: React.ReactNode;
+    textColorClass: string;
+    category?: 'job' | 'stack';
+    jobType?: JobType;
+};
+
+const DEFAULT_JOB_OPTIONS: AddJobOption[] = [
+    ...JOB_TYPE_OPTIONS.map((option) => ({
+        ...option,
+        category: 'job' as const,
+    })),
+    {
+        id: 'stack',
+        title: 'Stack',
+        icon: <RiStackLine />,
+        textColorClass: 'text-orange-500',
+        category: 'stack',
+    },
+];
 
 export default function AddJobCard({
     type = 'job',
-    options = JOB_TYPE_OPTIONS,
+    options = DEFAULT_JOB_OPTIONS,
     customCallback,
 }: {
     type?: 'job' | 'plugin';
     options?: any[];
     customCallback?: (option) => void;
 }) {
-    const { setJobType, setStep, setPendingRecoveredJobPrefill } = useDeploymentContext() as DeploymentContextType;
+    const { setJobType, setStep, setPendingRecoveredJobPrefill, setCreatingStack } = useDeploymentContext() as DeploymentContextType;
     const { projectHash } = useParams<{ projectHash?: string }>();
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -53,6 +76,7 @@ export default function AddJobCard({
                 sourceJobId: `import-${Date.now()}`,
             });
 
+            setCreatingStack(false);
             setStep(formValues.jobType === JobType.Service ? 1 : 0);
             setJobType(formValues.jobType);
             toast.success('Job JSON imported successfully.');
@@ -90,6 +114,14 @@ export default function AddJobCard({
                                 if (customCallback) {
                                     customCallback(option);
                                 } else {
+                                    if (option.category === 'stack') {
+                                        setCreatingStack(true);
+                                        setJobType(undefined);
+                                        setStep(0);
+                                        return;
+                                    }
+
+                                    setCreatingStack(false);
                                     setStep(0);
                                     setJobType(option.jobType);
                                 }

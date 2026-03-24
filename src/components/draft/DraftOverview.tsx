@@ -3,6 +3,7 @@
 import { InteractionContextType, useInteractionContext } from '@lib/contexts/interaction';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
+import StackManager from '@components/stack/StackManager';
 import ActionButton from '@shared/ActionButton';
 import AddJobCard from '@shared/projects/AddJobCard';
 import CancelButton from '@shared/projects/buttons/CancelButton';
@@ -21,12 +22,14 @@ export default function DraftOverview({
     project,
     draftJobs,
     projectIdentity,
+    projectHash,
     onBeforeDeleteProject,
     onDeleteProjectFailed,
 }: {
     project: DraftProject;
     draftJobs: DraftJob[] | undefined;
     projectIdentity: React.ReactNode;
+    projectHash: string;
     onBeforeDeleteProject?: () => void;
     onDeleteProjectFailed?: () => void;
 }) {
@@ -78,6 +81,8 @@ export default function DraftOverview({
 
                 {/* Add Job */}
                 <AddJobCard />
+
+                <StackManager projectHash={projectHash} mode="overview" />
 
                 {/* Jobs */}
                 {!!draftJobs && !!draftJobs.length && (

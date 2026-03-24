@@ -22,6 +22,7 @@ import {
     ServiceDraftJob,
     ServiceJobDeployment,
     ServiceJobSpecifications,
+    StackJobMetadata,
 } from '@typedefs/deeploys';
 import {
     BasePluginType,
@@ -299,7 +300,7 @@ export const formatJobTags = (specifications: JobSpecifications) => {
 
 export const formatGenericDraftJobPayload = (job: GenericDraftJob) => {
     const containerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-    return formatGenericJobPayload(containerType, job.specifications, job.deployment);
+    return formatGenericJobPayload(containerType, job.specifications, job.deployment, job.stackMetadata);
 };
 
 export const formatNativeDraftJobPayload = (job: NativeDraftJob) => {
@@ -433,6 +434,7 @@ export const formatGenericJobPayload = (
     containerType: BaseContainerOrWorkerType,
     specifications: GenericJobSpecifications,
     deployment: GenericJobDeployment,
+    stackMetadata?: StackJobMetadata,
 ) => {
     const jobTags = formatJobTags(specifications);
     const targetNodes = formatNodes(deployment.targetNodes);
@@ -445,6 +447,19 @@ export const formatGenericJobPayload = (
     );
 
     const customParams = formatGenericJobCustomParams(deployment.customParams);
+
+    if (stackMetadata) {
+        customParams.SEMAPHORE = stackMetadata.stackProviderSemaphoreKey;
+        customParams.SEMAPHORED_KEYS = stackMetadata.stackRequiredProviderKeys;
+        customParams.stack_id = stackMetadata.stackId;
+        customParams.stack_component_name = stackMetadata.stackComponentName;
+        customParams.stack_service_name = stackMetadata.stackServiceName;
+        customParams.stack_dependencies = stackMetadata.stackDependencies;
+        customParams.stack_provider_semaphore_key = stackMetadata.stackProviderSemaphoreKey;
+        customParams.stack_required_provider_keys = stackMetadata.stackRequiredProviderKeys;
+        customParams.stack_network_mode = stackMetadata.stackNetworkMode;
+        customParams.stack_placement_mode = stackMetadata.stackPlacementMode;
+    }
 
     const nonce = generateDeeployNonce();
 

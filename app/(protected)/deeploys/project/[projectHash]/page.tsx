@@ -3,6 +3,7 @@
 import JobFormWrapper from '@components/create-job/JobFormWrapper';
 import ProjectPageLoading from '@components/loading/ProjectPageLoading';
 import ProjectOverview from '@components/project/ProjectOverview';
+import StackManager from '@components/stack/StackManager';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
@@ -21,8 +22,17 @@ import { RiAlertLine } from 'react-icons/ri';
 export default function Project() {
     const router = useRouter();
 
-    const { jobType, setJobType, projectPage, setProjectPage, getProjectName, getRunningJobsWithDetails, hasEscrowPermission } =
-        useDeploymentContext() as DeploymentContextType;
+    const {
+        jobType,
+        setJobType,
+        isCreatingStack,
+        setCreatingStack,
+        projectPage,
+        setProjectPage,
+        getProjectName,
+        getRunningJobsWithDetails,
+        hasEscrowPermission,
+    } = useDeploymentContext() as DeploymentContextType;
 
     const [isLoading, setLoading] = useState(true);
     const [projectName, setProjectName] = useState<string | undefined>();
@@ -43,6 +53,7 @@ export default function Project() {
     useEffect(() => {
         setProjectPage(ProjectPage.Overview);
         setJobType(undefined);
+        setCreatingStack(false);
     }, []);
 
     useEffect(() => {
@@ -110,7 +121,7 @@ export default function Project() {
 
     const getProjectIdentity = () => <ProjectIdentity projectName={projectName} runtimeStatus={projectRuntimeStatus} />;
 
-    return !jobType ? (
+    return !jobType && !isCreatingStack ? (
         <>
             {projectPage === ProjectPage.Payment ? (
                 <Payment
@@ -128,12 +139,21 @@ export default function Project() {
                     runningJobs={runningJobsWithDetails}
                     draftJobs={draftJobs}
                     projectIdentity={getProjectIdentity()}
+                    projectHash={projectHash}
                     fetchRunningJobs={fetchRunningJobs}
                     successfulJobs={successfulJobs}
                     setSuccessfulJobs={setSuccessfulJobs}
                 />
             )}
         </>
+    ) : isCreatingStack ? (
+        <StackManager
+            projectHash={projectHash as string}
+            projectName={projectName}
+            runningJobs={runningJobsWithDetails}
+            mode="create"
+            onDone={() => setCreatingStack(false)}
+        />
     ) : (
         <JobFormWrapper projectName={projectName} draftJobsCount={draftJobs.length} />
     );

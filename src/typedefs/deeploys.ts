@@ -49,14 +49,29 @@ type JobCostAndDuration = {
     paymentMonthsCount: number;
 };
 
+type StackJobMetadata = {
+    stackId: string;
+    stackComponentId: string;
+    stackComponentName: string;
+    stackServiceName: string;
+    stackDependencies: string[];
+    stackProviderSemaphoreKey: string;
+    stackRequiredProviderKeys: string[];
+    stackNetworkMode: 'internal-only' | 'public';
+    stackPlacementMode: 'co-located';
+};
+
 // Draft Job
 type BaseDraftJob = {
     id: number;
     projectHash: string;
+    stackId?: string;
+    stackComponentId?: string;
     jobType: JobType;
     specifications: JobSpecifications;
     costAndDuration: JobCostAndDuration;
     deployment: JobDeployment;
+    stackMetadata?: StackJobMetadata;
 } & (
     | {
           paid: false;
@@ -155,6 +170,7 @@ export type {
     JobCostAndDuration,
     JobDeployment,
     JobSpecifications,
+    StackJobMetadata,
     NativeDraftJob,
     NativeJobDeployment,
     NativeJobSpecifications,

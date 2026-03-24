@@ -22,6 +22,8 @@ export interface DeploymentContextType {
     setStep: (step: number) => void;
     isFormSubmissionDisabled: boolean;
     setFormSubmissionDisabled: (isFormSubmissionDisabled: boolean) => void;
+    isCreatingStack: boolean;
+    setCreatingStack: (isCreatingStack: boolean) => void;
 
     projectPage: ProjectPage;
     setProjectPage: (projectPage: ProjectPage) => void;

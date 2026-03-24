@@ -2,6 +2,7 @@
 
 import JobFormWrapper from '@components/create-job/JobFormWrapper';
 import DraftOverview from '@components/draft/DraftOverview';
+import StackManager from '@components/stack/StackManager';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { routePath } from '@lib/routes/route-paths';
 import db from '@lib/storage/db';
@@ -14,7 +15,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 
 export default function ProjectDraft() {
-    const { jobType, setJobType, setStep, projectPage, setProjectPage, pendingRecoveredJobPrefill } =
+    const { jobType, setJobType, isCreatingStack, setCreatingStack, setStep, projectPage, setProjectPage, pendingRecoveredJobPrefill } =
         useDeploymentContext() as DeploymentContextType;
 
     const router = useRouter();
@@ -42,15 +43,17 @@ export default function ProjectDraft() {
 
         if (hasRecoveredPrefill && !hasAutoOpenedRecoveredPrefillRef.current) {
             hasAutoOpenedRecoveredPrefillRef.current = true;
+            setCreatingStack(false);
             setJobType(pendingRecoveredJobPrefill.jobType);
             setStep(pendingRecoveredJobPrefill.jobType === JobType.Service ? 1 : 0);
             return;
         }
 
         if (!hasRecoveredPrefill && !hasAutoOpenedRecoveredPrefillRef.current) {
+            setCreatingStack(false);
             setJobType(undefined);
         }
-    }, [pendingRecoveredJobPrefill, projectHash, setJobType, setProjectPage, setStep]);
+    }, [pendingRecoveredJobPrefill, projectHash, setCreatingStack, setJobType, setProjectPage, setStep]);
 
     useEffect(() => {
         suppressMissingProjectRedirectRef.current = false;
@@ -81,7 +84,7 @@ export default function ProjectDraft() {
 
     const getProjectIdentity = () => <ProjectIdentity projectName={project.name} />;
 
-    return !jobType ? (
+    return !jobType && !isCreatingStack ? (
         <>
             {projectPage === ProjectPage.Payment ? (
                 <Payment
@@ -100,6 +103,7 @@ export default function ProjectDraft() {
                     project={project}
                     draftJobs={draftJobs}
                     projectIdentity={getProjectIdentity()}
+                    projectHash={projectHash as string}
                     onBeforeDeleteProject={() => {
                         suppressMissingProjectRedirectRef.current = true;
                     }}
@@ -109,6 +113,13 @@ export default function ProjectDraft() {
                 />
             )}
         </>
+    ) : isCreatingStack ? (
+        <StackManager
+            projectHash={projectHash as string}
+            projectName={project.name}
+            mode="create"
+            onDone={() => setCreatingStack(false)}
+        />
     ) : (
         <JobFormWrapper projectName={project.name} draftJobsCount={draftJobs.length} />
     );

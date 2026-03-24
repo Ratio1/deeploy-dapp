@@ -36,6 +36,7 @@ export const DeploymentProvider = ({ children }) => {
     const [jobType, setJobType] = useState<JobType | undefined>();
     const [step, setStep] = useState<number>(0);
     const [isFormSubmissionDisabled, setFormSubmissionDisabled] = useState<boolean>(false);
+    const [isCreatingStack, setCreatingStack] = useState<boolean>(false);
 
     const [projectPage, setProjectPage] = useState<ProjectPage>(ProjectPage.Overview);
     const [projectOverviewTab, setProjectOverviewTab] = useState<ProjectOverviewTab>('runningJobs');
@@ -232,6 +233,8 @@ export const DeploymentProvider = ({ children }) => {
                 setStep,
                 isFormSubmissionDisabled,
                 setFormSubmissionDisabled,
+                isCreatingStack,
+                setCreatingStack,
 
                 projectPage,
                 setProjectPage,

@@ -1,6 +1,7 @@
 import GenericDraftJobsList from '@components/draft/job-lists/GenericDraftJobsList';
 import NativeDraftJobsList from '@components/draft/job-lists/NativeDraftJobsList';
 import ServiceDraftJobsList from '@components/draft/job-lists/ServiceDraftJobsList';
+import StackManager from '@components/stack/StackManager';
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
 import { DeploymentContextType, ProjectOverviewTab, useDeploymentContext } from '@lib/contexts/deployment';
 import CustomTabs from '@shared/CustomTabs';
@@ -25,6 +26,7 @@ export default function ProjectOverview({
     runningJobs,
     draftJobs,
     projectIdentity,
+    projectHash,
     fetchRunningJobs,
     successfulJobs,
     setSuccessfulJobs,
@@ -32,6 +34,7 @@ export default function ProjectOverview({
     runningJobs: RunningJobWithDetails[] | undefined;
     draftJobs: DraftJob[] | undefined;
     projectIdentity: React.ReactNode;
+    projectHash: string;
     fetchRunningJobs: (appsOverride?: Apps) => Promise<void>;
     successfulJobs: { text: string; serverAlias: string; tunnelURL?: string }[];
     setSuccessfulJobs: (successfulJobs: { text: string; serverAlias: string; tunnelURL?: string }[]) => void;
@@ -90,6 +93,8 @@ export default function ProjectOverview({
 
                 {/* Add Job */}
                 <AddJobCard />
+
+                <StackManager projectHash={projectHash} runningJobs={runningJobs} mode="overview" />
 
                 {/* Jobs */}
                 <div className="mx-auto">
