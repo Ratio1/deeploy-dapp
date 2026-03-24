@@ -160,8 +160,30 @@ export default function AppParametersSection({
         }
 
         const matchedTunnel = existingTunnels.find((tunnel) => tunnel.token === tunnelingToken);
-        setSelectedTunnelId(matchedTunnel?.id || defaultTunnelSelectionId);
-    }, [defaultTunnelSelectionId, shouldShowTunnelAlternatives, tunnelingToken, existingTunnels]);
+
+        if (matchedTunnel) {
+            setSelectedTunnelId(matchedTunnel.id);
+            return;
+        }
+
+        setSelectedTunnelId(defaultTunnelSelectionId);
+
+        if (!allowManualTunnelToken) {
+            setValue(`${baseName}.tunnelingToken`, undefined, { shouldDirty: true, shouldValidate: true });
+            clearErrors(`${baseName}.tunnelingToken`);
+            onTunnelUrlChange?.(undefined);
+        }
+    }, [
+        allowManualTunnelToken,
+        baseName,
+        clearErrors,
+        defaultTunnelSelectionId,
+        existingTunnels,
+        onTunnelUrlChange,
+        setValue,
+        shouldShowTunnelAlternatives,
+        tunnelingToken,
+    ]);
 
     const selectExistingTunnel = (tunnelId: string) => {
         if (allowManualTunnelToken && tunnelId === CUSTOM_TUNNEL_OPTION) {
