@@ -79,6 +79,7 @@ export default function AppParametersSection({
     const [existingTunnels, setExistingTunnels] = useState<ExistingTunnelOption[]>([]);
     const [selectedTunnelId, setSelectedTunnelId] = useState<string>(defaultTunnelSelectionId);
     const [isFetchingTunnels, setFetchingTunnels] = useState<boolean>(false);
+    const [hasFetchedTunnelsSuccessfully, setHasFetchedTunnelsSuccessfully] = useState<boolean>(false);
     const tunnelSelectOptions = useMemo<TunnelSelectOption[]>(
         () => [
             ...(allowManualTunnelToken
@@ -102,10 +103,12 @@ export default function AppParametersSection({
     const fetchExistingTunnels = useCallback(async (): Promise<ExistingTunnelOption[]> => {
         if (!tunnelingSecrets) {
             setExistingTunnels([]);
+            setHasFetchedTunnelsSuccessfully(false);
             return [];
         }
 
         setFetchingTunnels(true);
+        setHasFetchedTunnelsSuccessfully(false);
 
         try {
             const data = await getTunnels(tunnelingSecrets.cloudflareAccountId, tunnelingSecrets.cloudflareApiKey);
@@ -123,10 +126,12 @@ export default function AppParametersSection({
                 .sort(compareTunnelStatusAndAlias);
 
             setExistingTunnels(tunnels);
+            setHasFetchedTunnelsSuccessfully(true);
             return tunnels;
         } catch (error) {
             console.error('Error fetching existing tunnels:', error);
             setExistingTunnels([]);
+            setHasFetchedTunnelsSuccessfully(false);
             return [];
         } finally {
             setFetchingTunnels(false);
@@ -137,12 +142,14 @@ export default function AppParametersSection({
         if (!shouldShowTunnelAlternatives) {
             setExistingTunnels([]);
             setSelectedTunnelId(defaultTunnelSelectionId);
+            setHasFetchedTunnelsSuccessfully(false);
             return;
         }
 
         if (!tunnelingSecrets) {
             setExistingTunnels([]);
             setSelectedTunnelId(defaultTunnelSelectionId);
+            setHasFetchedTunnelsSuccessfully(false);
             return;
         }
 
@@ -168,7 +175,7 @@ export default function AppParametersSection({
 
         setSelectedTunnelId(defaultTunnelSelectionId);
 
-        if (!allowManualTunnelToken) {
+        if (!allowManualTunnelToken && hasFetchedTunnelsSuccessfully) {
             setValue(`${baseName}.tunnelingToken`, undefined, { shouldDirty: true, shouldValidate: true });
             clearErrors(`${baseName}.tunnelingToken`);
             onTunnelUrlChange?.(undefined);
@@ -179,6 +186,7 @@ export default function AppParametersSection({
         clearErrors,
         defaultTunnelSelectionId,
         existingTunnels,
+        hasFetchedTunnelsSuccessfully,
         onTunnelUrlChange,
         setValue,
         shouldShowTunnelAlternatives,
