@@ -1,4 +1,5 @@
 import { GITHUB_REPO_REGEX } from '@lib/deeploy-utils';
+import FieldHelpPopover from '@shared/FieldHelpPopover';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import { useEffect } from 'react';
@@ -95,12 +96,14 @@ export default function WorkerSection({
                 name={`${baseName}.deploymentType.repositoryUrl`}
                 label="GitHub Repository URL"
                 placeholder="e.g., https://github.com/org/repository"
+                labelHelp="Repository cloned and executed by the worker runner. Only GitHub URLs are supported."
                 onBlur={() => checkRepositoryVisibility()}
                 onPasteValue={(value) => checkRepositoryVisibility(value)}
                 customLabel={
                     repositoryVisibility ? (
                         <div className="row gap-1.5">
                             <Label value="GitHub Repository URL" />
+                            <FieldHelpPopover content="Repository cloned and executed by the worker runner. Only GitHub URLs are supported." />
                             <SmallTag variant={repositoryVisibility === 'public' ? 'emerald' : 'red'}>
                                 <div className="capitalize">{repositoryVisibility}</div>
                             </SmallTag>
@@ -110,7 +113,12 @@ export default function WorkerSection({
                 endContent="paste"
             />
 
-            <InputWithLabel name={`${baseName}.deploymentType.image`} label="Image" placeholder="node:22" />
+            <InputWithLabel
+                name={`${baseName}.deploymentType.image`}
+                label="Image"
+                placeholder="node:22"
+                labelHelp="Base image used to run the worker commands (install/build/start)."
+            />
 
             {repositoryVisibility === 'public' && (
                 <div className="text-warning-800 bg-warning-100 col gap-2 rounded-md p-3 text-sm">
@@ -131,6 +139,7 @@ export default function WorkerSection({
                     name={`${baseName}.deploymentType.username`}
                     label="GitHub Username"
                     placeholder="Username"
+                    labelHelp="GitHub account used for private repository access."
                     isOptional={repositoryVisibility === 'public'}
                 />
 
@@ -138,6 +147,7 @@ export default function WorkerSection({
                     name={`${baseName}.deploymentType.accessToken`}
                     label="Personal Access Token"
                     placeholder="None"
+                    labelHelp="GitHub token with read access to the repository. Required for private repositories."
                     isOptional={repositoryVisibility === 'public'}
                     endContent="paste"
                 />

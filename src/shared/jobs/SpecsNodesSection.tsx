@@ -97,6 +97,7 @@ export default function SpecsNodesSection({
                         <NumberInputWithLabel
                             name="specifications.targetNodesCount"
                             label="Target Nodes Count"
+                            labelHelp="How many nodes should run this job in parallel. Higher values improve redundancy but increase cost."
                             tag={
                                 containerOrWorkerType.minimalBalancing && containerOrWorkerType.minimalBalancing > 1
                                     ? `Minimal Balancing: ${containerOrWorkerType.minimalBalancing}`

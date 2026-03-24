@@ -10,6 +10,7 @@ import { useDeploymentContext } from '@lib/contexts/deployment/hook';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { stripToAlphanumeric } from '@lib/utils';
 import { SlateCard } from '@shared/cards/SlateCard';
+import FieldHelpPopover from '@shared/FieldHelpPopover';
 import InputWithLabel from '@shared/InputWithLabel';
 import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import ServiceInputsSection from '@shared/jobs/ServiceInputsSection';
@@ -122,6 +123,7 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
                         name="deployment.jobAlias"
                         label="Alias"
                         placeholder="Service"
+                        labelHelp="Human-friendly service name used in Deeploy and tunnel aliases."
                         isDisabled={isEditingRunningJob}
                     />
                 </div>
@@ -136,7 +138,10 @@ function ServiceDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
                             isSelected={isPublicService}
                             onValueChange={(value) => setValue('deployment.isPublicService', value, { shouldDirty: true })}
                         >
-                            <div className="compact">Public Service</div>
+                            <div className="row gap-1">
+                                <div className="compact">Public Service</div>
+                                <FieldHelpPopover content="When enabled, access is exposed through a tunnel. When disabled, access is only via direct port mapping." />
+                            </div>
                         </Checkbox>
                     )}
 

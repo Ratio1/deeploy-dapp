@@ -1,4 +1,5 @@
 import services from '@data/services';
+import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import ServiceLogo from '@shared/jobs/ServiceLogo';
 import clsx from 'clsx';
 import { useEffect } from 'react';
@@ -29,25 +30,29 @@ export default function Services() {
     }, []);
 
     return (
-        <div className="grid grid-cols-2 gap-3">
-            {services.map((service) => (
-                <SelectableCard
-                    key={service.id}
-                    isSelected={service.id === serviceId}
-                    onPress={() => {
-                        setValue('serviceId', service.id);
-                    }}
-                >
-                    <div className="col gap-4">
-                        <div className="row gap-3">
-                            <ServiceLogo filename={service.logo} name={service.name} />
-                            <div className="text-base leading-none font-semibold">{service.name}</div>
-                        </div>
+        <div className="col gap-4">
+            <DeeployInfoTag text="Pick a predefined service template. Required inputs and default ports are configured automatically in the next step." />
 
-                        <div className="compact leading-none text-slate-500">{service.description}</div>
-                    </div>
-                </SelectableCard>
-            ))}
+            <div className="grid grid-cols-2 gap-3">
+                {services.map((service) => (
+                    <SelectableCard
+                        key={service.id}
+                        isSelected={service.id === serviceId}
+                        onPress={() => {
+                            setValue('serviceId', service.id);
+                        }}
+                    >
+                        <div className="col gap-4">
+                            <div className="row gap-3">
+                                <ServiceLogo filename={service.logo} name={service.name} />
+                                <div className="text-base leading-none font-semibold">{service.name}</div>
+                            </div>
+
+                            <div className="compact leading-none text-slate-500">{service.description}</div>
+                        </div>
+                    </SelectableCard>
+                ))}
+            </div>
         </div>
     );
 }

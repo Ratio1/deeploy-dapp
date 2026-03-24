@@ -28,6 +28,7 @@ export default function SpareNodesSection() {
     return (
         <div className="col gap-4" key={fields.length}>
             <DeeployInfoTag text="You can specify spare nodes to be used as backup in case the above specified target nodes are not available." />
+            <DeeployInfoTag text="Spare nodes are optional and only used if primary target nodes cannot be assigned." />
 
             {fields.length > 0 && (
                 <div className="col gap-2">

@@ -1,3 +1,4 @@
+import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import TextFileUpload from './TextFileUpload';
@@ -25,6 +26,8 @@ export default function FileVolumesSection({ baseName = 'deployment' }: { baseNa
 
     return (
         <div className="col gap-4">
+            <DeeployInfoTag text="File volumes inject file contents into the container filesystem at startup." />
+
             {fields.map((field, index) => {
                 // Get the error for this specific entry
                 const entryError = errors?.[index];

@@ -1,5 +1,6 @@
 import { InputProps } from '@heroui/input';
 import { Controller, useFormContext } from 'react-hook-form';
+import FieldHelpPopover from './FieldHelpPopover';
 import Label from './Label';
 import { SmallTag } from './SmallTag';
 import StyledInput from './StyledInput';
@@ -11,15 +12,29 @@ interface Props extends InputProps {
     isOptional?: boolean;
     tag?: string;
     hasWarning?: boolean;
+    labelHelp?: React.ReactNode;
 }
 
-export default function NumberInputWithLabel({ name, label, placeholder, isOptional, tag, hasWarning, ...props }: Props) {
+export default function NumberInputWithLabel({
+    name,
+    label,
+    placeholder,
+    isOptional,
+    tag,
+    hasWarning,
+    labelHelp,
+    ...props
+}: Props) {
     const { control } = useFormContext();
 
     return (
         <div className="col w-full gap-2">
             <div className="row gap-1.5">
-                <Label value={label} isOptional={isOptional} />
+                <Label
+                    value={label}
+                    isOptional={isOptional}
+                    tag={labelHelp ? <FieldHelpPopover content={labelHelp} /> : undefined}
+                />
                 {!!tag && <SmallTag>{tag}</SmallTag>}
             </div>
 

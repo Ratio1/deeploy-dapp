@@ -135,7 +135,7 @@ export default function CostAndDurationInterface({
 
                     <div className="row gap-1">
                         <RiInformation2Line className="text-primary text-lg" />
-                        <div className="text-sm">1 month = 30 epochs/days</div>
+                        <div className="text-sm">For estimation, 1 month is calculated as 30 days.</div>
                     </div>
                 </div>
             </BorderedCard>

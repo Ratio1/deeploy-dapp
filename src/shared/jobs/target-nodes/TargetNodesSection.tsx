@@ -41,6 +41,9 @@ export default function TargetNodesSection({ autoAssign }: { autoAssign: boolean
                     )
                 }
             />
+            {!autoAssign && (
+                <DeeployInfoTag text="Use the info icon to verify if a node is recognized and currently online." />
+            )}
 
             {!autoAssign && (
                 <>

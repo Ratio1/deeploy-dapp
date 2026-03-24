@@ -7,6 +7,7 @@ import { generatePluginName, getPluginName } from '@lib/pluginNames';
 import { SlateCard } from '@shared/cards/SlateCard';
 import Expander from '@shared/Expander';
 import DeeployErrorAlert from '@shared/jobs/DeeployErrorAlert';
+import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import AddJobCard from '@shared/projects/AddJobCard';
 import { SmallTag } from '@shared/SmallTag';
 import { computeDependencyTree } from '@lib/dependencyTree';
@@ -290,6 +291,8 @@ export default function PluginsSection() {
             {!!rootError && (
                 <DeeployErrorAlert title="Plugin Required" description="At least one plugin is required for deployment." />
             )}
+
+            <DeeployInfoTag text="Plugins run alongside your native app. You can mix native, container, and worker plugins and connect them with shmem dependencies." />
 
             <div className="col gap-6">
                 {plugins.map((plugin, index) => {

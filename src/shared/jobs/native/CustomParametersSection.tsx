@@ -1,4 +1,5 @@
 import CustomTabs from '@shared/CustomTabs';
+import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import JsonEditor from '@shared/JsonEditor';
 import StyledInput from '@shared/StyledInput';
 import { CustomParameterEntry } from '@typedefs/steps/deploymentStepTypes';
@@ -42,6 +43,8 @@ export default function CustomParametersSection({ baseName = 'deployment' }: { b
 
     return (
         <div className="col gap-4">
+            <DeeployInfoTag text="Advanced passthrough config. Use String for plain values and JSON for structured objects." />
+
             {entries.map((entry: CustomParameterEntryWithId, index) => {
                 // Get the error for this specific entry
                 const entryError = errors?.[index];

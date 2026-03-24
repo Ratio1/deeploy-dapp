@@ -2,6 +2,7 @@ import { Checkbox } from '@heroui/checkbox';
 import { SelectItem } from '@heroui/select';
 import { DC_TAG, KYB_TAG, KYC_TAG } from '@lib/deeploy-utils';
 import CustomTabs from '@shared/CustomTabs';
+import FieldHelpPopover from '@shared/FieldHelpPopover';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import StyledSelect from '@shared/StyledSelect';
@@ -35,7 +36,13 @@ export default function JobTags() {
 
             <div className="col gap-2">
                 <div className="col w-full gap-2">
-                    <Label value="Target Countries" isOptional />
+                    <Label
+                        value="Target Countries"
+                        isOptional
+                        tag={
+                            <FieldHelpPopover content="Prefer nodes registered in these countries. Leave empty to allow any location." />
+                        }
+                    />
 
                     <StyledSelect
                         items={options}
@@ -72,7 +79,12 @@ export default function JobTags() {
             </div>
 
             <div className="col w-full gap-2">
-                <Label value="KYB/KYC" />
+                <Label
+                    value="KYB/KYC"
+                    tag={
+                        <FieldHelpPopover content="Filters operators by verification status: KYB = verified companies, KYC = verified individuals." />
+                    }
+                />
                 <CustomTabs
                     tabs={[
                         {
@@ -109,7 +121,12 @@ export default function JobTags() {
             </div>
 
             <div className="col w-full gap-2">
-                <Label value="Other" />
+                <Label
+                    value="Other"
+                    tag={
+                        <FieldHelpPopover content="Additional node constraints that do not fit country or KYB/KYC filters." />
+                    }
+                />
                 <Checkbox
                     isSelected={jobTags?.includes(DC_TAG)}
                     onValueChange={(value) => {

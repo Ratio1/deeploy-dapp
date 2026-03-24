@@ -1,5 +1,6 @@
 import { ContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
 import { SelectItem } from '@heroui/select';
+import FieldHelpPopover from '@shared/FieldHelpPopover';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import StyledSelect from '@shared/StyledSelect';
@@ -27,7 +28,12 @@ export default function SelectContainerOrWorkerType({ name, label, options, isDi
 
     return (
         <div className="col w-full gap-2">
-            <Label value={label} />
+            <Label
+                value={label}
+                tag={
+                    <FieldHelpPopover content="Defines the CPU/RAM profile used per node and drives both pricing and balancing requirements." />
+                }
+            />
 
             <Controller
                 name={name}

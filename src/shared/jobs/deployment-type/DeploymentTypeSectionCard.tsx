@@ -1,6 +1,7 @@
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { Switch } from '@heroui/switch';
 import { SlateCard } from '@shared/cards/SlateCard';
+import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import { SmallTag } from '@shared/SmallTag';
 import { DeploymentType, PluginType } from '@typedefs/steps/deploymentStepTypes';
 import { useFormContext } from 'react-hook-form';
@@ -59,6 +60,14 @@ function DeploymentTypeSectionCard({ isEditingRunningJob }: { isEditingRunningJo
                 </div>
             }
         >
+            <DeeployInfoTag
+                text={
+                    pluginType === PluginType.Container
+                        ? 'Container runner executes a container image directly.'
+                        : 'Worker runner pulls source code from GitHub and executes worker commands.'
+                }
+            />
+
             {pluginType === PluginType.Container ? (
                 <ContainerSection />
             ) : (

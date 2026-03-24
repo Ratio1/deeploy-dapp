@@ -1,5 +1,6 @@
 import { ContainerOrWorkerType, genericContainerTypes, GpuType, gpuTypes, nativeWorkerTypes } from '@data/containerResources';
 import { SelectItem } from '@heroui/select';
+import FieldHelpPopover from '@shared/FieldHelpPopover';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import StyledSelect from '@shared/StyledSelect';
@@ -46,7 +47,13 @@ export default function SelectGPU({ jobType, isDisabled }: Props) {
 
     return (
         <div className="col w-full gap-2">
-            <Label value="GPU" isOptional />
+            <Label
+                value="GPU"
+                isOptional
+                tag={
+                    <FieldHelpPopover content="Optional accelerator profile. Use this only if your workload explicitly needs GPU resources." />
+                }
+            />
 
             <Controller
                 name="specifications.gpuType"

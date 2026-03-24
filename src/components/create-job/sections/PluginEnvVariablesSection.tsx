@@ -19,7 +19,10 @@ export default function PluginEnvVariablesSection({ baseName }) {
             <ConfigSectionTitle title="ENV Variables" />
 
             <div className="row justify-between gap-1.5">
-                <DeeployInfoTag text="You can copy & paste the contents of your .env file using the button." />
+                <div className="col gap-1.5">
+                    <DeeployInfoTag text="You can copy & paste the contents of your .env file using the button." />
+                    <DeeployInfoTag text="Keys that look secret (token, key, password, etc.) are masked by default in the editor." />
+                </div>
 
                 <Button
                     className="h-[34px] bg-slate-200 px-2.5 hover:opacity-60!"

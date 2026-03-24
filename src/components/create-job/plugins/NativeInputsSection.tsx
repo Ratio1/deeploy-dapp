@@ -31,7 +31,7 @@ export default function NativeInputsSection({ name }: { name: string }) {
             <AppParametersSection
                 baseName={name}
                 disableTunneling={!isCustomSignature}
-                tunnelingDisabledNote="Tunneling is disabled by default for the selected plugin signature."
+                tunnelingDisabledNote="Tunneling is disabled for predefined signatures because native plugins generally rely on internal Ratio1 communication."
             />
 
             <ConfigSectionTitle title="Port Mapping" />
