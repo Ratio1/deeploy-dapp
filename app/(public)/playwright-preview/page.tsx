@@ -4,8 +4,10 @@ import { notFound } from 'next/navigation';
 Use this public route to render UI components without login and take deterministic screenshots with
 Playwright.
 
-Temporarily replace the code inside section id="playwright-preview"
-with the component under test and keep external API/blockchain dependencies mocked.
+When testing UI, temporarily replace the code inside section id="playwright-preview" with the component under test,
+and keep external API/blockchain dependencies mocked for deterministic screenshots.
+IMPORTANT: these temporary preview changes are for local testing only and must always be reverted after the test.
+Do not commit test-specific preview wiring from this page.
 */
 
 const isDevelopment = process.env.NODE_ENV === 'development';
