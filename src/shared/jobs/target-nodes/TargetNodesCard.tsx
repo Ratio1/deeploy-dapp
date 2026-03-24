@@ -1,6 +1,7 @@
 import { Checkbox } from '@heroui/checkbox';
 import { Switch } from '@heroui/switch';
 import { SlateCard } from '@shared/cards/SlateCard';
+import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import TargetNodesSection from '@shared/jobs/target-nodes/TargetNodesSection';
 import { SmallTag } from '@shared/SmallTag';
 import { useEffect } from 'react';
@@ -67,6 +68,9 @@ function TargetNodesCard({ isEditingRunningJob }: { isEditingRunningJob?: boolea
             }
         >
             <TargetNodesSection autoAssign={autoAssign} />
+            {!autoAssign && (
+                <DeeployInfoTag text="Use Ratio1 node addresses (typically starting with 0xai_)." />
+            )}
 
             {!autoAssign && (
                 <div className="col mt-2 gap-4">

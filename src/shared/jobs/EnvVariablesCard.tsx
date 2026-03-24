@@ -38,6 +38,7 @@ export default function EnvVariablesCard({
         >
             <div className="col gap-4">
                 <DeeployInfoTag text="You can copy & paste the contents of your .env file using the button above." />
+                <DeeployInfoTag text="Keys that look secret (token, key, password, etc.) are masked by default in the editor." />
 
                 <KeyValueEntriesSection
                     name={`${baseName}.envVars`}

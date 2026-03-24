@@ -1,4 +1,5 @@
 import { BaseContainerOrWorkerType, ContainerOrWorkerType, GpuType, gpuTypes } from '@data/containerResources';
+import FieldHelpPopover from '@shared/FieldHelpPopover';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import { useEffect, useState } from 'react';
@@ -34,14 +35,22 @@ export default function ContainerResourcesInfo({ name, options }: Props) {
         <div className="col w-full gap-2.5">
             {'minimalBalancing' in containerOrWorkerType && containerOrWorkerType.minimalBalancing > 1 && (
                 <div className="row gap-1.5">
-                    <Label value="Min. Recommended Balancing" />
+                    <Label
+                        value="Min. Recommended Balancing"
+                        tag={
+                            <FieldHelpPopover content="Recommended minimum number of nodes for stable distribution with this compute profile." />
+                        }
+                    />
                     <SmallTag>{`${containerOrWorkerType.minimalBalancing} nodes`}</SmallTag>
                 </div>
             )}
 
             {!!gpuType && (
                 <div className="row gap-1.5">
-                    <Label value="GPU Min. Recommended Balancing:" />
+                    <Label
+                        value="GPU Min. Recommended Balancing:"
+                        tag={<FieldHelpPopover content="Recommended minimum nodes when this GPU profile is enabled." />}
+                    />
                     <SmallTag>
                         {gpuType.minimalBalancing > 1 ? `${gpuType.minimalBalancing} nodes` : 'No minimal balancing'}
                     </SmallTag>
@@ -49,7 +58,12 @@ export default function ContainerResourcesInfo({ name, options }: Props) {
             )}
 
             <div className="row gap-1.5">
-                <Label value="Monthly Budget per Worker:" />
+                <Label
+                    value="Monthly Budget per Worker:"
+                    tag={
+                        <FieldHelpPopover content="Estimated per-node monthly cost before node-count multiplication. Budget estimates use 1 month = 30 days." />
+                    }
+                />
                 <div className="compact">
                     ~${containerOrWorkerType.monthlyBudgetPerWorker + (gpuType?.monthlyBudgetPerWorker ?? 0)}
                     {!!gpuType && (

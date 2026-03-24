@@ -17,6 +17,7 @@ export default function NativeAppIdentitySection({
             <SelectWithLabel
                 name={`${baseName}.pluginSignature`}
                 label="Plugin Signature"
+                labelHelp="Selects a predefined native plugin contract. Choose CUSTOM only when you provide a compatible custom signature."
                 options={PLUGIN_SIGNATURE_TYPES}
                 onSelect={(value) => {
                     if (value !== CUSTOM_PLUGIN_SIGNATURE) {
@@ -27,7 +28,12 @@ export default function NativeAppIdentitySection({
             />
 
             {pluginSignature === CUSTOM_PLUGIN_SIGNATURE && (
-                <InputWithLabel name={`${baseName}.customPluginSignature`} label="Custom Plugin Signature" placeholder="None" />
+                <InputWithLabel
+                    name={`${baseName}.customPluginSignature`}
+                    label="Custom Plugin Signature"
+                    placeholder="None"
+                    labelHelp="Exact plugin signature expected by your runtime implementation."
+                />
             )}
         </div>
     );

@@ -1,22 +1,24 @@
 import { SelectItem } from '@heroui/select';
 import StyledSelect from '@shared/StyledSelect';
 import { Controller, useFormContext } from 'react-hook-form';
+import FieldHelpPopover from './FieldHelpPopover';
 import Label from './Label';
 
 interface Props {
     name: string;
     label?: string;
+    labelHelp?: React.ReactNode;
     options: readonly string[];
     onSelect?: (value: string) => void;
     isDisabled?: boolean;
 }
 
-export default function SelectWithLabel({ name, label, options, onSelect, isDisabled = false }: Props) {
+export default function SelectWithLabel({ name, label, labelHelp, options, onSelect, isDisabled = false }: Props) {
     const { control } = useFormContext();
 
     return (
         <div className="col w-full gap-2">
-            {label && <Label value={label} />}
+            {label && <Label value={label} tag={labelHelp ? <FieldHelpPopover content={labelHelp} /> : undefined} />}
 
             <Controller
                 name={name}

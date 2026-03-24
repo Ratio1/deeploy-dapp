@@ -6,6 +6,7 @@ import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { getTunnels } from '@lib/api/tunnels';
 import { TunnelsContextType, useTunnelsContext } from '@lib/contexts/tunnels';
 import { compareTunnelStatusAndAlias, tunnelStatusDotColorClassByStatus, type TunnelStatus } from '@lib/tunnel-status';
+import FieldHelpPopover from '@shared/FieldHelpPopover';
 import InputWithLabel from '@shared/InputWithLabel';
 import Label from '@shared/Label';
 import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
@@ -207,6 +208,7 @@ export default function AppParametersSection({
                             <SelectWithLabel
                                 name={`${baseName}.enableTunneling`}
                                 label="Enable Tunneling"
+                                labelHelp="Expose the app through a managed tunnel instead of relying only on direct node port access."
                                 options={BOOLEAN_TYPES}
                                 isDisabled={disableTunneling}
                                 onSelect={(value) => {
@@ -225,6 +227,7 @@ export default function AppParametersSection({
                             <NumberInputWithLabel
                                 name={`${baseName}.port`}
                                 label="Port"
+                                labelHelp="Application port inside the runtime. When tunneling is enabled, this is the forwarded internal port."
                                 isOptional={enableTunneling === BOOLEAN_TYPES[1]}
                             />
                         )}
@@ -238,7 +241,12 @@ export default function AppParametersSection({
                 <div className="col gap-4">
                     {shouldShowTunnelAlternatives && (
                         <div className="col w-full gap-1.5">
-                            <Label value="Select Tunnel" />
+                            <Label
+                                value="Select Tunnel"
+                                tag={
+                                    <FieldHelpPopover content="Reuse an existing Ratio1-managed tunnel or choose Custom to paste a token manually." />
+                                }
+                            />
 
                             <div className="row items-end gap-2">
                                 <StyledSelect
@@ -294,6 +302,13 @@ export default function AppParametersSection({
                             {!tunnelingSecrets && (
                                 <DeeployInfoTag text="Please add your Cloudflare secrets to enable tunnel generation." />
                             )}
+
+                            {tunnelingSecrets && (
+                                <div className="col gap-1.5">
+                                    <DeeployInfoTag text="Tunnel status reflects provider state; prefer active tunnels to avoid startup delays." />
+                                    <DeeployInfoTag text="Tunnels and tokens are account-scoped resources, so you can safely reuse them across jobs in the same account." />
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -303,6 +318,7 @@ export default function AppParametersSection({
                                 name={`${baseName}.tunnelingToken`}
                                 label="Tunnel Token"
                                 placeholder="Starts with 'ey'"
+                                labelHelp="Credential used by the node to attach your app to a specific tunnel endpoint."
                                 isDisabled={isCreatingTunnel}
                             />
                             {enableTunnelingLabel && (
@@ -310,6 +326,7 @@ export default function AppParametersSection({
                                     name={`${baseName}.tunnelingLabel`}
                                     label="Tunnel Label"
                                     placeholder="My_Tunnel"
+                                    labelHelp="Optional provider-specific label (used by ngrok-based services)."
                                     isOptional
                                 />
                             )}
@@ -322,6 +339,7 @@ export default function AppParametersSection({
                                 name={`${baseName}.tunnelingLabel`}
                                 label="Tunnel Label"
                                 placeholder="My_Tunnel"
+                                labelHelp="Optional provider-specific label (used by ngrok-based services)."
                                 isOptional
                             />
                         </div>

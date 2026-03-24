@@ -1,4 +1,5 @@
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
+import DeeployInfoTag from './jobs/DeeployInfoTag';
 import DeeployWarningAlert from './jobs/DeeployWarningAlert';
 import VariableSectionControls from './jobs/VariableSectionControls';
 import VariableSectionIndex from './jobs/VariableSectionIndex';
@@ -35,6 +36,8 @@ export default function PortMappingSection({ baseName = 'deployment' }: { baseNa
 
     return (
         <div className="col gap-3">
+            <DeeployInfoTag text="Maps external node ports (HOST) to internal app ports (CONTAINER)." />
+
             {entries.length > 0 &&
                 entries.map((entry: PortMappingEntryWithId, index) => {
                     // Get the error for this specific entry

@@ -1,6 +1,7 @@
 import { DYNAMIC_ENV_TYPES } from '@data/dynamicEnvTypes';
 import { SHMEM_ENV_KEYS } from '@data/shmemEnvKeys';
 import { SelectItem } from '@heroui/select';
+import DeeployInfoTag from '@shared/jobs/DeeployInfoTag';
 import StyledSelect from '@shared/StyledSelect';
 import StyledInput from '@shared/StyledInput';
 import { BasePluginType } from '@typedefs/steps/deploymentStepTypes';
@@ -38,6 +39,8 @@ export default function DynamicEnvSection({ baseName = 'deployment', availablePl
 
     return (
         <div className="col gap-4">
+            <DeeployInfoTag text="Dynamic ENV lets values be resolved at runtime (static value, host IP, or shmem from another plugin)." />
+
             {fields.map((field, index) => (
                 <DynamicEnvEntry
                     key={field.id}

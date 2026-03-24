@@ -1,5 +1,6 @@
 import { PIPELINE_INPUT_TYPES } from '@data/pipelineInputTypes';
 import { SlateCard } from '@shared/cards/SlateCard';
+import FieldHelpPopover from '@shared/FieldHelpPopover';
 import InputWithLabel from '@shared/InputWithLabel';
 import DeeployWarningAlert from '@shared/jobs/DeeployWarningAlert';
 import KeyValueEntriesSection from '@shared/jobs/KeyValueEntriesSection';
@@ -15,6 +16,7 @@ function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boole
                     name="deployment.jobAlias"
                     label="Alias"
                     placeholder="My App"
+                    labelHelp="Human-friendly job name used in the UI and as part of generated resource names."
                     isDisabled={isEditingRunningJob}
                 />
             </SlateCard>
@@ -27,6 +29,7 @@ function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boole
                         <SelectWithLabel
                             name="deployment.pipelineInputType"
                             label="Pipeline Input Type"
+                            labelHelp="How this native pipeline receives input at runtime."
                             options={PIPELINE_INPUT_TYPES}
                         />
 
@@ -34,12 +37,18 @@ function NativeDeployment({ isEditingRunningJob }: { isEditingRunningJob?: boole
                             name="deployment.pipelineInputUri"
                             label="Pipeline Input URI"
                             placeholder="None"
+                            labelHelp="Optional URI used by listener-based input types (for example webhook endpoints)."
                             isOptional
                         />
                     </div>
 
                     <div className="col gap-2">
-                        <Label value="Pipeline Parameters" />
+                        <Label
+                            value="Pipeline Parameters"
+                            tag={
+                                <FieldHelpPopover content="Extra key-value parameters passed to the native pipeline configuration." />
+                            }
+                        />
 
                         <KeyValueEntriesSection
                             name="deployment.pipelineParams"

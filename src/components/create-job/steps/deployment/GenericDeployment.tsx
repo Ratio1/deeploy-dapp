@@ -73,6 +73,7 @@ function GenericDeployment({ isEditingRunningJob }: { isEditingRunningJob?: bool
                         name="deployment.jobAlias"
                         label="Alias"
                         placeholder="My App"
+                        labelHelp="Human-friendly job name used in the UI and as part of generated resource names."
                         isDisabled={isEditingRunningJob}
                     />
                 </div>

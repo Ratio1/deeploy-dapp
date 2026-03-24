@@ -1,4 +1,5 @@
 import { InputProps } from '@heroui/input';
+import FieldHelpPopover from '@shared/FieldHelpPopover';
 import StyledInput from '@shared/StyledInput';
 import { useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
@@ -17,6 +18,7 @@ interface Props extends InputProps {
     endContent?: 'copy' | 'paste';
     hasSecretValue?: boolean;
     description?: string;
+    labelHelp?: React.ReactNode;
 }
 
 export default function InputWithLabel({
@@ -28,6 +30,7 @@ export default function InputWithLabel({
     endContent,
     hasSecretValue,
     description,
+    labelHelp,
     ...props
 }: Props) {
     const { control } = useFormContext();
@@ -37,7 +40,15 @@ export default function InputWithLabel({
 
     return (
         <div className="col w-full gap-2">
-            {customLabel ? customLabel : <Label value={label} isOptional={isOptional} />}
+            {customLabel ? (
+                customLabel
+            ) : (
+                <Label
+                    value={label}
+                    isOptional={isOptional}
+                    tag={labelHelp ? <FieldHelpPopover content={labelHelp} /> : undefined}
+                />
+            )}
 
             <div className="flex gap-3">
                 {hasSecretValue && (

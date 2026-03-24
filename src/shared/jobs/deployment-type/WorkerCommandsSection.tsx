@@ -1,3 +1,4 @@
+import FieldHelpPopover from '@shared/FieldHelpPopover';
 import Label from '@shared/Label';
 import StyledInput from '@shared/StyledInput';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
@@ -26,7 +27,10 @@ export default function WorkerCommandsSection({ baseName }: { baseName: string }
 
     return (
         <div className="col gap-4">
-            <Label value="Commands" />
+            <Label
+                value="Commands"
+                tag={<FieldHelpPopover content="Commands run in order inside the worker image to build and start your app." />}
+            />
 
             {fields.length > 0 && (
                 <div className="col gap-2">

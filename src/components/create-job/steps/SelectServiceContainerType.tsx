@@ -1,5 +1,6 @@
 import { BaseContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
 import { SelectItem } from '@heroui/select';
+import FieldHelpPopover from '@shared/FieldHelpPopover';
 import Label from '@shared/Label';
 import { SmallTag } from '@shared/SmallTag';
 import StyledSelect from '@shared/StyledSelect';
@@ -17,7 +18,12 @@ export default function SelectServiceContainerType({ name, label, options, isDis
 
     return (
         <div className="col w-full gap-2">
-            <Label value={label} />
+            <Label
+                value={label}
+                tag={
+                    <FieldHelpPopover content="Selects the resource tier for the service instance running on the selected node." />
+                }
+            />
 
             <Controller
                 name={name}
