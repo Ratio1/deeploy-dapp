@@ -3,6 +3,7 @@
 import AppParametersSection from '@components/create-job/sections/AppParametersSection';
 import { BOOLEAN_TYPES } from '@data/booleanTypes';
 import { TunnelsContext } from '@lib/contexts/tunnels/context';
+import { TunnelingSecrets } from '@typedefs/general';
 import { FormProvider, useForm } from 'react-hook-form';
 import { SlateCard } from '@shared/cards/SlateCard';
 import { useState } from 'react';
@@ -30,7 +31,7 @@ export default function NativeAppParametersPreview() {
         },
     });
 
-    const [tunnelingSecrets, setTunnelingSecrets] = useState(undefined);
+    const [tunnelingSecrets, setTunnelingSecrets] = useState<TunnelingSecrets | undefined>(undefined);
 
     return (
         <FormProvider {...methods}>
