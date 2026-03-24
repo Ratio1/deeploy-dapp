@@ -82,7 +82,6 @@ export default function NativeInputsSection({ name }: { name: string }) {
                 tunnelingDisabledNote="Tunneling is disabled by default for the selected plugin signature."
                 isCreatingTunnel={isCreatingTunnel}
                 enableTunnelSelector
-                allowManualTunnelToken={false}
                 onGenerateTunnel={onGenerateTunnel}
                 isTunnelGenerationDisabled={!tunnelingSecrets}
             />

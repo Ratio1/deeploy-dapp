@@ -51,7 +51,6 @@ export default function AppParametersSection({
     disableTunneling = false,
     tunnelingDisabledNote,
     enableTunnelSelector = false,
-    allowManualTunnelToken = true,
     onGenerateTunnel,
     isTunnelGenerationDisabled = false,
     onTunnelUrlChange,
@@ -64,7 +63,6 @@ export default function AppParametersSection({
     disableTunneling?: boolean;
     tunnelingDisabledNote?: string;
     enableTunnelSelector?: boolean;
-    allowManualTunnelToken?: boolean;
     onGenerateTunnel?: () => Promise<TunnelGenerationResult | undefined>;
     isTunnelGenerationDisabled?: boolean;
     onTunnelUrlChange?: (url?: string) => void;
@@ -74,28 +72,23 @@ export default function AppParametersSection({
 
     const enableTunneling: (typeof BOOLEAN_TYPES)[number] = watch(`${baseName}.enableTunneling`);
     const tunnelingToken: string | undefined = watch(`${baseName}.tunnelingToken`);
-    const defaultTunnelSelectionId = allowManualTunnelToken ? CUSTOM_TUNNEL_OPTION : '';
+    const defaultTunnelSelectionId = CUSTOM_TUNNEL_OPTION;
 
     const [existingTunnels, setExistingTunnels] = useState<ExistingTunnelOption[]>([]);
     const [selectedTunnelId, setSelectedTunnelId] = useState<string>(defaultTunnelSelectionId);
     const [isFetchingTunnels, setFetchingTunnels] = useState<boolean>(false);
-    const [hasFetchedTunnelsSuccessfully, setHasFetchedTunnelsSuccessfully] = useState<boolean>(false);
     const tunnelSelectOptions = useMemo<TunnelSelectOption[]>(
         () => [
-            ...(allowManualTunnelToken
-                ? [
-                      {
-                          id: CUSTOM_TUNNEL_OPTION,
-                          alias: 'Custom',
-                          token: '',
-                          url: 'Enter token manually',
-                          isCustom: true as const,
-                      },
-                  ]
-                : []),
+            {
+                id: CUSTOM_TUNNEL_OPTION,
+                alias: 'Custom',
+                token: '',
+                url: 'Enter token manually',
+                isCustom: true,
+            },
             ...existingTunnels,
         ],
-        [allowManualTunnelToken, existingTunnels],
+        [existingTunnels],
     );
 
     const shouldShowTunnelAlternatives = enableTunnelSelector && enableTunneling === BOOLEAN_TYPES[0];
@@ -103,12 +96,10 @@ export default function AppParametersSection({
     const fetchExistingTunnels = useCallback(async (): Promise<ExistingTunnelOption[]> => {
         if (!tunnelingSecrets) {
             setExistingTunnels([]);
-            setHasFetchedTunnelsSuccessfully(false);
             return [];
         }
 
         setFetchingTunnels(true);
-        setHasFetchedTunnelsSuccessfully(false);
 
         try {
             const data = await getTunnels(tunnelingSecrets.cloudflareAccountId, tunnelingSecrets.cloudflareApiKey);
@@ -126,12 +117,10 @@ export default function AppParametersSection({
                 .sort(compareTunnelStatusAndAlias);
 
             setExistingTunnels(tunnels);
-            setHasFetchedTunnelsSuccessfully(true);
             return tunnels;
         } catch (error) {
             console.error('Error fetching existing tunnels:', error);
             setExistingTunnels([]);
-            setHasFetchedTunnelsSuccessfully(false);
             return [];
         } finally {
             setFetchingTunnels(false);
@@ -142,14 +131,12 @@ export default function AppParametersSection({
         if (!shouldShowTunnelAlternatives) {
             setExistingTunnels([]);
             setSelectedTunnelId(defaultTunnelSelectionId);
-            setHasFetchedTunnelsSuccessfully(false);
             return;
         }
 
         if (!tunnelingSecrets) {
             setExistingTunnels([]);
             setSelectedTunnelId(defaultTunnelSelectionId);
-            setHasFetchedTunnelsSuccessfully(false);
             return;
         }
 
@@ -174,27 +161,15 @@ export default function AppParametersSection({
         }
 
         setSelectedTunnelId(defaultTunnelSelectionId);
-
-        if (!allowManualTunnelToken && hasFetchedTunnelsSuccessfully) {
-            setValue(`${baseName}.tunnelingToken`, undefined, { shouldDirty: true, shouldValidate: true });
-            clearErrors(`${baseName}.tunnelingToken`);
-            onTunnelUrlChange?.(undefined);
-        }
     }, [
-        allowManualTunnelToken,
-        baseName,
-        clearErrors,
         defaultTunnelSelectionId,
         existingTunnels,
-        hasFetchedTunnelsSuccessfully,
-        onTunnelUrlChange,
-        setValue,
         shouldShowTunnelAlternatives,
         tunnelingToken,
     ]);
 
     const selectExistingTunnel = (tunnelId: string) => {
-        if (allowManualTunnelToken && tunnelId === CUSTOM_TUNNEL_OPTION) {
+        if (tunnelId === CUSTOM_TUNNEL_OPTION) {
             setSelectedTunnelId(defaultTunnelSelectionId);
             setValue(`${baseName}.tunnelingToken`, undefined, { shouldDirty: true, shouldValidate: true });
             clearErrors(`${baseName}.tunnelingToken`);
@@ -334,18 +309,10 @@ export default function AppParametersSection({
                             {!tunnelingSecrets && (
                                 <DeeployInfoTag text="Please add your Cloudflare secrets to enable tunnel generation." />
                             )}
-
-                            {allowManualTunnelToken === false &&
-                                !!tunnelingSecrets &&
-                                !isFetchingTunnels &&
-                                existingTunnels.length === 0 && (
-                                    <DeeployInfoTag text="No tunnels found. Generate one to continue." />
-                                )}
                         </div>
                     )}
 
-                    {(!shouldShowTunnelAlternatives ||
-                        (allowManualTunnelToken && selectedTunnelId === CUSTOM_TUNNEL_OPTION)) && (
+                    {(!shouldShowTunnelAlternatives || selectedTunnelId === CUSTOM_TUNNEL_OPTION) && (
                         <div className="flex gap-4">
                             <InputWithLabel
                                 name={`${baseName}.tunnelingToken`}

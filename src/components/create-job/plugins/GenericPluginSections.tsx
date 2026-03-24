@@ -78,7 +78,6 @@ export default function GenericPluginSections({ name, availablePlugins }: Props)
                 baseName={name}
                 isCreatingTunnel={isCreatingTunnel}
                 enableTunnelSelector
-                allowManualTunnelToken={false}
                 onGenerateTunnel={onGenerateTunnel}
                 isTunnelGenerationDisabled={!tunnelingSecrets}
             />
