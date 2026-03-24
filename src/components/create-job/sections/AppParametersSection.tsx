@@ -51,6 +51,7 @@ export default function AppParametersSection({
     disableTunneling = false,
     tunnelingDisabledNote,
     enableTunnelSelector = false,
+    allowManualTunnelToken = true,
     onGenerateTunnel,
     isTunnelGenerationDisabled = false,
     onTunnelUrlChange,
@@ -63,6 +64,7 @@ export default function AppParametersSection({
     disableTunneling?: boolean;
     tunnelingDisabledNote?: string;
     enableTunnelSelector?: boolean;
+    allowManualTunnelToken?: boolean;
     onGenerateTunnel?: () => Promise<TunnelGenerationResult | undefined>;
     isTunnelGenerationDisabled?: boolean;
     onTunnelUrlChange?: (url?: string) => void;
@@ -72,22 +74,27 @@ export default function AppParametersSection({
 
     const enableTunneling: (typeof BOOLEAN_TYPES)[number] = watch(`${baseName}.enableTunneling`);
     const tunnelingToken: string | undefined = watch(`${baseName}.tunnelingToken`);
+    const defaultTunnelSelectionId = allowManualTunnelToken ? CUSTOM_TUNNEL_OPTION : '';
 
     const [existingTunnels, setExistingTunnels] = useState<ExistingTunnelOption[]>([]);
-    const [selectedTunnelId, setSelectedTunnelId] = useState<string>(CUSTOM_TUNNEL_OPTION);
+    const [selectedTunnelId, setSelectedTunnelId] = useState<string>(defaultTunnelSelectionId);
     const [isFetchingTunnels, setFetchingTunnels] = useState<boolean>(false);
     const tunnelSelectOptions = useMemo<TunnelSelectOption[]>(
         () => [
-            {
-                id: CUSTOM_TUNNEL_OPTION,
-                alias: 'Custom',
-                token: '',
-                url: 'Enter token manually',
-                isCustom: true,
-            },
+            ...(allowManualTunnelToken
+                ? [
+                      {
+                          id: CUSTOM_TUNNEL_OPTION,
+                          alias: 'Custom',
+                          token: '',
+                          url: 'Enter token manually',
+                          isCustom: true as const,
+                      },
+                  ]
+                : []),
             ...existingTunnels,
         ],
-        [existingTunnels],
+        [allowManualTunnelToken, existingTunnels],
     );
 
     const shouldShowTunnelAlternatives = enableTunnelSelector && enableTunneling === BOOLEAN_TYPES[0];
@@ -129,18 +136,18 @@ export default function AppParametersSection({
     useEffect(() => {
         if (!shouldShowTunnelAlternatives) {
             setExistingTunnels([]);
-            setSelectedTunnelId(CUSTOM_TUNNEL_OPTION);
+            setSelectedTunnelId(defaultTunnelSelectionId);
             return;
         }
 
         if (!tunnelingSecrets) {
             setExistingTunnels([]);
-            setSelectedTunnelId(CUSTOM_TUNNEL_OPTION);
+            setSelectedTunnelId(defaultTunnelSelectionId);
             return;
         }
 
         void fetchExistingTunnels();
-    }, [shouldShowTunnelAlternatives, tunnelingSecrets, fetchExistingTunnels]);
+    }, [defaultTunnelSelectionId, shouldShowTunnelAlternatives, tunnelingSecrets, fetchExistingTunnels]);
 
     useEffect(() => {
         if (!shouldShowTunnelAlternatives) {
@@ -148,17 +155,17 @@ export default function AppParametersSection({
         }
 
         if (!tunnelingToken) {
-            setSelectedTunnelId(CUSTOM_TUNNEL_OPTION);
+            setSelectedTunnelId(defaultTunnelSelectionId);
             return;
         }
 
         const matchedTunnel = existingTunnels.find((tunnel) => tunnel.token === tunnelingToken);
-        setSelectedTunnelId(matchedTunnel?.id || CUSTOM_TUNNEL_OPTION);
-    }, [shouldShowTunnelAlternatives, tunnelingToken, existingTunnels]);
+        setSelectedTunnelId(matchedTunnel?.id || defaultTunnelSelectionId);
+    }, [defaultTunnelSelectionId, shouldShowTunnelAlternatives, tunnelingToken, existingTunnels]);
 
     const selectExistingTunnel = (tunnelId: string) => {
-        if (tunnelId === CUSTOM_TUNNEL_OPTION) {
-            setSelectedTunnelId(CUSTOM_TUNNEL_OPTION);
+        if (allowManualTunnelToken && tunnelId === CUSTOM_TUNNEL_OPTION) {
+            setSelectedTunnelId(defaultTunnelSelectionId);
             setValue(`${baseName}.tunnelingToken`, undefined, { shouldDirty: true, shouldValidate: true });
             clearErrors(`${baseName}.tunnelingToken`);
             onTunnelUrlChange?.(undefined);
@@ -194,7 +201,7 @@ export default function AppParametersSection({
         const refreshedTunnels = tunnelingSecrets ? await fetchExistingTunnels() : existingTunnels;
         const matchedTunnel = refreshedTunnels.find((tunnel) => tunnel.token === generatedTunnel.token);
 
-        setSelectedTunnelId(matchedTunnel?.id || CUSTOM_TUNNEL_OPTION);
+        setSelectedTunnelId(matchedTunnel?.id || defaultTunnelSelectionId);
         onTunnelUrlChange?.(matchedTunnel?.url || generatedTunnel.url);
     };
 
@@ -213,7 +220,7 @@ export default function AppParametersSection({
                                     trigger(`${baseName}.port`);
 
                                     if (value === BOOLEAN_TYPES[1]) {
-                                        setSelectedTunnelId(CUSTOM_TUNNEL_OPTION);
+                                        setSelectedTunnelId(defaultTunnelSelectionId);
                                         setValue(`${baseName}.tunnelingToken`, undefined);
                                         clearErrors(`${baseName}.tunnelingToken`);
                                     }
@@ -243,9 +250,12 @@ export default function AppParametersSection({
                             <div className="row items-end gap-2">
                                 <StyledSelect
                                     items={tunnelSelectOptions}
-                                    selectedKeys={[selectedTunnelId]}
+                                    selectedKeys={selectedTunnelId ? [selectedTunnelId] : []}
                                     onSelectionChange={(keys) => {
-                                        const selectedKey = Array.from(keys)[0] as string;
+                                        const selectedKey = Array.from(keys)[0] as string | undefined;
+                                        if (!selectedKey) {
+                                            return;
+                                        }
                                         selectExistingTunnel(selectedKey);
                                     }}
                                     placeholder={isFetchingTunnels ? 'Loading tunnels...' : 'Select an existing tunnel'}
@@ -294,10 +304,18 @@ export default function AppParametersSection({
                             {!tunnelingSecrets && (
                                 <DeeployInfoTag text="Please add your Cloudflare secrets to enable tunnel generation." />
                             )}
+
+                            {allowManualTunnelToken === false &&
+                                !!tunnelingSecrets &&
+                                !isFetchingTunnels &&
+                                existingTunnels.length === 0 && (
+                                    <DeeployInfoTag text="No tunnels found. Generate one to continue." />
+                                )}
                         </div>
                     )}
 
-                    {(!shouldShowTunnelAlternatives || selectedTunnelId === CUSTOM_TUNNEL_OPTION) && (
+                    {(!shouldShowTunnelAlternatives ||
+                        (allowManualTunnelToken && selectedTunnelId === CUSTOM_TUNNEL_OPTION)) && (
                         <div className="flex gap-4">
                             <InputWithLabel
                                 name={`${baseName}.tunnelingToken`}
