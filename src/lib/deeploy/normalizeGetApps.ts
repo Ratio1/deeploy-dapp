@@ -1,26 +1,25 @@
 import _ from 'lodash';
 import { EthAddress, R1Address } from '@typedefs/blockchain';
-import { Apps, AppsPlugin, ChainJob, DeeploySpecs, JobConfig, OnlineApp, PipelineData } from '@typedefs/deeployApi';
+import {
+    Apps,
+    AppsPlugin,
+    ChainJob,
+    DeeploySpecs,
+    JobConfig,
+    OnlineApp,
+    PipelineData,
+    StoredPipelineApp,
+} from '@typedefs/deeployApi';
 import { RunningJob, RunningJobWithDetails } from '@typedefs/deeploys';
 
 type GenericRecord = Record<string, any>;
+type FlattenedPlugin = AppsPlugin & { signature: string };
 
 const toObject = (value: unknown): GenericRecord => {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
         return {};
     }
     return value as GenericRecord;
-};
-
-const getKey = <T>(source: GenericRecord, key: string): T | undefined => {
-    if (!source || typeof source !== 'object') {
-        return undefined;
-    }
-    if (key in source) {
-        return source[key] as T;
-    }
-    const foundKey = Object.keys(source).find((currentKey) => currentKey.toLowerCase() === key.toLowerCase());
-    return foundKey ? (source[foundKey] as T) : undefined;
 };
 
 const toStringValue = (value: unknown): string => {
@@ -38,6 +37,13 @@ const toStringValue = (value: unknown): string => {
     } catch {
         return String(value);
     }
+};
+
+const toStringList = (value: unknown): string[] => {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return value.map((item) => toStringValue(item)).filter((item) => !!item);
 };
 
 const toNumberValue = (value: unknown, fallback = 0): number => {
@@ -111,29 +117,209 @@ const normalizeNodeAddress = (value: unknown): R1Address | undefined => {
     return `0xai_${raw}` as R1Address;
 };
 
-const getPipelineSpecs = (pipeline: GenericRecord): GenericRecord => {
-    return toObject(
-        getKey<GenericRecord>(pipeline, 'DEEPLOY_SPECS') ??
-            getKey<GenericRecord>(pipeline, 'deeploy_specs') ??
-            getKey<GenericRecord>(pipeline, 'deeploySpecs'),
+const toNodeList = (value: unknown): R1Address[] => {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return value.map((node) => normalizeNodeAddress(node)).filter((node): node is R1Address => !!node);
+};
+
+const getPipelineSnapshot = (entry: Apps[string]): StoredPipelineApp | null => {
+    const pipeline = entry?.pipeline;
+    if (!pipeline || typeof pipeline !== 'object' || Array.isArray(pipeline)) {
+        return null;
+    }
+    return pipeline;
+};
+
+const getPipelineSpecs = (pipeline: StoredPipelineApp | null): GenericRecord => {
+    if (!pipeline) {
+        return {};
+    }
+    return toObject(pipeline.DEEPLOY_SPECS);
+};
+
+const getPipelineTargetNodes = (pipeline: StoredPipelineApp | null): R1Address[] => {
+    const specs = getPipelineSpecs(pipeline);
+    return toNodeList(specs.current_target_nodes ?? specs.initial_target_nodes);
+};
+
+const normalizeJobConfig = (value: unknown): DeeploySpecs['job_config'] | undefined => {
+    const rawConfig = toObject(value);
+    if (!Object.keys(rawConfig).length) {
+        return undefined;
+    }
+
+    const pipelineParams = toObject(rawConfig.pipeline_params);
+    const pluginSemaphoreMap = toObject(rawConfig.plugin_semaphore_map);
+
+    const normalized: NonNullable<DeeploySpecs['job_config']> = {};
+    if (Object.keys(pipelineParams).length) {
+        normalized.pipeline_params = pipelineParams as Record<string, string>;
+    }
+    if (Object.keys(pluginSemaphoreMap).length) {
+        normalized.plugin_semaphore_map = pluginSemaphoreMap as Record<string, string>;
+    }
+
+    return Object.keys(normalized).length ? normalized : undefined;
+};
+
+const normalizeSpecs = ({
+    rawSpecs,
+    fallbackJobId,
+    fallbackProjectHash,
+    fallbackTargetNodes,
+}: {
+    rawSpecs: GenericRecord;
+    fallbackJobId: number;
+    fallbackProjectHash: string;
+    fallbackTargetNodes: R1Address[];
+}): DeeploySpecs => {
+    const currentTargetNodes = toNodeList(rawSpecs.current_target_nodes);
+    const initialTargetNodes = toNodeList(rawSpecs.initial_target_nodes);
+    const spareNodes = toNodeList(rawSpecs.spare_nodes);
+    const resolvedInitialNodes = initialTargetNodes.length ? initialTargetNodes : fallbackTargetNodes;
+
+    return {
+        allow_replication_in_the_wild: toBooleanValue(rawSpecs.allow_replication_in_the_wild, false),
+        date_created: toNumberValue(rawSpecs.date_created, 0),
+        date_updated: toNumberValue(rawSpecs.date_updated, 0),
+        current_target_nodes: currentTargetNodes,
+        initial_target_nodes: resolvedInitialNodes,
+        job_config: normalizeJobConfig(rawSpecs.job_config),
+        job_id: toNumberValue(rawSpecs.job_id, fallbackJobId),
+        job_tags: toStringList(rawSpecs.job_tags),
+        nr_target_nodes: toNumberValue(rawSpecs.nr_target_nodes, fallbackTargetNodes.length),
+        project_id: toStringValue(rawSpecs.project_id) || fallbackProjectHash,
+        project_name: toStringValue(rawSpecs.project_name) || undefined,
+        spare_nodes: spareNodes,
+    };
+};
+
+const flattenOnlinePlugins = (plugins: OnlineApp['plugins']): FlattenedPlugin[] => {
+    return _.flatten(
+        Object.entries(plugins ?? {}).map(([signature, instances]) => {
+            return (instances ?? []).map((plugin) => {
+                return {
+                    signature,
+                    ...plugin,
+                };
+            });
+        }),
     );
 };
 
-const getPipelineTargetNodes = (pipeline: GenericRecord): R1Address[] => {
-    const rawSpecs = getPipelineSpecs(pipeline);
-    if (!Object.keys(rawSpecs).length) {
+const normalizePipelinePlugins = (pipeline: StoredPipelineApp | null): FlattenedPlugin[] => {
+    if (!pipeline) {
         return [];
     }
 
-    const currentTargetNodes = getKey<unknown[]>(rawSpecs, 'current_target_nodes');
-    const initialTargetNodes = getKey<unknown[]>(rawSpecs, 'initial_target_nodes');
-    const rawTargetNodes = Array.isArray(currentTargetNodes)
-        ? currentTargetNodes
-        : Array.isArray(initialTargetNodes)
-          ? initialTargetNodes
+    const rawPlugins = Array.isArray(pipeline.PLUGINS)
+        ? pipeline.PLUGINS
+        : Array.isArray((pipeline as GenericRecord).plugins)
+          ? ((pipeline as GenericRecord).plugins as unknown[])
           : [];
 
-    return rawTargetNodes.map((node) => normalizeNodeAddress(node)).filter((node): node is R1Address => !!node);
+    return _.flatten(
+        rawPlugins.map((plugin, pluginIndex) => {
+            const pluginObject = toObject(plugin);
+            const signature = toStringValue(pluginObject.SIGNATURE ?? pluginObject.signature);
+            const rawInstances = Array.isArray(pluginObject.INSTANCES)
+                ? pluginObject.INSTANCES
+                : Array.isArray(pluginObject.instances)
+                  ? pluginObject.instances
+                  : [];
+
+            if (!signature || !rawInstances.length) {
+                return [];
+            }
+
+            return rawInstances.map((instance, instanceIndex) => {
+                const instanceObject = toObject(instance);
+                const instanceConf = toObject(instanceObject.instance_conf ?? instanceObject);
+                const instanceId = toStringValue(
+                    instanceConf.INSTANCE_ID ?? instanceObject.instance ?? `instance_${pluginIndex}_${instanceIndex}`,
+                );
+                return {
+                    signature,
+                    instance: instanceId,
+                    start: null,
+                    last_alive: null,
+                    last_error: null,
+                    instance_conf: instanceConf as JobConfig,
+                };
+            });
+        }),
+    );
+};
+
+const buildPipelineDataFromPipeline = (pipeline: StoredPipelineApp | null): PipelineData | undefined => {
+    if (!pipeline) {
+        return undefined;
+    }
+
+    const { DEEPLOY_SPECS, PLUGINS, pipeline_params, ...pipelineData } = pipeline;
+    if (!pipelineData.NAME || !pipelineData.OWNER || !pipelineData.TYPE) {
+        return undefined;
+    }
+
+    return pipelineData as PipelineData;
+};
+
+const resolvePipelineData = ({
+    appId,
+    app,
+    pipeline,
+}: {
+    appId: string;
+    app: OnlineApp;
+    pipeline: StoredPipelineApp | null;
+}): PipelineData | undefined => {
+    if (app.pipeline_data?.NAME && app.pipeline_data?.OWNER && app.pipeline_data?.TYPE) {
+        return app.pipeline_data;
+    }
+
+    const pipelineData = buildPipelineDataFromPipeline(pipeline);
+    if (pipelineData) {
+        return pipelineData;
+    }
+
+    const owner = app.owner || pipeline?.OWNER;
+    if (!owner) {
+        return undefined;
+    }
+
+    return {
+        APP_ALIAS: toStringValue(pipeline?.APP_ALIAS) || appId,
+        INITIATOR_ADDR: app.initiator_addr ?? app.initiator,
+        IS_DEEPLOYED: app.is_deeployed,
+        LAST_UPDATE_TIME: app.last_config,
+        NAME: appId,
+        OWNER: owner,
+        TYPE: toStringValue(pipeline?.TYPE) || 'void',
+        URL: pipeline?.URL,
+    } as PipelineData;
+};
+
+const extractPipelineParams = ({
+    specs,
+    pipeline,
+}: {
+    specs?: DeeploySpecs;
+    pipeline: StoredPipelineApp | null;
+}): Record<string, string> | undefined => {
+    if (specs?.job_config?.pipeline_params && Object.keys(specs.job_config.pipeline_params).length) {
+        return specs.job_config.pipeline_params;
+    }
+    const pipelineParams = toObject(pipeline?.pipeline_params);
+    return Object.keys(pipelineParams).length ? (pipelineParams as Record<string, string>) : undefined;
+};
+
+const hasProjectMismatch = (projectId: string | undefined, runningProjectHash: string): boolean => {
+    if (!projectId) {
+        return false;
+    }
+    return projectId !== runningProjectHash;
 };
 
 const buildRunningJobFromChainJob = (entry: Apps[string], fallbackJobId?: string): RunningJob | null => {
@@ -144,9 +330,9 @@ const buildRunningJobFromChainJob = (entry: Apps[string], fallbackJobId?: string
 
     const jobIdFromEntry = toBigIntValue(entry?.job_id, fallbackJobId ? toBigIntValue(fallbackJobId, 0n) : 0n);
     const id = toBigIntValue(chainJob.id, jobIdFromEntry);
-    const pipeline = toObject(entry?.pipeline);
+    const pipeline = getPipelineSnapshot(entry);
     const specs = getPipelineSpecs(pipeline);
-    const projectHash = toStringValue(chainJob.projectHash) || toStringValue(getKey(specs, 'project_id'));
+    const projectHash = toStringValue(chainJob.projectHash) || toStringValue(specs.project_id);
 
     if (!projectHash) {
         return null;
@@ -199,142 +385,6 @@ export const getRunningJobByIdFromGetApps = (apps: Apps, jobId: string | number 
     return getRunningJobsFromGetApps(apps).find((job) => job.id === parsedId);
 };
 
-const normalizeSpecs = ({
-    rawSpecs,
-    fallbackJobId,
-    fallbackProjectHash,
-    fallbackTargetNodes,
-}: {
-    rawSpecs: GenericRecord;
-    fallbackJobId: number;
-    fallbackProjectHash: string;
-    fallbackTargetNodes: R1Address[];
-}): DeeploySpecs => {
-    const initialTargetNodes = (
-        Array.isArray(getKey(rawSpecs, 'initial_target_nodes')) ? getKey<unknown[]>(rawSpecs, 'initial_target_nodes') : []
-    )
-        ?.map((node) => normalizeNodeAddress(node))
-        .filter((node): node is R1Address => !!node);
-
-    const spareNodes = (Array.isArray(getKey(rawSpecs, 'spare_nodes')) ? getKey<unknown[]>(rawSpecs, 'spare_nodes') : [])
-        ?.map((node) => normalizeNodeAddress(node))
-        .filter((node): node is R1Address => !!node);
-
-    const jobTags = (Array.isArray(getKey(rawSpecs, 'job_tags')) ? getKey<unknown[]>(rawSpecs, 'job_tags') : [])
-        ?.map((tag) => toStringValue(tag))
-        .filter((tag) => !!tag);
-
-    const pipelineParams = toObject(getKey(rawSpecs, 'job_config'));
-
-    return {
-        allow_replication_in_the_wild: toBooleanValue(getKey(rawSpecs, 'allow_replication_in_the_wild'), false),
-        date_created: toNumberValue(getKey(rawSpecs, 'date_created'), 0),
-        date_updated: toNumberValue(getKey(rawSpecs, 'date_updated'), 0),
-        initial_target_nodes: initialTargetNodes?.length ? initialTargetNodes : fallbackTargetNodes,
-        job_config:
-            Object.keys(pipelineParams).length > 0
-                ? (pipelineParams as { pipeline_params?: Record<string, string> })
-                : undefined,
-        job_id: toNumberValue(getKey(rawSpecs, 'job_id'), fallbackJobId),
-        job_tags: jobTags ?? [],
-        nr_target_nodes: toNumberValue(getKey(rawSpecs, 'nr_target_nodes'), fallbackTargetNodes.length),
-        project_id: toStringValue(getKey(rawSpecs, 'project_id')) || fallbackProjectHash,
-        project_name: toStringValue(getKey(rawSpecs, 'project_name')) || undefined,
-        spare_nodes: spareNodes ?? [],
-    };
-};
-
-const flattenOnlinePlugins = (plugins: OnlineApp['plugins']): (AppsPlugin & { signature: string })[] => {
-    return _.flatten(
-        Object.entries(plugins ?? {}).map(([signature, instances]) => {
-            return (instances ?? []).map((plugin) => {
-                return {
-                    signature,
-                    ...plugin,
-                };
-            });
-        }),
-    );
-};
-
-const normalizePipelinePlugins = (pipeline: GenericRecord): (AppsPlugin & { signature: string })[] => {
-    const rawPlugins = getKey<unknown>(pipeline, 'PLUGINS') ?? getKey<unknown>(pipeline, 'plugins');
-    if (!rawPlugins) {
-        return [];
-    }
-
-    if (Array.isArray(rawPlugins)) {
-        return _.flatten(
-            rawPlugins.map((plugin, pluginIndex) => {
-                const pluginObject = toObject(plugin);
-                const signature = toStringValue(getKey(pluginObject, 'SIGNATURE') ?? getKey(pluginObject, 'signature'));
-                const rawInstances =
-                    getKey<unknown[]>(pluginObject, 'INSTANCES') ?? getKey<unknown[]>(pluginObject, 'instances');
-                if (!signature || !Array.isArray(rawInstances)) {
-                    return [];
-                }
-                return rawInstances.map((instance, instanceIndex) => {
-                    const instanceObject = toObject(instance);
-                    const instanceConf = toObject(getKey(instanceObject, 'instance_conf') ?? instanceObject);
-                    const instanceId = toStringValue(
-                        getKey(instanceConf, 'INSTANCE_ID') ??
-                            getKey(instanceObject, 'instance') ??
-                            `instance_${pluginIndex}_${instanceIndex}`,
-                    );
-                    return {
-                        signature,
-                        instance: instanceId,
-                        start: null,
-                        last_alive: null,
-                        last_error: null,
-                        instance_conf: instanceConf as JobConfig,
-                    };
-                });
-            }),
-        );
-    }
-
-    const pluginsObject = toObject(rawPlugins);
-    return _.flatten(
-        Object.entries(pluginsObject).map(([signature, rawInstances]) => {
-            if (!Array.isArray(rawInstances)) {
-                return [];
-            }
-            return rawInstances.map((instance, index) => {
-                const instanceObject = toObject(instance);
-                const instanceConf = toObject(getKey(instanceObject, 'instance_conf') ?? instanceObject);
-                const instanceId = toStringValue(
-                    getKey(instanceConf, 'INSTANCE_ID') ?? getKey(instanceObject, 'instance') ?? `instance_${index}`,
-                );
-                return {
-                    signature,
-                    instance: instanceId,
-                    start: null,
-                    last_alive: null,
-                    last_error: null,
-                    instance_conf: instanceConf as JobConfig,
-                };
-            });
-        }),
-    );
-};
-
-const buildPipelineData = (pipeline: GenericRecord): PipelineData => {
-    const pipelineData = { ...pipeline };
-    delete pipelineData.PLUGINS;
-    delete pipelineData.plugins;
-    delete pipelineData.DEEPLOY_SPECS;
-    delete pipelineData.deeploy_specs;
-    return pipelineData as PipelineData;
-};
-
-const hasProjectMismatch = (projectId: string | undefined, runningProjectHash: string): boolean => {
-    if (!projectId) {
-        return false;
-    }
-    return projectId !== runningProjectHash;
-};
-
 const buildRunningJobFromOnline = ({
     runningJob,
     entry,
@@ -363,7 +413,7 @@ const buildRunningJobFromOnline = ({
                         nodeAddress: R1Address;
                         appId: string;
                         app: OnlineApp;
-                        plugins: (AppsPlugin & { signature: string })[];
+                        plugins: FlattenedPlugin[];
                     } => !!item,
                 );
         }),
@@ -388,9 +438,12 @@ const buildRunningJobFromOnline = ({
     }
 
     const selectedInstances = onlineEntries.filter((item) => item.appId === preferredEntry.appId);
+    if (!selectedInstances.length) {
+        return null;
+    }
+
     const appDetails = preferredEntry.app;
     const specs = appDetails.deeploy_specs;
-
     if (hasProjectMismatch(specs?.project_id, runningJob.projectHash)) {
         return null;
     }
@@ -400,7 +453,7 @@ const buildRunningJobFromOnline = ({
         return null;
     }
 
-    const pipeline = toObject(entry.pipeline);
+    const pipeline = getPipelineSnapshot(entry);
     const pipelineTargetNodes = getPipelineTargetNodes(pipeline);
     const onlineNodes = selectedInstances.map((instance) => instance.nodeAddress);
     const onlineNodesSet = new Set(onlineNodes);
@@ -410,36 +463,27 @@ const buildRunningJobFromOnline = ({
     const offlinePlugins =
         pipelinePlugins.length > 0
             ? pipelinePlugins
-            : selectedInstances[0].plugins.map((plugin) => ({
-                  ...plugin,
-                  start: null,
-                  last_alive: null,
-                  last_error: null,
-              }));
+            : selectedInstances[0].plugins.map((plugin) => {
+                  return {
+                      ...plugin,
+                      start: null,
+                      last_alive: null,
+                      last_error: null,
+                  };
+              });
 
     const mergedNodes = pipelineTargetNodes.length
         ? [...pipelineTargetNodes, ...onlineNodes.filter((nodeAddress) => !pipelineTargetNodes.includes(nodeAddress))]
         : onlineNodes;
 
-    const onlineInstances = selectedInstances.map((instance) => {
-        return {
-            nodeAddress: instance.nodeAddress,
-            nodeAlias: instance.app.node_alias,
-            appId: instance.appId,
-            isOnline: true,
-            plugins: instance.plugins,
-        };
+    const pipelineData = resolvePipelineData({
+        appId: preferredEntry.appId,
+        app: appDetails,
+        pipeline,
     });
-
-    const offlineInstances = missingOfflineNodes.map((nodeAddress) => {
-        return {
-            nodeAddress,
-            nodeAlias: undefined,
-            appId: preferredEntry.appId,
-            isOnline: false,
-            plugins: offlinePlugins,
-        };
-    });
+    if (!pipelineData) {
+        return null;
+    }
 
     const result: RunningJobWithDetails = {
         ...runningJob,
@@ -449,14 +493,37 @@ const buildRunningJobFromOnline = ({
         spareNodes: specs?.spare_nodes,
         jobTags: specs?.job_tags ?? [],
         nodes: mergedNodes,
-        instances: [...onlineInstances, ...offlineInstances],
+        instances: [
+            ...selectedInstances.map((instance) => {
+                return {
+                    nodeAddress: instance.nodeAddress,
+                    nodeAlias: instance.app.node_alias,
+                    appId: instance.appId,
+                    isOnline: true,
+                    plugins: instance.plugins,
+                };
+            }),
+            ...missingOfflineNodes.map((nodeAddress) => {
+                return {
+                    nodeAddress,
+                    nodeAlias: undefined,
+                    appId: preferredEntry.appId,
+                    isOnline: false,
+                    plugins: offlinePlugins,
+                };
+            }),
+        ],
         config: primaryPlugin.instance_conf,
-        pipelineData: appDetails.pipeline_data,
+        pipelineData,
         pluginSemaphoreMap: specs?.job_config?.plugin_semaphore_map,
     };
 
-    if (specs?.job_config?.pipeline_params) {
-        result.pipelineParams = specs.job_config.pipeline_params;
+    const pipelineParams = extractPipelineParams({
+        specs,
+        pipeline,
+    });
+    if (pipelineParams) {
+        result.pipelineParams = pipelineParams;
     }
 
     return result;
@@ -469,25 +536,18 @@ const buildRunningJobFromPipeline = ({
     runningJob: RunningJob;
     entry: Apps[string];
 }): RunningJobWithDetails | null => {
-    const pipeline = toObject(entry.pipeline);
-    if (!Object.keys(pipeline).length) {
+    const pipeline = getPipelineSnapshot(entry);
+    if (!pipeline) {
         return null;
     }
 
-    const rawSpecs = getPipelineSpecs(pipeline);
-    if (!Object.keys(rawSpecs).length) {
-        return null;
-    }
-
-    const preferredNodes = getPipelineTargetNodes(pipeline);
-
-    const targetNodes = preferredNodes ?? [];
+    const targetNodes = getPipelineTargetNodes(pipeline);
     if (!targetNodes.length) {
         return null;
     }
 
     const specs = normalizeSpecs({
-        rawSpecs,
+        rawSpecs: getPipelineSpecs(pipeline),
         fallbackJobId: toNumberValue(entry.job_id, Number(runningJob.id)),
         fallbackProjectHash: runningJob.projectHash,
         fallbackTargetNodes: targetNodes,
@@ -502,9 +562,16 @@ const buildRunningJobFromPipeline = ({
         return null;
     }
 
-    const appId =
-        toStringValue(getKey(pipeline, 'NAME') ?? getKey(pipeline, 'name') ?? getKey(pipeline, 'APP_ALIAS')) ||
-        `job_${runningJob.id.toString()}`;
+    const appId = toStringValue(pipeline.NAME) || toStringValue(pipeline.APP_ALIAS) || `job_${runningJob.id.toString()}`;
+    const pipelineData =
+        buildPipelineDataFromPipeline(pipeline) ??
+        ({
+            APP_ALIAS: toStringValue(pipeline.APP_ALIAS) || appId,
+            NAME: appId,
+            OWNER: pipeline.OWNER,
+            TYPE: toStringValue(pipeline.TYPE) || 'void',
+            URL: pipeline.URL,
+        } as PipelineData);
 
     const result: RunningJobWithDetails = {
         ...runningJob,
@@ -512,7 +579,7 @@ const buildRunningJobFromPipeline = ({
         projectName: specs.project_name,
         allowReplicationInTheWild: specs.allow_replication_in_the_wild,
         spareNodes: specs.spare_nodes,
-        jobTags: specs.job_tags,
+        jobTags: specs.job_tags ?? [],
         nodes: targetNodes,
         instances: targetNodes.map((nodeAddress) => {
             return {
@@ -524,11 +591,16 @@ const buildRunningJobFromPipeline = ({
             };
         }),
         config: plugins[0].instance_conf,
-        pipelineData: buildPipelineData(pipeline),
+        pipelineData,
+        pluginSemaphoreMap: specs.job_config?.plugin_semaphore_map,
     };
 
-    if (specs.job_config?.pipeline_params) {
-        result.pipelineParams = specs.job_config.pipeline_params;
+    const pipelineParams = extractPipelineParams({
+        specs,
+        pipeline,
+    });
+    if (pipelineParams) {
+        result.pipelineParams = pipelineParams;
     }
 
     return result;
@@ -572,10 +644,8 @@ export const getProjectNameFromGetApps = (apps: Apps, projectHash: string): stri
             }
         }
 
-        const pipeline = toObject(jobEntry?.pipeline);
-        const specs = getPipelineSpecs(pipeline);
-        const projectId = toStringValue(getKey(specs, 'project_id'));
-        const projectName = toStringValue(getKey(specs, 'project_name'));
+        const projectId = toStringValue(jobEntry?.pipeline?.DEEPLOY_SPECS?.project_id);
+        const projectName = toStringValue(jobEntry?.pipeline?.DEEPLOY_SPECS?.project_name);
         if (projectId === projectHash && projectName) {
             return projectName;
         }
@@ -592,6 +662,10 @@ export const getAppOwnerFromGetApps = (apps: Apps): EthAddress | undefined => {
                     return app.owner;
                 }
             }
+        }
+
+        if (jobEntry?.pipeline?.OWNER) {
+            return jobEntry.pipeline.OWNER;
         }
     }
     return undefined;
