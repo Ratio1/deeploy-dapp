@@ -140,7 +140,8 @@ function Tunnels() {
             .sort(compareTunnelAlias);
     }, [searchQuery, statusFilter, tunnels]);
 
-    const statusBadgeBaseClass = 'rounded-full border px-3 py-1.5 font-semibold transition-opacity hover:opacity-80';
+    const statusBadgeBaseClass =
+        'cursor-pointer rounded-full border px-3 py-1.5 font-semibold transition-opacity hover:opacity-80';
     const statusFilterOptions: Array<{
         value: TunnelStatus | 'all';
         label: string;
