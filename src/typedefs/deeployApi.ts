@@ -5,7 +5,7 @@ import { EthAddress, R1Address } from './blockchain';
 type Apps = {
     [jobId: string]: {
         job_id: number;
-        pipeline: Record<string, any> | null;
+        pipeline: StoredPipelineApp | null;
         online: OnlineApps;
         chain_job: ChainJob | null;
     };
@@ -29,13 +29,14 @@ type ChainJob = {
 };
 
 type OnlineApp = {
-    initiator: R1Address;
+    initiator?: R1Address;
+    initiator_addr?: R1Address;
     node_alias?: string;
     owner: EthAddress;
-    last_config: string; // ISO-like timestamp string
+    last_config?: string; // ISO-like timestamp string
     is_deeployed: boolean;
     deeploy_specs: DeeploySpecs;
-    pipeline_data: PipelineData;
+    pipeline_data?: PipelineData;
     plugins: {
         [pluginName: string]: AppsPlugin[];
     };
@@ -48,38 +49,54 @@ type OnlineApps = {
 };
 
 type DeeploySpecs = {
-    allow_replication_in_the_wild: boolean;
-    date_created: number;
-    date_updated: number;
-    initial_target_nodes: R1Address[];
+    allow_replication_in_the_wild?: boolean;
+    date_created?: number;
+    date_updated?: number;
+    current_target_nodes?: R1Address[];
+    initial_target_nodes?: R1Address[];
     job_config?: {
         pipeline_params?: Record<string, string>;
         plugin_semaphore_map?: Record<string, string>;
     };
-    job_id: number;
-    job_tags: string[];
-    nr_target_nodes: number;
-    project_id: string; // projectHash
+    job_id?: number;
+    job_tags?: string[];
+    nr_target_nodes?: number;
+    project_id?: string; // projectHash
     project_name: string | undefined;
-    spare_nodes: R1Address[];
+    spare_nodes?: R1Address[];
 };
 
 type PipelineData = {
-    APP_ALIAS: string;
-    INITIATOR_ADDR: R1Address;
-    INITIATOR_ID: string;
-    IS_DEEPLOYED: boolean;
-    LAST_UPDATE_TIME: string; // ISO-like timestamp string
-    LIVE_FEED: boolean;
-    MODIFIED_BY_ADDR: R1Address;
-    MODIFIED_BY_ID: string;
+    APP_ALIAS?: string;
+    INITIATOR_ADDR?: R1Address;
+    INITIATOR_ID?: string;
+    IS_DEEPLOYED?: boolean;
+    LAST_UPDATE_TIME?: string; // ISO-like timestamp string
+    LIVE_FEED?: boolean;
+    MODIFIED_BY_ADDR?: R1Address;
+    MODIFIED_BY_ID?: string;
     NAME: string;
     OWNER: EthAddress;
-    SESSION_ID: string;
-    TIME: string; // ISO-like timestamp string
-    TYPE: (typeof PIPELINE_INPUT_TYPES)[number];
+    SESSION_ID?: string;
+    TIME?: string; // ISO-like timestamp string
+    TYPE: (typeof PIPELINE_INPUT_TYPES)[number] | string;
     URL?: string;
-    VALIDATED: boolean;
+    VALIDATED?: boolean;
+};
+
+type StoredPipelinePlugin = {
+    SIGNATURE: string;
+    INSTANCES: Record<string, any>[];
+};
+
+type StoredPipelineApp = Partial<PipelineData> & {
+    NAME: string;
+    OWNER: EthAddress;
+    TYPE: (typeof PIPELINE_INPUT_TYPES)[number] | string;
+    DEEPLOY_SPECS?: Partial<DeeploySpecs>;
+    PLUGINS?: StoredPipelinePlugin[];
+    pipeline_params?: Record<string, string>;
+    [key: string]: any;
 };
 
 type AppsPlugin = {
@@ -150,7 +167,7 @@ type GetAppsResponse = DeeployDefaultResponse & {
 type GetR1fsJobPipelineResponse = DeeployDefaultResponse & {
     job_id: number;
     pipeline_cid?: string;
-    pipeline?: Record<string, any>;
+    pipeline?: StoredPipelineApp;
     auth: {
         sender: EthAddress;
         nonce: string;
@@ -191,4 +208,6 @@ export type {
     OnlineApp,
     OnlineApps,
     PipelineData,
+    StoredPipelineApp,
+    StoredPipelinePlugin,
 };
