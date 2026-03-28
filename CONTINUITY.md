@@ -1,0 +1,35 @@
+- Goal (incl. success criteria):
+  - Publish current Stack-related work via existing branch/PR lanes:
+    - Update `deeploy-dapp` draft PR #76 (`fix-dynamic-env` -> `develop`).
+    - Update `edge_node` draft PR #376 (`refactor-car-ports` -> `develop`).
+    - Push `ratio1-sc` only if there are relevant new SC changes.
+  - Success: requested repos are pushed to the intended heads and PR state is coherent without duplicates.
+- Constraints/Assumptions:
+  - User explicitly requested continuity ledger workflow.
+  - Current collaboration mode is Plan Mode; execution must be planned before any mutating actions.
+  - Avoid duplicate PRs when a matching head PR already exists.
+  - Assumption chosen after user “Continue”: reuse existing PRs and avoid extra confirmation unless blocked.
+- Key decisions:
+  - Reuse existing open PRs (#76, #376, #71) rather than creating new ones.
+  - For `ratio1-sc`, push only if there are relevant unpushed commits/changes tied to this request.
+- State:
+  - Decision-complete planning for publish sequence.
+- Done:
+  - Verified `deeploy-dapp` detached `HEAD` at `fb12067` (contained in `fix-dynamic-env`) with local modifications.
+  - Verified `edge_node` branch `refactor-car-ports` with local modifications.
+  - Verified `ratio1-sc` branch `codex/stack-batch-extend` with only local `README.md` modification.
+  - Verified GitHub auth active.
+  - Verified existing PRs and status:
+    - dapp PR #76 draft (base `develop`, head `fix-dynamic-env`)
+    - edge PR #376 draft (base `develop`, head `refactor-car-ports`)
+    - sc PR #71 open non-draft (base `develop`, head `codex/stack-batch-extend`)
+- Now:
+  - Provide execution-ready plan for commit/push/update across repos.
+- Next:
+  - Execute plan once out of Plan Mode.
+- Open questions (UNCONFIRMED if needed):
+  - UNCONFIRMED: include `ratio1-sc` README-only local change in PR #71 or leave SC untouched.
+- Working set (files/ids/commands):
+  - File: `CONTINUITY.md`
+  - PRs: dapp #76, edge #376, sc #71
+  - Commands used: `git status --short`, `gh pr view`, `gh auth status`

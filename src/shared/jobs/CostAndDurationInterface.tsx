@@ -112,6 +112,22 @@ export default function CostAndDurationInterface({
                 </>
             )}
 
+            {summaryItems.length === 5 && (
+                <>
+                    <div className="grid grid-cols-3 gap-2">
+                        {summaryItems.slice(0, 3).map((item, index) => (
+                            <MasonryCard key={`${item.label}-${index}`} {...item} />
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                        {summaryItems.slice(3, 5).map((item, index) => (
+                            <MasonryCard key={`${item.label}-${index}`} {...item} />
+                        ))}
+                    </div>
+                </>
+            )}
+
             <BorderedCard>
                 <div className="col w-full gap-4">
                     <Slider
@@ -215,7 +231,7 @@ function MasonryCard({ label, value, tag }: { label: string; value: string | num
     return (
         <SlateCard key={label}>
             <div className="col -my-1 items-center justify-center text-center">
-                <div className="text-[17px] font-semibold">{value}</div>
+                <div className="text-[17px] font-semibold whitespace-pre-line">{value}</div>
                 <Label value={label} tag={tag} />
             </div>
         </SlateCard>

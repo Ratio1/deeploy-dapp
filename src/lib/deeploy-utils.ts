@@ -22,6 +22,9 @@ import {
     ServiceDraftJob,
     ServiceJobDeployment,
     ServiceJobSpecifications,
+    StackDraftJob,
+    StackJobDeployment,
+    StackJobSpecifications,
 } from '@typedefs/deeploys';
 import {
     BasePluginType,
@@ -116,11 +119,25 @@ export const getJobCost = (job: DraftJob): bigint => {
         return 0n;
     }
 
-    const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-    const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
-
     const targetNodesCount: bigint = BigInt(job.specifications.targetNodesCount);
-    const costPerEpoch: bigint = targetNodesCount * getResourcesCostPerEpoch(containerOrWorkerType, gpuType);
+    let costPerEpoch: bigint;
+
+    if (job.jobType === JobType.Stack) {
+        const stackJob = job as StackDraftJob;
+        const perNodeCost = stackJob.specifications.containers.reduce((acc, container) => {
+            const containerType = genericContainerTypes.find((type) => type.name === container.containerType);
+            if (!containerType) {
+                return acc;
+            }
+            const gpuType = container.gpuType ? gpuTypes.find((type) => type.name === container.gpuType) : undefined;
+            return acc + getResourcesCostPerEpoch(containerType, gpuType);
+        }, 0n);
+        costPerEpoch = targetNodesCount * perNodeCost;
+    } else {
+        const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
+        const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
+        costPerEpoch = targetNodesCount * getResourcesCostPerEpoch(containerOrWorkerType, gpuType);
+    }
 
     // +1 to account for the current ongoing epoch
     const epochs = 1n + BigInt(job.costAndDuration.paymentMonthsCount) * 30n * (environment === 'devnet' ? 24n : 1n);
@@ -153,6 +170,12 @@ export const formatUsdc = (amount: bigint, precision: number = 2): number => {
 };
 
 export function getContainerOrWorkerType(jobType: JobType, specifications: JobSpecifications): BaseContainerOrWorkerType {
+    if (jobType === JobType.Stack) {
+        const stackSpecs = specifications as StackJobSpecifications;
+        const firstContainer = stackSpecs.containers?.[0];
+        return genericContainerTypes.find((type) => type.name === firstContainer?.containerType) ?? genericContainerTypes[0];
+    }
+
     const containerOrWorkerType = (
         jobType === JobType.Generic
             ? genericContainerTypes.find((type) => type.name === (specifications as GenericJobSpecifications).containerType)
@@ -349,6 +372,95 @@ export const formatServiceDraftJobPayload = (job: ServiceDraftJob) => {
     const serviceContainerType: BaseContainerOrWorkerType = getContainerOrWorkerType(JobType.Service, job.specifications);
     const service: Service = services.find((service) => service.id === job.serviceId)!;
     return formatServiceJobPayload(serviceContainerType, service, job.specifications, job.deployment);
+};
+
+type StackPayloadItem = {
+    stackId: string;
+    containerRef: string;
+    containerAlias: string;
+    stackIndex: number;
+    payload: Record<string, unknown>;
+};
+
+const generateStackId = () => {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+
+    return `stack-${Date.now()}`;
+};
+
+export const formatStackDraftJobPayloads = (job: StackDraftJob): StackPayloadItem[] => {
+    const stackId = job.deployment.stackId || generateStackId();
+    const stackAlias = job.deployment.jobAlias;
+    const stackSize = job.specifications.containers.length;
+
+    const jobTags = formatJobTags(job.specifications);
+    const targetNodes = formatNodes(job.deployment.targetNodes);
+    const targetNodesCount = formatTargetNodesCount(targetNodes, job.specifications.targetNodesCount);
+    const spareNodes = formatNodes(job.deployment.spareNodes);
+
+    return job.specifications.containers
+        .map((containerSpec, index) => {
+            const deploymentContainer = job.deployment.containers.find(
+                (container) => container.containerRef === containerSpec.containerRef,
+            );
+
+            if (!deploymentContainer) {
+                return undefined;
+            }
+
+            const containerType = genericContainerTypes.find((type) => type.name === containerSpec.containerType);
+
+            if (!containerType) {
+                return undefined;
+            }
+
+            const { pluginConfig, pluginSignature } = formatGenericPluginConfigAndSignature(
+                formatContainerResources(containerType),
+                deploymentContainer,
+            );
+
+            const customParams = formatGenericJobCustomParams(deploymentContainer.customParams);
+            const containerAlias = deploymentContainer.containerAlias.toLowerCase();
+
+            return {
+                stackId,
+                containerRef: containerSpec.containerRef,
+                containerAlias,
+                stackIndex: index,
+                payload: {
+                    app_alias: containerAlias,
+                    nonce: generateDeeployNonce(),
+                    target_nodes: targetNodes,
+                    spare_nodes: spareNodes,
+                    allow_replication_in_the_wild: job.deployment.allowReplicationInTheWild,
+                    target_nodes_count: targetNodesCount,
+                    job_tags: jobTags,
+                    plugins: [
+                        {
+                            plugin_name: containerSpec.containerRef,
+                            plugin_signature: pluginSignature,
+                            ...pluginConfig,
+                            ...customParams,
+                        },
+                    ],
+                    pipeline_input_type: 'void',
+                    pipeline_input_uri: null,
+                    chainstore_response: true,
+                    stack_job_config: {
+                        stack_id: stackId,
+                        stack_alias: stackAlias,
+                        stack_index: index,
+                        stack_size: stackSize,
+                        stack_container_ref: containerSpec.containerRef,
+                        stack_container_alias: containerAlias,
+                        stack_type: JobType.Stack,
+                    },
+                },
+            } as StackPayloadItem;
+        })
+        .filter((item): item is StackPayloadItem => !!item);
 };
 
 const formatGenericJobVariables = (plugin: GenericPlugin) => {

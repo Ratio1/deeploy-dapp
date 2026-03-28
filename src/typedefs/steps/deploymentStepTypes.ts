@@ -125,6 +125,11 @@ type GenericPlugin = {
     customParams: Array<CustomParameterEntry>;
 };
 
+type StackContainerDeployment = GenericPlugin & {
+    containerRef: string;
+    containerAlias: string;
+};
+
 type NativePlugin = {
     // Signature
     pluginSignature: (typeof PLUGIN_SIGNATURE_TYPES)[number];
@@ -196,7 +201,12 @@ type ServiceJobDeployment = BaseJobDeployment &
     serviceReplica?: R1Address;
 };
 
-type JobDeployment = BaseJobDeployment & (GenericJobDeployment | NativeJobDeployment | ServiceJobDeployment);
+type StackJobDeployment = BaseJobDeployment & {
+    stackId?: string;
+    containers: StackContainerDeployment[];
+};
+
+type JobDeployment = BaseJobDeployment & (GenericJobDeployment | NativeJobDeployment | ServiceJobDeployment | StackJobDeployment);
 
 export type {
     BaseJobDeployment,
@@ -216,6 +226,8 @@ export type {
     NativePlugin,
     Plugin,
     ServiceJobDeployment,
+    StackContainerDeployment,
+    StackJobDeployment,
     VolumesEntry,
     WorkerDeploymentType,
 };

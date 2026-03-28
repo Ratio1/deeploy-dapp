@@ -60,6 +60,10 @@ export const routeInfo = {
         title: 'Job',
         description: 'Inspect, manage & update your job',
     },
+    [`${routePath.deeploys}/${routePath.stack}`]: {
+        title: 'Stack',
+        description: 'Inspect and manage your stack',
+    },
     [`${routePath.deeploys}/${routePath.legacyRequester}`]: {
         title: 'Legacy Requester',
         description: 'Legacy interface for requesting deployments',
@@ -147,6 +151,12 @@ export const routes: AppRoute[] = [
     },
     {
         path: `${routePath.deeploys}/${routePath.job}/:jobId/${routePath.extend}`,
+    },
+    {
+        path: `${routePath.deeploys}/${routePath.stack}/:stackId`,
+    },
+    {
+        path: `${routePath.deeploys}/${routePath.stack}/:stackId/${routePath.extend}`,
     },
     {
         path: `${routePath.tunnels}/:id`,

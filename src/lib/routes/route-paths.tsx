@@ -13,6 +13,7 @@ export const routePath = {
     jobDraft: 'job-draft',
     project: 'project',
     job: 'job',
+    stack: 'stack',
     //
     tunnels: '/tunnels',
     account: '/account',

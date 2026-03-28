@@ -41,6 +41,7 @@ const JOB_TYPE_STEPS: Record<JobType, Step[]> = {
     [JobType.Generic]: [...MAIN_EDITING_STEPS, Step.REVIEW_AND_CONFIRM],
     [JobType.Native]: [...MAIN_EDITING_STEPS, Step.PLUGINS, Step.REVIEW_AND_CONFIRM],
     [JobType.Service]: [...MAIN_EDITING_STEPS, Step.REVIEW_AND_CONFIRM], // Editing service type is disabled for now
+    [JobType.Stack]: [...MAIN_EDITING_STEPS, Step.REVIEW_AND_CONFIRM],
 };
 
 export default function JobEditFormWrapper({
@@ -417,6 +418,9 @@ export default function JobEditFormWrapper({
 
             case JobType.Service:
                 return getServiceSchemaDefaults();
+
+            case JobType.Stack:
+                return getGenericSchemaDefaults();
 
             default:
                 return {};

@@ -2,12 +2,20 @@ import { genericContainerTypes, gpuTypes, nativeWorkerTypes, RunningJobResources
 import { serviceContainerTypes } from '@data/services';
 import { EthAddress, R1Address } from './blockchain';
 import { AppsPlugin, JobConfig, PipelineData } from './deeployApi';
-import { GenericJobDeployment, JobDeployment, NativeJobDeployment, ServiceJobDeployment } from './steps/deploymentStepTypes';
+import {
+    GenericJobDeployment,
+    JobDeployment,
+    NativeJobDeployment,
+    ServiceJobDeployment,
+    StackContainerDeployment,
+    StackJobDeployment,
+} from './steps/deploymentStepTypes';
 
 enum JobType {
     Generic = 'Generic',
     Native = 'Native',
     Service = 'Service',
+    Stack = 'Stack',
 }
 
 enum ProjectPage {
@@ -40,8 +48,19 @@ type ServiceJobSpecifications = BaseJobSpecifications & {
     serviceContainerType: (typeof serviceContainerTypes)[number]['name'];
 };
 
+type StackContainerSpecification = {
+    containerRef: string;
+    containerType: (typeof genericContainerTypes)[number]['name'];
+    gpuType?: (typeof gpuTypes)[number]['name'];
+};
+
+type StackJobSpecifications = BaseJobSpecifications & {
+    type: 'Stack';
+    containers: StackContainerSpecification[];
+};
+
 type JobSpecifications = BaseJobSpecifications &
-    (GenericJobSpecifications | NativeJobSpecifications | ServiceJobSpecifications);
+    (GenericJobSpecifications | NativeJobSpecifications | ServiceJobSpecifications | StackJobSpecifications);
 
 // Cost and Duration
 type JobCostAndDuration = {
@@ -87,7 +106,14 @@ type ServiceDraftJob = BaseDraftJob & {
     tunnelURL?: string;
 };
 
-type DraftJob = GenericDraftJob | NativeDraftJob | ServiceDraftJob;
+type StackDraftJob = BaseDraftJob & {
+    jobType: JobType.Stack;
+    specifications: StackJobSpecifications;
+    deployment: StackJobDeployment;
+    stackRunningJobIds?: bigint[];
+};
+
+type DraftJob = GenericDraftJob | NativeDraftJob | ServiceDraftJob | StackDraftJob;
 
 type PaidDraftJob = Extract<DraftJob, { paid: true }>;
 
@@ -129,6 +155,15 @@ type RunningJobWithDetails = RunningJob & {
         isOnline?: boolean;
         plugins: (AppsPlugin & { signature: string })[];
     }[];
+    stack?: {
+        stackId: string;
+        stackAlias: string;
+        stackIndex: number;
+        stackSize: number;
+        containerRef: string;
+        containerAlias: string;
+        stackType: string;
+    };
     config: JobConfig;
     pipelineData: PipelineData;
     pluginSemaphoreMap?: Record<string, string>;
@@ -165,4 +200,9 @@ export type {
     ServiceDraftJob,
     ServiceJobDeployment,
     ServiceJobSpecifications,
+    StackContainerSpecification,
+    StackDraftJob,
+    StackJobDeployment,
+    StackJobSpecifications,
+    StackContainerDeployment,
 };

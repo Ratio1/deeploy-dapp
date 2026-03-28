@@ -26,6 +26,7 @@ export default function SpecsNodesSection({
     const containerOrWorkerTypeName: string = watch(
         `specifications.${jobType === JobType.Native ? 'workerType' : 'containerType'}`,
     );
+    const stackContainers: { containerType: string }[] = watch('specifications.containers');
 
     const targetNodesCount: number = watch('specifications.targetNodesCount');
 
@@ -40,12 +41,31 @@ export default function SpecsNodesSection({
     const [skipFirstMutation, setSkipFirstMutation] = useState<boolean>(true);
 
     useEffect(() => {
+        if (jobType === JobType.Stack) {
+            const selectedTypes = (stackContainers ?? [])
+                .map((container) => genericContainerTypes.find((option) => option.name === container.containerType))
+                .filter((option): option is ContainerOrWorkerType => !!option);
+
+            if (!selectedTypes.length) {
+                setContainerOrWorkerType(undefined);
+                return;
+            }
+
+            const minimalBalancing = Math.max(...selectedTypes.map((option) => option.minimalBalancing));
+
+            setContainerOrWorkerType({
+                ...selectedTypes[0],
+                minimalBalancing,
+            });
+            return;
+        }
+
         setContainerOrWorkerType(
             (jobType === JobType.Native ? nativeWorkerTypes : genericContainerTypes).find(
                 (option) => option.name === containerOrWorkerTypeName,
             ),
         );
-    }, [containerOrWorkerTypeName]);
+    }, [containerOrWorkerTypeName, jobType, stackContainers]);
 
     useEffect(() => {
         if (typeof initialTargetNodesCount === 'number') {
@@ -60,6 +80,10 @@ export default function SpecsNodesSection({
 
     useEffect(() => {
         if (containerOrWorkerType && containerOrWorkerType.minimalBalancing) {
+            if (jobType === JobType.Stack) {
+                return;
+            }
+
             if (skipFirstMutation) {
                 setSkipFirstMutation(false);
                 return;
@@ -67,7 +91,7 @@ export default function SpecsNodesSection({
 
             setValue('specifications.targetNodesCount', containerOrWorkerType.minimalBalancing);
         }
-    }, [containerOrWorkerType, setValue]);
+    }, [containerOrWorkerType, jobType, setValue, skipFirstMutation]);
 
     useEffect(() => {
         const initialValue = initialTargetNodesCountRef.current;
@@ -98,7 +122,9 @@ export default function SpecsNodesSection({
                             name="specifications.targetNodesCount"
                             label="Target Nodes Count"
                             tag={
-                                containerOrWorkerType.minimalBalancing && containerOrWorkerType.minimalBalancing > 1
+                                jobType !== JobType.Stack &&
+                                containerOrWorkerType.minimalBalancing &&
+                                containerOrWorkerType.minimalBalancing > 1
                                     ? `Minimal Balancing: ${containerOrWorkerType.minimalBalancing}`
                                     : undefined
                             }

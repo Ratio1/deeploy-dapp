@@ -41,3 +41,34 @@ export const serviceSpecificationsSchema = baseSpecificationsSchema.extend({
         required_error: 'Container type is required',
     }),
 });
+
+export const stackSpecificationsSchema = baseSpecificationsSchema.extend({
+    containers: z
+        .array(
+            z.object({
+                containerRef: z
+                    .string({ required_error: 'Container ref is required' })
+                    .min(1, 'Container ref is required')
+                    .max(64, 'Container ref cannot exceed 64 characters'),
+                containerType: z.enum(genericContainerTypes.map((type) => type.name) as [string, ...string[]], {
+                    required_error: 'Container type is required',
+                }),
+                gpuType: z
+                    .union([z.literal(''), z.enum(gpuTypes.map((type) => type.name) as [string, ...string[]])])
+                    .optional(),
+            }),
+        )
+        .min(1, 'At least one container is required')
+        .max(5, 'Only 5 containers allowed')
+        .superRefine((containers, ctx) => {
+            const refs = containers.map((container) => container.containerRef.trim()).filter((ref) => !!ref);
+            const uniqueRefs = new Set(refs);
+            if (uniqueRefs.size !== refs.length) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Container references must be unique',
+                    path: [],
+                });
+            }
+        }),
+});

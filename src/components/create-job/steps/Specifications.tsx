@@ -5,6 +5,7 @@ import { useFormContext } from 'react-hook-form';
 import GenericSpecifications from './specifications/GenericSpecifications';
 import NativeSpecifications from './specifications/NativeSpecifications';
 import ServiceSpecifications from './specifications/ServiceSpecifications';
+import StackSpecifications from './specifications/StackSpecifications';
 
 function Specifications({
     isEditingRunningJob = false,
@@ -52,6 +53,16 @@ function Specifications({
                     <ServiceSpecifications
                         isEditingRunningJob={isEditingRunningJob}
                         disablePaymentAffectingControls={isJobPaid}
+                    />
+                );
+
+            case JobType.Stack:
+                return (
+                    <StackSpecifications
+                        isEditingRunningJob={isEditingRunningJob}
+                        disablePaymentAffectingControls={isJobPaid}
+                        initialTargetNodesCount={initialTargetNodesCount}
+                        onTargetNodesCountDecrease={onTargetNodesCountDecrease}
                     />
                 );
 
