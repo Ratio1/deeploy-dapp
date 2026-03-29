@@ -35,6 +35,7 @@
   - Moved add actions to bottom:
     - native `Add plugin` card now renders below existing plugin details
     - stack `Add Container` card now renders below existing container details.
+  - Moved stack `More Containers Required` alert to bottom, after `Add Container`.
   - Verification executed:
     - `npm run lint` ✅
     - `npm run build` ✅

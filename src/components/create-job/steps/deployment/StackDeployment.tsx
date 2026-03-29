@@ -255,13 +255,6 @@ export default function StackDeployment({ isEditingRunningJob }: { isEditingRunn
 
     return (
         <div className="col gap-6">
-            {!!rootContainersError && (
-                <DeeployErrorAlert
-                    title="More Containers Required"
-                    description="At least 2 containers are required before continuing."
-                />
-            )}
-
             {deploymentFields.map((field, index) => {
                 const baseName = `deployment.containers.${index}`;
                 const specsName = `specifications.containers.${index}`;
@@ -431,6 +424,13 @@ export default function StackDeployment({ isEditingRunningJob }: { isEditingRunn
                     addLabel="Add Container"
                     options={RUNNER_OPTIONS}
                     customCallback={(option) => onAddContainer(option.pluginType)}
+                />
+            )}
+
+            {!!rootContainersError && (
+                <DeeployErrorAlert
+                    title="More Containers Required"
+                    description="At least 2 containers are required before continuing."
                 />
             )}
         </div>
