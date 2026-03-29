@@ -1,24 +1,14 @@
-import { BaseContainerOrWorkerType, GpuType } from '@data/containerResources';
-import { environment } from '@lib/config';
-import { formatUsdc, getContainerOrWorkerType, getGpuType, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
+import { formatUsdc, getJobCost } from '@lib/deeploy-utils';
 import CardWithItems from '@shared/jobs/projects/CardWithItems';
 import { UsdcValue } from '@shared/UsdcValue';
-import { DraftJob, JobType } from '@typedefs/deeploys';
+import { DraftJob } from '@typedefs/deeploys';
 
 export default function DraftStats({ jobs }: { jobs: DraftJob[] | undefined }) {
     if (!jobs || jobs.length === 0) {
         return null;
     }
 
-    const getJobMonthlyCost = (job: DraftJob) => {
-        const containerOrWorkerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-        const gpuType: GpuType | undefined = job.jobType === JobType.Service ? undefined : getGpuType(job.specifications);
-
-        const targetNodesCount: bigint = BigInt(job.specifications.targetNodesCount);
-        const costPerEpoch = getResourcesCostPerEpoch(containerOrWorkerType, gpuType);
-
-        return targetNodesCount * costPerEpoch * 30n * (environment === 'devnet' ? 24n : 1n);
-    };
+    const getJobMonthlyCost = (job: DraftJob) => getJobCost(job) / BigInt(job.costAndDuration.paymentMonthsCount || 1);
 
     const monthlyCostEstimate = jobs.reduce((acc, job) => acc + getJobMonthlyCost(job), 0n);
 

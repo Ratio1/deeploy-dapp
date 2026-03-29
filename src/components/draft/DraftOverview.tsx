@@ -16,6 +16,7 @@ import DraftStats from './DraftStats';
 import GenericDraftJobsList from './job-lists/GenericDraftJobsList';
 import NativeDraftJobsList from './job-lists/NativeDraftJobsList';
 import ServiceDraftJobsList from './job-lists/ServiceDraftJobsList';
+import StackDraftJobsList from './job-lists/StackDraftJobsList';
 
 export default function DraftOverview({
     project,
@@ -90,6 +91,9 @@ export default function DraftOverview({
                         )}
                         {draftJobs.filter((job) => job.jobType === JobType.Service).length > 0 && (
                             <ServiceDraftJobsList jobs={draftJobs.filter((job) => job.jobType === JobType.Service)} />
+                        )}
+                        {draftJobs.filter((job) => job.jobType === JobType.Stack).length > 0 && (
+                            <StackDraftJobsList jobs={draftJobs.filter((job) => job.jobType === JobType.Stack)} />
                         )}
                     </>
                 )}

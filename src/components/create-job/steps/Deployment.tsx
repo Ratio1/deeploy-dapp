@@ -4,6 +4,7 @@ import { useFormContext } from 'react-hook-form';
 import GenericDeployment from './deployment/GenericDeployment';
 import NativeDeployment from './deployment/NativeDeployment';
 import ServiceDeployment from './deployment/ServiceDeployment';
+import StackDeployment from './deployment/StackDeployment';
 
 function Deployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) {
     const { watch } = useFormContext();
@@ -24,6 +25,9 @@ function Deployment({ isEditingRunningJob }: { isEditingRunningJob?: boolean }) 
 
             case JobType.Service:
                 return <ServiceDeployment isEditingRunningJob={isEditingRunningJob} />;
+
+            case JobType.Stack:
+                return <StackDeployment isEditingRunningJob={isEditingRunningJob} />;
 
             default:
                 return <div>Error: Unknown deployment type</div>;

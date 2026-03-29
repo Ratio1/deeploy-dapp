@@ -1,0 +1,61 @@
+- Goal (incl. success criteria):
+  - Refactor Stack job flow so that:
+    - Step 1 contains stack identity + target node configuration.
+    - Step 3 contains container type/GPU selection and per-container deployment specs.
+    - Stack starts with zero containers and requires at least 2 containers before continuing.
+    - Stack step order is `Specifications -> Deployment -> Cost`.
+- Constraints/Assumptions:
+  - Keep changes scoped to `deeploy-dapp` and backwards-compatible where possible.
+  - Reuse existing UI patterns (native plugin add card, existing deployment sections).
+- Key decisions:
+  - Keep `specifications.containers` as stack container metadata source, but edit it from Step 3.
+  - Enforce minimum 2 containers in deployment schema (`deployment.containers`).
+  - Keep non-Stack step order unchanged.
+- State:
+  - Implementation completed and locally verified.
+- Done:
+  - Updated Stack step order (create + draft edit) to `SPECIFICATIONS, DEPLOYMENT, COST_AND_DURATION`.
+  - Updated stack defaults to start with no containers.
+  - Moved Stack identity and target nodes card into Stack Step 1 (`StackSpecifications`).
+  - Moved container type/GPU selection into Stack Step 3 (`StackDeployment`) with add flow similar to native plugin add:
+    - select container type (+ optional GPU)
+    - choose Container App Runner or Worker App Runner when adding.
+  - Added container add/remove handling in Stack Step 3 and preserved dynamic env provider behavior.
+  - Updated validation:
+    - `specifications.containers` no longer min(1)
+    - `deployment.containers` now min(2).
+  - Updated stack preview step labels/order.
+  - Updated `SpecsNodesSection` so Stack target node count renders even when no containers exist, without stack minimal-balancing warnings.
+  - Removed intermediate add-time container-spec panel in Stack deployment:
+    - clicking `Container App Runner` / `Worker App Runner` now directly creates the container card
+    - container type/GPU are selected only inside that container card.
+  - Updated Stack draft project summary row:
+    - duration rendered with `SmallTag`
+    - container column now uses grouped summary (e.g. `1x ENTRY 2x LOW1`) instead of `X containers`.
+  - Moved add actions to bottom:
+    - native `Add plugin` card now renders below existing plugin details
+    - stack `Add Container` card now renders below existing container details.
+  - Moved stack `More Containers Required` alert to bottom, after `Add Container`.
+  - Verification executed:
+    - `npm run lint` ✅
+    - `npm run build` ✅
+    - Playwright screenshots captured ✅
+      - `.playwright/stack-flow-refactor-desktop.png`
+      - `.playwright/stack-flow-refactor-mobile.png`
+- Now:
+  - Latest UX tweaks implemented and verified locally; pending user confirmation for push.
+- Next:
+  - If approved, stage/commit/push and update PR.
+- Open questions (UNCONFIRMED if needed):
+  - None.
+- Working set (files/ids/commands):
+  - Updated files:
+    - `src/components/create-job/JobFormWrapper.tsx`
+    - `src/components/draft/DraftEditFormWrapper.tsx`
+    - `src/components/create-job/steps/specifications/StackSpecifications.tsx`
+    - `src/components/create-job/steps/deployment/StackDeployment.tsx`
+    - `src/shared/jobs/SpecsNodesSection.tsx`
+    - `src/schemas/steps/specifications.ts`
+    - `src/schemas/steps/deployment.ts`
+    - `src/components/playwright/StackFlowPreview.tsx`
+    - `CONTINUITY.md`

@@ -1,4 +1,4 @@
-import { RiBox3Line, RiDatabase2Line, RiTerminalBoxLine } from 'react-icons/ri';
+import { RiBox3Line, RiDatabase2Line, RiStackLine, RiTerminalBoxLine } from 'react-icons/ri';
 import { JobType } from './deeploys';
 
 export type JobTypeOption = {
@@ -34,5 +34,13 @@ export const JOB_TYPE_OPTIONS: JobTypeOption[] = [
         textColorClass: 'text-purple-500',
         color: 'purple',
         jobType: JobType.Service,
+    },
+    {
+        id: 'stack',
+        title: 'Stack',
+        icon: <RiStackLine />,
+        textColorClass: 'text-cyan-600',
+        color: 'blue',
+        jobType: JobType.Stack,
     },
 ];

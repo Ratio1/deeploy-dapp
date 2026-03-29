@@ -33,6 +33,15 @@ const JOB_TYPE_STEPS: Record<JobType, Step[]> = {
     [JobType.Generic]: [...MAIN_STEPS],
     [JobType.Native]: [...MAIN_STEPS, Step.PLUGINS],
     [JobType.Service]: [Step.SERVICES, ...MAIN_STEPS],
+    [JobType.Stack]: [Step.SPECIFICATIONS, Step.DEPLOYMENT, Step.COST_AND_DURATION],
+};
+
+const createStackId = () => {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+
+    return `stack-${Date.now()}`;
 };
 
 function JobFormWrapper({ projectName, draftJobsCount }) {
@@ -61,7 +70,8 @@ function JobFormWrapper({ projectName, draftJobsCount }) {
 const getBaseSchemaDefaults = () => ({
         specifications: {
             // applicationType: APPLICATION_TYPES[0],
-            targetNodesCount: jobType === JobType.Generic || jobType === JobType.Native ? 2 : 1, // Generic and Native jobs always have a minimal balancing of 2 nodes, Services are locked to 1 node
+            targetNodesCount:
+                jobType === JobType.Generic || jobType === JobType.Native ? 2 : 1, // Generic and Native jobs default to 2 nodes, Services and Stack default to 1 node
             jobTags: [...(account?.applicantType === 'company' ? [KYB_TAG] : [])],
             nodesCountries: [],
         },
@@ -143,6 +153,19 @@ const getBaseSchemaDefaults = () => ({
         },
     });
 
+    const getStackSchemaDefaults = () => ({
+        ...getBaseSchemaDefaults(),
+        specifications: {
+            ...getBaseSchemaDefaults().specifications,
+            containers: [],
+        },
+        deployment: {
+            ...getBaseSchemaDefaults().deployment,
+            stackId: createStackId(),
+            containers: [],
+        },
+    });
+
     const getDefaultSchemaValues = () => {
         switch (jobType) {
             case JobType.Generic:
@@ -153,6 +176,9 @@ const getBaseSchemaDefaults = () => ({
 
             case JobType.Service:
                 return getServiceSchemaDefaults();
+
+            case JobType.Stack:
+                return getStackSchemaDefaults();
 
             default:
                 return {};

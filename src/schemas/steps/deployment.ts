@@ -385,6 +385,39 @@ const genericPluginSchema = z.object({
     customParams: validations.customParams,
 });
 
+const stackContainerDeploymentSchemaWithoutRefinements = z
+    .object({
+        containerRef: z
+            .string({ required_error: 'Container ref is required' })
+            .min(1, 'Container ref is required')
+            .max(64, 'Container ref cannot exceed 64 characters'),
+        containerAlias: validations.jobAlias,
+        deploymentType: deploymentTypeSchema,
+        exposedPorts: validations.exposedPorts,
+        envVars: validations.envVars,
+        dynamicEnvVars: validations.dynamicEnvVars,
+        volumes: validations.volumes,
+        fileVolumes: validations.fileVolumes,
+        restartPolicy: validations.restartPolicy,
+        imagePullPolicy: validations.imagePullPolicy,
+        customParams: validations.customParams,
+    })
+    .superRefine((container, ctx) => {
+        container.dynamicEnvVars.forEach((entry, entryIndex) => {
+            entry.values.forEach((pair, pairIndex) => {
+                if ((pair.source === 'container_ip' || pair.source === 'plugin_value') && pair.provider === container.containerRef) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'A container cannot reference itself',
+                        path: ['dynamicEnvVars', entryIndex, 'values', pairIndex, 'provider'],
+                    });
+                }
+            });
+        });
+    });
+
+const stackContainerDeploymentSchema = applyDeploymentTypeRefinements(stackContainerDeploymentSchemaWithoutRefinements);
+
 const nativePluginSchema = z.object({
     basePluginType: z.literal(BasePluginType.Native),
     pluginName: z.string().optional(),
@@ -431,6 +464,27 @@ const nativeAppDeploymentSchemaWihtoutRefinements = mainDeploymentSchema.extend(
 export const nativeAppDeploymentSchema = applyCustomPluginSignatureRefinements(
     applyTunnelingRefinements(nativeAppDeploymentSchemaWihtoutRefinements),
 );
+
+const stackAppDeploymentSchemaWithoutRefinements = mainDeploymentSchema.extend({
+    stackId: z.string().uuid().optional(),
+    containers: z
+        .array(stackContainerDeploymentSchema)
+        .min(2, 'At least 2 containers are required')
+        .max(5, 'Only 5 containers allowed')
+        .superRefine((containers, ctx) => {
+            const aliases = containers.map((container) => container.containerAlias?.trim()).filter((alias) => !!alias);
+            const uniqueAliases = new Set(aliases);
+            if (aliases.length !== uniqueAliases.size) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Container aliases must be unique',
+                    path: [],
+                });
+            }
+        }),
+});
+
+export const stackAppDeploymentSchema = stackAppDeploymentSchemaWithoutRefinements;
 
 const serviceAppDeploymentSchemaWihtoutRefinements = baseDeploymentSchema.extend({
     inputs: validations.envVars,

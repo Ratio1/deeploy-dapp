@@ -224,23 +224,47 @@ const normalizeSpecs = ({
         ?.map((tag) => toStringValue(tag))
         .filter((tag) => !!tag);
 
-    const pipelineParams = toObject(getKey(rawSpecs, 'job_config'));
+    const jobConfig = toObject(getKey(rawSpecs, 'job_config'));
+    const pipelineParams = toObject(getKey(jobConfig, 'pipeline_params'));
+    const normalizedJobConfig =
+        Object.keys(jobConfig).length > 0
+            ? ({
+                  ...jobConfig,
+                  pipeline_params: pipelineParams,
+              } as DeeploySpecs['job_config'])
+            : undefined;
 
     return {
         allow_replication_in_the_wild: toBooleanValue(getKey(rawSpecs, 'allow_replication_in_the_wild'), false),
         date_created: toNumberValue(getKey(rawSpecs, 'date_created'), 0),
         date_updated: toNumberValue(getKey(rawSpecs, 'date_updated'), 0),
         initial_target_nodes: initialTargetNodes?.length ? initialTargetNodes : fallbackTargetNodes,
-        job_config:
-            Object.keys(pipelineParams).length > 0
-                ? (pipelineParams as { pipeline_params?: Record<string, string> })
-                : undefined,
+        job_config: normalizedJobConfig,
         job_id: toNumberValue(getKey(rawSpecs, 'job_id'), fallbackJobId),
         job_tags: jobTags ?? [],
         nr_target_nodes: toNumberValue(getKey(rawSpecs, 'nr_target_nodes'), fallbackTargetNodes.length),
         project_id: toStringValue(getKey(rawSpecs, 'project_id')) || fallbackProjectHash,
         project_name: toStringValue(getKey(rawSpecs, 'project_name')) || undefined,
         spare_nodes: spareNodes ?? [],
+    };
+};
+
+const getStackMetadata = (jobConfig: DeeploySpecs['job_config'] | undefined) => {
+    if (!jobConfig?.stack_id) {
+        return undefined;
+    }
+
+    const stackIndex = toNumberValue(jobConfig.stack_index, 0);
+    const stackSize = toNumberValue(jobConfig.stack_size, 1);
+
+    return {
+        stackId: toStringValue(jobConfig.stack_id),
+        stackAlias: toStringValue(jobConfig.stack_alias) || toStringValue(jobConfig.stack_id),
+        stackIndex: Number.isFinite(stackIndex) ? stackIndex : 0,
+        stackSize: Number.isFinite(stackSize) ? stackSize : 1,
+        containerRef: toStringValue(jobConfig.stack_container_ref) || `container-${stackIndex + 1}`,
+        containerAlias: toStringValue(jobConfig.stack_container_alias) || '',
+        stackType: toStringValue(jobConfig.stack_type) || 'Stack',
     };
 };
 
@@ -453,6 +477,7 @@ const buildRunningJobFromOnline = ({
         config: primaryPlugin.instance_conf,
         pipelineData: appDetails.pipeline_data,
         pluginSemaphoreMap: specs?.job_config?.plugin_semaphore_map,
+        stack: getStackMetadata(specs?.job_config),
     };
 
     if (specs?.job_config?.pipeline_params) {
@@ -525,6 +550,7 @@ const buildRunningJobFromPipeline = ({
         }),
         config: plugins[0].instance_conf,
         pipelineData: buildPipelineData(pipeline),
+        stack: getStackMetadata(specs.job_config),
     };
 
     if (specs.job_config?.pipeline_params) {

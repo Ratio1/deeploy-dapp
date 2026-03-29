@@ -5,15 +5,16 @@ import {
     genericAppDeploymentSchema,
     nativeAppDeploymentSchema,
     nativeAppPluginsSchema,
+    stackAppDeploymentSchema,
     serviceAppDeploymentSchema,
 } from './steps/deployment';
 import { serviceIdSchema } from './steps/services';
-import { genericSpecificationsSchema, nativeSpecificationsSchema, serviceSpecificationsSchema } from './steps/specifications';
+import { genericSpecificationsSchema, nativeSpecificationsSchema, serviceSpecificationsSchema, stackSpecificationsSchema } from './steps/specifications';
 
 export const TARGET_NODES_REQUIRED_ERROR = 'All target nodes must be specified';
 
 const jobBaseSchema = z.object({
-    jobType: z.enum([JobType.Generic, JobType.Native, JobType.Service]),
+    jobType: z.enum([JobType.Generic, JobType.Native, JobType.Service, JobType.Stack]),
     costAndDuration: costAndDurationSchema,
 });
 
@@ -37,6 +38,11 @@ export const jobSchema = z
             deployment: serviceAppDeploymentSchema,
             tunnelURL: z.string().optional(),
         }),
+        jobBaseSchema.extend({
+            jobType: z.literal(JobType.Stack),
+            specifications: stackSpecificationsSchema,
+            deployment: stackAppDeploymentSchema,
+        }),
     ])
     .refine(
         (data) => {
@@ -53,4 +59,17 @@ export const jobSchema = z
             message: TARGET_NODES_REQUIRED_ERROR,
             path: ['deployment', 'targetNodes'],
         }),
+    )
+    .refine(
+        (data) => {
+            if (data.jobType !== JobType.Stack) {
+                return true;
+            }
+
+            return data.specifications.containers.length === data.deployment.containers.length;
+        },
+        {
+            message: 'Deployment containers must match specifications containers',
+            path: ['deployment', 'containers'],
+        },
     );

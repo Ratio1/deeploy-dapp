@@ -1,4 +1,4 @@
-import { BaseContainerOrWorkerType, formatResourcesSummary } from '@data/containerResources';
+import { BaseContainerOrWorkerType, formatResourcesSummary, genericContainerTypes, gpuTypes } from '@data/containerResources';
 import { environment } from '@lib/config';
 import { addTimeFn, formatUsdc, getContainerOrWorkerType, getGpuType, getResourcesCostPerEpoch } from '@lib/deeploy-utils';
 import CostAndDurationInterface from '@shared/jobs/CostAndDurationInterface';
@@ -17,7 +17,7 @@ function CostAndDuration() {
     const targetNodesCount: number = specifications?.targetNodesCount ?? 0;
 
     const containerOrWorkerType = useMemo<BaseContainerOrWorkerType | null>(() => {
-        if (!jobType || !specifications) {
+        if (!jobType || !specifications || jobType === JobType.Stack) {
             return null;
         }
 
@@ -34,7 +34,26 @@ function CostAndDuration() {
     };
 
     const costPerEpoch = useMemo<bigint>(() => {
-        if (!containerOrWorkerType || !specifications) {
+        if (!specifications || !jobType) {
+            return 0n;
+        }
+
+        if (jobType === JobType.Stack) {
+            const stackContainers = (specifications as any).containers ?? [];
+            const perNodeCost = stackContainers.reduce((acc, container) => {
+                const containerType = genericContainerTypes.find((type) => type.name === container.containerType);
+                if (!containerType) {
+                    return acc;
+                }
+
+                const gpuType = container.gpuType ? gpuTypes.find((type) => type.name === container.gpuType) : undefined;
+                return acc + getResourcesCostPerEpoch(containerType, gpuType);
+            }, 0n);
+
+            return BigInt(specifications.targetNodesCount) * perNodeCost;
+        }
+
+        if (!containerOrWorkerType) {
             return 0n;
         }
 
@@ -47,6 +66,53 @@ function CostAndDuration() {
     }, [containerOrWorkerType, specifications]);
 
     const summaryItems = useMemo<{ label: string; value: string | number }[]>(() => {
+        if (jobType === JobType.Stack) {
+            const stackContainers = ((specifications as any)?.containers ?? []) as {
+                containerType?: string;
+                gpuType?: string;
+            }[];
+            const hasAnyGpu = stackContainers.some((container) => !!container.gpuType);
+            const containerCounts = stackContainers.reduce((acc: Record<string, number>, container) => {
+                if (!container?.containerType) {
+                    return acc;
+                }
+
+                acc[container.containerType] = (acc[container.containerType] ?? 0) + 1;
+                return acc;
+            }, {});
+
+            const containerSummary = Object.entries(containerCounts)
+                .map(([containerType, count]) => `${count}x ${containerType}`)
+                .join('\n');
+
+            return [
+                {
+                    label: 'Compute Type',
+                    value: hasAnyGpu ? 'CPU + GPU' : 'CPU',
+                },
+                {
+                    label: 'Containers',
+                    value: containerSummary || '—',
+                },
+                {
+                    label: 'Target Nodes',
+                    value: targetNodesCount,
+                },
+                {
+                    label: 'Monthly Cost',
+                    value: `~$${formatUsdc(costPerEpoch * 30n * (environment === 'devnet' ? 24n : 1n), 1)}`,
+                },
+                {
+                    label: 'End Date',
+                    value: addTimeFn(new Date(), duration * 30 * (environment === 'devnet' ? 24 : 1)).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                    }),
+                },
+            ];
+        }
+
         if (!containerOrWorkerType) {
             return [];
         }

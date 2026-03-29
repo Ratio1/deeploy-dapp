@@ -1,7 +1,12 @@
 import { config } from '@lib/config';
 import { toApiError } from '@lib/api/apiError';
 import { EthAddress } from '@typedefs/blockchain';
-import { DeeployDefaultResponse, GetAppsResponse, GetR1fsJobPipelineResponse } from '@typedefs/deeployApi';
+import {
+    CreatePipelinesBatchResponse,
+    DeeployDefaultResponse,
+    GetAppsResponse,
+    GetR1fsJobPipelineResponse,
+} from '@typedefs/deeployApi';
 import axios from 'axios';
 
 if (!config?.deeployUrl && process.env.NODE_ENV === 'development') {
@@ -13,10 +18,23 @@ export const createPipeline = (request: {
     EE_ETH_SENDER: EthAddress;
     job_id: number;
     project_id: EthAddress;
-    [key: string]: string | number | boolean | null | undefined;
-}) =>
+    [key: string]: unknown;
+}): Promise<DeeployDefaultResponse> =>
     _doPostDeeploy('/create_pipeline', {
         request,
+    });
+
+export const createPipelinesBatch = (requests: {
+    EE_ETH_SIGN: EthAddress;
+    EE_ETH_SENDER: EthAddress;
+    job_id: number;
+    project_id: EthAddress;
+    [key: string]: unknown;
+}[]): Promise<CreatePipelinesBatchResponse> =>
+    _doPostDeeploy('/create_pipelines_batch', {
+        request: {
+            requests,
+        },
     });
 
 export const updatePipeline = (request: {
@@ -25,8 +43,8 @@ export const updatePipeline = (request: {
     app_id: string;
     job_id: number;
     project_id: EthAddress;
-    [key: string]: string | number | boolean | null | undefined;
-}) =>
+    [key: string]: unknown;
+}): Promise<DeeployDefaultResponse> =>
     _doPostDeeploy('/update_pipeline', {
         request,
     });
@@ -36,8 +54,8 @@ export const deletePipeline = (request: {
     EE_ETH_SENDER: EthAddress;
     app_id: string;
     job_id: number;
-    [key: string]: string | number | boolean | null | undefined;
-}) =>
+    [key: string]: unknown;
+}): Promise<DeeployDefaultResponse> =>
     _doPostDeeploy('/delete_pipeline', {
         request,
     });

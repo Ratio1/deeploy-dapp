@@ -1,6 +1,7 @@
 import GenericDraftJobsList from '@components/draft/job-lists/GenericDraftJobsList';
 import NativeDraftJobsList from '@components/draft/job-lists/NativeDraftJobsList';
 import ServiceDraftJobsList from '@components/draft/job-lists/ServiceDraftJobsList';
+import StackDraftJobsList from '@components/draft/job-lists/StackDraftJobsList';
 import { getRunningJobResources, RunningJobResources } from '@data/containerResources';
 import { DeploymentContextType, ProjectOverviewTab, useDeploymentContext } from '@lib/contexts/deployment';
 import CustomTabs from '@shared/CustomTabs';
@@ -19,6 +20,7 @@ import { RiBox2Line, RiDraftLine, RiFileTextLine } from 'react-icons/ri';
 import GenericRunningJobsList from './job-lists/GenericRunningJobsList';
 import NativeRunningJobsList from './job-lists/NativeRunningJobsList';
 import ServiceRunningJobsList from './job-lists/ServiceRunningJobsList';
+import StackRunningJobsList from './job-lists/StackRunningJobsList';
 import ProjectStats from './ProjectStats';
 
 export default function ProjectOverview({
@@ -119,27 +121,30 @@ export default function ProjectOverview({
                     <>
                         {!!runningJobsWithResources && runningJobsWithResources.length > 0 ? (
                             <>
-                                {runningJobsWithResources.filter((job) => job.resources.jobType === JobType.Generic).length >
+                                {runningJobsWithResources.filter((job) => !!job.stack?.stackId).length > 0 && (
+                                    <StackRunningJobsList jobs={runningJobsWithResources.filter((job) => !!job.stack?.stackId)} />
+                                )}
+                                {runningJobsWithResources.filter((job) => !job.stack?.stackId && job.resources.jobType === JobType.Generic).length >
                                     0 && (
                                     <GenericRunningJobsList
                                         jobs={runningJobsWithResources.filter(
-                                            (job) => job.resources.jobType === JobType.Generic,
+                                            (job) => !job.stack?.stackId && job.resources.jobType === JobType.Generic,
                                         )}
                                     />
                                 )}
-                                {runningJobsWithResources.filter((job) => job.resources.jobType === JobType.Native).length >
+                                {runningJobsWithResources.filter((job) => !job.stack?.stackId && job.resources.jobType === JobType.Native).length >
                                     0 && (
                                     <NativeRunningJobsList
                                         jobs={runningJobsWithResources.filter(
-                                            (job) => job.resources.jobType === JobType.Native,
+                                            (job) => !job.stack?.stackId && job.resources.jobType === JobType.Native,
                                         )}
                                     />
                                 )}
-                                {runningJobsWithResources.filter((job) => job.resources.jobType === JobType.Service).length >
+                                {runningJobsWithResources.filter((job) => !job.stack?.stackId && job.resources.jobType === JobType.Service).length >
                                     0 && (
                                     <ServiceRunningJobsList
                                         jobs={runningJobsWithResources.filter(
-                                            (job) => job.resources.jobType === JobType.Service,
+                                            (job) => !job.stack?.stackId && job.resources.jobType === JobType.Service,
                                         )}
                                     />
                                 )}
@@ -168,6 +173,9 @@ export default function ProjectOverview({
                                 )}
                                 {draftJobs.filter((job) => job.jobType === JobType.Service).length > 0 && (
                                     <ServiceDraftJobsList jobs={draftJobs.filter((job) => job.jobType === JobType.Service)} />
+                                )}
+                                {draftJobs.filter((job) => job.jobType === JobType.Stack).length > 0 && (
+                                    <StackDraftJobsList jobs={draftJobs.filter((job) => job.jobType === JobType.Stack)} />
                                 )}
                             </>
                         ) : (

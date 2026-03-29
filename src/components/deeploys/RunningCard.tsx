@@ -12,7 +12,7 @@ import { JOB_TYPE_OPTIONS, JobTypeOption } from '@typedefs/jobType';
 import { addDays, differenceInDays, formatDistanceStrict } from 'date-fns';
 import _ from 'lodash';
 import Link from 'next/link';
-import { RiCalendarLine } from 'react-icons/ri';
+import { RiCalendarLine, RiStackLine } from 'react-icons/ri';
 
 export default function RunningCard({
     projectHash,
@@ -68,6 +68,20 @@ export default function RunningCard({
         0,
     );
     const projectHealthColorClass = getHealthColorClass(offlineProjectInstancesCount, totalProjectInstancesCount);
+    const stackGroups = _(jobs)
+        .filter((job) => !!job.stack?.stackId)
+        .groupBy((job) => job.stack!.stackId)
+        .map((members, stackId) => ({
+            stackId,
+            stackAlias: members[0].stack?.stackAlias || stackId,
+            members,
+        }))
+        .value();
+    const standaloneJobs = jobs.filter((job) => !job.stack?.stackId);
+    const groupedEntries = [
+        ...standaloneJobs.map((job) => ({ type: 'job' as const, job })),
+        ...stackGroups.map((group) => ({ type: 'stack' as const, group })),
+    ];
 
     const getProjectIdentity = (): React.ReactNode => {
         const job = jobs.find((job) => !!job.projectName);
@@ -103,7 +117,7 @@ export default function RunningCard({
 
                     <div className="min-w-[80px]">
                         <div className="text-[13px] font-medium">
-                            {jobs.length} job{jobs.length > 1 ? 's' : ''}
+                            {groupedEntries.length} entr{groupedEntries.length === 1 ? 'y' : 'ies'}
                         </div>
                     </div>
 
@@ -134,7 +148,87 @@ export default function RunningCard({
 
             {expanded && (
                 <div className="col bg-slate-75 rounded-lg py-2 pr-2.5 text-sm">
-                    {jobs?.map((job, index, array) => {
+                    {groupedEntries.map((entry, index, array) => {
+                        if (entry.type === 'stack') {
+                            const { group } = entry;
+                            const targetNodes = Number(group.members[0].numberOfNodesRequested);
+                            const expirationJob = _.maxBy(group.members, (job) => Number(job.lastExecutionEpoch)) as RunningJobWithDetails;
+                            const expirationDate = addTimeFn(config.genesisDate, Number(expirationJob.lastExecutionEpoch));
+                            const minDaysLeftUntilNextPayment =
+                                (_.min(group.members.map((job) => getDaysLeftUntilNextPayment(job))) as number) ?? 0;
+                            const minDaysLeftUntilExpiration =
+                                (_.min(group.members.map((job) => differenceInDays(addTimeFn(config.genesisDate, Number(job.lastExecutionEpoch)), new Date()))) as number) ?? 0;
+
+                            return (
+                                <div key={`${group.stackId}-${index}`} className="row">
+                                    <div className="row flex-1 gap-6">
+                                        <div className="row gap-1.5">
+                                            <div className="row relative mr-2 ml-2.5">
+                                                <div className="h-10 w-0.5 bg-slate-300"></div>
+                                                <div className="h-0.5 w-5 bg-slate-300"></div>
+
+                                                {index === array.length - 1 && (
+                                                    <div className="bg-slate-75 absolute bottom-0 left-0 h-[19px] w-0.5"></div>
+                                                )}
+                                            </div>
+
+                                            <div className="h-2.5 w-2.5 rounded-full bg-cyan-500"></div>
+
+                                            <div className="text-[17px] text-cyan-600">
+                                                <RiStackLine />
+                                            </div>
+
+                                            <div className="w-[163px]">
+                                                <Link
+                                                    href={`${routePath.deeploys}/${routePath.stack}/${group.stackId}`}
+                                                    className="hover:opacity-75"
+                                                >
+                                                    <SmallTag variant="cyan">
+                                                        <div className="max-w-[150px] truncate">{group.stackAlias}</div>
+                                                    </SmallTag>
+                                                </Link>
+                                            </div>
+                                        </div>
+
+                                        <div className="min-w-[80px] text-[13px] font-medium">
+                                            {targetNodes} node
+                                            {targetNodes > 1 ? 's' : ''}
+                                        </div>
+
+                                        <div className="min-w-[114px]">
+                                            <SmallTag>
+                                                <div className="row gap-1">
+                                                    <RiCalendarLine className="text-sm" />
+
+                                                    {expirationDate.toLocaleString(undefined, {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric',
+                                                    })}
+                                                </div>
+                                            </SmallTag>
+                                        </div>
+
+                                        <div className="w-[200px] text-[13px]">
+                                            {group.members.length} container
+                                            {group.members.length > 1 ? 's' : ''}
+                                        </div>
+                                    </div>
+
+                                    <div className="row min-w-[114px]">
+                                        {minDaysLeftUntilNextPayment >= minDaysLeftUntilExpiration ? (
+                                            <SmallTag variant="green">Paid in full</SmallTag>
+                                        ) : (
+                                            <SmallTag variant={minDaysLeftUntilNextPayment > 15 ? 'slate' : 'red'}>
+                                                {formatDistanceStrict(addDays(new Date(), minDaysLeftUntilNextPayment), new Date())}
+                                            </SmallTag>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        const job = entry.job;
                         const resources: RunningJobResources | undefined = getRunningJobResources(job.jobType);
 
                         if (!resources) {
@@ -149,9 +243,7 @@ export default function RunningCard({
 
                         const { jobType } = resources;
 
-                        const jobTypeOption = JOB_TYPE_OPTIONS.find(
-                            (option) => option.id === jobType.toLowerCase(),
-                        ) as JobTypeOption;
+                        const jobTypeOption = JOB_TYPE_OPTIONS.find((option) => option.id === jobType.toLowerCase()) as JobTypeOption;
 
                         const targetNodes = Number(job.numberOfNodesRequested);
                         const totalJobInstancesCount = job.instances.length;
@@ -168,7 +260,6 @@ export default function RunningCard({
                             <div key={`${job.id}-${index}`} className="row">
                                 <div className="row flex-1 gap-6">
                                     <div className="row gap-1.5">
-                                        {/* Tree Line */}
                                         <div className="row relative mr-2 ml-2.5">
                                             <div className="h-10 w-0.5 bg-slate-300"></div>
                                             <div className="h-0.5 w-5 bg-slate-300"></div>
@@ -180,15 +271,10 @@ export default function RunningCard({
 
                                         <div className={`h-2.5 w-2.5 rounded-full ${jobHealthColorClass}`}></div>
 
-                                        <div className={`text-[17px] ${jobTypeOption.textColorClass}`}>
-                                            {jobTypeOption.icon}
-                                        </div>
+                                        <div className={`text-[17px] ${jobTypeOption.textColorClass}`}>{jobTypeOption.icon}</div>
 
                                         <div className="w-[163px]">
-                                            <Link
-                                                href={`${routePath.deeploys}/${routePath.job}/${job.id}`}
-                                                className="hover:opacity-75"
-                                            >
+                                            <Link href={`${routePath.deeploys}/${routePath.job}/${job.id}`} className="hover:opacity-75">
                                                 <SmallTag variant={jobTypeOption.color}>
                                                     <div className="max-w-[150px] truncate">{job.alias}</div>
                                                 </SmallTag>

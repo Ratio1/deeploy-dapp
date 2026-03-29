@@ -55,7 +55,7 @@ function JobFormHeader({ steps, onCancel }: { steps: string[]; onCancel?: () => 
                 )}
 
                 <div className="big-title">
-                    Add a {jobType} {jobType === JobType.Service ? '' : 'App'} Job
+                    Add a {jobType} {jobType === JobType.Service || jobType === JobType.Stack ? '' : 'App'} Job
                 </div>
             </div>
         </JobFormHeaderInterface>

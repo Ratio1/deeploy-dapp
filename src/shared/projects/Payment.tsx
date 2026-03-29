@@ -3,9 +3,10 @@ import { DeeployFlowModal } from '@components/draft/DeeployFlowModal';
 import GenericJobsCostRundown from '@components/draft/job-rundowns/GenericJobsCostRundown';
 import NativeJobsCostRundown from '@components/draft/job-rundowns/NativeJobsCostRundown';
 import ServiceJobsCostRundown from '@components/draft/job-rundowns/ServiceJobsCostRundown';
-import { BaseContainerOrWorkerType } from '@data/containerResources';
+import StackJobsCostRundown from '@components/draft/job-rundowns/StackJobsCostRundown';
+import { BaseContainerOrWorkerType, genericContainerTypes } from '@data/containerResources';
 import { DEEPLOY_FLOW_ACTION_KEYS } from '@data/deeployFlowActions';
-import { createPipeline } from '@lib/api/deeploy';
+import { createPipeline, createPipelinesBatch } from '@lib/api/deeploy';
 import { environment, getCurrentEpoch, getDevAddress, isUsingDevAddress } from '@lib/config';
 import { BlockchainContextType, useBlockchainContext } from '@lib/contexts/blockchain';
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
@@ -16,6 +17,7 @@ import {
     formatGenericDraftJobPayload,
     formatNativeDraftJobPayload,
     formatServiceDraftJobPayload,
+    formatStackDraftJobPayloads,
     formatUsdc,
     getContainerOrWorkerType,
     getJobsTotalCost,
@@ -30,7 +32,16 @@ import OverviewButton from '@shared/projects/buttons/OverviewButton';
 import { SmallTag } from '@shared/SmallTag';
 import SupportFooter from '@shared/SupportFooter';
 import { UsdcValue } from '@shared/UsdcValue';
-import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, PaidDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
+import {
+    DraftJob,
+    GenericDraftJob,
+    JobType,
+    NativeDraftJob,
+    PaidDraftJob,
+    ServiceDraftJob,
+    StackDraftJob,
+} from '@typedefs/deeploys';
+import _ from 'lodash';
 import { addDays } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -110,21 +121,43 @@ export default function Payment({
         }
     }, [isPaymentRequired]);
 
-    const getPaidJobPayloadsWithIds = (
-        paidJobs: PaidDraftJob[],
-    ): {
+    type DeployPayloadWithId = {
         draftJobId: number;
         runningJobId: bigint;
-        payload: any;
-    }[] => {
-        return paidJobs.map((job) => {
-            const payload = getDraftJobPayload(job);
-            return { draftJobId: job.id, runningJobId: job.runningJobId, payload };
+        payload: Record<string, unknown>;
+        stackId?: string;
+        containerAlias?: string;
+    };
+
+    const getPaidJobPayloadsWithIds = (paidJobs: PaidDraftJob[]): DeployPayloadWithId[] => {
+        return paidJobs.flatMap((job) => {
+            if (job.jobType !== JobType.Stack) {
+                const payload = getDraftJobPayload(job);
+                return { draftJobId: job.id, runningJobId: job.runningJobId, payload };
+            }
+
+            const stackJob = job as StackDraftJob;
+            const stackPayloads = formatStackDraftJobPayloads(stackJob);
+            const stackRunningJobIds = stackJob.stackRunningJobIds ?? [];
+
+            if (stackPayloads.length !== stackRunningJobIds.length) {
+                throw new Error(
+                    `Stack "${stackJob.deployment.jobAlias}" has ${stackPayloads.length} containers but ${stackRunningJobIds.length} paid job ids.`,
+                );
+            }
+
+            return stackPayloads.map((item, index) => ({
+                draftJobId: stackJob.id,
+                runningJobId: stackRunningJobIds[index],
+                payload: item.payload,
+                stackId: item.stackId,
+                containerAlias: item.containerAlias,
+            }));
         });
     };
 
-    const getDraftJobPayload = (job: DraftJob) => {
-        let payload = {};
+    const getDraftJobPayload = (job: DraftJob): Record<string, unknown> => {
+        let payload: Record<string, unknown> = {};
 
         switch (job.jobType) {
             case JobType.Generic:
@@ -138,6 +171,12 @@ export default function Payment({
             case JobType.Service:
                 payload = formatServiceDraftJobPayload(job as ServiceDraftJob);
                 break;
+
+            case JobType.Stack: {
+                const stackPayload = formatStackDraftJobPayloads(job as StackDraftJob)[0];
+                payload = stackPayload?.payload ?? {};
+                break;
+            }
 
             default:
                 payload = {};
@@ -190,7 +229,14 @@ export default function Payment({
             isFlowInProgressRef.current = true;
 
             const unpaidJobDrafts: DraftJob[] = jobs.filter((job) => !job.paid);
-            deeployFlowModalRef.current?.open(jobs.length, jobs.length);
+            const totalDeploymentsCount = jobs.reduce((count, job) => {
+                if (job.jobType !== JobType.Stack) {
+                    return count + 1;
+                }
+
+                return count + (job as StackDraftJob).specifications.containers.length;
+            }, 0);
+            deeployFlowModalRef.current?.open(jobs.length, totalDeploymentsCount);
 
             if (isPaymentRequired) {
                 console.log('Payment required for the following job drafts', unpaidJobDrafts);
@@ -216,11 +262,7 @@ export default function Payment({
 
             console.log('Proceeding with the following paid jobs', paidJobDrafts);
 
-            const payloadsWithIds: {
-                draftJobId: number;
-                runningJobId: bigint;
-                payload: any;
-            }[] = getPaidJobPayloadsWithIds(paidJobDrafts);
+            const payloadsWithIds = getPaidJobPayloadsWithIds(paidJobDrafts);
 
             deeployFlowModalRef.current?.progress('signXMessages');
 
@@ -230,42 +272,101 @@ export default function Payment({
                     const draftJobId = payloadWithIds.draftJobId;
 
                     const request = await signAndBuildRequest(runningJobId, payloadWithIds.payload);
-                    return { request, draftJobId };
+                    return {
+                        request,
+                        draftJobId,
+                        stackId: payloadWithIds.stackId,
+                        containerAlias: payloadWithIds.containerAlias,
+                    };
                 }),
             );
 
             deeployFlowModalRef.current?.progress('callDeeployApi');
 
-            const responses = await Promise.allSettled(
-                requestsWithDraftIds.map(({ request }) => {
-                    return createPipeline(request);
-                }),
-            );
+            const requestsByDraftId = _.groupBy(requestsWithDraftIds, 'draftJobId');
+            const responsesWithDraftJobIds: {
+                response: PromiseSettledResult<any>;
+                draftJobId: number;
+                stackId?: string;
+                containerAlias?: string;
+            }[] = [];
 
-            // Map responses back to draft job IDs
-            const responsesWithDraftJobIds = responses.map((response, index) => {
-                const { draftJobId } = requestsWithDraftIds[index];
-                return { response, draftJobId };
-            });
+            for (const draftJob of paidJobDrafts) {
+                const draftRequests = requestsByDraftId[draftJob.id] ?? [];
+                if (!draftRequests.length) {
+                    continue;
+                }
+
+                if (draftJob.jobType === JobType.Stack) {
+                    try {
+                        const batchResponse = await createPipelinesBatch(
+                            draftRequests.map((requestWithDraftId) => requestWithDraftId.request),
+                        );
+                        const batchItemResponses = batchResponse.results ?? [];
+
+                        draftRequests.forEach((requestWithDraftId, index) => {
+                            const itemResponse =
+                                batchItemResponses[index] ??
+                                ({
+                                    ...batchResponse,
+                                    status: 'fail',
+                                    error: 'Missing batch deployment item result.',
+                                } as any);
+
+                            responsesWithDraftJobIds.push({
+                                response: {
+                                    status: 'fulfilled',
+                                    value: itemResponse,
+                                },
+                                draftJobId: draftJob.id,
+                                stackId: requestWithDraftId.stackId,
+                                containerAlias: requestWithDraftId.containerAlias,
+                            });
+                        });
+                    } catch (error) {
+                        draftRequests.forEach((requestWithDraftId) => {
+                            responsesWithDraftJobIds.push({
+                                response: {
+                                    status: 'rejected',
+                                    reason: error,
+                                },
+                                draftJobId: draftJob.id,
+                                stackId: requestWithDraftId.stackId,
+                                containerAlias: requestWithDraftId.containerAlias,
+                            });
+                        });
+                    }
+                    continue;
+                }
+
+                const deploymentResponse = await Promise.allSettled([createPipeline(draftRequests[0].request)]);
+                responsesWithDraftJobIds.push({
+                    response: deploymentResponse[0],
+                    draftJobId: draftJob.id,
+                });
+            }
 
             // Check for any failed deployments
             const failedJobs: {
                 response: PromiseSettledResult<any>;
                 draftJobId: number;
-            }[] = responsesWithDraftJobIds.filter(
-                (item) =>
-                    item.response.status === 'rejected' ||
-                    (item.response.status === 'fulfilled' &&
-                        (item.response.value.status === 'fail' || item.response.value.status === 'timeout')),
-            );
+                stackId?: string;
+                containerAlias?: string;
+            }[] = responsesWithDraftJobIds.filter((item) => {
+                if (item.response.status === 'rejected') {
+                    return true;
+                }
+
+                return !['success', 'command_delivered'].includes(item.response.value.status);
+            });
 
             const successfulJobs: {
                 response: PromiseSettledResult<any>;
                 draftJobId: number;
+                stackId?: string;
+                containerAlias?: string;
             }[] = responsesWithDraftJobIds.filter(
-                (item) =>
-                    item.response.status === 'fulfilled' &&
-                    (item.response.value.status === 'success' || item.response.value.status === 'command_delivered'),
+                (item) => item.response.status === 'fulfilled' && ['success', 'command_delivered'].includes(item.response.value.status),
             );
 
             if (failedJobs.length > 0) {
@@ -279,7 +380,7 @@ export default function Payment({
                             const fulfilledResponse = item.response as PromiseFulfilledResult<any>;
                             return {
                                 text: fulfilledResponse.value?.error || 'Request timed out',
-                                jobAlias: draftJob?.deployment.jobAlias || 'Unknown',
+                                jobAlias: item.containerAlias || draftJob?.deployment.jobAlias || 'Unknown',
                                 serverAlias: fulfilledResponse.value?.server_info.alias || 'Unknown',
                             };
                         } else {
@@ -304,8 +405,16 @@ export default function Payment({
                 );
                 toast.success(`${successfulJobs.length} job${successfulJobs.length > 1 ? 's' : ''} deployed successfully.`);
 
-                // Obtain successful draft jobs before deletion
-                const successfulDraftJobIds = successfulJobs.map((item) => item.draftJobId);
+                const deployResultsByDraft = _.groupBy(responsesWithDraftJobIds, 'draftJobId');
+                const successfulDraftJobIds = Object.entries(deployResultsByDraft)
+                    .filter(([, results]) =>
+                        results.every(
+                            (result) =>
+                                result.response.status === 'fulfilled' &&
+                                ['success', 'command_delivered'].includes(result.response.value.status),
+                        ),
+                    )
+                    .map(([draftJobId]) => Number(draftJobId));
                 const successfulDraftJobs = paidJobDrafts.filter((job) => successfulDraftJobIds.includes(job.id));
 
                 // Get tunneling URLs for service jobs
@@ -323,7 +432,7 @@ export default function Payment({
                 await Promise.all(successfulDraftJobIds.map((id) => db.jobs.delete(id)));
             }
 
-            if (successfulJobs.length === jobs.length) {
+            if (successfulJobs.length === payloadsWithIds.length) {
                 deeployFlowModalRef.current?.progress('done');
                 setProjectOverviewTab('runningJobs');
 
@@ -360,7 +469,7 @@ export default function Payment({
                 deeployFlowModalRef.current?.displayError();
             }
 
-            console.log('All deployment responses:', responses);
+            console.log('All deployment responses:', responsesWithDraftJobIds);
         } catch (error: any) {
             console.error(error.message);
             toast.error('An error occurred, please try again.');
@@ -384,9 +493,12 @@ export default function Payment({
             throw new Error('Please refresh this page and try again.');
         }
 
-        const args = unpaidJobDrafts.map((job) => {
-            const containerType: BaseContainerOrWorkerType = getContainerOrWorkerType(job.jobType, job.specifications);
-            const expiryDate = addDays(new Date(), job.costAndDuration.duration * 30);
+        const buildCreateJobArgs = (
+            containerType: BaseContainerOrWorkerType,
+            targetNodesCount: number,
+            duration: number,
+        ) => {
+            const expiryDate = addDays(new Date(), duration * 30);
             const durationInEpochs = diffTimeFn(expiryDate, new Date());
             const lastExecutionEpoch = BigInt(getCurrentEpoch() + durationInEpochs);
 
@@ -394,9 +506,40 @@ export default function Payment({
                 jobType: BigInt(containerType.jobType),
                 projectHash: projectHash as `0x${string}`,
                 lastExecutionEpoch,
-                numberOfNodesRequested: BigInt(job.specifications.targetNodesCount),
+                numberOfNodesRequested: BigInt(targetNodesCount),
             };
+        };
+
+        const createJobEntries = unpaidJobDrafts.flatMap((job) => {
+            if (job.jobType === JobType.Stack) {
+                const stackJob = job as StackDraftJob;
+                return stackJob.specifications.containers.map((container) => {
+                    const containerType = genericContainerTypes.find((type) => type.name === container.containerType);
+                    if (!containerType) {
+                        throw new Error(`Unknown container type "${container.containerType}" in stack draft.`);
+                    }
+
+                    return {
+                        draftId: stackJob.id,
+                        args: buildCreateJobArgs(
+                            containerType,
+                            stackJob.specifications.targetNodesCount,
+                            stackJob.costAndDuration.duration,
+                        ),
+                    };
+                });
+            }
+
+            const containerType = getContainerOrWorkerType(job.jobType, job.specifications);
+            return [
+                {
+                    draftId: job.id,
+                    args: buildCreateJobArgs(containerType, job.specifications.targetNodesCount, job.costAndDuration.duration),
+                },
+            ];
         });
+
+        const args = createJobEntries.map((entry) => entry.args);
 
         const txHash = await walletClient.writeContract({
             address: escrowContractAddress,
@@ -432,33 +575,58 @@ export default function Payment({
 
         const jobIds: bigint[] = jobCreatedLogs.map((log) => log.args.jobId);
 
-        if (jobIds.length !== unpaidJobDrafts.length) {
-            toast.error(`Payment error: expected ${unpaidJobDrafts.length} jobs but received ${jobIds.length} confirmations.`);
+        if (jobIds.length !== createJobEntries.length) {
+            toast.error(`Payment error: expected ${createJobEntries.length} jobs but received ${jobIds.length} confirmations.`);
             deeployFlowModalRef.current?.displayError();
             throw new Error(
-                `Payment error: expected ${unpaidJobDrafts.length} jobs but received ${jobIds.length} confirmations.`,
+                `Payment error: expected ${createJobEntries.length} jobs but received ${jobIds.length} confirmations.`,
             );
         }
 
+        const runningJobIdsByDraftId = new Map<number, bigint[]>();
+        createJobEntries.forEach((entry, index) => {
+            const current = runningJobIdsByDraftId.get(entry.draftId) ?? [];
+            current.push(jobIds[index]);
+            runningJobIdsByDraftId.set(entry.draftId, current);
+        });
+
         // Mark job drafts as paid
         await Promise.all(
-            jobIds.map(async (jobId, index) => {
-                const draft = unpaidJobDrafts[index];
+            unpaidJobDrafts.map(async (draft, index) => {
+                const runningJobIds = runningJobIdsByDraftId.get(draft.id) ?? [];
 
-                if (!draft) {
-                    console.warn('No draft found for jobId index', index);
+                if (!runningJobIds.length) {
+                    console.warn('No paid job IDs mapped for draft', draft.id);
                     return;
                 }
 
-                const paymentInfo = {
-                    paid: true,
-                    runningJobId: jobId,
-                };
+                let updatedDraft: DraftJob;
 
-                const updatedDraft = {
-                    ...draft,
-                    ...paymentInfo,
-                };
+                if (draft.jobType === JobType.Stack) {
+                    const stackDraft = draft as StackDraftJob;
+                    const stackId =
+                        stackDraft.deployment.stackId ||
+                        (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+                            ? crypto.randomUUID()
+                            : `stack-${Date.now()}`);
+
+                    updatedDraft = {
+                        ...stackDraft,
+                        paid: true,
+                        runningJobId: runningJobIds[0],
+                        stackRunningJobIds: runningJobIds,
+                        deployment: {
+                            ...stackDraft.deployment,
+                            stackId,
+                        },
+                    };
+                } else {
+                    updatedDraft = {
+                        ...draft,
+                        paid: true,
+                        runningJobId: runningJobIds[0],
+                    };
+                }
 
                 unpaidJobDrafts[index] = updatedDraft;
 
@@ -549,6 +717,9 @@ export default function Payment({
                         )}
                         {jobs.filter((job) => job.jobType === JobType.Service).length > 0 && (
                             <ServiceJobsCostRundown jobs={jobs.filter((job) => job.jobType === JobType.Service)} />
+                        )}
+                        {jobs.filter((job) => job.jobType === JobType.Stack).length > 0 && (
+                            <StackJobsCostRundown jobs={jobs.filter((job) => job.jobType === JobType.Stack)} />
                         )}
                     </>
                 )}

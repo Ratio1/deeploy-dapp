@@ -11,7 +11,7 @@ import { jobSchema } from '@schemas/index';
 import JobFormHeaderInterface from '@shared/jobs/JobFormHeaderInterface';
 import { SmallTag } from '@shared/SmallTag';
 import SubmitButton from '@shared/SubmitButton';
-import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob } from '@typedefs/deeploys';
+import { DraftJob, GenericDraftJob, JobType, NativeDraftJob, ServiceDraftJob, StackDraftJob } from '@typedefs/deeploys';
 import { ContainerDeploymentType, DeploymentType, Plugin, PluginType, WorkerDeploymentType } from '@typedefs/steps/deploymentStepTypes';
 import { generatePluginName, getPluginType } from '@lib/pluginNames';
 import { cloneDeep } from 'lodash';
@@ -24,6 +24,7 @@ const JOB_TYPE_STEPS: Record<JobType, Step[]> = {
     [JobType.Generic]: [...MAIN_STEPS],
     [JobType.Native]: [...MAIN_STEPS, Step.PLUGINS],
     [JobType.Service]: [...MAIN_STEPS], // Editing service type is disabled for now
+    [JobType.Stack]: [Step.SPECIFICATIONS, Step.DEPLOYMENT, Step.COST_AND_DURATION],
 };
 
 function ensurePluginNames(plugins: Plugin[]): Plugin[] {
@@ -198,6 +199,25 @@ export default function DraftEditFormWrapper({
         } as z.infer<typeof jobSchema>;
     };
 
+    const getStackSchemaDefaults = () => {
+        const baseDefaults = getBaseSchemaDefaults();
+        const stackJob = job as StackDraftJob;
+        const deployment = stackJob.deployment;
+
+        return {
+            ...baseDefaults,
+            specifications: {
+                ...baseDefaults.specifications,
+                containers: cloneDeep(stackJob.specifications.containers),
+            },
+            deployment: {
+                ...baseDefaults.deployment,
+                stackId: deployment.stackId,
+                containers: cloneDeep(deployment.containers),
+            },
+        } as z.infer<typeof jobSchema>;
+    };
+
     const cloneDeploymentNodes = (nodes?: Array<{ address: string }>) =>
         nodes && nodes.length ? nodes.map((node) => ({ address: node.address })) : [{ address: '' }];
 
@@ -211,6 +231,9 @@ export default function DraftEditFormWrapper({
 
             case JobType.Service:
                 return getServiceSchemaDefaults();
+
+            case JobType.Stack:
+                return getStackSchemaDefaults();
 
             default:
                 return {};

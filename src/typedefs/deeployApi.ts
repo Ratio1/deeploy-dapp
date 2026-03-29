@@ -54,6 +54,13 @@ type DeeploySpecs = {
     job_config?: {
         pipeline_params?: Record<string, string>;
         plugin_semaphore_map?: Record<string, string>;
+        stack_id?: string;
+        stack_alias?: string;
+        stack_index?: number;
+        stack_size?: number;
+        stack_container_ref?: string;
+        stack_container_alias?: string;
+        stack_type?: string;
     };
     job_id: number;
     job_tags: string[];
@@ -206,10 +213,20 @@ type DeeployDefaultResponse = {
     };
 };
 
+type CreatePipelinesBatchItemResponse = DeeployDefaultResponse & {
+    item_index: number;
+};
+
+type CreatePipelinesBatchResponse = DeeployDefaultResponse & {
+    results: CreatePipelinesBatchItemResponse[];
+};
+
 export type {
     Apps,
     AppsPlugin,
     ChainJob,
+    CreatePipelinesBatchItemResponse,
+    CreatePipelinesBatchResponse,
     DeeployDefaultResponse,
     DeeploySpecs,
     GetAppsResponse,
