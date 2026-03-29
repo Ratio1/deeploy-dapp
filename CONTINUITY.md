@@ -26,6 +26,9 @@
     - `deployment.containers` now min(2).
   - Updated stack preview step labels/order.
   - Updated `SpecsNodesSection` so Stack target node count renders even when no containers exist, without stack minimal-balancing warnings.
+  - Removed intermediate add-time container-spec panel in Stack deployment:
+    - clicking `Container App Runner` / `Worker App Runner` now directly creates the container card
+    - container type/GPU are selected only inside that container card.
   - Verification executed:
     - `npm run lint` ✅
     - `npm run build` ✅
@@ -33,7 +36,7 @@
       - `.playwright/stack-flow-refactor-desktop.png`
       - `.playwright/stack-flow-refactor-mobile.png`
 - Now:
-  - Ready for user review / follow-up tweaks.
+  - Follow-up tweak implemented and verified locally; pending user confirmation for push.
 - Next:
   - If approved, stage/commit/push and update PR.
 - Open questions (UNCONFIRMED if needed):
