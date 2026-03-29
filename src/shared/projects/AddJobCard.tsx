@@ -14,10 +14,12 @@ export default function AddJobCard({
     type = 'job',
     options = JOB_TYPE_OPTIONS,
     customCallback,
+    addLabel,
 }: {
     type?: 'job' | 'plugin';
     options?: any[];
     customCallback?: (option) => void;
+    addLabel?: string;
 }) {
     const { setJobType, setStep, setPendingRecoveredJobPrefill } = useDeploymentContext() as DeploymentContextType;
     const { projectHash } = useParams<{ projectHash?: string }>();
@@ -67,7 +69,7 @@ export default function AddJobCard({
             <div className="col items-center gap-2.5 text-center">
                 <div className="row gap-0.5">
                     <RiAddLine className="text-xl" />
-                    <div className="font-medium capitalize">Add {type}</div>
+                    <div className="font-medium capitalize">{addLabel || `Add ${type}`}</div>
                 </div>
 
                 {type === 'job' && (

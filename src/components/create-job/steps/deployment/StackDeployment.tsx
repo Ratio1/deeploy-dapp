@@ -4,6 +4,7 @@ import GenericPluginSections from '@components/create-job/plugins/GenericPluginS
 import { formatResourcesSummary, genericContainerTypes, gpuTypes } from '@data/containerResources';
 import { CR_VISIBILITY_OPTIONS } from '@data/crVisibilityOptions';
 import { POLICY_TYPES } from '@data/policyTypes';
+import { Button } from '@heroui/button';
 import { SelectItem } from '@heroui/select';
 import { Switch } from '@heroui/switch';
 import { type AvailableDynamicEnvPlugin } from '@lib/dynamicEnvUi';
@@ -22,7 +23,6 @@ import { BasePluginType, PluginType } from '@typedefs/steps/deploymentStepTypes'
 import isEqual from 'lodash/isEqual';
 import { type JSX, useEffect, useMemo, useState } from 'react';
 import { Controller, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
-import toast from 'react-hot-toast';
 import { RiBox3Line, RiDeleteBin2Line } from 'react-icons/ri';
 
 type StackSpecContainer = {
@@ -131,6 +131,7 @@ export default function StackDeployment({ isEditingRunningJob }: { isEditingRunn
     const { control, setValue, getValues, formState, clearErrors } = useFormContext();
 
     const [expandedContainers, setExpandedContainers] = useState<Record<string, boolean>>({});
+    const [pendingRunnerType, setPendingRunnerType] = useState<PluginType.Container | PluginType.Worker | null>(null);
     const [newContainerType, setNewContainerType] = useState<string>('');
     const [newGpuType, setNewGpuType] = useState<string>('');
 
@@ -243,9 +244,8 @@ export default function StackDeployment({ isEditingRunningJob }: { isEditingRunn
         });
     }, [deploymentContainers]);
 
-    const onAddContainer = (pluginType: PluginType.Container | PluginType.Worker) => {
-        if (!newContainerType) {
-            toast.error('Select a container type first.');
+    const onConfirmAddContainer = () => {
+        if (!pendingRunnerType || !newContainerType) {
             return;
         }
 
@@ -258,8 +258,12 @@ export default function StackDeployment({ isEditingRunningJob }: { isEditingRunn
             gpuType: newGpuType,
         });
 
-        appendDeploymentContainer(getDefaultContainerDeployment(containerRef, existing.length, stackAlias, pluginType));
+        appendDeploymentContainer(getDefaultContainerDeployment(containerRef, existing.length, stackAlias, pendingRunnerType));
         clearErrors('deployment.containers');
+
+        setPendingRunnerType(null);
+        setNewContainerType('');
+        setNewGpuType('');
     };
 
     const onRemoveContainer = (index: number, containerRef: string) => {
@@ -275,75 +279,120 @@ export default function StackDeployment({ isEditingRunningJob }: { isEditingRunn
     return (
         <div className="col gap-6">
             {!isEditingRunningJob && specContainers.length < 5 && (
-                <SlateCard title="Add Container">
-                    <div className="col gap-4">
-                        <div className="grid grid-cols-1 gap-4">
-                            <div className="col gap-2">
-                                <Label value="Container Type" />
+                <div className="col gap-3">
+                    <AddJobCard
+                        type="plugin"
+                        addLabel="Add Container"
+                        options={RUNNER_OPTIONS}
+                        customCallback={(option) => {
+                            setPendingRunnerType(option.pluginType);
+                            setNewContainerType('');
+                            setNewGpuType('');
+                        }}
+                    />
 
-                                <StyledSelect
-                                    selectedKeys={newContainerType ? [newContainerType] : []}
-                                    onSelectionChange={(keys) => {
-                                        const selectedKey = Array.from(keys)[0] as string;
-                                        setNewContainerType(selectedKey || '');
-                                    }}
-                                    placeholder="Select an option"
-                                >
-                                    {genericContainerTypes.map((containerType) => (
-                                        <SelectItem key={containerType.name} textValue={containerType.name}>
-                                            <div className="row justify-between py-1">
-                                                <div className="row gap-1">
-                                                    <SmallTag variant="blue">{containerType.name}</SmallTag>
-                                                    <SmallTag>{formatResourcesSummary(containerType)}</SmallTag>
-                                                </div>
-
-                                                <div className="row min-w-11 py-0.5 font-medium">
-                                                    <span className="text-slate-500">$</span>
-                                                    <div className="ml-px">{containerType.monthlyBudgetPerWorker}</div>
-                                                </div>
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                </StyledSelect>
+                    {pendingRunnerType && (
+                        <div className="col gap-4 rounded-xl border-2 border-slate-200 bg-white p-4">
+                            <div className="row gap-2">
+                                <SmallTag variant={pendingRunnerType === PluginType.Worker ? 'yellow' : 'pink'}>
+                                    {pendingRunnerType === PluginType.Worker ? 'Worker App Runner' : 'Container App Runner'}
+                                </SmallTag>
+                                <div className="compact text-slate-600">Select container specs</div>
                             </div>
 
-                            {supportedGpuTypesForNewContainer.length > 0 && (
+                            <div className="grid grid-cols-1 gap-4">
                                 <div className="col gap-2">
-                                    <Label value="GPU Type" isOptional />
+                                    <Label value="Container Type" />
 
                                     <StyledSelect
-                                        selectedKeys={newGpuType ? [newGpuType] : []}
+                                        selectedKeys={newContainerType ? [newContainerType] : []}
                                         onSelectionChange={(keys) => {
                                             const selectedKey = Array.from(keys)[0] as string;
-                                            setNewGpuType(selectedKey || '');
+                                            setNewContainerType(selectedKey || '');
                                         }}
                                         placeholder="Select an option"
-                                        isClearable
                                     >
-                                        {supportedGpuTypesForNewContainer.map((gpuType) => (
-                                            <SelectItem key={gpuType.name} textValue={gpuType.name}>
+                                        {genericContainerTypes.map((containerType) => (
+                                            <SelectItem key={containerType.name} textValue={containerType.name}>
                                                 <div className="row justify-between py-1">
                                                     <div className="row gap-1">
-                                                        <SmallTag variant="green">{gpuType.name}</SmallTag>
-                                                        <SmallTag>{gpuType.gpus.join(', ')}</SmallTag>
-                                                        <SmallTag>{gpuType.availability}</SmallTag>
+                                                        <SmallTag variant="blue">{containerType.name}</SmallTag>
+                                                        <SmallTag>{formatResourcesSummary(containerType)}</SmallTag>
                                                     </div>
 
                                                     <div className="row min-w-11 py-0.5 font-medium">
                                                         <span className="text-slate-500">$</span>
-                                                        <div className="ml-px">{gpuType.monthlyBudgetPerWorker}</div>
+                                                        <div className="ml-px">{containerType.monthlyBudgetPerWorker}</div>
                                                     </div>
                                                 </div>
                                             </SelectItem>
                                         ))}
                                     </StyledSelect>
                                 </div>
-                            )}
-                        </div>
 
-                        <AddJobCard type="plugin" options={RUNNER_OPTIONS} customCallback={(option) => onAddContainer(option.pluginType)} />
-                    </div>
-                </SlateCard>
+                                {supportedGpuTypesForNewContainer.length > 0 && (
+                                    <div className="col gap-2">
+                                        <Label value="GPU Type" isOptional />
+
+                                        <StyledSelect
+                                            selectedKeys={newGpuType ? [newGpuType] : []}
+                                            onSelectionChange={(keys) => {
+                                                const selectedKey = Array.from(keys)[0] as string;
+                                                setNewGpuType(selectedKey || '');
+                                            }}
+                                            placeholder="Select an option"
+                                            isClearable
+                                        >
+                                            {supportedGpuTypesForNewContainer.map((gpuType) => (
+                                                <SelectItem key={gpuType.name} textValue={gpuType.name}>
+                                                    <div className="row justify-between py-1">
+                                                        <div className="row gap-1">
+                                                            <SmallTag variant="green">{gpuType.name}</SmallTag>
+                                                            <SmallTag>{gpuType.gpus.join(', ')}</SmallTag>
+                                                            <SmallTag>{gpuType.availability}</SmallTag>
+                                                        </div>
+
+                                                        <div className="row min-w-11 py-0.5 font-medium">
+                                                            <span className="text-slate-500">$</span>
+                                                            <div className="ml-px">{gpuType.monthlyBudgetPerWorker}</div>
+                                                        </div>
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </StyledSelect>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="row gap-2">
+                                <Button
+                                    className="h-[34px] border-2 border-slate-200 bg-white px-2.5 data-[hover=true]:opacity-65!"
+                                    color="default"
+                                    size="sm"
+                                    variant="flat"
+                                    onPress={() => {
+                                        setPendingRunnerType(null);
+                                        setNewContainerType('');
+                                        setNewGpuType('');
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+
+                                <Button
+                                    className="h-[34px] border-2 border-slate-200 bg-white px-2.5 data-[hover=true]:opacity-65!"
+                                    color="primary"
+                                    size="sm"
+                                    variant="flat"
+                                    isDisabled={!newContainerType}
+                                    onPress={onConfirmAddContainer}
+                                >
+                                    Add
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             )}
 
             {!!rootContainersError && (
