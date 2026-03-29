@@ -24,7 +24,7 @@ const JOB_TYPE_STEPS: Record<JobType, Step[]> = {
     [JobType.Generic]: [...MAIN_STEPS],
     [JobType.Native]: [...MAIN_STEPS, Step.PLUGINS],
     [JobType.Service]: [...MAIN_STEPS], // Editing service type is disabled for now
-    [JobType.Stack]: [...MAIN_STEPS],
+    [JobType.Stack]: [Step.SPECIFICATIONS, Step.DEPLOYMENT, Step.COST_AND_DURATION],
 };
 
 function ensurePluginNames(plugins: Plugin[]): Plugin[] {

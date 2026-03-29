@@ -47,7 +47,7 @@ export default function SpecsNodesSection({
                 .filter((option): option is ContainerOrWorkerType => !!option);
 
             if (!selectedTypes.length) {
-                setContainerOrWorkerType(undefined);
+                setContainerOrWorkerType(genericContainerTypes[0]);
                 return;
             }
 
@@ -108,14 +108,17 @@ export default function SpecsNodesSection({
         onTargetNodesCountDecrease?.(isValueLower);
     }, [isEditingRunningJob, onTargetNodesCountDecrease, targetNodesCount]);
 
-    const hasMinimalBalancingWarning = !containerOrWorkerType
+    const hasMinimalBalancingWarning = jobType === JobType.Stack
+        ? false
+        : !containerOrWorkerType
         ? false
         : !!targetNodesCount && targetNodesCount < containerOrWorkerType.minimalBalancing;
     const hasWarning = hasMinimalBalancingWarning || showDecreaseWarning;
+    const shouldRenderSection = jobType === JobType.Stack || !!containerOrWorkerType;
 
     return (
         <SlateCard>
-            {!!containerOrWorkerType && (
+            {shouldRenderSection && (
                 <div className="col gap-4">
                     <div className="flex gap-4">
                         <NumberInputWithLabel
@@ -123,9 +126,9 @@ export default function SpecsNodesSection({
                             label="Target Nodes Count"
                             tag={
                                 jobType !== JobType.Stack &&
-                                containerOrWorkerType.minimalBalancing &&
-                                containerOrWorkerType.minimalBalancing > 1
-                                    ? `Minimal Balancing: ${containerOrWorkerType.minimalBalancing}`
+                                containerOrWorkerType?.minimalBalancing &&
+                                containerOrWorkerType?.minimalBalancing > 1
+                                    ? `Minimal Balancing: ${containerOrWorkerType?.minimalBalancing}`
                                     : undefined
                             }
                             hasWarning={hasWarning}
@@ -157,7 +160,7 @@ export default function SpecsNodesSection({
                                 title={
                                     <div>
                                         The minimal recommended balancing is{' '}
-                                        <span className="font-medium">{containerOrWorkerType.minimalBalancing} nodes</span>.
+                                        <span className="font-medium">{containerOrWorkerType?.minimalBalancing} nodes</span>.
                                     </div>
                                 }
                                 description={

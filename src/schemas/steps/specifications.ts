@@ -58,7 +58,6 @@ export const stackSpecificationsSchema = baseSpecificationsSchema.extend({
                     .optional(),
             }),
         )
-        .min(1, 'At least one container is required')
         .max(5, 'Only 5 containers allowed')
         .superRefine((containers, ctx) => {
             const refs = containers.map((container) => container.containerRef.trim()).filter((ref) => !!ref);

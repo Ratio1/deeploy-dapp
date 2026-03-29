@@ -33,7 +33,7 @@ const JOB_TYPE_STEPS: Record<JobType, Step[]> = {
     [JobType.Generic]: [...MAIN_STEPS],
     [JobType.Native]: [...MAIN_STEPS, Step.PLUGINS],
     [JobType.Service]: [Step.SERVICES, ...MAIN_STEPS],
-    [JobType.Stack]: [...MAIN_STEPS],
+    [JobType.Stack]: [Step.SPECIFICATIONS, Step.DEPLOYMENT, Step.COST_AND_DURATION],
 };
 
 const createStackId = () => {
@@ -157,39 +157,12 @@ const getBaseSchemaDefaults = () => ({
         ...getBaseSchemaDefaults(),
         specifications: {
             ...getBaseSchemaDefaults().specifications,
-            containers: [
-                {
-                    containerRef: 'container-1',
-                    containerType: genericContainerTypes[0].name,
-                    gpuType: '',
-                },
-            ],
+            containers: [],
         },
         deployment: {
             ...getBaseSchemaDefaults().deployment,
             stackId: createStackId(),
-            containers: [
-                {
-                    containerRef: 'container-1',
-                    containerAlias: `${projectName}-stack-1`.toLowerCase(),
-                    deploymentType: {
-                        pluginType: PluginType.Container,
-                        containerImage: '',
-                        containerRegistry: 'docker.io',
-                        crVisibility: CR_VISIBILITY_OPTIONS[0],
-                        crUsername: '',
-                        crPassword: '',
-                    },
-                    exposedPorts: [],
-                    envVars: [],
-                    dynamicEnvVars: [],
-                    volumes: [],
-                    fileVolumes: [],
-                    customParams: [],
-                    restartPolicy: POLICY_TYPES[0],
-                    imagePullPolicy: POLICY_TYPES[0],
-                },
-            ],
+            containers: [],
         },
     });
 

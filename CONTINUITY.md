@@ -1,35 +1,51 @@
 - Goal (incl. success criteria):
-  - Publish current Stack-related work via existing branch/PR lanes:
-    - Update `deeploy-dapp` draft PR #76 (`fix-dynamic-env` -> `develop`).
-    - Update `edge_node` draft PR #376 (`refactor-car-ports` -> `develop`).
-    - Push `ratio1-sc` only if there are relevant new SC changes.
-  - Success: requested repos are pushed to the intended heads and PR state is coherent without duplicates.
+  - Refactor Stack job flow so that:
+    - Step 1 contains stack identity + target node configuration.
+    - Step 3 contains container type/GPU selection and per-container deployment specs.
+    - Stack starts with zero containers and requires at least 2 containers before continuing.
+    - Stack step order is `Specifications -> Deployment -> Cost`.
 - Constraints/Assumptions:
-  - User explicitly requested continuity ledger workflow.
-  - Current collaboration mode is Plan Mode; execution must be planned before any mutating actions.
-  - Avoid duplicate PRs when a matching head PR already exists.
-  - Assumption chosen after user “Continue”: reuse existing PRs and avoid extra confirmation unless blocked.
+  - Keep changes scoped to `deeploy-dapp` and backwards-compatible where possible.
+  - Reuse existing UI patterns (native plugin add card, existing deployment sections).
 - Key decisions:
-  - Reuse existing open PRs (#76, #376, #71) rather than creating new ones.
-  - For `ratio1-sc`, push only if there are relevant unpushed commits/changes tied to this request.
+  - Keep `specifications.containers` as stack container metadata source, but edit it from Step 3.
+  - Enforce minimum 2 containers in deployment schema (`deployment.containers`).
+  - Keep non-Stack step order unchanged.
 - State:
-  - Decision-complete planning for publish sequence.
+  - Implementation completed and locally verified.
 - Done:
-  - Verified `deeploy-dapp` detached `HEAD` at `fb12067` (contained in `fix-dynamic-env`) with local modifications.
-  - Verified `edge_node` branch `refactor-car-ports` with local modifications.
-  - Verified `ratio1-sc` branch `codex/stack-batch-extend` with only local `README.md` modification.
-  - Verified GitHub auth active.
-  - Verified existing PRs and status:
-    - dapp PR #76 draft (base `develop`, head `fix-dynamic-env`)
-    - edge PR #376 draft (base `develop`, head `refactor-car-ports`)
-    - sc PR #71 open non-draft (base `develop`, head `codex/stack-batch-extend`)
+  - Updated Stack step order (create + draft edit) to `SPECIFICATIONS, DEPLOYMENT, COST_AND_DURATION`.
+  - Updated stack defaults to start with no containers.
+  - Moved Stack identity and target nodes card into Stack Step 1 (`StackSpecifications`).
+  - Moved container type/GPU selection into Stack Step 3 (`StackDeployment`) with add flow similar to native plugin add:
+    - select container type (+ optional GPU)
+    - choose Container App Runner or Worker App Runner when adding.
+  - Added container add/remove handling in Stack Step 3 and preserved dynamic env provider behavior.
+  - Updated validation:
+    - `specifications.containers` no longer min(1)
+    - `deployment.containers` now min(2).
+  - Updated stack preview step labels/order.
+  - Updated `SpecsNodesSection` so Stack target node count renders even when no containers exist, without stack minimal-balancing warnings.
+  - Verification executed:
+    - `npm run lint` ✅
+    - `npm run build` ✅
+    - Playwright screenshots captured ✅
+      - `.playwright/stack-flow-refactor-desktop.png`
+      - `.playwright/stack-flow-refactor-mobile.png`
 - Now:
-  - Provide execution-ready plan for commit/push/update across repos.
+  - Ready for user review / follow-up tweaks.
 - Next:
-  - Execute plan once out of Plan Mode.
+  - If approved, stage/commit/push and update PR.
 - Open questions (UNCONFIRMED if needed):
-  - UNCONFIRMED: include `ratio1-sc` README-only local change in PR #71 or leave SC untouched.
+  - None.
 - Working set (files/ids/commands):
-  - File: `CONTINUITY.md`
-  - PRs: dapp #76, edge #376, sc #71
-  - Commands used: `git status --short`, `gh pr view`, `gh auth status`
+  - Updated files:
+    - `src/components/create-job/JobFormWrapper.tsx`
+    - `src/components/draft/DraftEditFormWrapper.tsx`
+    - `src/components/create-job/steps/specifications/StackSpecifications.tsx`
+    - `src/components/create-job/steps/deployment/StackDeployment.tsx`
+    - `src/shared/jobs/SpecsNodesSection.tsx`
+    - `src/schemas/steps/specifications.ts`
+    - `src/schemas/steps/deployment.ts`
+    - `src/components/playwright/StackFlowPreview.tsx`
+    - `CONTINUITY.md`

@@ -469,7 +469,7 @@ const stackAppDeploymentSchemaWithoutRefinements = mainDeploymentSchema.extend({
     stackId: z.string().uuid().optional(),
     containers: z
         .array(stackContainerDeploymentSchema)
-        .min(1, 'At least one container is required')
+        .min(2, 'At least 2 containers are required')
         .max(5, 'Only 5 containers allowed')
         .superRefine((containers, ctx) => {
             const aliases = containers.map((container) => container.containerAlias?.trim()).filter((alias) => !!alias);

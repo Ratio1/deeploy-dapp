@@ -166,13 +166,13 @@ export default function StackFlowPreview() {
             </div>
 
             <div className="col gap-4">
-                <div className="text-lg font-semibold">Stack Step 2 - Cost</div>
-                <CostPreview />
+                <div className="text-lg font-semibold">Stack Step 2 - Deployment</div>
+                <DeploymentPreview />
             </div>
 
             <div className="col gap-4">
-                <div className="text-lg font-semibold">Stack Step 3 - Deployment</div>
-                <DeploymentPreview />
+                <div className="text-lg font-semibold">Stack Step 3 - Cost</div>
+                <CostPreview />
             </div>
 
             <div className="col gap-4">
