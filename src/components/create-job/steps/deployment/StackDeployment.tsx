@@ -255,15 +255,6 @@ export default function StackDeployment({ isEditingRunningJob }: { isEditingRunn
 
     return (
         <div className="col gap-6">
-            {!isEditingRunningJob && specContainers.length < 5 && (
-                <AddJobCard
-                    type="plugin"
-                    addLabel="Add Container"
-                    options={RUNNER_OPTIONS}
-                    customCallback={(option) => onAddContainer(option.pluginType)}
-                />
-            )}
-
             {!!rootContainersError && (
                 <DeeployErrorAlert
                     title="More Containers Required"
@@ -366,7 +357,7 @@ export default function StackDeployment({ isEditingRunningJob }: { isEditingRunn
                             <div className="col gap-4">
                                 <SelectContainerOrWorkerType
                                     name={`${specsName}.containerType`}
-                                    label={`Container ${index + 1} Type`}
+                                    label="Container Resources"
                                     options={genericContainerTypes}
                                     isDisabled={isEditingRunningJob}
                                 />
@@ -433,6 +424,15 @@ export default function StackDeployment({ isEditingRunningJob }: { isEditingRunn
                     </SlateCard>
                 );
             })}
+
+            {!isEditingRunningJob && specContainers.length < 5 && (
+                <AddJobCard
+                    type="plugin"
+                    addLabel="Add Container"
+                    options={RUNNER_OPTIONS}
+                    customCallback={(option) => onAddContainer(option.pluginType)}
+                />
+            )}
         </div>
     );
 }

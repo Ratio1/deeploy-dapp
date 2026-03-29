@@ -1,6 +1,7 @@
 import { DeploymentContextType, useDeploymentContext } from '@lib/contexts/deployment';
 import { applyWidthClasses } from '@lib/utils';
 import DraftJobsList from '@shared/jobs/drafts/DraftJobsList';
+import { SmallTag } from '@shared/SmallTag';
 import { JobType, StackDraftJob } from '@typedefs/deeploys';
 import { RiStackLine } from 'react-icons/ri';
 
@@ -26,6 +27,17 @@ export default function StackDraftJobsList({ jobs }: { jobs: StackDraftJob[] }) 
             jobs={jobs}
             renderJob={(job) => {
                 const stackJob = job as StackDraftJob;
+                const containerSummary = Array.from(
+                    stackJob.specifications.containers.reduce((acc, container) => {
+                        if (!container.containerType) {
+                            return acc;
+                        }
+                        acc.set(container.containerType, (acc.get(container.containerType) ?? 0) + 1);
+                        return acc;
+                    }, new Map<string, number>()),
+                )
+                    .map(([containerType, count]) => `${count}x ${containerType}`)
+                    .join(' ');
 
                 return (
                     <>
@@ -34,16 +46,15 @@ export default function StackDraftJobsList({ jobs }: { jobs: StackDraftJob[] }) 
                         </div>
 
                         <div className={widthClasses[1]}>
-                            {stackJob.costAndDuration.duration} month
-                            {stackJob.costAndDuration.duration > 1 ? 's' : ''}
+                            <SmallTag>
+                                {stackJob.costAndDuration.duration} month
+                                {stackJob.costAndDuration.duration > 1 ? 's' : ''}
+                            </SmallTag>
                         </div>
 
                         <div className={widthClasses[2]}>{stackJob.specifications.targetNodesCount}</div>
 
-                        <div className={widthClasses[3]}>
-                            {stackJob.specifications.containers.length} container
-                            {stackJob.specifications.containers.length > 1 ? 's' : ''}
-                        </div>
+                        <div className={widthClasses[3]}>{containerSummary || '-'}</div>
                     </>
                 );
             }}

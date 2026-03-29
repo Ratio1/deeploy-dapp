@@ -293,10 +293,6 @@ export default function PluginsSection() {
 
     return (
         <div className="col gap-6">
-            {fields.length < 5 && (
-                <AddJobCard type="plugin" options={OPTIONS} customCallback={(option) => onAddPlugin(option.pluginType)} />
-            )}
-
             {!!rootError && (
                 <DeeployErrorAlert title="Plugin Required" description="At least one plugin is required for deployment." />
             )}
@@ -381,6 +377,10 @@ export default function PluginsSection() {
             </div>
 
             <DependencyTreeView edges={depEdges} hasCycle={depHasCycle} />
+
+            {fields.length < 5 && (
+                <AddJobCard type="plugin" options={OPTIONS} customCallback={(option) => onAddPlugin(option.pluginType)} />
+            )}
         </div>
     );
 }

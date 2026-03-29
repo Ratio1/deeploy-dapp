@@ -29,6 +29,12 @@
   - Removed intermediate add-time container-spec panel in Stack deployment:
     - clicking `Container App Runner` / `Worker App Runner` now directly creates the container card
     - container type/GPU are selected only inside that container card.
+  - Updated Stack draft project summary row:
+    - duration rendered with `SmallTag`
+    - container column now uses grouped summary (e.g. `1x ENTRY 2x LOW1`) instead of `X containers`.
+  - Moved add actions to bottom:
+    - native `Add plugin` card now renders below existing plugin details
+    - stack `Add Container` card now renders below existing container details.
   - Verification executed:
     - `npm run lint` ✅
     - `npm run build` ✅
@@ -36,7 +42,7 @@
       - `.playwright/stack-flow-refactor-desktop.png`
       - `.playwright/stack-flow-refactor-mobile.png`
 - Now:
-  - Follow-up tweak implemented and verified locally; pending user confirmation for push.
+  - Latest UX tweaks implemented and verified locally; pending user confirmation for push.
 - Next:
   - If approved, stage/commit/push and update PR.
 - Open questions (UNCONFIRMED if needed):
